@@ -1,0 +1,28 @@
+{
+  "id": "swap-cream",
+  "modern_item": "cream",
+  "aliases": [
+    "malai",
+    "fresh cream",
+    "heavy cream",
+    "amul cream",
+    "मलाई",
+    "क्रीम",
+    "double cream"
+  ],
+  "options": [
+    {
+      "swap": "Thick curd, hung 30 minutes",
+      "ratio": "1/2 cup cream → 3/4 cup thick curd, hung in a cloth for 30 minutes. Take the pan off the heat before it goes in, and stir it through — added to a boiling gravy it will split.",
+      "taste_and_texture": "Tangier and lighter. It will not give you the flat, heavy richness cream does, and in a dish built entirely around that richness you will notice the absence.",
+      "nutritional_rationale": "More protein, substantially less saturated fat per serving. Comparative only."
+    },
+    {
+      "swap": "Soaked and ground kabuli chana paste",
+      "ratio": "1/2 cup cream → 1/3 cup kabuli chana, soaked overnight, boiled soft, ground smooth with a little of its water. Cook it into the gravy for five minutes.",
+      "taste_and_texture": "Gives body rather than richness — a rounder, slightly nutty gravy that coats the same way. It is closer to how a period gravy was actually thickened than cream is.",
+      "nutritional_rationale": "Protein and fibre both up; saturated fat well down."
+    }
+  ],
+  "where_it_went": "Restaurant kitchens standardised on cream because it is fast, stable and forgiving, and the home cook followed the restaurant. Ground pulses and nuts had done the thickening before it."
+}

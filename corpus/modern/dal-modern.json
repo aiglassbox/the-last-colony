@@ -1,0 +1,73 @@
+{
+  "id": "modern-dal-001",
+  "slug": "dal-modern",
+  "dish_name_modern": "Dal (as cooked today)",
+  "dish_name_source": null,
+  "aliases": [],
+  "share_verdict": null,
+  "tier": "modern",
+  "source": {
+    "text": "Contemporary household and commercial practice",
+    "author": null,
+    "century": "20th–21st CE",
+    "locus": null,
+    "edition": null,
+    "page": null
+  },
+  "original_text": null,
+  "transliteration": null,
+  "translation": null,
+  "ingredients": [
+    {
+      "name": "toor dal",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "1 cup",
+      "function": "one pulse where the text used seven"
+    },
+    {
+      "name": "turmeric and salt",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "to taste",
+      "function": "seasoning"
+    },
+    {
+      "name": "asafoetida powder, ginger, chilli",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "to taste",
+      "function": "chilli in place of pepper"
+    },
+    {
+      "name": "ghee or oil tadka",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "2 tbsp, poured over",
+      "function": "the defining modern gesture — the text used oil only to pre-fry vegetables"
+    }
+  ],
+  "method_reconstructed": [
+    "Pressure-cook the dal with turmeric, water added once.",
+    "Pour a tadka over the mashed dal."
+  ],
+  "provenance_class": "MODERN_DISH",
+  "confidence": {
+    "identification": 1,
+    "ingredients": 0.9,
+    "method": 0.9
+  },
+  "contested_points": [],
+  "modern_counterpart_id": null,
+  "substitution_story": null,
+  "restore_today": null,
+  "region": "Pan-Indian",
+  "season": null,
+  "vitalife_relevance": "none",
+  "verification": {
+    "status": "editor_verified",
+    "checked_by": "Vitalife editorial extraction — “Recipes: Before British”",
+    "checked_on": "2026-07-30",
+    "note": "Modern counterpart record. Describes current practice and makes no claim about any historical text, so there is nothing to verify against an edition."
+  }
+}

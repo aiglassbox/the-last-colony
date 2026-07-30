@@ -1,0 +1,26 @@
+{
+  "id": "swap-khoya",
+  "modern_item": "khoya",
+  "aliases": [
+    "mawa",
+    "khoa",
+    "milk solids",
+    "खोया",
+    "मावा"
+  ],
+  "options": [
+    {
+      "swap": "Drained acid-set curd (chhena), bound with rice flour",
+      "ratio": "1 cup khoya → curd drained from 1.5 litres of milk, kneaded with 2–3 tbsp rice flour. Split the milk with thin whey from yesterday's curd rather than lemon.",
+      "taste_and_texture": "Grainy-soft and faintly lactic instead of melting-soft. This is a real difference in the finished sweet, not a rounding error — the modern texture is the thing you are trading away.",
+      "nutritional_rationale": "More milk protein, less refined starch than a khoya-and-maida sweet."
+    },
+    {
+      "swap": "Milk reduced at home, with ground almond or cashew",
+      "ratio": "1 cup khoya → 1 litre full-fat milk reduced slowly, plus 2 tbsp ground nuts to bind.",
+      "taste_and_texture": "Closer to commercial khoya than chhena is, and it takes about 40 minutes of stirring.",
+      "nutritional_rationale": "Comparable on fat; this swap is about what is in it, not about reducing anything."
+    }
+  ],
+  "where_it_went": "Commercially reduced khoya and roller-milled maida became cheap and standard together, and the melting texture they give is now what the sweet is judged on."
+}

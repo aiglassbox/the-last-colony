@@ -1,0 +1,111 @@
+{
+  "id": "modern-gobi-manchurian-001",
+  "slug": "gobi-manchurian",
+  "dish_name_modern": "Gobi Manchurian",
+  "dish_name_source": null,
+  "aliases": [
+    "gobhi manchurian",
+    "cauliflower manchurian",
+    "गोभी मंचूरियन"
+  ],
+  "share_verdict": "A twentieth-century dish. We are not inventing it an ancestor.",
+  "tier": "modern",
+  "source": {
+    "text": "Indian-Chinese restaurant practice, Calcutta and after",
+    "author": null,
+    "century": "20th CE",
+    "locus": null,
+    "edition": null,
+    "page": null
+  },
+  "original_text": null,
+  "transliteration": null,
+  "translation": null,
+  "ingredients": [
+    {
+      "name": "cauliflower",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "1 head",
+      "function": "the substance. Cauliflower is a late arrival in Indian cooking, not a classical vegetable"
+    },
+    {
+      "name": "cornflour and refined flour",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "1/2 cup each",
+      "function": "the batter and the sauce thickener. Both are industrial-mill products"
+    },
+    {
+      "name": "soy sauce",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "3 tbsp",
+      "function": "salt and colour"
+    },
+    {
+      "name": "refined seed oil",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "for deep frying",
+      "function": "frying medium"
+    }
+  ],
+  "method_reconstructed": [
+    "Batter and deep-fry cauliflower florets.",
+    "Toss in a soy, garlic and chilli sauce thickened with cornflour."
+  ],
+  "provenance_class": "MODERN_DISH",
+  "confidence": {
+    "identification": 1,
+    "ingredients": 0.95,
+    "method": 0.9
+  },
+  "contested_points": [
+    "This is a 20th-century Indian-Chinese dish. It has no ancient original and inventing one would be a fabrication.",
+    "Its usual origin story places it with Calcutta's Chinese community; specific attributions vary."
+  ],
+  "modern_counterpart_id": null,
+  "substitution_story": {
+    "changed": [
+      {
+        "from": "no ancient original",
+        "to": "component-level restoration only",
+        "period": "n/a",
+        "driver": "the dish is modern by design; only its components are open to substitution"
+      }
+    ],
+    "nutrition_delta": {
+      "fibre": "up",
+      "protein": "up",
+      "fat_quality": "mixed"
+    }
+  },
+  "restore_today": {
+    "ingredients": [
+      "1 head cauliflower",
+      "1/2 cup chana flour (besan) and 1/4 cup rice flour — in place of refined flour and cornflour",
+      "1 tbsp rice flour slurry for the sauce, in place of cornflour",
+      "Cold-pressed groundnut or sesame oil for frying",
+      "Garlic, ginger, black pepper, a little jaggery, soy sauce"
+    ],
+    "steps": [
+      "Blanch the florets one minute so they do not need a long fry.",
+      "Batter in besan and rice flour — the besan browns better and adds protein and fibre the refined flour did not.",
+      "Shallow-fry rather than deep-fry, in a cold-pressed oil.",
+      "For the sauce, thicken with a rice flour slurry instead of cornflour. It sets softer and clearer.",
+      "Sweeten with a little jaggery instead of sugar.",
+      "Nobody should claim this makes the dish ancient. It makes it better on the fibre and protein axes, and that is the honest version of the claim."
+    ],
+    "time_min": 35
+  },
+  "region": "Indian-Chinese",
+  "season": null,
+  "vitalife_relevance": "high",
+  "verification": {
+    "status": "editor_verified",
+    "checked_by": "Editorial - no textual claim made",
+    "checked_on": "2026-07-30",
+    "note": "Classed MODERN_DISH. No ancient original is claimed and no locus is cited, so there is no citation to verify."
+  }
+}

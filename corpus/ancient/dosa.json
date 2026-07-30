@@ -1,0 +1,129 @@
+{
+  "id": "dhosaka-dosa-001",
+  "slug": "dosa",
+  "dish_name_modern": "Dosa",
+  "dish_name_source": "Dhosaka",
+  "aliases": [
+    "dosai",
+    "dhosa",
+    "dose",
+    "masala dosa",
+    "தோசை",
+    "डोसा"
+  ],
+  "share_verdict": "The first dosa had no rice in it at all.",
+  "tier": "ancient",
+  "source": {
+    "text": "Mānasollāsa",
+    "author": "Someśvara III",
+    "century": "1129 CE",
+    "locus": "Annabhoga (the food chapter)",
+    "edition": "Gaekwad's Oriental Series",
+    "page": null
+  },
+  "original_text": null,
+  "transliteration": null,
+  "translation": "A batter of split chickpea — or of black gram or cowpea — with asafoetida-water, salt and ginger, spread and cooked on an oiled griddle (tāpī).",
+  "ingredients": [
+    {
+      "name": "split chickpea",
+      "sanskrit": "caṇaka",
+      "quantity_source": null,
+      "quantity_modern": "2 cups, soaked and ground",
+      "function": "the batter. Urad or cowpea are given as alternatives — but not rice, which does not appear at all"
+    },
+    {
+      "name": "asafoetida water",
+      "sanskrit": "hiṅgu",
+      "quantity_source": null,
+      "quantity_modern": "1/4 tsp in water",
+      "function": "seasoning and digestive"
+    },
+    {
+      "name": "ginger",
+      "sanskrit": "ārdraka",
+      "quantity_source": null,
+      "quantity_modern": "1 inch",
+      "function": "aromatic"
+    },
+    {
+      "name": "rock salt",
+      "sanskrit": "saindhava",
+      "quantity_source": null,
+      "quantity_modern": "to taste",
+      "function": "seasoning"
+    },
+    {
+      "name": "oil",
+      "sanskrit": "taila",
+      "quantity_source": null,
+      "quantity_modern": "for the griddle",
+      "function": "the tāpī was oiled; the fat is part of the method, not an afterthought"
+    }
+  ],
+  "method_reconstructed": [
+    "Soak and grind the split chickpea to a batter.",
+    "Season with asafoetida water, salt and ginger.",
+    "Spread on an oiled griddle and cook through."
+  ],
+  "provenance_class": "ATTESTED",
+  "confidence": {
+    "identification": 0.85,
+    "ingredients": 0.85,
+    "method": 0.7
+  },
+  "contested_points": [
+    "Fermentation is not stated in the passage. The dense, unfermented reading is an inference from what the text does and does not say.",
+    "The nearest thing to this on a modern menu is not the dosa but the besan chilla or the adai — both of which are pulse batters with no rice.",
+    "The thin, crisp, potato-filled masala dosa is a 20th-century restaurant dish; potato is a Columbian-exchange arrival."
+  ],
+  "modern_counterpart_id": "modern-dosa-001",
+  "substitution_story": {
+    "changed": [
+      {
+        "from": "a pulse batter — chickpea, black gram or cowpea — with no rice",
+        "to": "roughly 75% polished rice with urad as the minority partner",
+        "period": "late colonial through post-Independence",
+        "driver": "polished rice was cheaper and more available than pulses, whose acreage had fallen as land moved toward export and cash crops"
+      },
+      {
+        "from": "asafoetida, ginger and salt seasoning the batter itself",
+        "to": "an unseasoned batter, sour from fermentation",
+        "period": "20th century",
+        "driver": "the flavour moved out of the batter and into the chutney and sambar served with it"
+      }
+    ],
+    "nutrition_delta": {
+      "protein": "down",
+      "fibre": "down",
+      "glycaemic_load": "up"
+    }
+  },
+  "restore_today": {
+    "ingredients": [
+      "2 cups split chickpea (chana dal), soaked 5 hours",
+      "1/4 tsp asafoetida in 2 tbsp water",
+      "1 inch ginger",
+      "Rock salt",
+      "Cold-pressed sesame or groundnut oil for the griddle"
+    ],
+    "steps": [
+      "Grind the soaked chana dal with enough water to make a pouring batter. No fermentation needed — this one is cooked fresh.",
+      "Stir in the asafoetida water, grated ginger and salt.",
+      "Spread on a hot, well-oiled tawa. It will not lace or go crisp the way a rice batter does.",
+      "Cook until the underside releases, then fold.",
+      "Dense, savoury, and tasting of gram and asafoetida. Closer to an adai than to the dosa you know — which is the point.",
+      "The griddle oil is doing real work here; a cold-pressed one is the last thing you taste."
+    ],
+    "time_min": 30
+  },
+  "region": "Deccan",
+  "season": null,
+  "vitalife_relevance": "medium",
+  "verification": {
+    "status": "editor_verified",
+    "checked_by": "Vitalife editorial extraction — “Recipes: Before British”",
+    "checked_on": "2026-07-30",
+    "note": "Passage located and rendered in the editorial extraction, dated 1129 CE. Devanagari not yet transcribed into this record."
+  }
+}

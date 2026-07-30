@@ -1,0 +1,137 @@
+{
+  "id": "kusmanda-tahiri-001",
+  "slug": "tahiri",
+  "dish_name_modern": "Tahiri",
+  "dish_name_source": "Kuṣmāṇḍa rice",
+  "aliases": [
+    "tahari",
+    "aloo tahari",
+    "mugauri tahiri",
+    "vegetable pulao",
+    "तहरी"
+  ],
+  "share_verdict": "Ash gourd held this dish together before the potato did.",
+  "tier": "ancient",
+  "source": {
+    "text": "Mānasollāsa",
+    "author": "Someśvara III",
+    "century": "1129 CE",
+    "locus": "Annabhoga — the rice and vegetable preparations",
+    "edition": "Gaekwad's Oriental Series",
+    "page": null
+  },
+  "original_text": null,
+  "transliteration": null,
+  "translation": null,
+  "ingredients": [
+    {
+      "name": "ash gourd",
+      "sanskrit": "kuṣmāṇḍa",
+      "quantity_source": null,
+      "quantity_modern": "2 cups, diced",
+      "function": "the main vegetable, indigenous to India — high in water, low in starch"
+    },
+    {
+      "name": "brinjal, bottle gourd, snake gourd, pumpkin, yam",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "seasonally",
+      "function": "the everyday vegetables of the period, all of which the potato later displaced"
+    },
+    {
+      "name": "rice",
+      "sanskrit": "taṇḍula",
+      "quantity_source": null,
+      "quantity_modern": "1 cup",
+      "function": "the grain, in a supporting rather than dominant role"
+    },
+    {
+      "name": "black pepper and ginger",
+      "sanskrit": "marica, ārdraka",
+      "quantity_source": null,
+      "quantity_modern": "1 tsp / 1 inch",
+      "function": "the heat, pre-chilli"
+    },
+    {
+      "name": "tamarind",
+      "sanskrit": "amlikā",
+      "quantity_source": null,
+      "quantity_modern": "regionally",
+      "function": "the souring agent"
+    },
+    {
+      "name": "sesame oil or ghee",
+      "sanskrit": "taila",
+      "quantity_source": null,
+      "quantity_modern": "2 tbsp",
+      "function": "the cooking fat"
+    }
+  ],
+  "method_reconstructed": [
+    "Fry the seasonal vegetables in sesame oil or ghee.",
+    "Add rice and water and cook together.",
+    "Season with cracked pepper and ginger; sour with tamarind where the region does so."
+  ],
+  "provenance_class": "RECONSTRUCTED",
+  "confidence": {
+    "identification": 0.7,
+    "ingredients": 0.75,
+    "method": 0.6
+  },
+  "contested_points": [
+    "The Mānasollāsa describes numerous rice-and-vegetable preparations rather than one dish called tahiri; mapping the modern name onto them is a convenience, not a continuity claim."
+  ],
+  "modern_counterpart_id": "modern-tahiri-001",
+  "substitution_story": {
+    "changed": [
+      {
+        "from": "ash gourd and other indigenous vegetables — brinjal, bottle gourd, snake gourd, pumpkin, yam",
+        "to": "potato as the primary bulk vegetable",
+        "period": "post-16th century",
+        "driver": "the potato arrived from the Americas and proved cheaper, more storable and more filling than the gourds and yams it replaced. It did not add a vegetable to the repertoire so much as take over the role several native ones had held"
+      },
+      {
+        "from": "tamarind as the sour, pepper and ginger as the heat",
+        "to": "tomato and/or curd, red and green chilli",
+        "period": "post-Columbian",
+        "driver": "both tomato and chilli are Columbian-exchange arrivals"
+      },
+      {
+        "from": "sesame oil or ghee",
+        "to": "refined vegetable oil",
+        "period": "mid-to-late 20th century",
+        "driver": "industrial refining"
+      }
+    ],
+    "nutrition_delta": {
+      "fibre": "down",
+      "glycaemic_load": "up"
+    }
+  },
+  "restore_today": {
+    "ingredients": [
+      "2 cups ash gourd (petha / kumbalanga), diced — or pumpkin, bottle gourd, yam",
+      "1 cup hand-pounded or single-polished rice",
+      "2 tbsp cold-pressed sesame oil",
+      "1 tsp black pepper, 1 inch ginger",
+      "Tamarind water, rock salt"
+    ],
+    "steps": [
+      "Fry the diced gourd in sesame oil until the edges colour.",
+      "Add the rinsed rice and two and a half cups of water.",
+      "Season with cracked pepper and ginger, and a little tamarind water.",
+      "Cover and cook until the rice is done and the gourd has collapsed into it.",
+      "Lighter and wetter than a potato tahiri, with more of the pot tasting of vegetable than of starch."
+    ],
+    "time_min": 40
+  },
+  "region": "Deccan / North India",
+  "season": null,
+  "vitalife_relevance": "high",
+  "verification": {
+    "status": "editor_verified",
+    "checked_by": "Vitalife editorial extraction — “Recipes: Before British”",
+    "checked_on": "2026-07-30",
+    "note": "Transcribed from the editorial extraction, which points at the Mānasollāsa's rice-and-vegetable preparations generally rather than a single passage. Classed RECONSTRUCTED for that reason."
+  }
+}

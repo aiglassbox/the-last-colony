@@ -1,0 +1,131 @@
+{
+  "id": "ksira-sweet-001",
+  "slug": "gulab-jamun",
+  "dish_name_modern": "Gulab jamun",
+  "dish_name_source": "Kṣīra sweet",
+  "aliases": [
+    "gulabjamun",
+    "gulab jaamun",
+    "chhena murki",
+    "गुलाब जामुन"
+  ],
+  "share_verdict": "Acid-set curd and rice flour. No khoya, no maida.",
+  "tier": "ancient",
+  "source": {
+    "text": "Mānasollāsa",
+    "author": "Someśvara III",
+    "century": "1129 CE",
+    "locus": "Annabhoga (the food chapter)",
+    "edition": "Gaekwad's Oriental Series",
+    "page": null
+  },
+  "original_text": null,
+  "transliteration": null,
+  "translation": "Milk split with takra-maṇḍa, the curd drained and bound with rice flour, shaped, fried in ghee and soaked in sugar syrup, scented with cardamom.",
+  "ingredients": [
+    {
+      "name": "milk, split with takra-maṇḍa",
+      "sanskrit": "kṣīra, takra-maṇḍa",
+      "quantity_source": null,
+      "quantity_modern": "2 litres",
+      "function": "takra-maṇḍa is the thin whey drawn off curd — a gentle coagulant. Modern kitchens use lemon juice, vinegar or citric acid, all of which are harsher and genuinely change the curd's texture"
+    },
+    {
+      "name": "rice flour",
+      "sanskrit": "taṇḍula-cūrṇa",
+      "quantity_source": null,
+      "quantity_modern": "1/4 cup",
+      "function": "the binder. Not maida, and not khoya"
+    },
+    {
+      "name": "ghee",
+      "sanskrit": "ghṛta",
+      "quantity_source": null,
+      "quantity_modern": "for frying",
+      "function": "the frying medium"
+    },
+    {
+      "name": "sugar syrup",
+      "sanskrit": "śarkarā",
+      "quantity_source": null,
+      "quantity_modern": "for soaking",
+      "function": "the soak"
+    },
+    {
+      "name": "cardamom",
+      "sanskrit": "elā",
+      "quantity_source": null,
+      "quantity_modern": "4 pods",
+      "function": "the only aromatic — no rose, no saffron"
+    }
+  ],
+  "method_reconstructed": [
+    "Split the milk with takra-maṇḍa, the thin whey from the previous day's curd.",
+    "Drain the curd and bind it with rice flour.",
+    "Shape, fry in ghee, and soak in cardamom sugar syrup."
+  ],
+  "provenance_class": "ATTESTED",
+  "confidence": {
+    "identification": 0.8,
+    "ingredients": 0.85,
+    "method": 0.8
+  },
+  "contested_points": [
+    "The coagulant is the ingredient worth actually testing: takra-maṇḍa gives a softer, grainier curd than lemon or vinegar, and the texture difference is real rather than nominal.",
+    "The result is grainy-soft and faintly lactic, not the melting-soft khoya jamun of today; chhena murki is arguably the closer living relative."
+  ],
+  "modern_counterpart_id": "modern-gulab-jamun-001",
+  "substitution_story": {
+    "changed": [
+      {
+        "from": "acid-set milk curd bound with rice flour",
+        "to": "khoya bound with maida",
+        "period": "colonial era onward",
+        "driver": "roller-milled refined flour and commercially reduced khoya both became cheap and standard, and they give the melting texture the modern sweet is judged on"
+      },
+      {
+        "from": "takra-maṇḍa (whey) as the coagulant",
+        "to": "lemon juice, vinegar or citric acid",
+        "period": "20th century",
+        "driver": "faster and more reliable, and available off a shelf — but harsher on the curd"
+      },
+      {
+        "from": "cardamom alone, eaten within the meal",
+        "to": "cardamom, rose and saffron, eaten as dessert",
+        "period": "Mughal era onward",
+        "driver": "rosewater and saffron entered the sweet repertoire, and the course moved to the end of the meal"
+      }
+    ],
+    "nutrition_delta": {
+      "protein": "up",
+      "glycaemic_load": "down",
+      "fibre": "unchanged"
+    }
+  },
+  "restore_today": {
+    "ingredients": [
+      "2 litres full-fat milk",
+      "1 cup thin whey from yesterday's curd (or well-diluted buttermilk) as the coagulant",
+      "1/4 cup rice flour",
+      "Ghee for frying",
+      "Sugar syrup with 4 cardamom pods — no rose, no saffron"
+    ],
+    "steps": [
+      "Heat the milk and split it with the whey rather than lemon. It curdles more slowly and the curd comes out softer.",
+      "Drain in a cloth, then knead with rice flour until it binds.",
+      "Shape small, fry gently in ghee — hot fat will crack them.",
+      "Soak in warm cardamom syrup.",
+      "Grainy-soft and faintly lactic rather than melting. Higher in milk protein and lower in refined starch than a khoya-and-maida jamun."
+    ],
+    "time_min": 70
+  },
+  "region": "Deccan",
+  "season": null,
+  "vitalife_relevance": "low",
+  "verification": {
+    "status": "editor_verified",
+    "checked_by": "Vitalife editorial extraction — “Recipes: Before British”",
+    "checked_on": "2026-07-30",
+    "note": "Passage located and rendered in the editorial extraction, dated 1129 CE, including the takra-maṇḍa coagulant note. Devanagari not yet transcribed into this record."
+  }
+}

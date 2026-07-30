@@ -1,0 +1,73 @@
+{
+  "id": "modern-dosa-001",
+  "slug": "dosa-modern",
+  "dish_name_modern": "Dosa (as cooked today)",
+  "dish_name_source": null,
+  "aliases": [],
+  "share_verdict": null,
+  "tier": "modern",
+  "source": {
+    "text": "Contemporary household and commercial practice",
+    "author": null,
+    "century": "20th–21st CE",
+    "locus": null,
+    "edition": null,
+    "page": null
+  },
+  "original_text": null,
+  "transliteration": null,
+  "translation": null,
+  "ingredients": [
+    {
+      "name": "polished parboiled rice",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "3 cups",
+      "function": "about 75% of the batter"
+    },
+    {
+      "name": "urad dal",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "1 cup",
+      "function": "fermentation and binding"
+    },
+    {
+      "name": "salt",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "to taste",
+      "function": "the only seasoning in the batter; the flavour moved to the chutney"
+    },
+    {
+      "name": "oil or ghee",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "for the griddle",
+      "function": "griddle fat"
+    }
+  ],
+  "method_reconstructed": [
+    "Ferment a rice-heavy batter 8–12 hours.",
+    "Spread very thin on a hot griddle and crisp."
+  ],
+  "provenance_class": "MODERN_DISH",
+  "confidence": {
+    "identification": 1,
+    "ingredients": 0.9,
+    "method": 0.9
+  },
+  "contested_points": [],
+  "modern_counterpart_id": null,
+  "substitution_story": null,
+  "restore_today": null,
+  "region": "Pan-Indian",
+  "season": null,
+  "vitalife_relevance": "none",
+  "verification": {
+    "status": "editor_verified",
+    "checked_by": "Vitalife editorial extraction — “Recipes: Before British”",
+    "checked_on": "2026-07-30",
+    "note": "Modern counterpart record. Describes current practice and makes no claim about any historical text, so there is nothing to verify against an edition."
+  }
+}

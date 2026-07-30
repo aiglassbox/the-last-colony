@@ -1,0 +1,29 @@
+{
+  "id": "swap-refined-oil",
+  "modern_item": "refined seed oil",
+  "aliases": [
+    "refined oil",
+    "sunflower oil",
+    "soybean oil",
+    "vegetable oil",
+    "cooking oil",
+    "rice bran oil",
+    "तेल",
+    "blended oil"
+  ],
+  "options": [
+    {
+      "swap": "The named cold-pressed oil of the region the dish comes from",
+      "ratio": "1:1. Mustard for the east and north, sesame (gingelly) for the south-east, coconut for the south-west, groundnut for the west.",
+      "taste_and_texture": "These oils taste of something, which is the point and also the problem — mustard oil in a south Indian tempering is simply wrong. Match the oil to the dish's region, not to a general rule.",
+      "nutritional_rationale": "Cold pressing keeps the fatty-acid profile and minor compounds that high-heat refining and deodorising strip. Comparable in calories — this is a fat-quality swap, not a fat-reduction one."
+    },
+    {
+      "swap": "Ghee",
+      "ratio": "1:1 for tempering and shallow frying. Poor choice for deep frying at volume on cost grounds.",
+      "taste_and_texture": "Richer, browns faster, will burn sooner than a refined oil.",
+      "nutritional_rationale": "Higher in saturated fat than a seed oil — better on flavour and heat stability, worse on that axis. Say both."
+    }
+  ],
+  "where_it_went": "Solvent extraction and refining from the mid-20th century produced a cheap, neutral, long-shelf-life oil with a high smoke point; the regional pressed oils became specialty goods."
+}

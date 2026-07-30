@@ -1,0 +1,19 @@
+{
+  "id": "swap-iodised-salt",
+  "modern_item": "iodised salt",
+  "aliases": [
+    "table salt",
+    "namak",
+    "नमक",
+    "iodized salt"
+  ],
+  "options": [
+    {
+      "swap": "Rock salt (sendha namak) — in fermented batters only",
+      "ratio": "1:1, added before fermentation.",
+      "taste_and_texture": "No real difference in taste; the batter simply rises more reliably.",
+      "nutritional_rationale": "This swap is about fermentation behaviour, not nutrition. Iodised salt is a public-health measure that works — do not swap it out across your whole kitchen on the strength of an idli batter."
+    }
+  ],
+  "where_it_went": "Universal salt iodisation was introduced deliberately to address iodine deficiency. It is one of the modern substitutions this project is not arguing against."
+}

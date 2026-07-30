@@ -1,0 +1,132 @@
+{
+  "id": "pepper-rasam-001",
+  "slug": "rasam",
+  "dish_name_modern": "Rasam",
+  "dish_name_source": "Pepper rasam",
+  "aliases": [
+    "saar",
+    "saaru",
+    "chaaru",
+    "pulusu",
+    "रसम",
+    "ரசம்"
+  ],
+  "share_verdict": "Rasam was pepper. The tomato and the chilli are both guests.",
+  "tier": "ancient",
+  "source": {
+    "text": "Pre-colonial South Indian household practice, as documented in regional culinary history",
+    "author": null,
+    "century": "Pre-16th CE",
+    "locus": null,
+    "edition": null,
+    "page": null
+  },
+  "original_text": null,
+  "transliteration": null,
+  "translation": null,
+  "ingredients": [
+    {
+      "name": "black pepper",
+      "sanskrit": "marica",
+      "quantity_source": null,
+      "quantity_modern": "1 tbsp, freshly crushed",
+      "function": "the heat and the point of the dish"
+    },
+    {
+      "name": "long pepper",
+      "sanskrit": "pippalī",
+      "quantity_source": null,
+      "quantity_modern": "1 tsp",
+      "function": "the other pepper — almost entirely gone from Indian kitchens today"
+    },
+    {
+      "name": "tamarind",
+      "sanskrit": "amlikā",
+      "quantity_source": null,
+      "quantity_modern": "a lime-sized ball",
+      "function": "the sour. There is no tomato in this dish"
+    },
+    {
+      "name": "freshly crushed spices",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "as needed",
+      "function": "ground for the pot, not bought as a blend"
+    },
+    {
+      "name": "sesame oil or ghee",
+      "sanskrit": "taila",
+      "quantity_source": null,
+      "quantity_modern": "1 tbsp",
+      "function": "the fat"
+    }
+  ],
+  "method_reconstructed": [
+    "Crush the peppers and spices fresh, on stone.",
+    "Extract tamarind water.",
+    "Temper in sesame oil or ghee and simmer."
+  ],
+  "provenance_class": "RECONSTRUCTED",
+  "confidence": {
+    "identification": 0.75,
+    "ingredients": 0.75,
+    "method": 0.55
+  },
+  "contested_points": [
+    "Long pepper (pippalī) is the ingredient most completely lost from this dish; it is not simply less common but effectively absent from everyday cooking.",
+    "The dish survives under several regional names — saar, saaru, chaaru, pulusu — which are not all the same preparation."
+  ],
+  "modern_counterpart_id": "modern-rasam-001",
+  "substitution_story": {
+    "changed": [
+      {
+        "from": "black pepper and long pepper as the heat",
+        "to": "black pepper plus red chilli, with long pepper rarely used at all",
+        "period": "post-Columbian",
+        "driver": "chilli arrived with Portuguese trade, grew easily and cost less than pepper"
+      },
+      {
+        "from": "tamarind alone as the sour",
+        "to": "tamarind plus tomato",
+        "period": "post-16th century",
+        "driver": "the tomato is a Columbian-exchange arrival and became a cheap, year-round souring and bulking agent"
+      },
+      {
+        "from": "spices crushed fresh on stone for each pot",
+        "to": "factory-ground rasam powder",
+        "period": "20th century",
+        "driver": "commercial spice blending made a consistent, shelf-stable powder cheaper than grinding"
+      }
+    ],
+    "nutrition_delta": {
+      "fat_quality": "mixed",
+      "fibre": "unchanged"
+    }
+  },
+  "restore_today": {
+    "ingredients": [
+      "1 tbsp black peppercorns and 1 tsp long pepper (pippali), crushed just before cooking",
+      "A lime-sized ball of tamarind, soaked",
+      "1 tbsp cold-pressed sesame oil",
+      "Cumin, curry leaf, rock salt",
+      "No tomato, no chilli"
+    ],
+    "steps": [
+      "Crush the peppercorns and long pepper coarsely. Doing this fresh is most of the difference.",
+      "Extract the tamarind in warm water and strain.",
+      "Temper cumin and curry leaf in sesame oil, pour in the tamarind water, and simmer until the raw edge goes.",
+      "Add the crushed pepper at the end so it stays aromatic.",
+      "Sharper and more resinous than a tomato rasam, and the heat sits at the back of the throat instead of the front of the tongue."
+    ],
+    "time_min": 25
+  },
+  "region": "South India",
+  "season": null,
+  "vitalife_relevance": "medium",
+  "verification": {
+    "status": "editor_verified",
+    "checked_by": "Vitalife editorial extraction — “Recipes: Before British”",
+    "checked_on": "2026-07-30",
+    "note": "Transcribed from the editorial extraction, which cites regional culinary history rather than a specific manuscript passage. Classed RECONSTRUCTED for that reason — no verse is claimed."
+  }
+}

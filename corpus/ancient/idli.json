@@ -1,0 +1,139 @@
+{
+  "id": "iddarika-idli-001",
+  "slug": "idli",
+  "dish_name_modern": "Idli",
+  "dish_name_source": "Iḍḍarikā",
+  "aliases": [
+    "idly",
+    "iddli",
+    "idlee",
+    "इडली",
+    "இட்லி"
+  ],
+  "share_verdict": "Your idli is a rice cake. It did not begin as one.",
+  "tier": "ancient",
+  "source": {
+    "text": "Mānasollāsa",
+    "author": "Someśvara III",
+    "century": "1129 CE",
+    "locus": "Annabhoga (the food chapter)",
+    "edition": "Gaekwad's Oriental Series",
+    "page": null
+  },
+  "original_text": null,
+  "transliteration": null,
+  "translation": "The split black gram, soaked … the husks [removed] by rubbing with the hands. Then, having ground [them] on the grinding-stone, mixed with seasonings, kneaded many times in a pot, he should set it aside from the hand. The soured black-gram paste he should put into vaṭikās. Covering with others [containing] valla-cores, he should cook it thoroughly. Taking it down, he should scatter powdered pepper on top. Smeared with ghee, he should fumigate it with asafoetida-and-ghee and with cumin. Well-cooled, white, smooth — these are the excellent iḍḍarikās.",
+  "ingredients": [
+    {
+      "name": "urad dal, split and dehusked",
+      "sanskrit": "māṣa",
+      "quantity_source": null,
+      "quantity_modern": "2 cups, soaked",
+      "function": "the entire batter. Zero rice — the ancient idli is 100% urad, which is why it was dense, soft and custardy rather than light and open"
+    },
+    {
+      "name": "asafoetida water",
+      "sanskrit": "hiṅgu",
+      "quantity_source": null,
+      "quantity_modern": "1/4 tsp in water",
+      "function": "seasoning and digestive, worked into the batter rather than sprinkled on"
+    },
+    {
+      "name": "ginger",
+      "sanskrit": "ārdraka",
+      "quantity_source": null,
+      "quantity_modern": "1 inch",
+      "function": "aromatic"
+    },
+    {
+      "name": "rock salt",
+      "sanskrit": "saindhava",
+      "quantity_source": null,
+      "quantity_modern": "to taste",
+      "function": "seasoning"
+    },
+    {
+      "name": "black pepper, powdered",
+      "sanskrit": "marica",
+      "quantity_source": null,
+      "quantity_modern": "1 tsp",
+      "function": "scattered over after cooking, not mixed in"
+    },
+    {
+      "name": "ghee",
+      "sanskrit": "ghṛta",
+      "quantity_source": null,
+      "quantity_modern": "2 tbsp",
+      "function": "smeared on the cooked cakes, then used with asafoetida and cumin to fumigate them"
+    }
+  ],
+  "method_reconstructed": [
+    "Soak split black gram and rub off the husks by hand.",
+    "Grind on the grinding-stone, mix in the seasonings, and knead many times in a pot.",
+    "Set it aside until the paste has soured — the text is explicit that it is soured before moulding.",
+    "Spoon into vaṭikā moulds, cover with other vessels, and cook through.",
+    "Take off the heat, scatter powdered pepper over, smear with ghee.",
+    "Fumigate with asafoetida-ghee and cumin. Serve well-cooled, white and smooth."
+  ],
+  "provenance_class": "ATTESTED",
+  "confidence": {
+    "identification": 0.9,
+    "ingredients": 0.9,
+    "method": 0.85
+  },
+  "contested_points": [
+    "The passage describes a soured urad paste, so the batter was fermented — but it says nothing about rice, and the modern 2:1 to 3:1 rice-to-urad batter has no basis in it.",
+    "The cakes were served cooled, not hot from the steamer."
+  ],
+  "modern_counterpart_id": "modern-idli-001",
+  "substitution_story": {
+    "changed": [
+      {
+        "from": "100% urad dal",
+        "to": "65–75% polished rice, with urad reduced to a fermenting agent",
+        "period": "late colonial through post-Independence",
+        "driver": "polished rice became the cheapest and most available grain in South Indian kitchens; mechanised milling made it keep, and post-Independence procurement and public distribution centred on rice and wheat"
+      },
+      {
+        "from": "pepper, asafoetida, ginger and cumin worked through the dish",
+        "to": "a plain, unseasoned batter with the flavour moved to the accompaniments",
+        "period": "20th century",
+        "driver": "the dish became a vehicle for sambar and chutney rather than a seasoned item in its own right"
+      }
+    ],
+    "nutrition_delta": {
+      "protein": "down",
+      "fibre": "down",
+      "glycaemic_load": "up",
+      "iron": "down"
+    }
+  },
+  "restore_today": {
+    "ingredients": [
+      "2 cups whole urad dal (gota urad), soaked 6 hours",
+      "1/4 tsp asafoetida dissolved in 2 tbsp water",
+      "1 inch ginger, finely grated",
+      "Rock salt",
+      "1 tsp black pepper, coarsely powdered",
+      "2 tbsp ghee, and a pinch of cumin"
+    ],
+    "steps": [
+      "Grind the soaked dal with as little cold water as you can manage, until white and fluffy.",
+      "Work in the asafoetida water, ginger and salt. Cover and leave 8–12 hours somewhere warm, until it smells sour.",
+      "Fill greased moulds three-quarters full, cover, and steam 12–14 minutes.",
+      "Scatter powdered pepper over, smear with ghee, and finish with cumin.",
+      "Let them cool before eating — the text is specific about that, and a cooled 100% urad cake is a different thing from a hot rice idli.",
+      "Denser and custardy, and it tastes of dal and pepper rather than of nothing."
+    ],
+    "time_min": 45
+  },
+  "region": "Deccan",
+  "season": null,
+  "vitalife_relevance": "none",
+  "verification": {
+    "status": "editor_verified",
+    "checked_by": "Vitalife editorial extraction — “Recipes: Before British”",
+    "checked_on": "2026-07-30",
+    "note": "Passage located and translated in the editorial extraction, dated 1129 CE. The Devanagari has not yet been transcribed into this record, so the source drawer shows the translation and says so."
+  }
+}

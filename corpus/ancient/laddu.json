@@ -1,0 +1,129 @@
+{
+  "id": "modaka-laddu-001",
+  "slug": "laddu",
+  "dish_name_modern": "Laddu",
+  "dish_name_source": "Modaka",
+  "aliases": [
+    "ladoo",
+    "laddoo",
+    "besan ladoo",
+    "motichoor",
+    "मोदक",
+    "लड्डू"
+  ],
+  "share_verdict": "Sesame and jaggery, once. Besan and syrup, now.",
+  "tier": "ancient",
+  "source": {
+    "text": "Modaka is described across the Sanskrit literature, including the Mānasollāsa",
+    "author": null,
+    "century": "Pre-12th CE, with the Mānasollāsa description 12th CE",
+    "locus": "Mānasollāsa, Adhyāya 13 (Annabhoga)",
+    "edition": "Gaekwad's Oriental Series",
+    "page": null
+  },
+  "original_text": null,
+  "transliteration": null,
+  "translation": null,
+  "ingredients": [
+    {
+      "name": "jaggery",
+      "sanskrit": "guḍa",
+      "quantity_source": null,
+      "quantity_modern": "1 cup, grated",
+      "function": "the sweetener and the binder; melted, it sets the ball as it cools"
+    },
+    {
+      "name": "fresh coconut",
+      "sanskrit": "nārikela",
+      "quantity_source": null,
+      "quantity_modern": "1 cup, grated",
+      "function": "bulk and fat"
+    },
+    {
+      "name": "sesame",
+      "sanskrit": "tila",
+      "quantity_source": null,
+      "quantity_modern": "1/2 cup, roasted",
+      "function": "fat, calcium and the toasty flavour; til-guḍ is one of the oldest sweet pairings on the subcontinent"
+    },
+    {
+      "name": "ghee",
+      "sanskrit": "ghṛta",
+      "quantity_source": null,
+      "quantity_modern": "2 tbsp",
+      "function": "carries the aromatics and stops the mix seizing"
+    },
+    {
+      "name": "cardamom",
+      "sanskrit": "elā",
+      "quantity_source": null,
+      "quantity_modern": "4 pods",
+      "function": "aromatic"
+    }
+  ],
+  "method_reconstructed": [
+    "Roast the sesame until it pops.",
+    "Melt the jaggery with a splash of water to a soft-ball consistency.",
+    "Stir in coconut, sesame and ghee off the flame.",
+    "Add crushed cardamom and roll into balls while warm."
+  ],
+  "provenance_class": "RECONSTRUCTED",
+  "confidence": {
+    "identification": 0.75,
+    "ingredients": 0.8,
+    "method": 0.6
+  },
+  "contested_points": [
+    "Modaka names both steamed dumplings and rolled sweet balls depending on the text and region; mapping it onto the modern laddu flattens a real distinction.",
+    "The besan (gram flour) laddu that most people picture is a later development and depends on finely milled gram flour."
+  ],
+  "modern_counterpart_id": "modern-laddu-001",
+  "substitution_story": {
+    "changed": [
+      {
+        "from": "jaggery",
+        "to": "refined white sugar, and in commercial sweets, sugar syrup",
+        "period": "colonial era onward",
+        "driver": "industrial refining made white sugar cheaper and more uniform than jaggery, and it became the aspirational choice"
+      },
+      {
+        "from": "coconut, sesame and whole-grain flours",
+        "to": "finely milled besan and refined flour",
+        "period": "20th century",
+        "driver": "roller and plate milling; a fine flour gives the smooth commercial texture people now expect"
+      }
+    ],
+    "nutrition_delta": {
+      "iron": "down",
+      "calcium": "down",
+      "fibre": "down",
+      "glycaemic_load": "up"
+    }
+  },
+  "restore_today": {
+    "ingredients": [
+      "1 cup grated jaggery, or palm jaggery",
+      "1 cup grated fresh coconut",
+      "1/2 cup sesame seeds",
+      "2 tbsp ghee",
+      "4 cardamom pods, crushed"
+    ],
+    "steps": [
+      "Dry-roast the sesame until it pops, then set aside.",
+      "Melt the jaggery with two tablespoons of water. Cook until a drop set in cold water forms a soft ball.",
+      "Off the heat, stir in coconut, sesame and ghee.",
+      "Add cardamom. Roll while warm — it will not roll once cold.",
+      "Darker, coarser and less sweet than a shop laddu, and it tastes of sesame."
+    ],
+    "time_min": 30
+  },
+  "region": "Pan-Indian",
+  "season": null,
+  "vitalife_relevance": "low",
+  "verification": {
+    "status": "unverified_seed",
+    "checked_by": null,
+    "checked_on": null,
+    "note": "Seed record. Composite description; not yet checked against a printed edition, so no verse number or page is claimed."
+  }
+}

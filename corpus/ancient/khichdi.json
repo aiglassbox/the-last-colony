@@ -1,0 +1,146 @@
+{
+  "id": "krsara-khichdi-001",
+  "slug": "khichdi",
+  "dish_name_modern": "Khichdi",
+  "dish_name_source": "Kṛsara",
+  "aliases": [
+    "khichadi",
+    "khichri",
+    "kichdi",
+    "khichuri",
+    "pongal",
+    "खिचड़ी"
+  ],
+  "share_verdict": "Half pulse, half grain. Now it is rice with a rumour of dal.",
+  "tier": "ancient",
+  "source": {
+    "text": "Kṛsara is described across the Sanskrit culinary and medical literature, including the Mānasollāsa",
+    "author": null,
+    "century": "Pre-12th CE, with the Mānasollāsa description 12th CE",
+    "locus": "Mānasollāsa, Adhyāya 13 (Annabhoga)",
+    "edition": "Gaekwad's Oriental Series",
+    "page": null
+  },
+  "original_text": null,
+  "transliteration": null,
+  "translation": null,
+  "ingredients": [
+    {
+      "name": "mung dal, split",
+      "sanskrit": "mudga",
+      "quantity_source": null,
+      "quantity_modern": "1 cup",
+      "function": "the protein half of the dish, and the reason kṛsara is prescribed to the convalescent — mudga is the pulse the medical texts treat as lightest"
+    },
+    {
+      "name": "hand-pounded rice",
+      "sanskrit": "taṇḍula",
+      "quantity_source": null,
+      "quantity_modern": "1 cup",
+      "function": "the starch half. Hand-pounding leaves most of the bran on, so it cooks slower and holds together"
+    },
+    {
+      "name": "sesame",
+      "sanskrit": "tila",
+      "quantity_source": null,
+      "quantity_modern": "2 tbsp, or sesame oil for the tempering",
+      "function": "the fat, and a substantial part of the calcium and iron. Tila is what kṛsara is named around in several descriptions"
+    },
+    {
+      "name": "ginger",
+      "sanskrit": "ārdraka",
+      "quantity_source": null,
+      "quantity_modern": "1 inch, grated",
+      "function": "digestive; standard with heavy pulse dishes"
+    },
+    {
+      "name": "black pepper",
+      "sanskrit": "marica",
+      "quantity_source": null,
+      "quantity_modern": "1 tsp",
+      "function": "the heat, pre-chilli"
+    },
+    {
+      "name": "rock salt",
+      "sanskrit": "saindhava",
+      "quantity_source": null,
+      "quantity_modern": "to taste",
+      "function": "seasoning"
+    }
+  ],
+  "method_reconstructed": [
+    "Dry-roast the mung dal in an earthen pot until it smells nutty.",
+    "Wash the rice; combine dal and rice roughly one to one.",
+    "Boil with several times the volume of water until both collapse into each other.",
+    "Temper sesame, ginger and cracked pepper in sesame oil or ghee and stir through.",
+    "Finish with rock salt."
+  ],
+  "provenance_class": "RECONSTRUCTED",
+  "confidence": {
+    "identification": 0.85,
+    "ingredients": 0.8,
+    "method": 0.6
+  },
+  "contested_points": [
+    "Kṛsara is described in more than one text and the proportions differ between them; the one-to-one ratio here is a reasonable middle, not a quoted figure.",
+    "Whether sesame or the pulse is the defining ingredient depends on which description you follow."
+  ],
+  "modern_counterpart_id": "modern-khichdi-001",
+  "substitution_story": {
+    "changed": [
+      {
+        "from": "roughly equal parts pulse and rice",
+        "to": "rice-dominant, with a token quantity of dal",
+        "period": "colonial era onward",
+        "driver": "pulse acreage fell as land moved toward export and cash crops, and pulses became the expensive ingredient on the plate rather than the cheap one"
+      },
+      {
+        "from": "hand-pounded rice",
+        "to": "polished white rice",
+        "period": "late 19th century onward",
+        "driver": "mechanised rice milling stripped bran and germ at scale, and polished rice stored and shipped better"
+      },
+      {
+        "from": "sesame or another regional cold-pressed fat",
+        "to": "refined seed oil",
+        "period": "mid-to-late 20th century",
+        "driver": "industrial solvent extraction and refining made a cheap, neutral, long-shelf-life oil available everywhere"
+      }
+    ],
+    "nutrition_delta": {
+      "protein": "down",
+      "fibre": "down",
+      "glycaemic_load": "up",
+      "calcium": "down",
+      "fat_quality": "mixed"
+    }
+  },
+  "restore_today": {
+    "ingredients": [
+      "1 cup split mung dal",
+      "1 cup hand-pounded or single-polished rice (any kirana that sells 'hand pounded' or red rice)",
+      "2 tbsp cold-pressed sesame oil",
+      "1 inch ginger, grated",
+      "1 tsp black pepper, cracked",
+      "1 tbsp sesame seeds",
+      "Rock salt"
+    ],
+    "steps": [
+      "Dry-roast the dal in the pot until it smells nutty. This is the step people skip and it is the one that makes the difference.",
+      "Add rinsed rice and five cups of water. Simmer covered 25 minutes until it is soft enough to eat with a spoon and not a fork.",
+      "Heat the sesame oil, crackle the sesame seeds, add ginger and pepper, pour it in.",
+      "Salt at the end.",
+      "A cold-pressed fat with a real flavour is doing work here — the tempering is most of the taste. This is where a named oil matters."
+    ],
+    "time_min": 45
+  },
+  "region": "Pan-Indian",
+  "season": null,
+  "vitalife_relevance": "high",
+  "verification": {
+    "status": "unverified_seed",
+    "checked_by": null,
+    "checked_on": null,
+    "note": "Seed record. Kṛsara appears in several texts and the composite description here has not been checked against any single printed edition, so no verse number or page is claimed."
+  }
+}

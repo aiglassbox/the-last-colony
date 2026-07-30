@@ -1,0 +1,26 @@
+{
+  "id": "swap-rava",
+  "modern_item": "rava",
+  "aliases": [
+    "semolina",
+    "sooji",
+    "suji",
+    "रवा",
+    "सूजी"
+  ],
+  "options": [
+    {
+      "swap": "Millet rava (broken foxtail or barnyard millet)",
+      "ratio": "1 cup rava → 1 cup millet rava, but 3 cups water instead of 2, and a longer dry roast.",
+      "taste_and_texture": "Nuttier, holds its shape, will not go to the soft paste rava gives. Some people read that as dry.",
+      "nutritional_rationale": "Fibre and iron up, glycaemic load down."
+    },
+    {
+      "swap": "Cracked whole wheat (dalia / lapsi)",
+      "ratio": "1:1, with 2.5 parts water and 5 minutes more cooking.",
+      "taste_and_texture": "Chewier and heavier. Closer to rava than millet is, so it is the easier first step.",
+      "nutritional_rationale": "Fibre up; keeps the germ that the semolina mill removes."
+    }
+  ],
+  "where_it_went": "Rava is a roller-mill product — coarse endosperm separated from bran and germ. It became universal because industrial milling made it cheap and it cooks in four minutes."
+}

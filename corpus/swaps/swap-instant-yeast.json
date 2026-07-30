@@ -1,0 +1,25 @@
+{
+  "id": "swap-instant-yeast",
+  "modern_item": "instant yeast",
+  "aliases": [
+    "dry yeast",
+    "active dry yeast",
+    "baking yeast",
+    "यीस्ट"
+  ],
+  "options": [
+    {
+      "swap": "Wild fermentation — the batter or dough's own yeasts and bacteria",
+      "ratio": "No 1:1. Replace 2 tsp yeast with 8–12 hours at 28–32°C, or a 1/4 cup mature starter.",
+      "taste_and_texture": "Sourer, more complex, and much less predictable. It will fail on a cold night. That is the trade.",
+      "nutritional_rationale": "Long fermentation breaks down phytates, which improves mineral availability from the grain. Slower is doing the work, not the organism."
+    },
+    {
+      "swap": "Curd or buttermilk as a starter",
+      "ratio": "2 tbsp thick curd per cup of batter, left 6–8 hours warm.",
+      "taste_and_texture": "Reliably tangy, faster than a pure wild ferment, less lift.",
+      "nutritional_rationale": "Same phytate-reduction benefit at a shorter fermentation."
+    }
+  ],
+  "where_it_went": "Commercial yeast made leavening fast and repeatable, which is exactly what bakeries and packaged bread needed; the ambient overnight ferment became a weekend project."
+}
