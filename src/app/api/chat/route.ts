@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import { track } from "@/lib/analytics";
+import { parseCommand } from "@/lib/chat/commands";
 import { fileCorpus } from "@/lib/corpus/load";
 import type { CorpusRecord } from "@/lib/corpus/types";
 import { BeatParser } from "@/lib/model/beats";
@@ -61,11 +62,18 @@ export async function POST(request: NextRequest) {
   const slug = (body.slug ?? "").trim();
   const history = (body.messages ?? []).filter((m) => m.content?.trim());
   const latest = [...history].reverse().find((m) => m.role === "user");
-  const query = (latest?.content ?? "").trim();
+  const raw = (latest?.content ?? "").trim();
 
-  if (!query && !slug) {
+  if (!raw && !slug) {
     return Response.json({ error: "a user message or slug is required" }, { status: 400 });
   }
+
+  // A leading slash command is a directive, not part of the dish name — it is
+  // stripped before retrieval sees the text. Parsed here rather than trusted
+  // from a request field, so typing `/oil-match dosa` by hand behaves exactly
+  // like tapping the pill.
+  const { command, rest } = parseCommand(raw);
+  const query = rest;
 
   const retrieval = slug ? await retrieveBySlug(slug) : await retrieveForDish(query);
 
@@ -92,6 +100,7 @@ export async function POST(request: NextRequest) {
     query: label,
     mode,
     via: slug ? "slug" : "search",
+    command: command?.slug ?? null,
     provider: provider?.vendor ?? "none",
   });
   if (mode === "restoration") {
@@ -149,7 +158,7 @@ export async function POST(request: NextRequest) {
         // restoration is built on real ratios rather than invented ones.
         const swapBlock = records.length ? "" : `\n\n${renderComponentSwaps(await fileCorpus.swaps())}`;
 
-        const instruction =
+        const turn =
           mode === "restoration"
             ? records.length
               ? "This is a RESTORATION turn. Emit the four §markers§."
@@ -159,6 +168,10 @@ export async function POST(request: NextRequest) {
             : "This is a CONVERSATION turn. Plain prose, no markers. The records " +
               "above are the dish already on screen; answer the question asked.";
 
+        // The command narrows what the turn emphasises. It never relaxes the
+        // corpus rules above it, and it never changes which turn kind this is.
+        const instruction = command ? `${turn}\n\n${command.instruction}` : turn;
+
         const textStream = provider.streamText(
           {
             system: SYSTEM_PROMPT,
@@ -167,7 +180,9 @@ export async function POST(request: NextRequest) {
               ...prior,
               {
                 role: "user" as const,
-                content: `${renderCorpusBlock(records)}${swapBlock}\n\n${instruction}\n\nUser said: ${label}`,
+                content: `${renderCorpusBlock(records)}${swapBlock}\n\n${instruction}\n\nUser said: ${
+                  label || "(nothing beyond the request above — answer for the dish already on screen)"
+                }`,
               },
             ],
           },
