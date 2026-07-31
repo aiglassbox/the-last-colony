@@ -24,6 +24,8 @@ import { SourceDrawer } from "./SourceDrawer";
 export interface CardData {
   records: CorpusRecord[];
   empty: boolean;
+  /** True when the empty card is a modern dish (not a corpus gap) — reframes the note. */
+  modern?: boolean;
   beats: Partial<Record<string, string>>;
   streaming: boolean;
 }
@@ -76,8 +78,9 @@ export function RestorationCard({ data }: { data: CardData }) {
               color: "var(--ink-soft)",
             }}
           >
-            Not in the restored corpus yet. Nothing below is drawn from a text, because
-            there is no text here to draw from.
+            {data.modern
+              ? "A modern dish — no ancient original. What follows is its short history and a lighter version built on older principles, not drawn from a specific text."
+              : "Not in the restored corpus yet. Nothing below is drawn from a text, because there is no text here to draw from."}
           </p>
         )}
       </div>

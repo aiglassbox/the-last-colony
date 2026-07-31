@@ -27,6 +27,8 @@ export interface ChatMessage {
   records?: CorpusRecord[];
   beats?: Partial<Record<string, string>>;
   empty?: boolean;
+  /** An empty restoration that is a modern dish, not a corpus gap — reframes the card. */
+  modern?: boolean;
   streaming?: boolean;
   error?: string;
 }

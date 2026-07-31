@@ -49,6 +49,7 @@ interface StreamEvent {
   mode?: "restoration" | "conversation" | "indianize";
   records?: CorpusRecord[];
   empty?: boolean;
+  modern?: boolean;
   beat?: string;
   text?: string;
   message?: string;
@@ -199,6 +200,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                 mode: evt.mode ?? "restoration",
                 records,
                 empty: Boolean(evt.empty),
+                modern: Boolean(evt.modern),
               }));
               if (records.length) {
                 patchConversation(conversationId, (c) => ({

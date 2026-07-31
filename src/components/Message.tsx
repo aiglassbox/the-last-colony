@@ -32,6 +32,7 @@ export function Message({ message }: { message: ChatMessage }) {
           data={{
             records: message.records ?? [],
             empty: Boolean(message.empty),
+            modern: Boolean(message.modern),
             beats: message.beats ?? {},
             streaming: Boolean(message.streaming),
           }}

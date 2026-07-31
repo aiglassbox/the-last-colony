@@ -41,7 +41,7 @@ interface ChatRequest {
 }
 
 type Mode = "restoration" | "conversation" | "indianize";
-type Resolved = "indianise" | "restore" | "reply";
+type Resolved = "indianise" | "modern" | "restore" | "reply";
 
 function encodeEvent(obj: unknown): Uint8Array {
   return new TextEncoder().encode(JSON.stringify(obj) + "\n");
@@ -49,9 +49,10 @@ function encodeEvent(obj: unknown): Uint8Array {
 
 /** The mode the model declared on its first line; defaults safe if it didn't. */
 function parseResolved(head: string): Resolved {
-  const m = /MODE:\s*(INDIANISE|RESTORE|REPLY)/i.exec(head);
+  const m = /MODE:\s*(INDIANISE|MODERN|RESTORE|REPLY)/i.exec(head);
   const word = m?.[1].toUpperCase();
   if (word === "INDIANISE") return "indianise";
+  if (word === "MODERN") return "modern";
   if (word === "REPLY") return "reply";
   return "restore";
 }
@@ -204,17 +205,26 @@ export async function POST(request: NextRequest) {
             `${onScreen}\n\n${renderComponentSwaps(await fileCorpus.swaps())}\n\n` +
             `${renderIndianizationBlock()}\n\n` +
             "This message is not in the restored corpus. Put the mode on the FIRST " +
-            "line, exactly one of: MODE: REPLY | MODE: INDIANISE | MODE: RESTORE, then " +
-            "the reply on the following lines.\n" +
+            "line, exactly one of: MODE: REPLY | MODE: INDIANISE | MODE: MODERN | " +
+            "MODE: RESTORE, then the reply on the following lines.\n" +
             "- MODE: REPLY — a follow-up about the dish in <on_screen>; then plain " +
             "prose, no markers. Never choose REPLY when <on_screen> is none.\n" +
             "- MODE: INDIANISE — the user named a dish that is NOT Indian in origin " +
             "(pizza, pasta, sushi, ice cream, ramen, a burger, and the like); then the " +
             "four §VERDICT§ §REBUILD§ §SWAPS§ §PLATE§ markers from the INDIANISATION " +
             "TURNS section, built from the <indianization_map>.\n" +
-            "- MODE: RESTORE — the user named an Indian dish that is simply not in our " +
-            "corpus yet; then the four §VERDICT§ §THEN§ §WHAT_CHANGED§ §RESTORE_TODAY§ " +
-            "markers with no record, doing COMPONENT RESTORATION from <component_swaps>.\n\n" +
+            "- MODE: MODERN — the user named a MODERN Indian dish that has no ancient " +
+            "original (biryani, butter chicken, pav bhaji, gobi manchurian, samosa, most " +
+            "restaurant food, anything defined by potato, tomato, chilli or cauliflower). " +
+            "Then the four §VERDICT§ §THEN§ §WHAT_CHANGED§ §RESTORE_TODAY§ markers: " +
+            "§VERDICT§ states plainly it is a modern dish, not ancient; §THEN§ gives its " +
+            "short honest history and names which defining ingredients are Columbian-" +
+            "exchange arrivals; §WHAT_CHANGED§ the nutrition shift on a named axis; " +
+            "§RESTORE_TODAY§ a healthier version built from <component_swaps> and older " +
+            "cooking principles. Do not invent an ancient text or verse.\n" +
+            "- MODE: RESTORE — an Indian dish that likely had an older form we simply " +
+            "have not documented yet (not obviously modern); then the same four markers, " +
+            "framed as a corpus gap, doing COMPONENT RESTORATION from <component_swaps>.\n\n" +
             `User said: ${label}`;
 
           const iter = call(resolvePrompt)[Symbol.asyncIterator]();
@@ -240,16 +250,21 @@ export async function POST(request: NextRequest) {
                 ? "conversation"
                 : "restoration";
           const outRecords = resolved === "reply" ? carried : [];
+          // MODERN and RESTORE both render as an empty restoration card; the only
+          // difference the reader sees is the framing — a modern dish is stated
+          // as modern, a gap is stated as not-yet-documented.
+          const restorationLike = resolved === "modern" || resolved === "restore";
 
           emit({
             type: "meta",
             mode,
-            empty: resolved === "restore",
+            empty: restorationLike,
+            modern: resolved === "modern",
             top_score: retrieval.top_score,
             records: outRecords,
           });
           // A genuine Indian-dish gap goes to the corpus-roadmap log; foreign
-          // dishes and follow-ups are not gaps to fill, so they log separately.
+          // dishes, modern dishes and follow-ups are not gaps to fill.
           track(resolved === "restore" ? "no_original_found" : "turn_resolved", {
             query: label,
             resolved,
@@ -259,7 +274,7 @@ export async function POST(request: NextRequest) {
           const parser: StreamingParser | null =
             resolved === "indianise"
               ? new MarkerParser(INDIANIZE_BEATS)
-              : resolved === "restore"
+              : restorationLike
                 ? new BeatParser()
                 : null;
           auditRecords = outRecords;
