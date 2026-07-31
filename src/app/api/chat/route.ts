@@ -3,28 +3,26 @@ import type { NextRequest } from "next/server";
 import { track } from "@/lib/analytics";
 import { fileCorpus } from "@/lib/corpus/load";
 import type { CorpusRecord } from "@/lib/corpus/types";
+import { renderIndianizationBlock } from "@/lib/indianization";
 import { BeatParser, INDIANIZE_BEATS, MarkerParser, type StreamingParser } from "@/lib/model/beats";
-import { renderComponentSwaps, renderCorpusBlock } from "@/lib/model/corpus-block";
+import { renderComponentSwaps, renderCorpusBlock, renderRecord } from "@/lib/model/corpus-block";
 import { auditProse, isClean } from "@/lib/model/guards";
 import { activeProvider, asQuotaError, MAX_TOKENS, RefusalError } from "@/lib/model/provider";
 import { SYSTEM_PROMPT } from "@/lib/model/system-prompt";
 import { retrieveBySlug, retrieveForDish } from "@/lib/retrieval/retrieve";
-import { isForeignDish, renderIndianizationBlock } from "@/lib/indianization";
 
 /**
  * The conversation endpoint.
  *
- * A turn is one of two kinds, and the server decides which:
+ * Retrieval still owns the deterministic half: when BM25 finds a corpus dish,
+ * the turn is a RESTORATION, full stop — precise, gated, no model in the loop.
  *
- *   RESTORATION — the latest message names a dish retrieval can find. Renders
- *                 as a card; the model fills four marked beats.
- *   CONVERSATION — everything else, with the records from the dish already on
- *                 screen carried forward. Plain prose.
- *
- * Choosing server-side rather than asking the model to classify keeps the
- * decision in the same place as the threshold and ambiguity gates. "What about
- * the oil?" and "actually, dosa" are different turns because retrieval says so,
- * not because a classifier guessed.
+ * The open-ended half is the one retrieval cannot answer with a name list:
+ * when nothing matches, is this a follow-up about the dish on screen, a foreign
+ * dish to Indianise, or an Indian dish simply not in the corpus yet? That is a
+ * world-knowledge question, so on a corpus MISS the model decides — it declares
+ * the mode on its first line and we route the rest of the stream accordingly.
+ * The corpus-hit path never consults the model, so its precision is untouched.
  */
 
 export const dynamic = "force-dynamic";
@@ -43,9 +41,19 @@ interface ChatRequest {
 }
 
 type Mode = "restoration" | "conversation" | "indianize";
+type Resolved = "indianise" | "restore" | "reply";
 
 function encodeEvent(obj: unknown): Uint8Array {
   return new TextEncoder().encode(JSON.stringify(obj) + "\n");
+}
+
+/** The mode the model declared on its first line; defaults safe if it didn't. */
+function parseResolved(head: string): Resolved {
+  const m = /MODE:\s*(INDIANISE|RESTORE|REPLY)/i.exec(head);
+  const word = m?.[1].toUpperCase();
+  if (word === "INDIANISE") return "indianise";
+  if (word === "REPLY") return "reply";
+  return "restore";
 }
 
 /** Prior turns, replayed as plain text. Long threads are trimmed from the front. */
@@ -69,84 +77,66 @@ export async function POST(request: NextRequest) {
   }
 
   const retrieval = slug ? await retrieveBySlug(slug) : await retrieveForDish(query);
-
-  // Carry the current dish forward when the new message names no dish of its
-  // own. That is what makes "how long do I ferment it?" answerable.
-  let mode: Mode = "restoration";
-  let records: CorpusRecord[] = retrieval.records;
-
-  if (retrieval.empty && !slug) {
-    const carried = (
-      await Promise.all((body.activeRecordIds ?? []).map((id) => fileCorpus.byId(id)))
-    ).filter((r): r is CorpusRecord => Boolean(r));
-
-    if (carried.length) {
-      mode = "conversation";
-      records = carried;
-    }
-  }
-
-  // A dish that is not Indian at all — no ancient original to restore and no
-  // Indian dish to component-restore. Tier 3: rebuild it from the Indianisation
-  // map instead. Conservative by design; an unknown Indian dish never lands here.
-  if (mode === "restoration" && retrieval.empty && !slug && isForeignDish(query)) {
-    mode = "indianize";
-  }
-
+  const isResolve = retrieval.empty && !slug;
   const label = slug || query;
   const provider = activeProvider();
 
   track("dish_queried", {
     query: label,
-    mode,
     via: slug ? "slug" : "search",
+    hit: !retrieval.empty,
     provider: provider?.vendor ?? "none",
   });
-  if (mode === "restoration") {
-    if (retrieval.empty) {
-      track("no_original_found", { query: label, top_score: retrieval.top_score });
-    } else {
-      track("dish_restored", {
-        query: label,
-        slug: retrieval.records[0].slug,
-        provenance: retrieval.records[0].provenance_class,
-        score: retrieval.top_score,
-      });
-    }
-  }
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
-      controller.enqueue(
-        encodeEvent({
-          type: "meta",
-          mode,
-          empty: mode === "restoration" && retrieval.empty,
-          top_score: retrieval.top_score,
-          // A conversation turn re-sends the same records rather than none, so
-          // a reloaded thread can still resolve which dish it was about.
-          records,
-        }),
-      );
+      const emit = (obj: unknown) => controller.enqueue(encodeEvent(obj));
 
       // The record half of a card owes nothing to the model, so a missing key
       // costs the prose and not the card.
       if (!provider) {
-        controller.enqueue(
-          encodeEvent({
-            type: "error",
-            message:
-              "No model key is set (GEMINI_API_KEY or ANTHROPIC_API_KEY), so there " +
-              "is no written reply. Anything rendered from the corpus is unaffected.",
-          }),
-        );
-        controller.enqueue(encodeEvent({ type: "done" }));
+        // Without a model a corpus miss cannot be resolved, so it shows as an
+        // empty restoration rather than guessing a turn type.
+        emit({
+          type: "meta",
+          mode: "restoration",
+          empty: retrieval.empty,
+          top_score: retrieval.top_score,
+          records: retrieval.records,
+        });
+        emit({
+          type: "error",
+          message:
+            "No model key is set (GEMINI_API_KEY or ANTHROPIC_API_KEY), so there " +
+            "is no written reply. Anything rendered from the corpus is unaffected.",
+        });
+        emit({ type: "done" });
         controller.close();
         return;
       }
 
-      const parser: StreamingParser =
-        mode === "indianize" ? new MarkerParser(INDIANIZE_BEATS) : new BeatParser();
+      /** Drains a model stream into card beats or prose; returns the full text. */
+      async function pump(
+        iter: AsyncIterator<string>,
+        first: string | undefined,
+        parser: StreamingParser | null,
+        asProse: boolean,
+      ): Promise<string> {
+        let full = "";
+        const handle = (text: string) => {
+          full += text;
+          if (asProse) emit({ type: "text", text });
+          else if (parser) for (const d of parser.push(text)) emit({ type: "delta", ...d });
+        };
+        if (first) handle(first);
+        for (;;) {
+          const { value, done } = await iter.next();
+          if (done) break;
+          if (value) handle(value);
+        }
+        if (!asProse && parser) for (const d of parser.end()) emit({ type: "delta", ...d });
+        return full;
+      }
 
       try {
         const prior = history
@@ -154,72 +144,131 @@ export async function POST(request: NextRequest) {
           .slice(-MAX_HISTORY_TURNS)
           .map((m) => ({ role: m.role, content: m.content }));
 
-        // The user turn carries the mode-specific block after the cached system
-        // prefix. Restoration and its no-record fallback hand over corpus records
-        // and the swap table; an Indianisation turn hands over the map instead.
-        let userContent: string;
-        if (mode === "indianize") {
-          userContent =
-            `${renderIndianizationBlock()}\n\n` +
-            "This is an INDIANISATION turn. The dish is not Indian in origin. Emit the " +
-            "four markers §VERDICT§ §REBUILD§ §SWAPS§ §PLATE§ exactly as described in " +
-            "the INDIANISATION TURNS section, rebuilding the dish from the map above.\n\n" +
-            `User said: ${label}`;
-        } else {
-          // No record for this dish — hand over the swap table so component
-          // restoration is built on real ratios rather than invented ones.
+        const call = (userContent: string) =>
+          provider.streamText(
+            {
+              system: SYSTEM_PROMPT,
+              maxTokens: MAX_TOKENS,
+              messages: [...prior, { role: "user" as const, content: userContent }],
+            },
+            request.signal,
+          );
+
+        let full: string;
+        let auditRecords: CorpusRecord[];
+
+        if (!isResolve) {
+          // ---- Corpus hit (or slug): deterministic restoration -------------
+          const records = retrieval.records;
+          emit({
+            type: "meta",
+            mode: "restoration" satisfies Mode,
+            empty: !records.length,
+            top_score: retrieval.top_score,
+            records,
+          });
+          if (records.length) {
+            track("dish_restored", {
+              query: label,
+              slug: records[0].slug,
+              provenance: records[0].provenance_class,
+              score: retrieval.top_score,
+            });
+          }
+
           const swapBlock = records.length
             ? ""
             : `\n\n${renderComponentSwaps(await fileCorpus.swaps())}`;
+          const instruction = records.length
+            ? "This is a RESTORATION turn. Emit the four §markers§."
+            : "This is a RESTORATION turn with no record. Emit the four §markers§, " +
+              "say plainly that the dish is not in the restored corpus, and spend the " +
+              "card on COMPONENT RESTORATION using the swaps above.";
 
-          const instruction =
-            mode === "restoration"
-              ? records.length
-                ? "This is a RESTORATION turn. Emit the four §markers§."
-                : "This is a RESTORATION turn with no record. Emit the four §markers§, " +
-                  "say plainly that the dish is not in the restored corpus, and spend " +
-                  "the card on COMPONENT RESTORATION using the swaps above."
-              : "This is a CONVERSATION turn. Plain prose, no markers. The records " +
-                "above are the dish already on screen; answer the question asked.";
+          const iter = call(
+            `${renderCorpusBlock(records)}${swapBlock}\n\n${instruction}\n\nUser said: ${label}`,
+          )[Symbol.asyncIterator]();
+          auditRecords = records;
+          full = await pump(iter, undefined, new BeatParser(), false);
+        } else {
+          // ---- Corpus miss: the model decides the turn ----------------------
+          const carried = (
+            await Promise.all((body.activeRecordIds ?? []).map((id) => fileCorpus.byId(id)))
+          ).filter((r): r is CorpusRecord => Boolean(r));
 
-          userContent = `${renderCorpusBlock(records)}${swapBlock}\n\n${instruction}\n\nUser said: ${label}`;
-        }
+          const onScreen = carried.length
+            ? `<on_screen>\n${carried.map(renderRecord).join("\n\n")}\n</on_screen>`
+            : "<on_screen>none</on_screen>";
 
-        const textStream = provider.streamText(
-          {
-            system: SYSTEM_PROMPT,
-            maxTokens: MAX_TOKENS,
-            messages: [...prior, { role: "user" as const, content: userContent }],
-          },
-          request.signal,
-        );
+          const resolvePrompt =
+            `${onScreen}\n\n${renderComponentSwaps(await fileCorpus.swaps())}\n\n` +
+            `${renderIndianizationBlock()}\n\n` +
+            "This message is not in the restored corpus. Put the mode on the FIRST " +
+            "line, exactly one of: MODE: REPLY | MODE: INDIANISE | MODE: RESTORE, then " +
+            "the reply on the following lines.\n" +
+            "- MODE: REPLY — a follow-up about the dish in <on_screen>; then plain " +
+            "prose, no markers. Never choose REPLY when <on_screen> is none.\n" +
+            "- MODE: INDIANISE — the user named a dish that is NOT Indian in origin " +
+            "(pizza, pasta, sushi, ice cream, ramen, a burger, and the like); then the " +
+            "four §VERDICT§ §REBUILD§ §SWAPS§ §PLATE§ markers from the INDIANISATION " +
+            "TURNS section, built from the <indianization_map>.\n" +
+            "- MODE: RESTORE — the user named an Indian dish that is simply not in our " +
+            "corpus yet; then the four §VERDICT§ §THEN§ §WHAT_CHANGED§ §RESTORE_TODAY§ " +
+            "markers with no record, doing COMPONENT RESTORATION from <component_swaps>.\n\n" +
+            `User said: ${label}`;
 
-        // Restoration and Indianisation both parse §markers§ into card beats;
-        // only conversation is plain prose, streamed straight through.
-        const asProse = mode === "conversation";
-        let full = "";
+          const iter = call(resolvePrompt)[Symbol.asyncIterator]();
 
-        for await (const text of textStream) {
-          full += text;
-          if (asProse) {
-            controller.enqueue(encodeEvent({ type: "text", text }));
-          } else {
-            for (const d of parser.push(text)) {
-              controller.enqueue(encodeEvent({ type: "delta", ...d }));
-            }
+          // Read the first line — the mode declaration — before rendering.
+          let buf = "";
+          for (;;) {
+            const { value, done } = await iter.next();
+            if (done) break;
+            buf += value;
+            if (buf.includes("\n") || buf.length > 60) break;
           }
+          const resolved = parseResolved(buf);
+          const m = /MODE:\s*(INDIANISE|RESTORE|REPLY)/i.exec(buf);
+          const remainder = m
+            ? buf.slice(m.index + m[0].length).replace(/^[^\n]*\n?/, "")
+            : buf;
+
+          const mode: Mode =
+            resolved === "indianise"
+              ? "indianize"
+              : resolved === "reply"
+                ? "conversation"
+                : "restoration";
+          const outRecords = resolved === "reply" ? carried : [];
+
+          emit({
+            type: "meta",
+            mode,
+            empty: resolved === "restore",
+            top_score: retrieval.top_score,
+            records: outRecords,
+          });
+          // A genuine Indian-dish gap goes to the corpus-roadmap log; foreign
+          // dishes and follow-ups are not gaps to fill, so they log separately.
+          track(resolved === "restore" ? "no_original_found" : "turn_resolved", {
+            query: label,
+            resolved,
+            top_score: retrieval.top_score,
+          });
+
+          const parser: StreamingParser | null =
+            resolved === "indianise"
+              ? new MarkerParser(INDIANIZE_BEATS)
+              : resolved === "restore"
+                ? new BeatParser()
+                : null;
+          auditRecords = outRecords;
+          full = await pump(iter, remainder, parser, resolved === "reply");
         }
 
-        if (!asProse) {
-          for (const d of parser.end()) {
-            controller.enqueue(encodeEvent({ type: "delta", ...d }));
-          }
-        }
-
-        // Tripwire, not a gate. The badge and source strip already come from
-        // the record, so the reader is protected either way — this makes a
-        // prompt regression visible in the logs rather than in a screenshot.
-        const audit = auditProse(full, records);
+        // Tripwire, not a gate. The badge and source strip already come from the
+        // record, so this only surfaces a prompt regression in the logs.
+        const audit = auditProse(full, auditRecords);
         if (!isClean(audit)) {
           console.warn(
             `[provenance-leak] ${JSON.stringify({
@@ -231,13 +280,11 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        controller.enqueue(encodeEvent({ type: "done" }));
+        emit({ type: "done" });
         controller.close();
       } catch (err) {
         // The reader pressing stop, or navigating away, aborts the upstream
-        // request. That is the feature working, not a fault — logging it as an
-        // error would fill production monitoring with expected noise, and
-        // there is nobody left to receive an error event.
+        // request. That is the feature working, not a fault.
         const aborted =
           request.signal.aborted ||
           (err instanceof Error && (err.name === "AbortError" || err.name === "APIUserAbortError"));
@@ -250,34 +297,27 @@ export async function POST(request: NextRequest) {
         const quota = asQuotaError(err);
 
         if (quota) {
-          // Retrying does not fix a spent quota, so do not suggest it.
           console.warn(`[quota] ${provider.vendor}/${provider.model} exhausted`);
-          controller.enqueue(
-            encodeEvent({
-              type: "error",
-              message:
-                `The ${provider.vendor} quota for ${provider.model} is used up` +
-                (quota.retryAfterSeconds ? `, and resets in about ${quota.retryAfterSeconds}s` : "") +
-                ". Everything below is rendered from the corpus and is unaffected.",
-            }),
-          );
+          emit({
+            type: "error",
+            message:
+              `The ${provider.vendor} quota for ${provider.model} is used up` +
+              (quota.retryAfterSeconds ? `, and resets in about ${quota.retryAfterSeconds}s` : "") +
+              ". Everything below is rendered from the corpus and is unaffected.",
+          });
         } else if (err instanceof RefusalError) {
-          controller.enqueue(
-            encodeEvent({
-              type: "error",
-              message: "This request was declined. Try naming a dish instead.",
-            }),
-          );
+          emit({
+            type: "error",
+            message: "This request was declined. Try naming a dish instead.",
+          });
         } else {
           console.error(`[chat] ${provider.vendor} error`, err);
-          controller.enqueue(
-            encodeEvent({
-              type: "error",
-              message: "The reply could not be written just now. Try again.",
-            }),
-          );
+          emit({
+            type: "error",
+            message: "The reply could not be written just now. Try again.",
+          });
         }
-        controller.enqueue(encodeEvent({ type: "done" }));
+        emit({ type: "done" });
         controller.close();
       }
     },

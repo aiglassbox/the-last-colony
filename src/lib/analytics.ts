@@ -13,6 +13,7 @@ export type AnalyticsEvent =
   | "dish_queried"
   | "dish_restored"
   | "no_original_found"
+  | "turn_resolved"
   | "swap_requested"
   | "source_drawer_opened"
   | "card_shared"
