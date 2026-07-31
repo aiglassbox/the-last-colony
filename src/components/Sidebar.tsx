@@ -1,6 +1,16 @@
 "use client";
 
-import { History, MessageCircle, Moon, PanelLeft, Plus, Settings, Trash2 } from "lucide-react";
+import {
+  History,
+  MessageCircle,
+  Moon,
+  PanelLeft,
+  PanelLeftOpen,
+  Plus,
+  Settings,
+  Trash2,
+  X,
+} from "lucide-react";
 import { useEffect, useRef } from "react";
 
 import type { Conversation } from "@/lib/chat/store";
@@ -11,10 +21,15 @@ import { Logo } from "./Logo";
 /**
  * The left rail.
  *
- * One component serves both layouts: in the flow on desktop, and as an
- * off-canvas drawer below 992px. The drawer variant takes focus, traps Escape
- * and is labelled as a dialog; the docked variant is a plain navigation
- * landmark, because a permanently visible sidebar is not a dialog.
+ * One component, three presentations, all driven by two booleans:
+ *
+ *   collapsed  — a 76px icon rail. Labels leave the page visually but stay in
+ *                the accessibility tree, so a screen reader still hears them.
+ *   overlay    — below 992px an expanded rail would crush the conversation, so
+ *                it floats above the stage with a backdrop instead of pushing.
+ *
+ * There is no hamburger anywhere: the rail is always on screen, and the toggle
+ * that collapses it is the same control that brings it back.
  */
 
 export type SidebarView = "chat" | "history";
@@ -30,11 +45,12 @@ export interface SidebarProps {
   onOpenSettings: () => void;
   theme: Theme;
   onToggleTheme: () => void;
-  /** Rendered as an overlay drawer rather than docked in the flow. */
-  asDrawer?: boolean;
-  onClose?: () => void;
-  /** Desktop only — hides the rail and reveals the floating opener. */
-  onCollapse?: () => void;
+  /** The wordmark doubles as the way back to the chat. */
+  onGoToChat: () => void;
+  collapsed: boolean;
+  onToggleCollapsed: () => void;
+  /** Expanded on a narrow viewport — floats over the stage. */
+  overlay?: boolean;
 }
 
 const RECENT_LIMIT = 8;
@@ -50,129 +66,140 @@ export function Sidebar({
   onOpenSettings,
   theme,
   onToggleTheme,
-  asDrawer = false,
-  onClose,
-  onCollapse,
+  onGoToChat,
+  collapsed,
+  onToggleCollapsed,
+  overlay = false,
 }: SidebarProps) {
   const ref = useRef<HTMLElement>(null);
 
+  // While floating, Escape puts it away — the same expectation any overlay sets.
   useEffect(() => {
-    if (!asDrawer) return;
+    if (!overlay) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose?.();
+      if (e.key === "Escape") onToggleCollapsed();
     };
     window.addEventListener("keydown", onKey);
-    ref.current?.querySelector<HTMLElement>("button")?.focus();
     return () => window.removeEventListener("keydown", onKey);
-  }, [asDrawer, onClose]);
+  }, [overlay, onToggleCollapsed]);
 
   const recent = conversations.filter((c) => c.messages.length > 0).slice(0, RECENT_LIMIT);
 
+  const className = [
+    "sidebar",
+    collapsed ? "sidebar--collapsed" : "",
+    overlay ? "sidebar--overlay" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <aside
-      ref={ref}
-      className={asDrawer ? "sidebar sidebar--drawer" : "sidebar"}
-      aria-label="Sidebar"
-      {...(asDrawer ? { role: "dialog" as const, "aria-modal": true } : {})}
-    >
-      <div className="flex items-center gap-3">
-        <Logo />
-        <span className="display flex-1 truncate text-[1.05rem] leading-tight">
-          Swadeshi Rasooi AI
-        </span>
+    <aside ref={ref} className={className} aria-label="Sidebar">
+      <div className="sidebar__head">
+        {/* The mark and the wordmark are one control, as they are on every
+            product where the logo is the way home. The text is the accessible
+            name and survives the collapse, so the icon-only rail is still
+            labelled. */}
+        <button type="button" className="sidebar__brand" onClick={onGoToChat} title="Kranti Cookbook">
+          <Logo size={collapsed ? 30 : 34} />
+          <span className="sidebar__name display">Kranti Cookbook</span>
+        </button>
+        {/* Floating over the stage, this control dismisses rather than
+            collapses — so it reads as a close, not a resize. */}
         <button
           type="button"
-          className="icon-btn"
-          style={{ width: 36, height: 36, borderRadius: 10 }}
-          onClick={asDrawer ? onClose : onCollapse}
-          aria-label={asDrawer ? "Close sidebar" : "Collapse sidebar"}
+          className="icon-btn sidebar__toggle"
+          onClick={onToggleCollapsed}
+          aria-expanded={!collapsed}
+          aria-label={overlay ? "Close menu" : collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={overlay ? "Close menu" : collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          <PanelLeft size={18} aria-hidden />
+          {overlay ? (
+            <X size={19} aria-hidden />
+          ) : collapsed ? (
+            <PanelLeftOpen size={18} aria-hidden />
+          ) : (
+            <PanelLeft size={18} aria-hidden />
+          )}
         </button>
       </div>
 
       <div className="sidebar__scroll">
         <nav className="side-group" aria-label="Features">
           <h2 className="side-group__label">Features</h2>
-          <ul className="m-0 list-none space-y-1 p-0">
+          <ul className="side-list">
             <li>
-              <button
-                type="button"
-                className="side-item"
-                data-active={view === "chat"}
-                aria-current={view === "chat" ? "page" : undefined}
+              <SideItem
+                label="Chat"
+                icon={<MessageCircle size={18} className="side-item__icon" aria-hidden />}
+                active={view === "chat"}
+                collapsed={collapsed}
                 onClick={() => onViewChange("chat")}
-              >
-                <MessageCircle size={18} className="side-item__icon" aria-hidden />
-                <span className="side-item__text">Chat</span>
-              </button>
+                current
+              />
             </li>
             <li>
-              <button
-                type="button"
-                className="side-item"
-                data-active={view === "history"}
-                aria-current={view === "history" ? "page" : undefined}
+              <SideItem
+                label="History"
+                icon={<History size={18} className="side-item__icon" aria-hidden />}
+                active={view === "history"}
+                collapsed={collapsed}
                 onClick={() => onViewChange("history")}
-              >
-                <History size={18} className="side-item__icon" aria-hidden />
-                <span className="side-item__text">History</span>
-              </button>
+                current
+              />
             </li>
           </ul>
         </nav>
 
-        <nav className="side-group" aria-label="Recent conversations">
+        <nav className="side-group side-group--recent" aria-label="Recent conversations">
           <h2 className="side-group__label">Recent</h2>
-          {recent.length === 0 ? (
-            <p className="m-0 px-4 text-sm text-[var(--ink-muted)]">
-              Nothing yet. Name a dish to begin.
-            </p>
-          ) : (
-            <ul className="m-0 list-none space-y-1 p-0">
-              {recent.map((c) => (
-                <li key={c.id} className="group flex items-center gap-1">
-                  <button
-                    type="button"
-                    className="side-item flex-1"
-                    data-active={c.id === currentId && view === "chat"}
-                    onClick={() => onSelectConversation(c.id)}
-                  >
-                    <span className="side-item__text">{c.title}</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="icon-btn opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
-                    style={{ width: 32, height: 32, border: 0 }}
-                    onClick={() => onDeleteConversation(c.id)}
-                    aria-label={`Delete conversation: ${c.title}`}
-                  >
-                    <Trash2 size={15} aria-hidden />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-          <button
-            type="button"
-            className="side-item mt-1"
+          {/* Unlabelled history rows are meaningless at 76px, so the list is
+              dropped from the icon rail — creating a new one is not. */}
+          {!collapsed &&
+            (recent.length === 0 ? (
+              <p className="side-empty">Nothing yet. Name a dish to begin.</p>
+            ) : (
+              <ul className="side-list">
+                {recent.map((c) => (
+                  <li key={c.id} className="side-row">
+                    <SideItem
+                      label={c.title}
+                      active={c.id === currentId && view === "chat"}
+                      collapsed={false}
+                      onClick={() => onSelectConversation(c.id)}
+                    />
+                    <button
+                      type="button"
+                      className="icon-btn side-row__delete"
+                      onClick={() => onDeleteConversation(c.id)}
+                      aria-label={`Delete conversation: ${c.title}`}
+                    >
+                      <Trash2 size={15} aria-hidden />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ))}
+          <SideItem
+            label="New restoration"
+            icon={<Plus size={18} className="side-item__icon" aria-hidden />}
+            collapsed={collapsed}
             onClick={onNewConversation}
-            style={{ color: "var(--orange)" }}
-          >
-            <Plus size={18} className="side-item__icon" style={{ color: "var(--orange)" }} aria-hidden />
-            <span className="side-item__text">New restoration</span>
-          </button>
+            accent
+          />
         </nav>
       </div>
 
-      <div className="side-group mb-0 border-t border-[var(--line)] pt-4">
+      <div className="side-group side-group--others">
         <h2 className="side-group__label">Others</h2>
-        <ul className="m-0 list-none space-y-1 p-0">
+        <ul className="side-list">
           <li>
-            <button type="button" className="side-item" onClick={onOpenSettings}>
-              <Settings size={18} className="side-item__icon" aria-hidden />
-              <span className="side-item__text">Setting</span>
-            </button>
+            <SideItem
+              label="Setting"
+              icon={<Settings size={18} className="side-item__icon" aria-hidden />}
+              collapsed={collapsed}
+              onClick={onOpenSettings}
+            />
           </li>
           <li>
             <button
@@ -181,9 +208,11 @@ export function Sidebar({
               onClick={onToggleTheme}
               role="switch"
               aria-checked={theme === "dark"}
+              aria-label="Dark Mode"
+              title="Dark Mode"
             >
               <Moon size={18} className="side-item__icon" aria-hidden />
-              <span className="side-item__text flex-1">Dark Mode</span>
+              <span className="side-item__text">Dark Mode</span>
               <span aria-hidden className="switch" data-on={theme === "dark"}>
                 <span className="switch__knob" />
               </span>
@@ -192,5 +221,41 @@ export function Sidebar({
         </ul>
       </div>
     </aside>
+  );
+}
+
+function SideItem({
+  label,
+  icon,
+  active,
+  collapsed,
+  onClick,
+  accent,
+  current,
+}: {
+  label: string;
+  icon?: React.ReactNode;
+  active?: boolean;
+  collapsed: boolean;
+  onClick: () => void;
+  accent?: boolean;
+  current?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      className="side-item"
+      data-active={active ? "true" : undefined}
+      aria-current={current && active ? "page" : undefined}
+      onClick={onClick}
+      /* The label is still rendered and still read out when collapsed — it is
+         only clipped visually — so `title` adds a pointer hint without being
+         the sole source of the accessible name. */
+      title={collapsed ? label : undefined}
+      style={accent ? { color: "var(--orange)" } : undefined}
+    >
+      {icon}
+      <span className="side-item__text">{label}</span>
+    </button>
   );
 }
