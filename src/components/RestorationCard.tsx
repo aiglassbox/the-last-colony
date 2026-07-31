@@ -137,8 +137,17 @@ export function RestorationCard({ data }: { data: CardData }) {
       </Beat>
 
       <Beat beat="RESTORE_TODAY" open={open.RESTORE_TODAY} onToggle={toggle}>
-        <Prose text={data.beats.RESTORE_TODAY} streaming={data.streaming} />
-        {ancient?.restore_today && <RestoreToday record={ancient} />}
+        {ancient?.restore_today ? (
+          <>
+            <Prose text={data.beats.RESTORE_TODAY} streaming={data.streaming} />
+            <RestoreToday record={ancient} />
+          </>
+        ) : (
+          // No record (a modern dish or a corpus gap): the model writes the
+          // ingredients and method into the beat, and we structure them here the
+          // same way the ancient card structures a record's restore_today.
+          <ModernRecipe text={data.beats.RESTORE_TODAY} streaming={data.streaming} />
+        )}
       </Beat>
 
       {ancient && (
@@ -439,6 +448,88 @@ function NutritionDelta({ record }: { record: CorpusRecord }) {
         A comparison between two versions of one dish. Not a health claim, and not advice —
         for anything personal, talk to a doctor or a dietitian.
       </p>
+    </div>
+  );
+}
+
+/**
+ * Structures a no-record "restore today" beat. The model writes an intro line,
+ * then an INGREDIENTS block and a METHOD block; we parse those into the same
+ * list + numbered-steps shape the ancient card renders from a record. Falls
+ * back to plain prose if the model didn't use the sections.
+ */
+function parseModernRecipe(text: string): {
+  intro: string;
+  ingredients: string[];
+  steps: string[];
+} {
+  let section: "intro" | "ing" | "steps" = "intro";
+  const intro: string[] = [];
+  const ingredients: string[] = [];
+  const steps: string[] = [];
+  for (const raw of text.split("\n")) {
+    const l = raw.trim();
+    if (!l) continue;
+    const head = l.toUpperCase().replace(/[^A-Z]+$/, "");
+    if (/^INGREDIENTS?$/.test(head)) {
+      section = "ing";
+      continue;
+    }
+    if (/^(METHOD|STEPS|DIRECTIONS)$/.test(head)) {
+      section = "steps";
+      continue;
+    }
+    if (section === "intro") intro.push(l);
+    else if (section === "ing") ingredients.push(l.replace(/^[-*•]\s*/, ""));
+    else steps.push(l.replace(/^\d+[.)]\s*/, ""));
+  }
+  return { intro: intro.join(" "), ingredients, steps };
+}
+
+function ModernRecipe({ text, streaming }: { text?: string; streaming: boolean }) {
+  if (!text) {
+    return streaming ? (
+      <p style={{ margin: 0, color: "var(--ink-muted)" }}>
+        <span className="caret" aria-hidden />
+      </p>
+    ) : null;
+  }
+  const { intro, ingredients, steps } = parseModernRecipe(text);
+  if (!ingredients.length && !steps.length) {
+    return <Prose text={text} streaming={streaming} />;
+  }
+  return (
+    <div style={{ maxWidth: "62ch" }}>
+      {intro && <p style={{ margin: "0 0 0.8rem", lineHeight: 1.6 }}>{intro}</p>}
+      {ingredients.length > 0 && (
+        <>
+          <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
+            Ingredients
+          </div>
+          <ul style={{ margin: "0 0 0.9rem", paddingLeft: "1.1rem" }}>
+            {ingredients.map((i, k) => (
+              <li key={k} style={{ fontSize: "0.9rem", marginBottom: "0.22rem" }}>
+                {i}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      {steps.length > 0 && (
+        <>
+          <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
+            Method
+          </div>
+          <ol style={{ margin: 0, paddingLeft: "1.15rem" }}>
+            {steps.map((s, k) => (
+              <li key={k} style={{ fontSize: "0.92rem", marginBottom: "0.4rem" }}>
+                {s}
+              </li>
+            ))}
+          </ol>
+        </>
+      )}
+      {streaming && <span className="caret" aria-hidden />}
     </div>
   );
 }

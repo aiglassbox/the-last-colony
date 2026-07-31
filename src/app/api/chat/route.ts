@@ -224,7 +224,12 @@ export async function POST(request: NextRequest) {
             "cooking principles. Do not invent an ancient text or verse.\n" +
             "- MODE: RESTORE — an Indian dish that likely had an older form we simply " +
             "have not documented yet (not obviously modern); then the same four markers, " +
-            "framed as a corpus gap, doing COMPONENT RESTORATION from <component_swaps>.\n\n" +
+            "framed as a corpus gap, doing COMPONENT RESTORATION from <component_swaps>.\n" +
+            "For MODERN and RESTORE, format the §RESTORE_TODAY§ section as: one short " +
+            "opening line, then a line reading INGREDIENTS with each ingredient on its " +
+            "own line beginning with '- ' and a kirana quantity, then a line reading " +
+            "METHOD with the steps numbered 1., 2., 3. Plain text only, no other " +
+            "markdown.\n\n" +
             `User said: ${label}`;
 
           const iter = call(resolvePrompt)[Symbol.asyncIterator]();
