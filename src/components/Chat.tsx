@@ -1,8 +1,14 @@
 "use client";
 
-import { Code2, FileText, ImageIcon, Menu, Pencil } from "lucide-react";
+import { Code2, FileText, ImageIcon, type LucideIcon, Menu, Pencil, SquarePen } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
+import {
+  applyCommand,
+  COMMANDS,
+  parseCommand,
+  type SlashCommand,
+} from "@/lib/chat/commands";
 import {
   deleteConversation,
   deriveTitle,
@@ -19,6 +25,13 @@ import {
 } from "@/lib/chat/store";
 import type { CorpusRecord } from "@/lib/corpus/types";
 import {
+  getServerSnapshot as railServerSnapshot,
+  getSnapshot as railSnapshot,
+  setCollapsed as setRailCollapsed,
+  subscribe as railSubscribe,
+  toggleCollapsed as toggleRail,
+} from "@/lib/sidebar-store";
+import {
   getServerSnapshot as themeServerSnapshot,
   getSnapshot as themeSnapshot,
   subscribe as themeSubscribe,
@@ -26,10 +39,10 @@ import {
 } from "@/lib/theme";
 
 import { Composer } from "./Composer";
+import { History } from "./History";
 import { Message } from "./Message";
 import { SettingsSheet } from "./SettingsSheet";
 import { Sidebar, type SidebarView } from "./Sidebar";
-import { SwapPanel } from "./SwapPanel";
 
 /**
  * The application shell.
@@ -55,8 +68,22 @@ interface StreamEvent {
   message?: string;
 }
 
-/** Below this width the rail leaves the flow and returns as a drawer. */
-const DRAWER_BREAKPOINT = 991;
+/** Below this width an expanded rail floats over the stage instead of docking. */
+const COMPACT_BREAKPOINT = 991;
+/**
+ * Below this width the rail leaves the layout entirely and its controls move
+ * to a top bar. A docked rail on a 375px screen costs a sixth of the width
+ * before a single word of the answer is drawn.
+ */
+const PHONE_BREAKPOINT = 767;
+
+/** Icons live here rather than in the command table, which the server imports. */
+const COMMAND_ICONS: Record<string, LucideIcon> = {
+  "recipe-card": ImageIcon,
+  "pre-raj": Code2,
+  "healthier-swap": Pencil,
+  "oil-match": FileText,
+};
 
 export function Chat({ initialSlug }: { initialSlug?: string }) {
   const { conversations, currentId } = useSyncExternalStore(
@@ -65,14 +92,13 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
     getServerSnapshot,
   );
   const theme = useSyncExternalStore(themeSubscribe, themeSnapshot, themeServerSnapshot);
+  const railCollapsed = useSyncExternalStore(railSubscribe, railSnapshot, railServerSnapshot);
 
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [view, setView] = useState<SidebarView>("chat");
-  const [railOpen, setRailOpen] = useState(false);
-  const [railCollapsed, setRailCollapsed] = useState(false);
   const [compact, setCompact] = useState(false);
-  const [swap, setSwap] = useState<null | { mode: "single" | "pantry"; item?: string }>(null);
+  const [phone, setPhone] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const abortRef = useRef<AbortController | null>(null);
@@ -83,20 +109,28 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
 
   const current = conversations.find((c) => c.id === currentId) ?? null;
   const messages = current?.messages ?? [];
-  const isEmpty = messages.length === 0 || view === "history";
+  const isEmpty = messages.length === 0;
 
-  const activeRecord =
-    [...messages].reverse().find((m) => m.records?.length)?.records?.find((r) => r.tier === "ancient") ??
-    null;
+  // Read back out of the input rather than held as separate state, so typing
+  // or deleting the slash by hand stays in step with the pills.
+  const activeCommand = parseCommand(input).command;
 
   // ---- viewport -----------------------------------------------------------
 
   useEffect(() => {
-    const mq = window.matchMedia(`(max-width: ${DRAWER_BREAKPOINT}px)`);
-    const apply = () => setCompact(mq.matches);
+    const mq = window.matchMedia(`(max-width: ${COMPACT_BREAKPOINT}px)`);
+    const phoneMq = window.matchMedia(`(max-width: ${PHONE_BREAKPOINT}px)`);
+    const apply = () => {
+      setCompact(mq.matches);
+      setPhone(phoneMq.matches);
+    };
     apply();
     mq.addEventListener("change", apply);
-    return () => mq.removeEventListener("change", apply);
+    phoneMq.addEventListener("change", apply);
+    return () => {
+      mq.removeEventListener("change", apply);
+      phoneMq.removeEventListener("change", apply);
+    };
   }, []);
 
   // ---- scrolling ----------------------------------------------------------
@@ -271,15 +305,16 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
     void send(text);
   };
 
-  const focusPrompt = () => {
-    setView("chat");
-    promptRef.current?.focus();
+  // While the rail is floating over the stage, acting on it should also put it
+  // away — otherwise the result of the click sits hidden behind the rail.
+  const dismissOverlay = () => {
+    if (compact && !railCollapsed) setRailCollapsed(true);
   };
 
   const startNew = () => {
     abortRef.current?.abort();
     startConversation();
-    setRailOpen(false);
+    dismissOverlay();
     setView("chat");
     setInput("");
   };
@@ -287,7 +322,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
   const openConversation = (id: string) => {
     abortRef.current?.abort();
     selectConversation(id);
-    setRailOpen(false);
+    dismissOverlay();
     setView("chat");
   };
 
@@ -299,26 +334,51 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
     setView("chat");
   };
 
-  const railProps = {
-    view,
-    onViewChange: (v: SidebarView) => {
-      setView(v);
-      setRailOpen(false);
-    },
-    conversations,
-    currentId,
-    onSelectConversation: openConversation,
-    onDeleteConversation: deleteConversation,
-    onNewConversation: startNew,
-    onOpenSettings: () => {
-      setSettingsOpen(true);
-      setRailOpen(false);
-    },
-    theme,
-    onToggleTheme: toggleTheme,
+  // Expanded on a narrow viewport: the rail floats, so it needs a backdrop.
+  const overlay = compact && !railCollapsed;
+
+  const goToChat = () => {
+    setView("chat");
+    dismissOverlay();
   };
 
-  const showFloatingOpener = compact || railCollapsed;
+  // A pill writes its command into the composer and hands the caret back — it
+  // does not run anything. The turn only leaves when the reader sends it.
+  const pickCommand = (command: SlashCommand) => {
+    setInput((current) => applyCommand(current, command));
+    setView("chat");
+    // After the paint, so the caret lands past the command the reader just
+    // inserted rather than at whatever index it held before.
+    requestAnimationFrame(() => {
+      const el = promptRef.current;
+      if (!el) return;
+      el.focus();
+      el.setSelectionRange(el.value.length, el.value.length);
+    });
+  };
+
+  // One definition, two placements: beneath the hero on a desktop, stacked
+  // directly above the pinned composer on a phone.
+  const quickActions = (
+    <div className="actions" role="group" aria-label="Prompt starters">
+      {COMMANDS.map((command) => {
+        const Icon = COMMAND_ICONS[command.slug];
+        return (
+          <button
+            key={command.slug}
+            type="button"
+            className="pill"
+            data-active={activeCommand?.slug === command.slug || undefined}
+            aria-pressed={activeCommand?.slug === command.slug}
+            onClick={() => pickCommand(command)}
+          >
+            <Icon size={16} className="pill__icon" aria-hidden />
+            {command.label}
+          </button>
+        );
+      })}
+    </div>
+  );
 
   return (
     <div className="app">
@@ -326,35 +386,106 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
         Skip to content
       </a>
 
-      {!compact && !railCollapsed && (
-        <Sidebar {...railProps} onCollapse={() => setRailCollapsed(true)} />
+      <Sidebar
+        view={view}
+        onViewChange={(v: SidebarView) => {
+          setView(v);
+          dismissOverlay();
+        }}
+        conversations={conversations}
+        currentId={currentId}
+        onSelectConversation={openConversation}
+        onDeleteConversation={deleteConversation}
+        onNewConversation={startNew}
+        onOpenSettings={() => {
+          setSettingsOpen(true);
+          dismissOverlay();
+        }}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+        onGoToChat={goToChat}
+        collapsed={railCollapsed}
+        onToggleCollapsed={toggleRail}
+        overlay={overlay}
+      />
+
+      {overlay && (
+        <div className="drawer-backdrop" onClick={() => setRailCollapsed(true)} aria-hidden />
       )}
 
-      {railOpen && (
-        <>
-          <div className="drawer-backdrop" onClick={() => setRailOpen(false)} aria-hidden />
-          <Sidebar {...railProps} asDrawer onClose={() => setRailOpen(false)} />
-        </>
+      {/* On a phone the rail's three jobs — open the menu, go home, start a
+          new thread — move up here, where a thumb can reach them and they cost
+          no horizontal space. */}
+      {phone && (
+        <header className="topbar">
+          <button
+            type="button"
+            className="topbar__btn"
+            onClick={() => setRailCollapsed(false)}
+            aria-label="Open menu"
+          >
+            <Menu size={20} aria-hidden />
+          </button>
+          <button type="button" className="topbar__brand" onClick={goToChat}>
+            Kranti Cookbook
+          </button>
+          <button
+            type="button"
+            className="topbar__btn"
+            onClick={startNew}
+            aria-label="New restoration"
+          >
+            <SquarePen size={19} aria-hidden />
+          </button>
+        </header>
       )}
 
       <main id="main" className="canvas">
         <div className="stage">
           <div className="stage__glow" aria-hidden />
 
-          {showFloatingOpener && (
-            <button
-              type="button"
-              className="icon-btn"
-              style={{ position: "absolute", top: 16, left: 16, zIndex: 2 }}
-              onClick={() => (compact ? setRailOpen(true) : setRailCollapsed(false))}
-              aria-label="Open sidebar"
-            >
-              <Menu size={18} aria-hidden />
-            </button>
-          )}
-
           <div className="stage__body">
-            {isEmpty ? (
+            {view === "history" ? (
+              <History
+                conversations={conversations}
+                currentId={currentId}
+                onSelect={openConversation}
+                onDelete={deleteConversation}
+                onNew={startNew}
+              />
+            ) : isEmpty && phone ? (
+              /* The phone opening screen: headline in the free space, actions
+                 and composer anchored to the bottom where the thumb is. The
+                 composer leaves the orange card here — a 150px input inside a
+                 full-bleed gradient block is most of a small screen. */
+              <>
+                <div className="hero-wrap hero-wrap--phone">
+                  <section className="hero" aria-labelledby="hero-title">
+                    <h1 id="hero-title" className="hero__title">
+                      {HEADING}
+                    </h1>
+                    <p className="hero__subtitle">{SUBHEADING}</p>
+                  </section>
+                </div>
+
+                <div className="thread__foot">
+                  <div className="thread__foot-inner">
+                    {quickActions}
+                    <Composer
+                      value={input}
+                      onChange={setInput}
+                      onSubmit={submit}
+                      onStop={() => abortRef.current?.abort()}
+                      busy={busy}
+                      placeholder={activeCommand?.hint ?? "Name a dish…"}
+                      variant="flat"
+                      minHeight={64}
+                      inputRef={promptRef}
+                    />
+                  </div>
+                </div>
+              </>
+            ) : isEmpty ? (
               <div className="hero-wrap">
                 <section className="hero" aria-labelledby="hero-title">
                   <h1 id="hero-title" className="hero__title">
@@ -368,42 +499,13 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                     onSubmit={submit}
                     onStop={() => abortRef.current?.abort()}
                     busy={busy}
-                    placeholder="Type a dish to travel back in time…"
+                    placeholder={activeCommand?.hint ?? "Type a dish to travel back in time…"}
                     inputRef={promptRef}
                     minHeight={150}
                   />
                 </section>
 
-                <div className="actions" role="group" aria-label="Quick actions">
-                  <button
-                    type="button"
-                    className="pill"
-                    onClick={() =>
-                      activeRecord
-                        ? window.open(`/api/share/${activeRecord.slug}`, "_blank", "noopener")
-                        : focusPrompt()
-                    }
-                  >
-                    <ImageIcon size={16} className="pill__icon" aria-hidden />
-                    Generate Recipe Card
-                  </button>
-                  <button type="button" className="pill" onClick={submit}>
-                    <Code2 size={16} className="pill__icon" aria-hidden />
-                    Pre-Raj Version
-                  </button>
-                  <button type="button" className="pill" onClick={() => setSwap({ mode: "single" })}>
-                    <Pencil size={16} className="pill__icon" aria-hidden />
-                    Healthier Swap
-                  </button>
-                  <button
-                    type="button"
-                    className="pill"
-                    onClick={() => setSwap({ mode: "single", item: "refined seed oil" })}
-                  >
-                    <FileText size={16} className="pill__icon" aria-hidden />
-                    Oil Match
-                  </button>
-                </div>
+                {quickActions}
               </div>
             ) : (
               <>
@@ -423,7 +525,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                       onSubmit={submit}
                       onStop={() => abortRef.current?.abort()}
                       busy={busy}
-                      placeholder="Ask a follow-up…"
+                      placeholder={activeCommand?.hint ?? "Ask a follow-up…"}
                       variant="flat"
                       minHeight={72}
                       inputRef={promptRef}
@@ -438,10 +540,6 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
           </div>
         </div>
       </main>
-
-      {swap && (
-        <SwapPanel mode={swap.mode} initialItem={swap.item} onClose={() => setSwap(null)} />
-      )}
 
       {settingsOpen && (
         <SettingsSheet

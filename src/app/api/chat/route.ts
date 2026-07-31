@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import { track } from "@/lib/analytics";
+import { parseCommand } from "@/lib/chat/commands";
 import { fileCorpus } from "@/lib/corpus/load";
 import type { CorpusRecord } from "@/lib/corpus/types";
 import { renderIndianizationBlock } from "@/lib/indianization";
@@ -19,10 +20,15 @@ import { retrieveBySlug, retrieveForDish } from "@/lib/retrieval/retrieve";
  *
  * The open-ended half is the one retrieval cannot answer with a name list:
  * when nothing matches, is this a follow-up about the dish on screen, a foreign
- * dish to Indianise, or an Indian dish simply not in the corpus yet? That is a
- * world-knowledge question, so on a corpus MISS the model decides — it declares
- * the mode on its first line and we route the rest of the stream accordingly.
- * The corpus-hit path never consults the model, so its precision is untouched.
+ * dish to Indianise, a modern Indian dish with no ancient original, or an Indian
+ * dish simply not in the corpus yet? That is a world-knowledge question, so on a
+ * corpus MISS the model decides — it declares the mode on its first line and we
+ * route the rest of the stream accordingly. The corpus-hit path never consults
+ * the model, so its precision is untouched.
+ *
+ * A leading slash command (from the composer pills) is a directive appended to
+ * whichever turn the server chose. It narrows the answer; it never changes the
+ * turn kind or relaxes the corpus rules.
  */
 
 export const dynamic = "force-dynamic";
@@ -71,11 +77,18 @@ export async function POST(request: NextRequest) {
   const slug = (body.slug ?? "").trim();
   const history = (body.messages ?? []).filter((m) => m.content?.trim());
   const latest = [...history].reverse().find((m) => m.role === "user");
-  const query = (latest?.content ?? "").trim();
+  const raw = (latest?.content ?? "").trim();
 
-  if (!query && !slug) {
+  if (!raw && !slug) {
     return Response.json({ error: "a user message or slug is required" }, { status: 400 });
   }
+
+  // A leading slash command is a directive, not part of the dish name — it is
+  // stripped before retrieval sees the text. Parsed here rather than trusted
+  // from a request field, so typing `/oil-match dosa` by hand behaves exactly
+  // like tapping the pill.
+  const { command, rest } = parseCommand(raw);
+  const query = rest;
 
   const retrieval = slug ? await retrieveBySlug(slug) : await retrieveForDish(query);
   const isResolve = retrieval.empty && !slug;
@@ -86,6 +99,7 @@ export async function POST(request: NextRequest) {
     query: label,
     via: slug ? "slug" : "search",
     hit: !retrieval.empty,
+    command: command?.slug ?? null,
     provider: provider?.vendor ?? "none",
   });
 
@@ -155,6 +169,11 @@ export async function POST(request: NextRequest) {
             request.signal,
           );
 
+        // The command narrows what the turn emphasises. It never relaxes the
+        // corpus rules and never changes which turn kind this is — just appended
+        // after the turn instruction, whatever the turn turns out to be.
+        const directive = command ? `\n\n${command.instruction}` : "";
+
         let full: string;
         let auditRecords: CorpusRecord[];
 
@@ -187,7 +206,7 @@ export async function POST(request: NextRequest) {
               "card on COMPONENT RESTORATION using the swaps above.";
 
           const iter = call(
-            `${renderCorpusBlock(records)}${swapBlock}\n\n${instruction}\n\nUser said: ${label}`,
+            `${renderCorpusBlock(records)}${swapBlock}\n\n${instruction}${directive}\n\nUser said: ${label}`,
           )[Symbol.asyncIterator]();
           auditRecords = records;
           full = await pump(iter, undefined, new BeatParser(), false);
@@ -229,8 +248,9 @@ export async function POST(request: NextRequest) {
             "opening line, then a line reading INGREDIENTS with each ingredient on its " +
             "own line beginning with '- ' and a kirana quantity, then a line reading " +
             "METHOD with the steps numbered 1., 2., 3. Plain text only, no other " +
-            "markdown.\n\n" +
-            `User said: ${label}`;
+            "markdown." +
+            directive +
+            `\n\nUser said: ${label}`;
 
           const iter = call(resolvePrompt)[Symbol.asyncIterator]();
 
@@ -243,7 +263,7 @@ export async function POST(request: NextRequest) {
             if (buf.includes("\n") || buf.length > 60) break;
           }
           const resolved = parseResolved(buf);
-          const m = /MODE:\s*(INDIANISE|RESTORE|REPLY)/i.exec(buf);
+          const m = /MODE:\s*(INDIANISE|MODERN|RESTORE|REPLY)/i.exec(buf);
           const remainder = m
             ? buf.slice(m.index + m[0].length).replace(/^[^\n]*\n?/, "")
             : buf;
