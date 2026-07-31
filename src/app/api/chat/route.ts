@@ -9,6 +9,7 @@ import { auditProse, isClean } from "@/lib/model/guards";
 import { activeProvider, asQuotaError, MAX_TOKENS, RefusalError } from "@/lib/model/provider";
 import { SYSTEM_PROMPT } from "@/lib/model/system-prompt";
 import { retrieveBySlug, retrieveForDish } from "@/lib/retrieval/retrieve";
+import { isForeignDish, renderIndianizationBlock } from "@/lib/indianization";
 
 /**
  * The conversation endpoint.
@@ -41,7 +42,7 @@ interface ChatRequest {
   slug?: string;
 }
 
-type Mode = "restoration" | "conversation";
+type Mode = "restoration" | "conversation" | "indianize";
 
 function encodeEvent(obj: unknown): Uint8Array {
   return new TextEncoder().encode(JSON.stringify(obj) + "\n");
@@ -83,6 +84,13 @@ export async function POST(request: NextRequest) {
       mode = "conversation";
       records = carried;
     }
+  }
+
+  // A dish that is not Indian at all — no ancient original to restore and no
+  // Indian dish to component-restore. Tier 3: rebuild it from the Indianisation
+  // map instead. Conservative by design; an unknown Indian dish never lands here.
+  if (mode === "restoration" && retrieval.empty && !slug && isForeignDish(query)) {
+    mode = "indianize";
   }
 
   const label = slug || query;
@@ -145,40 +153,54 @@ export async function POST(request: NextRequest) {
           .slice(-MAX_HISTORY_TURNS)
           .map((m) => ({ role: m.role, content: m.content }));
 
-        // No record for this dish — hand over the swap table so component
-        // restoration is built on real ratios rather than invented ones.
-        const swapBlock = records.length ? "" : `\n\n${renderComponentSwaps(await fileCorpus.swaps())}`;
+        // The user turn carries the mode-specific block after the cached system
+        // prefix. Restoration and its no-record fallback hand over corpus records
+        // and the swap table; an Indianisation turn hands over the map instead.
+        let userContent: string;
+        if (mode === "indianize") {
+          userContent =
+            `${renderIndianizationBlock()}\n\n` +
+            "This is an INDIANISATION turn. Follow the INDIANISATION TURNS section: " +
+            "the dish is not Indian in origin, so rebuild it from the map above as a " +
+            "healthy, Indian-inspired reinterpretation. Plain prose, no §markers§.\n\n" +
+            `User said: ${label}`;
+        } else {
+          // No record for this dish — hand over the swap table so component
+          // restoration is built on real ratios rather than invented ones.
+          const swapBlock = records.length
+            ? ""
+            : `\n\n${renderComponentSwaps(await fileCorpus.swaps())}`;
 
-        const instruction =
-          mode === "restoration"
-            ? records.length
-              ? "This is a RESTORATION turn. Emit the four §markers§."
-              : "This is a RESTORATION turn with no record. Emit the four §markers§, " +
-                "say plainly that the dish is not in the restored corpus, and spend " +
-                "the card on COMPONENT RESTORATION using the swaps above."
-            : "This is a CONVERSATION turn. Plain prose, no markers. The records " +
-              "above are the dish already on screen; answer the question asked.";
+          const instruction =
+            mode === "restoration"
+              ? records.length
+                ? "This is a RESTORATION turn. Emit the four §markers§."
+                : "This is a RESTORATION turn with no record. Emit the four §markers§, " +
+                  "say plainly that the dish is not in the restored corpus, and spend " +
+                  "the card on COMPONENT RESTORATION using the swaps above."
+              : "This is a CONVERSATION turn. Plain prose, no markers. The records " +
+                "above are the dish already on screen; answer the question asked.";
+
+          userContent = `${renderCorpusBlock(records)}${swapBlock}\n\n${instruction}\n\nUser said: ${label}`;
+        }
 
         const textStream = provider.streamText(
           {
             system: SYSTEM_PROMPT,
             maxTokens: MAX_TOKENS,
-            messages: [
-              ...prior,
-              {
-                role: "user" as const,
-                content: `${renderCorpusBlock(records)}${swapBlock}\n\n${instruction}\n\nUser said: ${label}`,
-              },
-            ],
+            messages: [...prior, { role: "user" as const, content: userContent }],
           },
           request.signal,
         );
 
+        // Restoration parses four §markers§ into card beats; conversation and
+        // Indianisation are plain prose, streamed straight through.
+        const asProse = mode === "conversation" || mode === "indianize";
         let full = "";
 
         for await (const text of textStream) {
           full += text;
-          if (mode === "conversation") {
+          if (asProse) {
             controller.enqueue(encodeEvent({ type: "text", text }));
           } else {
             for (const d of parser.push(text)) {
@@ -187,7 +209,7 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        if (mode === "restoration") {
+        if (!asProse) {
           for (const d of parser.end()) {
             controller.enqueue(encodeEvent({ type: "delta", ...d }));
           }

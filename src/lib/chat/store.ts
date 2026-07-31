@@ -16,7 +16,7 @@ import type { Beat } from "@/lib/model/beats";
  * like a chat.
  */
 
-export type TurnMode = "restoration" | "conversation";
+export type TurnMode = "restoration" | "conversation" | "indianize";
 
 export interface ChatMessage {
   id: string;

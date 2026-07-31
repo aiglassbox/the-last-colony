@@ -36,7 +36,23 @@ export function Message({ message }: { message: ChatMessage }) {
           }}
         />
       ) : (
-        <ProseTurn message={message} />
+        <>
+          {message.mode === "indianize" && (
+            <p
+              className="mono"
+              style={{
+                margin: "0 0 0.5rem",
+                fontSize: "0.7rem",
+                letterSpacing: "0.04em",
+                textTransform: "uppercase",
+                color: "var(--ink-muted)",
+              }}
+            >
+              Indian-inspired fusion · not a restored historical dish
+            </p>
+          )}
+          <ProseTurn message={message} />
+        </>
       )}
 
       {message.error && (

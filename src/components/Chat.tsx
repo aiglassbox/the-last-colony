@@ -47,7 +47,7 @@ const SUBHEADING =
 
 interface StreamEvent {
   type: "meta" | "delta" | "text" | "done" | "error";
-  mode?: "restoration" | "conversation";
+  mode?: "restoration" | "conversation" | "indianize";
   records?: CorpusRecord[];
   empty?: boolean;
   beat?: Beat;
