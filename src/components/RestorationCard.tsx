@@ -206,11 +206,11 @@ function Beat({
         aria-expanded={open}
         onClick={() => onToggle(beat)}
       >
-        <span className="mono" style={{ color: "var(--ink-faint)" }}>
+        <span className="mono" style={{ color: "var(--ink-muted)" }}>
           {TITLES[beat]}
         </span>
         {badge && (
-          <span className="display" style={{ fontSize: "0.95rem", color: "var(--then)" }}>
+          <span className="display" style={{ fontSize: "0.95rem", color: "var(--orange)" }}>
             {badge}
           </span>
         )}
@@ -226,7 +226,7 @@ function Beat({
 function Prose({ text, streaming }: { text?: string; streaming: boolean }) {
   if (!text) {
     return streaming ? (
-      <p style={{ margin: 0, color: "var(--ink-faint)" }}>
+      <p style={{ margin: 0, color: "var(--ink-muted)" }}>
         <span className="caret" aria-hidden />
       </p>
     ) : null;
@@ -257,7 +257,7 @@ function IngredientTable({ record }: { record: CorpusRecord }) {
                 className="mono"
                 style={{
                   textAlign: "left",
-                  color: "var(--ink-faint)",
+                  color: "var(--ink-muted)",
                   padding: "0.4rem 0.6rem 0.4rem 0",
                   borderBottom: "1px solid var(--line-strong)",
                   fontWeight: 400,
@@ -274,7 +274,7 @@ function IngredientTable({ record }: { record: CorpusRecord }) {
               <td style={cell}>
                 {i.name}
                 {i.sanskrit && (
-                  <span style={{ color: "var(--then)", fontStyle: "italic" }}> · {i.sanskrit}</span>
+                  <span style={{ color: "var(--orange)", fontStyle: "italic" }}> · {i.sanskrit}</span>
                 )}
               </td>
               <td style={{ ...cell, color: "var(--ink-soft)", whiteSpace: "nowrap" }}>
@@ -300,7 +300,7 @@ function Method({ record }: { record: CorpusRecord }) {
   if (!record.method_reconstructed.length) return null;
   return (
     <div style={{ marginTop: "1.1rem" }}>
-      <div className="mono" style={{ color: "var(--ink-faint)", marginBottom: "0.5rem" }}>
+      <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
         The method
       </div>
       <ol style={{ margin: 0, paddingLeft: "1.15rem", maxWidth: "62ch" }}>
@@ -337,7 +337,7 @@ function SourceStrip({ record, onOpen }: { record: CorpusRecord; onOpen: () => v
       }}
     >
       <div style={{ minWidth: 0 }}>
-        <div className="mono" style={{ color: "var(--ink-faint)" }}>
+        <div className="mono" style={{ color: "var(--ink-muted)" }}>
           Source
         </div>
         <div className="display" style={{ fontSize: "0.98rem" }}>
@@ -349,7 +349,7 @@ function SourceStrip({ record, onOpen }: { record: CorpusRecord; onOpen: () => v
             : "Citation not yet verified — no verse or page shown"}
         </div>
       </div>
-      <span className="mono" style={{ marginLeft: "auto", color: "var(--then)" }}>
+      <span className="mono" style={{ marginLeft: "auto", color: "var(--orange)" }}>
         Open
       </span>
     </button>
@@ -369,7 +369,7 @@ function ThenNow({ ancient, modern }: { ancient: CorpusRecord; modern: CorpusRec
       >
         <Column
           title="Then"
-          colour="var(--then)"
+          colour="var(--orange)"
           items={ancient.ingredients.map((i) => i.name)}
         />
         <Column title="Now" colour="var(--now)" items={modern.ingredients.map((i) => i.name)} />
@@ -414,7 +414,7 @@ function NutritionDelta({ record }: { record: CorpusRecord }) {
   if (!entries.length) return null;
   return (
     <div style={{ marginTop: "1rem" }}>
-      <div className="mono" style={{ color: "var(--ink-faint)", marginBottom: "0.5rem" }}>
+      <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
         Then → now, by axis
       </div>
       <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
@@ -432,7 +432,7 @@ function NutritionDelta({ record }: { record: CorpusRecord }) {
           </span>
         ))}
       </div>
-      <p style={{ margin: "0.6rem 0 0", fontSize: "0.8rem", color: "var(--ink-faint)" }}>
+      <p style={{ margin: "0.6rem 0 0", fontSize: "0.8rem", color: "var(--ink-muted)" }}>
         A comparison between two versions of one dish. Not a health claim, and not advice —
         for anything personal, talk to a doctor or a dietitian.
       </p>
@@ -444,7 +444,7 @@ function RestoreToday({ record }: { record: CorpusRecord }) {
   const r = record.restore_today!;
   return (
     <div style={{ marginTop: "0.9rem" }}>
-      <div className="mono" style={{ color: "var(--ink-faint)", marginBottom: "0.5rem" }}>
+      <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
         {r.time_min} minutes · kirana ingredients
       </div>
       <ul style={{ margin: "0 0 0.9rem", paddingLeft: "1.1rem", maxWidth: "62ch" }}>

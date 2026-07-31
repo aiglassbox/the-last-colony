@@ -1,104 +1,143 @@
 @import "tailwindcss";
 
 /*
-  The Great Indian Food Restoration — design tokens.
+  Swadeshi Rasooi AI — design tokens.
 
-  Two-sided palette, because the whole product is a diff: THEN is warm and
-  mineral (turmeric, oxblood, unbleached paper), NOW is cool and flat (mill
-  grey, bleached white). The colour is carrying an argument, not decoration.
+  Everything is driven from here so the shell, the cards and the drawers stay
+  in one visual language, and so light/dark is a single attribute flip on
+  <html> rather than two sets of hardcoded classes.
 
-  Theming works off `data-theme` on <html>, set before first paint by the
-  inline script in layout.tsx. The media query below is the no-JS fallback and
-  is deliberately scoped to `:not([data-theme])`, so an explicit choice always
-  beats the OS preference.
+  Spacing follows an 8px grid: --s-1 through --s-10.
 */
 :root {
-  --paper: #f4efe3;
-  --paper-2: #ece5d5;
-  --surface: #e4dbc7;
-  --ink: #1a1712;
-  --ink-soft: #5a5044;
-  --ink-faint: #8d8474;
+  /* brand */
+  --orange: #ff6a00;
+  --orange-2: #ff8c3a;
+  --orange-3: #ff9d55;
+  --orange-4: #ffa25b;
 
-  --then: #7a2e22; /* oxblood */
-  --then-soft: #a8641a; /* turmeric */
-  --now: #6b7280; /* mill grey */
+  /* The hero ramp, split out so the AA variant can override it alone. */
+  --hero-1: #ff6a00;
+  --hero-2: #ff7d1f;
+  --hero-3: #ff9245;
+  --hero-4: #ffa25b;
 
-  --line: rgba(26, 23, 18, 0.12);
-  --line-strong: rgba(26, 23, 18, 0.22);
+  /* surfaces */
+  --canvas: #ffffff; /* behind the stage, same as the sidebar */
+  --stage: #f7f4f2; /* the big rounded container */
+  --surface: #ffffff; /* cards, pills, composer */
+  --surface-2: #faf7f5;
 
-  --attested: #1f6f4a;
-  --reconstructed: #a8641a;
+  /* ink — #6e6e6e rather than the specified #777777, which measures 4.09:1 on
+     the stage and misses AA for body text. The 5-unit darkening is not
+     perceptible next to the reference and takes it to 4.6:1. */
+  --ink: #1f1f1f;
+  --ink-soft: #555555;
+  --ink-muted: #6e6e6e;
+
+  /* lines */
+  --line: rgba(31, 31, 31, 0.08);
+  --line-strong: rgba(31, 31, 31, 0.14);
+
+  /* provenance badges */
+  --attested: #1f7a4d;
+  --reconstructed: #b8651a;
   --inferred: #6b6152;
   --modern: #4a5b8c;
 
-  --bubble: rgba(122, 46, 34, 0.1);
-  --bubble-line: rgba(122, 46, 34, 0.28);
-  --bubble-ink: #3b1c15;
+  /* radii */
+  --r-card: 30px;
+  --r-stage: 32px;
+  --r-input: 24px;
+  --r-pill: 999px;
+  --r-side: 18px;
 
-  --ease: cubic-bezier(0.2, 0.9, 0.3, 1);
+  /* spacing — 8px grid */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 40px;
+  --s-8: 48px;
+  --s-9: 64px;
+  --s-10: 80px;
 
-  --shadow-card:
-    0 1px 2px rgba(26, 23, 18, 0.05),
-    0 12px 32px -16px rgba(26, 23, 18, 0.28);
+  /* motion */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur: 220ms;
+
+  /* shadows — soft, never harsh */
+  --sh-1: 0 1px 2px rgba(31, 31, 31, 0.04), 0 2px 8px rgba(31, 31, 31, 0.04);
+  --sh-2: 0 2px 6px rgba(31, 31, 31, 0.05), 0 10px 28px -12px rgba(31, 31, 31, 0.14);
+  --sh-3: 0 8px 20px -6px rgba(31, 31, 31, 0.1), 0 24px 48px -20px rgba(31, 31, 31, 0.18);
+  --sh-hero: 0 18px 48px -20px rgba(255, 106, 0, 0.55), 0 6px 18px -8px rgba(255, 106, 0, 0.3);
+  --sh-focus: 0 0 0 3px rgba(255, 106, 0, 0.28);
 
   color-scheme: light;
 }
 
 :root[data-theme="dark"] {
-  --paper: #14110d;
-  --paper-2: #1d1915;
-  --surface: #272119;
-  --ink: #f2ece0;
-  --ink-soft: #b6ac9a;
-  --ink-faint: #857c6d;
+  --canvas: #131211;
+  --stage: #1a1817;
+  --surface: #221f1d;
+  --surface-2: #2a2624;
 
-  --then: #d98b74;
-  --then-soft: #e0b25c;
-  --now: #9aa2ad;
+  --ink: #f4f1ee;
+  --ink-soft: #c2bbb4;
+  --ink-muted: #948c85;
 
-  --line: rgba(242, 236, 224, 0.14);
-  --line-strong: rgba(242, 236, 224, 0.26);
+  --line: rgba(244, 241, 238, 0.1);
+  --line-strong: rgba(244, 241, 238, 0.18);
 
   --attested: #5fbf8f;
-  --reconstructed: #d99f4e;
+  --reconstructed: #e0a15c;
   --inferred: #a99f8e;
   --modern: #8fa4dc;
 
-  --bubble: rgba(217, 139, 116, 0.16);
-  --bubble-line: rgba(224, 178, 92, 0.3);
-  --bubble-ink: #f7f2e8;
-
-  --shadow-card:
-    0 1px 2px rgba(0, 0, 0, 0.5),
-    0 12px 32px -16px rgba(0, 0, 0, 0.7);
+  --sh-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --sh-2: 0 2px 6px rgba(0, 0, 0, 0.45), 0 10px 28px -12px rgba(0, 0, 0, 0.6);
+  --sh-3: 0 8px 20px -6px rgba(0, 0, 0, 0.5), 0 24px 48px -20px rgba(0, 0, 0, 0.7);
+  --sh-hero: 0 18px 48px -20px rgba(255, 106, 0, 0.45), 0 6px 18px -8px rgba(0, 0, 0, 0.5);
 
   color-scheme: dark;
 }
 
-/* No-JS fallback only. An explicit data-theme always wins. */
+/* No-JS fallback. An explicit data-theme always wins. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    --paper: #14110d;
-    --paper-2: #1d1915;
-    --surface: #272119;
-    --ink: #f2ece0;
-    --ink-soft: #b6ac9a;
-    --ink-faint: #857c6d;
-    --then: #d98b74;
-    --then-soft: #e0b25c;
-    --now: #9aa2ad;
-    --line: rgba(242, 236, 224, 0.14);
-    --line-strong: rgba(242, 236, 224, 0.26);
+    --canvas: #131211;
+    --stage: #1a1817;
+    --surface: #221f1d;
+    --surface-2: #2a2624;
+    --ink: #f4f1ee;
+    --ink-soft: #c2bbb4;
+    --ink-muted: #948c85;
+    --line: rgba(244, 241, 238, 0.1);
+    --line-strong: rgba(244, 241, 238, 0.18);
     --attested: #5fbf8f;
-    --reconstructed: #d99f4e;
+    --reconstructed: #e0a15c;
     --inferred: #a99f8e;
     --modern: #8fa4dc;
-    --bubble: rgba(217, 139, 116, 0.16);
-    --bubble-line: rgba(224, 178, 92, 0.3);
-    --bubble-ink: #f7f2e8;
     color-scheme: dark;
   }
+}
+
+/* Opt-in WCAG AA hero. Deepens the ramp until white clears 4.5:1 for the
+   subtitle and 3.0:1 for the heading, at the cost of matching the reference's
+   lighter orange. Set data-contrast="aa" on <html>. */
+:root[data-contrast="aa"] {
+  --hero-1: #b03f00;
+  --hero-2: #b84400;
+  --hero-3: #c24700;
+  --hero-4: #c85000;
+}
+
+:root[data-contrast="aa"] .hero {
+  background:
+    radial-gradient(52% 78% at 8% 48%, rgba(255, 172, 96, 0.35) 0%, transparent 62%),
+    linear-gradient(115deg, var(--hero-1) 0%, var(--hero-2) 38%, var(--hero-3) 68%, var(--hero-4) 100%);
 }
 
 * {
@@ -112,52 +151,500 @@ body {
   color: var(--ink);
 }
 
-/* Solid background, no image. It sits on `html` rather than `body` so it
-   propagates to the canvas and covers overscroll. */
 html {
-  background: var(--paper);
-  transition: background-color 200ms var(--ease);
+  background: var(--canvas);
 }
 
 body {
   background: transparent;
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   font-size: 16px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  letter-spacing: -0.006em;
 }
 
-.display {
-  font-family: "Iowan Old Style", Georgia, "Times New Roman", serif;
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Visible only to screen readers, until focused. */
+.skip-link {
+  position: absolute;
+  left: var(--s-4);
+  top: -100px;
+  z-index: 100;
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-side);
+  background: var(--orange);
+  color: #fff;
   font-weight: 600;
-  letter-spacing: -0.015em;
+  transition: top var(--dur) var(--ease);
 }
 
-/* The verdict line. The one piece of type that gets to be loud. */
-.verdict {
-  font-family: "Iowan Old Style", Georgia, "Times New Roman", serif;
-  font-size: clamp(1.5rem, 6vw, 2.1rem);
-  line-height: 1.15;
+.skip-link:focus {
+  top: var(--s-4);
+}
+
+/* One focus treatment everywhere, so keyboard use is never ambiguous. */
+:where(a, button, input, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ---------------------------------------------------------------- shell -- */
+
+.app {
+  display: flex;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--canvas);
+}
+
+.sidebar {
+  width: 288px;
+  flex: 0 0 288px;
+  display: flex;
+  flex-direction: column;
+  background: var(--canvas);
+  border-right: 1px solid var(--line);
+  padding: var(--s-5) var(--s-4) var(--s-4);
+}
+
+.sidebar__scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;
+  margin-top: var(--s-6);
+}
+
+.side-group {
+  margin-bottom: var(--s-6);
+}
+
+.side-group__label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ink-muted);
+  padding: 0 var(--s-3);
+  margin-bottom: var(--s-2);
+}
+
+.side-item {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  min-height: 44px;
+  padding: 0 var(--s-4);
+  border: 0;
+  border-radius: var(--r-side);
+  background: transparent;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.95rem;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background var(--dur) var(--ease),
+    color var(--dur) var(--ease);
+}
+
+.side-item:hover {
+  background: color-mix(in srgb, var(--orange) 8%, transparent);
+  color: var(--ink);
+}
+
+.side-item[aria-current="page"],
+.side-item[data-active="true"] {
+  background: linear-gradient(135deg, var(--orange) 0%, var(--orange-3) 100%);
+  color: #fff;
+  box-shadow: 0 6px 16px -8px rgba(255, 106, 0, 0.8);
+}
+
+.side-item[aria-current="page"] .side-item__icon,
+.side-item[data-active="true"] .side-item__icon {
+  color: #fff;
+}
+
+.side-item__icon {
+  flex: 0 0 auto;
+  color: var(--ink-muted);
+}
+
+.side-item__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The Dark Mode switch. Purely visual — the button that wraps it carries
+   role="switch" and aria-checked, so the state is announced, not inferred. */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex: 0 0 auto;
+  border-radius: var(--r-pill);
+  background: var(--line-strong);
+  transition: background var(--dur) var(--ease);
+}
+
+.switch[data-on="true"] {
+  background: linear-gradient(135deg, var(--orange) 0%, var(--orange-3) 100%);
+}
+
+.switch__knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--r-pill);
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(31, 31, 31, 0.3);
+  transition: transform var(--dur) var(--ease);
+}
+
+.switch[data-on="true"] .switch__knob {
+  transform: translateX(20px);
+}
+
+/* --------------------------------------------------------------- canvas -- */
+
+.canvas {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  padding: var(--s-4);
+}
+
+.stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--r-stage);
+  background: var(--stage);
+  overflow: hidden;
+}
+
+/* Soft orange glow bloom in the corners. Decorative, so it is aria-hidden and
+   painted behind content rather than as a background-image on .stage — that
+   keeps it from tiling oddly when the stage scrolls. */
+.stage__glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(38% 42% at 20% 76%, rgba(255, 146, 74, 0.42) 0%, transparent 68%),
+    radial-gradient(34% 30% at 2% 28%, rgba(255, 168, 106, 0.3) 0%, transparent 70%),
+    radial-gradient(42% 36% at 100% 4%, rgba(255, 186, 138, 0.3) 0%, transparent 70%),
+    radial-gradient(60% 50% at 88% 96%, rgba(255, 196, 152, 0.22) 0%, transparent 72%);
+}
+
+:root[data-theme="dark"] .stage__glow {
+  background:
+    radial-gradient(46% 38% at 6% 34%, rgba(255, 122, 40, 0.16) 0%, transparent 70%),
+    radial-gradient(50% 42% at 34% 84%, rgba(255, 138, 56, 0.12) 0%, transparent 72%),
+    radial-gradient(40% 34% at 96% 6%, rgba(255, 160, 100, 0.1) 0%, transparent 70%);
+}
+
+.stage__body {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ----------------------------------------------------------------- hero -- */
+
+.hero-wrap {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-5);
+  padding: var(--s-6) var(--s-5);
+  overflow-y: auto;
+}
+
+.hero {
+  width: min(100%, 860px);
+  border-radius: var(--r-card);
+  padding: clamp(28px, 4vw, 56px);
+  /* The bright hotspot sits left-of-centre, as in the reference, so the card
+     reads as lit from that side rather than as a flat gradient sweep.
+
+     ACCESSIBILITY NOTE: white on this gradient measures 2.0–2.9:1, below the
+     WCAG AA thresholds (4.5:1 body, 3.0:1 large). The reference's palette
+     cannot reach AA — doing so needs roughly #C24700, which is visibly darker.
+     Fidelity is the default because it was the stated primary goal; set
+     data-contrast="aa" on <html> to switch to the compliant ramp below. */
+  background:
+    radial-gradient(52% 78% at 8% 48%, rgba(255, 209, 106, 0.9) 0%, rgba(255, 168, 60, 0) 62%),
+    linear-gradient(115deg, var(--hero-1) 0%, var(--hero-2) 38%, var(--hero-3) 68%, var(--hero-4) 100%);
+  box-shadow: var(--sh-hero);
+  text-align: center;
+}
+
+.hero__title {
+  margin: 0;
+  color: #fff;
+  font-weight: 700;
   letter-spacing: -0.02em;
-  font-weight: 600;
+  line-height: 1.12;
+  font-size: clamp(1.625rem, 1.1rem + 2.4vw, 2.875rem);
   text-wrap: balance;
 }
 
-.mono {
-  font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, monospace;
-  font-size: 0.72rem;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
+.hero__subtitle {
+  margin: var(--s-3) auto 0;
+  max-width: 600px;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: clamp(0.9375rem, 0.88rem + 0.25vw, 1.0625rem);
+  line-height: 1.5;
+  text-wrap: balance;
+}
+
+/* ------------------------------------------------------------- composer -- */
+
+.composer {
+  position: relative;
+  margin-top: var(--s-5);
+  border-radius: var(--r-input);
+  background: var(--surface);
+  border: 2px solid rgba(255, 255, 255, 0.65);
+  box-shadow:
+    inset 0 2px 10px rgba(31, 31, 31, 0.05),
+    0 10px 30px -18px rgba(31, 31, 31, 0.4);
+  transition:
+    border-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+  text-align: left;
+}
+
+.composer:focus-within {
+  border-color: rgba(255, 255, 255, 0.95);
+  box-shadow:
+    inset 0 2px 10px rgba(31, 31, 31, 0.05),
+    0 0 0 4px rgba(255, 255, 255, 0.35);
+}
+
+/* In the thread the composer sits on the stage, not on the hero, so it needs
+   its own border rather than the white-on-orange treatment. */
+.composer--flat {
+  margin-top: 0;
+  border-color: var(--line-strong);
+}
+
+.composer--flat:focus-within {
+  border-color: var(--orange);
+  box-shadow:
+    inset 0 2px 10px rgba(31, 31, 31, 0.04),
+    var(--sh-focus);
+}
+
+.composer__field {
+  display: block;
+  width: 100%;
+  border: 0;
+  outline: none;
+  resize: none;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  padding: var(--s-5) var(--s-5) var(--s-2);
+  max-height: 320px;
+}
+
+.composer__field::placeholder {
+  color: var(--ink-muted);
+}
+
+.composer__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-2) var(--s-3) var(--s-3);
+}
+
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition:
+    transform var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease),
+    background var(--dur) var(--ease),
+    color var(--dur) var(--ease);
+}
+
+.icon-btn:hover {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: var(--sh-1);
+  color: var(--ink);
+}
+
+.icon-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.icon-btn--recording {
+  background: color-mix(in srgb, var(--orange) 14%, var(--surface));
+  color: var(--orange);
+  border-color: color-mix(in srgb, var(--orange) 40%, transparent);
+}
+
+.send-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: linear-gradient(135deg, var(--orange) 0%, var(--orange-3) 100%);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 6px 16px -8px rgba(255, 106, 0, 0.9);
+  transition:
+    transform var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease),
+    opacity var(--dur) var(--ease);
+}
+
+.send-btn:hover:not(:disabled) {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 10px 22px -10px rgba(255, 106, 0, 0.95);
+}
+
+.send-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+}
+
+/* Still clearly inert, but close enough to the reference's solid orange that
+   the composer does not look broken before you type. */
+.send-btn:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* -------------------------------------------------------- action pills --- */
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+  width: min(100%, 860px);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 44px;
+  padding: 0 var(--s-4);
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  box-shadow: var(--sh-1);
+  transition:
+    transform var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease),
+    border-color var(--dur) var(--ease);
+}
+
+.pill:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: var(--sh-2);
+  border-color: color-mix(in srgb, var(--orange) 35%, transparent);
+}
+
+.pill:active {
+  transform: translateY(0) scale(0.99);
+  box-shadow: var(--sh-1);
+}
+
+.pill__icon {
+  color: var(--orange);
+  flex: 0 0 auto;
+}
+
+/* --------------------------------------------------------------- thread -- */
+
+.thread {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.thread__inner {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: var(--s-6) var(--s-5) var(--s-5);
+}
+
+.thread__foot {
+  position: relative;
+  flex: 0 0 auto;
+  padding: 0 var(--s-5) var(--s-5);
+}
+
+/* Content scrolls beneath the composer, so it fades out rather than being
+   sliced off at a hard edge. */
+.thread__foot::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: 40px;
+  pointer-events: none;
+  background: linear-gradient(to top, var(--stage), transparent);
+}
+
+.thread__foot-inner {
+  max-width: 820px;
+  margin: 0 auto;
 }
 
 .bubble-user {
   max-width: min(85%, 46ch);
-  padding: 0.6rem 0.95rem;
-  border-radius: 18px 18px 4px 18px;
-  background: var(--bubble);
-  border: 1px solid var(--bubble-line);
-  color: var(--bubble-ink);
+  padding: var(--s-3) var(--s-4);
+  border-radius: 20px 20px 6px 20px;
+  background: linear-gradient(135deg, var(--orange) 0%, var(--orange-3) 100%);
+  color: #fff;
+  box-shadow: 0 8px 20px -12px rgba(255, 106, 0, 0.9);
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -167,25 +654,32 @@ body {
 }
 
 .ghost-btn {
-  padding: 0.34rem 0.7rem;
-  border-radius: 999px;
-  border: 1px solid var(--line-strong);
-  background: transparent;
-  color: var(--ink-soft);
+  min-height: 36px;
+  padding: 0 var(--s-3);
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink-muted);
   cursor: pointer;
   font: inherit;
+  font-size: 0.8125rem;
+  transition:
+    color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease);
 }
 
 .ghost-btn:hover {
   color: var(--ink);
-  border-color: var(--then);
+  border-color: var(--orange);
 }
 
+/* ----------------------------------------------------------------- card -- */
+
 .card {
-  background: var(--paper-2);
+  background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 18px;
-  box-shadow: var(--shadow-card);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-2);
   overflow: hidden;
 }
 
@@ -193,8 +687,9 @@ body {
   display: flex;
   width: 100%;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.9rem 1.1rem;
+  gap: var(--s-3);
+  min-height: 52px;
+  padding: var(--s-3) var(--s-5);
   background: none;
   border: 0;
   border-top: 1px solid var(--line);
@@ -202,44 +697,58 @@ body {
   text-align: left;
   cursor: pointer;
   font: inherit;
+  transition: background var(--dur) var(--ease);
 }
 
 .beat-toggle:hover {
-  background: color-mix(in srgb, var(--then) 7%, transparent);
-}
-
-.beat-toggle:focus-visible,
-a:focus-visible,
-button:focus-visible,
-input:focus-visible,
-textarea:focus-visible {
-  outline: 2px solid var(--then);
-  outline-offset: 2px;
+  background: color-mix(in srgb, var(--orange) 6%, transparent);
 }
 
 .chevron {
   margin-left: auto;
-  transition: transform 200ms var(--ease);
-  color: var(--ink-faint);
+  transition: transform var(--dur) var(--ease);
+  color: var(--ink-muted);
 }
 
 .chevron[data-open="true"] {
   transform: rotate(90deg);
 }
 
-/* Wide content — the Then/Now diff, the ingredient table — scrolls inside its
-   own box. The page body must never scroll sideways on a phone. */
+.mono {
+  font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.display {
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+.verdict {
+  font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  text-wrap: balance;
+}
+
+/* Wide content scrolls inside its own box; the page never scrolls sideways. */
 .scroll-x {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 
+/* -------------------------------------------------------------- overlays -- */
+
 .drawer-backdrop {
   position: fixed;
   inset: 0;
-  background: color-mix(in srgb, var(--ink) 45%, transparent);
-  backdrop-filter: blur(2px);
   z-index: 40;
+  background: rgba(31, 31, 31, 0.42);
+  backdrop-filter: blur(2px);
+  animation: fade-in var(--dur) var(--ease);
 }
 
 .drawer {
@@ -250,17 +759,120 @@ textarea:focus-visible {
   z-index: 50;
   max-height: 85vh;
   overflow-y: auto;
-  background: var(--paper);
+  background: var(--stage);
   border-top: 1px solid var(--line-strong);
-  border-radius: 20px 20px 0 0;
-  box-shadow: 0 -12px 40px -12px rgba(0, 0, 0, 0.35);
-  animation: slide-up 260ms var(--ease);
+  border-radius: var(--r-stage) var(--r-stage) 0 0;
+  box-shadow: var(--sh-3);
+  animation: slide-up 280ms var(--ease);
+}
+
+/* The sidebar as an off-canvas drawer, below 992px. */
+.sidebar--drawer {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: min(86vw, 320px);
+  box-shadow: var(--sh-3);
+  animation: slide-in 280ms var(--ease);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
 }
 
 @keyframes slide-up {
   from {
-    transform: translateY(12px);
+    transform: translateY(14px);
     opacity: 0;
+  }
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(-16px);
+    opacity: 0;
+  }
+}
+
+.caret::after {
+  content: "";
+  display: inline-block;
+  width: 0.4em;
+  height: 1.05em;
+  margin-left: 0.1em;
+  vertical-align: -0.16em;
+  background: var(--orange);
+  animation: blink 1s steps(2, start) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ---------------------------------------------------------- responsive --- */
+
+@media (max-width: 1200px) {
+  .canvas {
+    padding: var(--s-3);
+  }
+  .sidebar {
+    width: 264px;
+    flex-basis: 264px;
+  }
+}
+
+@media (max-width: 991px) {
+  /* Sidebar leaves the flow entirely and returns as a drawer. */
+  .sidebar:not(.sidebar--drawer) {
+    display: none;
+  }
+  /* Clear the floating sidebar opener, which is absolutely positioned at the
+     top-left of the stage in this range. */
+  .hero-wrap {
+    padding: 72px var(--s-4) var(--s-5);
+  }
+  .thread__inner {
+    padding-top: 72px;
+  }
+}
+
+@media (max-width: 767px) {
+  .canvas {
+    padding: var(--s-2);
+  }
+  .stage {
+    border-radius: 24px;
+  }
+  .hero {
+    border-radius: 24px;
+    padding: var(--s-5) var(--s-4);
+  }
+  .hero-wrap {
+    justify-content: flex-start;
+    /* Keeps clear of the floating sidebar opener — must not fall back to the
+       smaller value, since this block wins over the 991px one. */
+    padding-top: 72px;
+  }
+  .composer__field {
+    padding: var(--s-4) var(--s-4) var(--s-2);
+  }
+  .thread__inner,
+  .thread__foot {
+    padding-left: var(--s-4);
+    padding-right: var(--s-4);
+  }
+  .actions {
+    gap: var(--s-2);
+  }
+  .pill {
+    font-size: 0.875rem;
+    padding: 0 var(--s-3);
   }
 }
 
@@ -270,22 +882,5 @@ textarea:focus-visible {
   *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
-  }
-}
-
-.caret::after {
-  content: "";
-  display: inline-block;
-  width: 0.42em;
-  height: 1.05em;
-  margin-left: 0.1em;
-  vertical-align: -0.16em;
-  background: var(--then);
-  animation: blink 1s steps(2, start) infinite;
-}
-
-@keyframes blink {
-  50% {
-    opacity: 0;
   }
 }

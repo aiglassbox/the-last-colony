@@ -47,7 +47,7 @@ export function SourceDrawer({
         <div style={{ padding: "1.2rem 1.2rem 2rem", maxWidth: 720, margin: "0 auto" }}>
           <div style={{ display: "flex", alignItems: "center", marginBottom: "1rem" }}>
             <div>
-              <div className="mono" style={{ color: "var(--ink-faint)" }}>
+              <div className="mono" style={{ color: "var(--ink-muted)" }}>
                 Source
               </div>
               <div className="display" style={{ fontSize: "1.2rem" }}>
@@ -130,7 +130,7 @@ export function SourceDrawer({
 
           {record.contested_points.length > 0 && (
             <div style={{ marginTop: "1.4rem" }}>
-              <div className="mono" style={{ color: "var(--ink-faint)", marginBottom: "0.5rem" }}>
+              <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
                 Where scholarship is contested
               </div>
               <ul style={{ margin: 0, paddingLeft: "1.1rem", color: "var(--ink-soft)" }}>
@@ -144,7 +144,7 @@ export function SourceDrawer({
           )}
 
           <div style={{ marginTop: "1.4rem" }}>
-            <div className="mono" style={{ color: "var(--ink-faint)", marginBottom: "0.5rem" }}>
+            <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
               Confidence
             </div>
             <div style={{ display: "flex", gap: "1.2rem", flexWrap: "wrap" }}>
@@ -153,7 +153,7 @@ export function SourceDrawer({
                   <div style={{ fontSize: "1.05rem" }}>
                     {Math.round(record.confidence[k] * 100)}%
                   </div>
-                  <div className="mono" style={{ color: "var(--ink-faint)" }}>
+                  <div className="mono" style={{ color: "var(--ink-muted)" }}>
                     {k}
                   </div>
                 </div>
@@ -170,7 +170,7 @@ function Row({ label, value }: { label: string; value: string | null }) {
   if (!value) return null;
   return (
     <div style={{ display: "flex", gap: "1rem", padding: "0.4rem 0", borderBottom: "1px solid var(--line)" }}>
-      <div className="mono" style={{ color: "var(--ink-faint)", minWidth: 100 }}>
+      <div className="mono" style={{ color: "var(--ink-muted)", minWidth: 100 }}>
         {label}
       </div>
       <div style={{ fontSize: "0.95rem" }}>{value}</div>
@@ -191,7 +191,7 @@ function Block({
 }) {
   return (
     <div style={{ marginTop: "1.1rem" }}>
-      <div className="mono" style={{ color: "var(--ink-faint)", marginBottom: "0.4rem" }}>
+      <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.4rem" }}>
         {label}
       </div>
       <p

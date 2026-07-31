@@ -15,15 +15,15 @@ import { cn } from "@/lib/utils";
  */
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--then)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--orange)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-[var(--then)] text-[var(--paper)] hover:opacity-90",
+        default: "bg-[var(--orange)] text-[var(--surface)] hover:opacity-90",
         outline:
-          "border border-[var(--line-strong)] bg-transparent text-[var(--ink-soft)] hover:text-[var(--ink)] hover:border-[var(--then)]",
+          "border border-[var(--line-strong)] bg-transparent text-[var(--ink-soft)] hover:text-[var(--ink)] hover:border-[var(--orange)]",
         ghost: "bg-transparent text-[var(--ink-soft)] hover:text-[var(--ink)]",
-        link: "text-[var(--then)] underline-offset-4 hover:underline",
+        link: "text-[var(--orange)] underline-offset-4 hover:underline",
       },
       size: {
         default: "h-9 px-4 py-2",

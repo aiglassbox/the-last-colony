@@ -1,25 +1,8 @@
 "use client";
 
-import {
-  ArrowLeftRight,
-  ArrowUpIcon,
-  ClipboardList,
-  Flame,
-  MenuIcon,
-  Moon,
-  PlusIcon,
-  ScrollText,
-  Soup,
-  SquareIcon,
-  Sun,
-  Utensils,
-  Wheat,
-  X,
-} from "lucide-react";
+import { Code2, FileText, ImageIcon, Menu, Pencil } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import {
   deleteConversation,
   deriveTitle,
@@ -42,34 +25,25 @@ import {
   subscribe as themeSubscribe,
   toggleTheme,
 } from "@/lib/theme";
-import { cn } from "@/lib/utils";
 
+import { Composer } from "./Composer";
 import { Message } from "./Message";
+import { SettingsSheet } from "./SettingsSheet";
+import { Sidebar, type SidebarView } from "./Sidebar";
 import { SwapPanel } from "./SwapPanel";
 
 /**
- * The chat surface.
+ * The application shell.
  *
- * Layout follows the supplied component: the hook centred, a composer beneath
- * it, quick-action pills under that. That design is an empty state, so it is
- * used as one — once a thread starts, the composer carries over and the middle
- * becomes the scrolling conversation.
- *
- * The background is a flat fill from `--paper`, and every piece of chrome
- * resolves through the tokens, so light and dark are a single attribute flip
- * on <html> rather than two sets of hardcoded classes.
+ * Presentation only — the turn-mode routing, retrieval gates, streaming
+ * protocol and corpus guarantees all sit below this file and are untouched by
+ * the visual layer. What changed here is the frame: a docked rail, a rounded
+ * stage, and a hero that becomes a thread once a conversation starts.
  */
 
-const HOOK = "Name one Indian dish you eat almost every week.";
-const SUBHOOK = "I will show you what it used to be.";
-
-const DISHES = [
-  { label: "Idli", icon: <Soup className="w-4 h-4" /> },
-  { label: "Khichdi", icon: <Utensils className="w-4 h-4" /> },
-  { label: "Kheer", icon: <Flame className="w-4 h-4" /> },
-  { label: "Roti", icon: <Wheat className="w-4 h-4" /> },
-  { label: "Pav bhaji", icon: <ScrollText className="w-4 h-4" /> },
-];
+const HEADING = "What are you cooking today?";
+const SUBHEADING =
+  "Enter a modern dish to unearth its original, pre-1858 recipe and see what British cash-crop policies erased from our diet.";
 
 interface StreamEvent {
   type: "meta" | "delta" | "text" | "done" | "error";
@@ -81,56 +55,55 @@ interface StreamEvent {
   message?: string;
 }
 
+/** Below this width the rail leaves the flow and returns as a drawer. */
+const DRAWER_BREAKPOINT = 991;
+
 export function Chat({ initialSlug }: { initialSlug?: string }) {
   const { conversations, currentId } = useSyncExternalStore(
     subscribe,
     getSnapshot,
     getServerSnapshot,
   );
-
   const theme = useSyncExternalStore(themeSubscribe, themeSnapshot, themeServerSnapshot);
 
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
-  const [swapOpen, setSwapOpen] = useState<null | "single" | "pantry">(null);
-  const [historyOpen, setHistoryOpen] = useState(false);
+  const [view, setView] = useState<SidebarView>("chat");
+  const [railOpen, setRailOpen] = useState(false);
+  const [railCollapsed, setRailCollapsed] = useState(false);
+  const [compact, setCompact] = useState(false);
+  const [swap, setSwap] = useState<null | { mode: "single" | "pantry"; item?: string }>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const abortRef = useRef<AbortController | null>(null);
   const threadRef = useRef<HTMLDivElement>(null);
   const stick = useRef(true);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const promptRef = useRef<HTMLTextAreaElement>(null);
   const fired = useRef(false);
 
   const current = conversations.find((c) => c.id === currentId) ?? null;
   const messages = current?.messages ?? [];
-  const isEmpty = messages.length === 0;
+  const isEmpty = messages.length === 0 || view === "history";
 
-  // ---- auto-resizing composer -------------------------------------------
+  const activeRecord =
+    [...messages].reverse().find((m) => m.records?.length)?.records?.find((r) => r.tier === "ancient") ??
+    null;
 
-  const MIN_H = 48;
-  const MAX_H = 150;
+  // ---- viewport -----------------------------------------------------------
 
-  const adjustHeight = useCallback((reset?: boolean) => {
-    const el = textareaRef.current;
-    if (!el) return;
-    el.style.height = `${MIN_H}px`;
-    if (reset) return;
-    el.style.height = `${Math.max(MIN_H, Math.min(el.scrollHeight, MAX_H))}px`;
-  }, []);
-
-  // Collapse to one row on mount — otherwise the textarea renders at its
-  // default two rows and the composer sits taller than it ever needs to.
   useEffect(() => {
-    if (textareaRef.current) textareaRef.current.style.height = `${MIN_H}px`;
+    const mq = window.matchMedia(`(max-width: ${DRAWER_BREAKPOINT}px)`);
+    const apply = () => setCompact(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
   }, []);
 
-  // ---- scrolling ---------------------------------------------------------
+  // ---- scrolling ----------------------------------------------------------
 
   const onScroll = () => {
     const el = threadRef.current;
     if (!el) return;
-    // Stay pinned only if the reader is already near the bottom — scrolling up
-    // mid-stream to re-read something should not yank you back down.
     stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
   };
 
@@ -140,7 +113,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
     if (el) el.scrollTop = el.scrollHeight;
   }, [conversations]);
 
-  // ---- sending -----------------------------------------------------------
+  // ---- sending ------------------------------------------------------------
 
   const send = useCallback(
     async (text: string, slug?: string) => {
@@ -154,6 +127,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
 
       stick.current = true;
       setBusy(true);
+      setView("chat");
 
       const userMsg: ChatMessage = { id: newId(), role: "user", text: trimmed || (slug ?? "") };
       const replyId = newId();
@@ -186,10 +160,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
           body: JSON.stringify({
             slug,
             activeRecordIds,
-            messages: [...priorMessages, userMsg].map((m) => ({
-              role: m.role,
-              content: m.text,
-            })),
+            messages: [...priorMessages, userMsg].map((m) => ({ role: m.role, content: m.text })),
           }),
         });
 
@@ -261,8 +232,6 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
         }
       } finally {
         abortRef.current = null;
-        // Restoration turns keep their prose in `beats`; flatten a copy into
-        // `text` so the next request can replay this turn to the model.
         patchMessage(conversationId, replyId, (m) => ({
           ...m,
           streaming: false,
@@ -280,9 +249,8 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
     [busy],
   );
 
-  // Deep link from a QR code or a permalink. Deferred a tick — `send` sets
-  // React state on its first line, and doing that synchronously in an effect
-  // cascades a render.
+  // Deep link from a QR code or permalink, deferred a tick — `send` sets state
+  // on its first line and doing that inside an effect cascades a render.
   useEffect(() => {
     if (fired.current || !initialSlug || !currentId) return;
     fired.current = true;
@@ -290,292 +258,194 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
     return () => clearTimeout(id);
   }, [initialSlug, currentId, send]);
 
-  // ---- composer actions --------------------------------------------------
+  // ---- actions ------------------------------------------------------------
 
-  const submit = (e?: React.FormEvent) => {
-    e?.preventDefault();
+  const submit = () => {
     const text = input;
     setInput("");
-    adjustHeight(true);
     void send(text);
   };
 
-  const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      submit();
-    }
+  const focusPrompt = () => {
+    setView("chat");
+    promptRef.current?.focus();
   };
 
   const startNew = () => {
     abortRef.current?.abort();
     startConversation();
-    setHistoryOpen(false);
+    setRailOpen(false);
+    setView("chat");
     setInput("");
-    adjustHeight(true);
   };
 
-  const openThread = (id: string) => {
+  const openConversation = (id: string) => {
     abortRef.current?.abort();
     selectConversation(id);
-    setHistoryOpen(false);
+    setRailOpen(false);
+    setView("chat");
   };
 
-  // ---- pieces ------------------------------------------------------------
+  // Deleting the last conversation leaves a fresh empty one behind, which is
+  // exactly the desired end state.
+  const clearAll = () => {
+    abortRef.current?.abort();
+    for (const c of [...conversations]) deleteConversation(c.id);
+    setView("chat");
+  };
 
-  const composer = (
-    <form onSubmit={submit} className="w-full">
-      <div className="relative rounded-xl border border-[var(--line-strong)] bg-[var(--paper-2)] focus-within:border-[var(--then)]">
-        <Textarea
-          ref={textareaRef}
-          value={input}
-          onChange={(e) => {
-            setInput(e.target.value);
-            adjustHeight();
-          }}
-          onKeyDown={onKeyDown}
-          placeholder={isEmpty ? "idli, khichdi, pav bhaji…" : "Ask a follow-up…"}
-          aria-label="Message"
-          className={cn(
-            "w-full resize-none border-none bg-transparent px-4 py-3 text-sm text-[var(--ink)]",
-            "min-h-[48px] placeholder:text-[var(--ink-faint)]",
-            "focus-visible:ring-0 focus-visible:ring-offset-0",
+  const railProps = {
+    view,
+    onViewChange: (v: SidebarView) => {
+      setView(v);
+      setRailOpen(false);
+    },
+    conversations,
+    currentId,
+    onSelectConversation: openConversation,
+    onDeleteConversation: deleteConversation,
+    onNewConversation: startNew,
+    onOpenSettings: () => {
+      setSettingsOpen(true);
+      setRailOpen(false);
+    },
+    theme,
+    onToggleTheme: toggleTheme,
+  };
+
+  const showFloatingOpener = compact || railCollapsed;
+
+  return (
+    <div className="app">
+      <a href="#main" className="skip-link">
+        Skip to content
+      </a>
+
+      {!compact && !railCollapsed && (
+        <Sidebar {...railProps} onCollapse={() => setRailCollapsed(true)} />
+      )}
+
+      {railOpen && (
+        <>
+          <div className="drawer-backdrop" onClick={() => setRailOpen(false)} aria-hidden />
+          <Sidebar {...railProps} asDrawer onClose={() => setRailOpen(false)} />
+        </>
+      )}
+
+      <main id="main" className="canvas">
+        <div className="stage">
+          <div className="stage__glow" aria-hidden />
+
+          {showFloatingOpener && (
+            <button
+              type="button"
+              className="icon-btn"
+              style={{ position: "absolute", top: 16, left: 16, zIndex: 2 }}
+              onClick={() => (compact ? setRailOpen(true) : setRailCollapsed(false))}
+              aria-label="Open sidebar"
+            >
+              <Menu size={18} aria-hidden />
+            </button>
           )}
-          style={{ overflow: "hidden" }}
-        />
 
-        <div className="flex items-center justify-between p-3 pt-0">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => setSwapOpen("pantry")}
-            aria-label="Read my pantry"
-            title="Read my pantry"
-          >
-            <ClipboardList className="h-4 w-4" />
-          </Button>
+          <div className="stage__body">
+            {isEmpty ? (
+              <div className="hero-wrap">
+                <section className="hero" aria-labelledby="hero-title">
+                  <h1 id="hero-title" className="hero__title">
+                    {HEADING}
+                  </h1>
+                  <p className="hero__subtitle">{SUBHEADING}</p>
 
-          <div className="flex items-center gap-2">
-            {busy ? (
-              <Button
-                type="button"
-                onClick={() => abortRef.current?.abort()}
-                aria-label="Stop generating"
-                className="gap-1 rounded-lg bg-[var(--ink-faint)] px-3 text-[var(--paper)]"
-              >
-                <SquareIcon className="h-3.5 w-3.5 fill-current" />
-                <span className="sr-only">Stop</span>
-              </Button>
+                  <Composer
+                    value={input}
+                    onChange={setInput}
+                    onSubmit={submit}
+                    onStop={() => abortRef.current?.abort()}
+                    busy={busy}
+                    placeholder="Type a dish to travel back in time…"
+                    inputRef={promptRef}
+                    minHeight={150}
+                  />
+                </section>
+
+                <div className="actions" role="group" aria-label="Quick actions">
+                  <button
+                    type="button"
+                    className="pill"
+                    onClick={() =>
+                      activeRecord
+                        ? window.open(`/api/share/${activeRecord.slug}`, "_blank", "noopener")
+                        : focusPrompt()
+                    }
+                  >
+                    <ImageIcon size={16} className="pill__icon" aria-hidden />
+                    Generate Recipe Card
+                  </button>
+                  <button type="button" className="pill" onClick={submit}>
+                    <Code2 size={16} className="pill__icon" aria-hidden />
+                    Pre-Raj Version
+                  </button>
+                  <button type="button" className="pill" onClick={() => setSwap({ mode: "single" })}>
+                    <Pencil size={16} className="pill__icon" aria-hidden />
+                    Healthier Swap
+                  </button>
+                  <button
+                    type="button"
+                    className="pill"
+                    onClick={() => setSwap({ mode: "single", item: "refined seed oil" })}
+                  >
+                    <FileText size={16} className="pill__icon" aria-hidden />
+                    Oil Match
+                  </button>
+                </div>
+              </div>
             ) : (
-              <Button
-                type="submit"
-                onClick={submit}
-                disabled={!input.trim()}
-                aria-label="Send"
-                className={cn(
-                  "gap-1 rounded-lg px-3 transition-colors",
-                  input.trim()
-                    ? "bg-[var(--then)] text-[var(--paper)] hover:opacity-90"
-                    : "cursor-not-allowed bg-[var(--surface)] text-[var(--ink-faint)]",
-                )}
-              >
-                <ArrowUpIcon className="h-4 w-4" />
-                <span className="sr-only">Send</span>
-              </Button>
+              <>
+                <div className="thread" ref={threadRef} onScroll={onScroll}>
+                  <div className="thread__inner">
+                    {messages.map((m) => (
+                      <Message key={m.id} message={m} />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="thread__foot">
+                  <div className="thread__foot-inner">
+                    <Composer
+                      value={input}
+                      onChange={setInput}
+                      onSubmit={submit}
+                      onStop={() => abortRef.current?.abort()}
+                      busy={busy}
+                      placeholder="Ask a follow-up…"
+                      variant="flat"
+                      minHeight={72}
+                      inputRef={promptRef}
+                    />
+                    <p className="mt-2 text-center text-[0.7rem] text-[var(--ink-muted)]">
+                      Unverified citations are labelled on the card.
+                    </p>
+                  </div>
+                </div>
+              </>
             )}
           </div>
         </div>
-      </div>
-    </form>
-  );
+      </main>
 
-  const quickActions = (
-    <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-      {DISHES.map((d) => (
-        <QuickAction key={d.label} icon={d.icon} label={d.label} onClick={() => void send(d.label)} />
-      ))}
-      <QuickAction
-        icon={<ArrowLeftRight className="h-4 w-4" />}
-        label="Swap an ingredient"
-        onClick={() => setSwapOpen("single")}
-      />
-      <QuickAction
-        icon={<ClipboardList className="h-4 w-4" />}
-        label="Read my pantry"
-        onClick={() => setSwapOpen("pantry")}
-      />
-    </div>
-  );
-
-  return (
-    <div className="relative flex h-dvh w-full flex-col items-center overflow-hidden bg-[var(--paper)]">
-      <header className="flex w-full flex-none items-center gap-1 border-b border-[var(--line)] px-3 py-2">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={() => setHistoryOpen(true)}
-          aria-label="Conversations"
-        >
-          <MenuIcon className="h-4 w-4" />
-        </Button>
-
-        <div className="min-w-0 flex-1 px-1">
-          <div className="mono text-[var(--then)]">The Great Indian Food Restoration</div>
-          {!isEmpty && (
-            <div className="truncate text-xs text-[var(--ink-faint)]">{current?.title}</div>
-          )}
-        </div>
-
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={toggleTheme}
-          aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-          title={theme === "dark" ? "Light mode" : "Dark mode"}
-        >
-          {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={() => setSwapOpen("single")}
-          aria-label="Ingredient swap tool"
-        >
-          <ArrowLeftRight className="h-4 w-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={startNew}
-          aria-label="New chat"
-        >
-          <PlusIcon className="h-4 w-4" />
-        </Button>
-      </header>
-
-      {isEmpty ? (
-        <>
-          <div className="flex w-full flex-1 flex-col items-center justify-center px-4">
-            <div className="text-center">
-              <h1 className="display text-3xl text-[var(--ink)] sm:text-4xl">{HOOK}</h1>
-              <p className="mt-3 text-[var(--ink-soft)]">{SUBHOOK}</p>
-            </div>
-          </div>
-
-          <div className="mb-[12vh] w-full max-w-3xl flex-none px-4">
-            {composer}
-            {quickActions}
-          </div>
-        </>
-      ) : (
-        <>
-          <div
-            ref={threadRef}
-            onScroll={onScroll}
-            className="w-full flex-1 overflow-y-auto overscroll-contain"
-          >
-            <div className="mx-auto max-w-3xl px-4 pb-6 pt-2">
-              {messages.map((m) => (
-                <Message key={m.id} message={m} />
-              ))}
-            </div>
-          </div>
-
-          <div className="w-full max-w-3xl flex-none px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-            {composer}
-            <p className="mt-2 text-center text-[0.7rem] text-[var(--ink-faint)]">
-              Unverified citations are labelled on the card.
-            </p>
-          </div>
-        </>
+      {swap && (
+        <SwapPanel mode={swap.mode} initialItem={swap.item} onClose={() => setSwap(null)} />
       )}
 
-      {historyOpen && (
-        <>
-          <div className="drawer-backdrop" onClick={() => setHistoryOpen(false)} aria-hidden />
-          <aside
-            className="fixed inset-y-0 left-0 z-[60] flex w-[min(84vw,300px)] flex-col border-r border-[var(--line-strong)] bg-[var(--paper-2)]"
-            aria-label="Conversations"
-          >
-            <div className="flex items-center gap-2 border-b border-[var(--line)] p-3">
-              <div className="mono flex-1 text-[var(--ink-faint)]">Conversations</div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => setHistoryOpen(false)}
-                aria-label="Close"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <div className="p-3">
-              <Button type="button" variant="outline" onClick={startNew} className="w-full">
-                <PlusIcon className="h-4 w-4" /> New restoration
-              </Button>
-            </div>
-
-            <div className="overflow-y-auto px-2 pb-4">
-              {conversations.map((c) => (
-                <div key={c.id} className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => openThread(c.id)}
-                    className={cn(
-                      "flex-1 truncate rounded-lg border px-3 py-2 text-left text-sm transition-colors",
-                      c.id === currentId
-                        ? "border-[var(--then)] text-[var(--ink)]"
-                        : "border-transparent text-[var(--ink-soft)] hover:text-[var(--ink)]",
-                    )}
-                  >
-                    {c.title}
-                  </button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => deleteConversation(c.id)}
-                    aria-label={`Delete ${c.title}`}
-                    className="h-7 w-7"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </aside>
-        </>
+      {settingsOpen && (
+        <SettingsSheet
+          theme={theme}
+          onToggleTheme={toggleTheme}
+          onClearConversations={clearAll}
+          onClose={() => setSettingsOpen(false)}
+        />
       )}
-
-      {swapOpen && <SwapPanel mode={swapOpen} onClose={() => setSwapOpen(null)} />}
     </div>
-  );
-}
-
-function QuickAction({
-  icon,
-  label,
-  onClick,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <Button
-      type="button"
-      variant="outline"
-      onClick={onClick}
-      className="flex items-center gap-2 rounded-full bg-[var(--paper-2)]"
-    >
-      {icon}
-      <span className="text-xs">{label}</span>
-    </Button>
   );
 }

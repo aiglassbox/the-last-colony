@@ -21,12 +21,15 @@ interface SwapResult {
 
 export function SwapPanel({
   mode,
+  initialItem,
   onClose,
 }: {
   mode: "single" | "pantry";
+  /** Prefilled and run immediately — used by the "Oil Match" quick action. */
+  initialItem?: string;
   onClose: () => void;
 }) {
-  const [text, setText] = useState("");
+  const [text, setText] = useState(initialItem ?? "");
   const [results, setResults] = useState<SwapResult[] | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const [known, setKnown] = useState<string[]>([]);
@@ -76,7 +79,7 @@ export function SwapPanel({
         <div style={{ padding: "1.2rem 1.15rem 2.4rem", maxWidth: 640, margin: "0 auto" }}>
           <div style={{ display: "flex", alignItems: "center", marginBottom: "0.9rem" }}>
             <div>
-              <div className="mono" style={{ color: "var(--ink-faint)" }}>
+              <div className="mono" style={{ color: "var(--ink-muted)" }}>
                 Swap tool
               </div>
               <div className="display" style={{ fontSize: "1.2rem" }}>
@@ -122,7 +125,7 @@ export function SwapPanel({
                 padding: "0.7rem 0.85rem",
                 borderRadius: 12,
                 border: "1px solid var(--line-strong)",
-                background: "var(--paper-2)",
+                background: "var(--surface-2)",
                 color: "var(--ink)",
                 font: "inherit",
                 resize: "vertical",
@@ -136,7 +139,7 @@ export function SwapPanel({
                 padding: "0.6rem 1.1rem",
                 borderRadius: 999,
                 border: 0,
-                background: busy ? "var(--ink-faint)" : "var(--then)",
+                background: busy ? "var(--ink-muted)" : "var(--orange)",
                 color: "#fff",
                 font: "inherit",
                 cursor: busy ? "default" : "pointer",
@@ -148,7 +151,7 @@ export function SwapPanel({
 
           {!results && known.length > 0 && (
             <div style={{ marginTop: "1.1rem" }}>
-              <div className="mono" style={{ color: "var(--ink-faint)", marginBottom: "0.5rem" }}>
+              <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
                 We can speak to
               </div>
               <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
@@ -208,7 +211,7 @@ export function SwapPanel({
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem" }}>
-                    <span className="mono" style={{ color: "var(--then)" }}>
+                    <span className="mono" style={{ color: "var(--orange)" }}>
                       {i + 1}
                     </span>
                     <strong>{o.swap}</strong>
@@ -224,7 +227,7 @@ export function SwapPanel({
                   style={{
                     margin: "0.6rem 0 0",
                     fontSize: "0.85rem",
-                    color: "var(--ink-faint)",
+                    color: "var(--ink-muted)",
                     maxWidth: "60ch",
                   }}
                 >
@@ -243,7 +246,7 @@ export function SwapPanel({
 function Line({ label, value }: { label: string; value: string }) {
   return (
     <p style={{ margin: "0.45rem 0 0", fontSize: "0.88rem", color: "var(--ink-soft)" }}>
-      <span className="mono" style={{ color: "var(--ink-faint)" }}>
+      <span className="mono" style={{ color: "var(--ink-muted)" }}>
         {label}{" "}
       </span>
       {value}

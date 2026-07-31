@@ -44,7 +44,7 @@ export function Message({ message }: { message: ChatMessage }) {
           style={{
             margin: "0.6rem 0 0",
             fontSize: "0.86rem",
-            color: "var(--then)",
+            color: "var(--orange)",
             maxWidth: "62ch",
           }}
         >
