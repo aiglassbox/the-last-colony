@@ -18,7 +18,6 @@ import {
   type ChatMessage,
 } from "@/lib/chat/store";
 import type { CorpusRecord } from "@/lib/corpus/types";
-import type { Beat } from "@/lib/model/beats";
 import {
   getServerSnapshot as themeServerSnapshot,
   getSnapshot as themeSnapshot,
@@ -50,7 +49,7 @@ interface StreamEvent {
   mode?: "restoration" | "conversation" | "indianize";
   records?: CorpusRecord[];
   empty?: boolean;
-  beat?: Beat;
+  beat?: string;
   text?: string;
   message?: string;
 }
@@ -240,7 +239,11 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
               ? [m.beats?.VERDICT, m.beats?.THEN, m.beats?.WHAT_CHANGED, m.beats?.RESTORE_TODAY]
                   .filter(Boolean)
                   .join("\n\n")
-              : m.text,
+              : m.mode === "indianize"
+                ? [m.beats?.VERDICT, m.beats?.REBUILD, m.beats?.SWAPS, m.beats?.PLATE]
+                    .filter(Boolean)
+                    .join("\n\n")
+                : m.text,
         }));
         flush();
         setBusy(false);

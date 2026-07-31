@@ -5,6 +5,7 @@ import { useState } from "react";
 import type { ChatMessage } from "@/lib/chat/store";
 import { toPlainText } from "@/lib/model/plain-text";
 
+import { IndianisationCard } from "./IndianisationCard";
 import { RestorationCard } from "./RestorationCard";
 
 /**
@@ -35,24 +36,12 @@ export function Message({ message }: { message: ChatMessage }) {
             streaming: Boolean(message.streaming),
           }}
         />
+      ) : message.mode === "indianize" ? (
+        <IndianisationCard
+          data={{ beats: message.beats ?? {}, streaming: Boolean(message.streaming) }}
+        />
       ) : (
-        <>
-          {message.mode === "indianize" && (
-            <p
-              className="mono"
-              style={{
-                margin: "0 0 0.5rem",
-                fontSize: "0.7rem",
-                letterSpacing: "0.04em",
-                textTransform: "uppercase",
-                color: "var(--ink-muted)",
-              }}
-            >
-              Indian-inspired fusion · not a restored historical dish
-            </p>
-          )}
-          <ProseTurn message={message} />
-        </>
+        <ProseTurn message={message} />
       )}
 
       {message.error && (

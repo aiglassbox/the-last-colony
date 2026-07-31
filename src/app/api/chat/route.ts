@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { track } from "@/lib/analytics";
 import { fileCorpus } from "@/lib/corpus/load";
 import type { CorpusRecord } from "@/lib/corpus/types";
-import { BeatParser } from "@/lib/model/beats";
+import { BeatParser, INDIANIZE_BEATS, MarkerParser, type StreamingParser } from "@/lib/model/beats";
 import { renderComponentSwaps, renderCorpusBlock } from "@/lib/model/corpus-block";
 import { auditProse, isClean } from "@/lib/model/guards";
 import { activeProvider, asQuotaError, MAX_TOKENS, RefusalError } from "@/lib/model/provider";
@@ -145,7 +145,8 @@ export async function POST(request: NextRequest) {
         return;
       }
 
-      const parser = new BeatParser();
+      const parser: StreamingParser =
+        mode === "indianize" ? new MarkerParser(INDIANIZE_BEATS) : new BeatParser();
 
       try {
         const prior = history
@@ -160,9 +161,9 @@ export async function POST(request: NextRequest) {
         if (mode === "indianize") {
           userContent =
             `${renderIndianizationBlock()}\n\n` +
-            "This is an INDIANISATION turn. Follow the INDIANISATION TURNS section: " +
-            "the dish is not Indian in origin, so rebuild it from the map above as a " +
-            "healthy, Indian-inspired reinterpretation. Plain prose, no §markers§.\n\n" +
+            "This is an INDIANISATION turn. The dish is not Indian in origin. Emit the " +
+            "four markers §VERDICT§ §REBUILD§ §SWAPS§ §PLATE§ exactly as described in " +
+            "the INDIANISATION TURNS section, rebuilding the dish from the map above.\n\n" +
             `User said: ${label}`;
         } else {
           // No record for this dish — hand over the swap table so component
@@ -193,9 +194,9 @@ export async function POST(request: NextRequest) {
           request.signal,
         );
 
-        // Restoration parses four §markers§ into card beats; conversation and
-        // Indianisation are plain prose, streamed straight through.
-        const asProse = mode === "conversation" || mode === "indianize";
+        // Restoration and Indianisation both parse §markers§ into card beats;
+        // only conversation is plain prose, streamed straight through.
+        const asProse = mode === "conversation";
         let full = "";
 
         for await (const text of textStream) {

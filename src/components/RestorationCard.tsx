@@ -24,7 +24,7 @@ import { SourceDrawer } from "./SourceDrawer";
 export interface CardData {
   records: CorpusRecord[];
   empty: boolean;
-  beats: Partial<Record<Beat, string>>;
+  beats: Partial<Record<string, string>>;
   streaming: boolean;
 }
 

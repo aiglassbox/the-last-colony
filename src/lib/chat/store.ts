@@ -1,7 +1,6 @@
 "use client";
 
 import type { CorpusRecord } from "@/lib/corpus/types";
-import type { Beat } from "@/lib/model/beats";
 
 /**
  * Conversation state, as an external store.
@@ -26,7 +25,7 @@ export interface ChatMessage {
   mode?: TurnMode;
   /** Present on restoration turns — drives the card. */
   records?: CorpusRecord[];
-  beats?: Partial<Record<Beat, string>>;
+  beats?: Partial<Record<string, string>>;
   empty?: boolean;
   streaming?: boolean;
   error?: string;
