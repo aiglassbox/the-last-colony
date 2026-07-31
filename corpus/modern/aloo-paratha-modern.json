@@ -1,0 +1,73 @@
+{
+  "id": "modern-aloo-paratha-001",
+  "slug": "aloo-paratha-modern",
+  "dish_name_modern": "Aloo paratha (as cooked today)",
+  "dish_name_source": null,
+  "aliases": [],
+  "share_verdict": null,
+  "tier": "modern",
+  "source": {
+    "text": "Contemporary household and commercial practice",
+    "author": null,
+    "century": "20th–21st CE",
+    "locus": null,
+    "edition": null,
+    "page": null
+  },
+  "original_text": null,
+  "transliteration": null,
+  "translation": null,
+  "ingredients": [
+    {
+      "name": "wheat flour",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "2 cups",
+      "function": "the dough"
+    },
+    {
+      "name": "spiced potato",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "3 boiled and mashed",
+      "function": "the stuffing. A Columbian-exchange arrival that displaced the pulse fillings"
+    },
+    {
+      "name": "green chilli, coriander",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "to taste",
+      "function": "the modern seasoning"
+    },
+    {
+      "name": "ghee or oil",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "generous",
+      "function": "shallow-fried rather than tawa-and-flame"
+    }
+  ],
+  "method_reconstructed": [
+    "Stuff dough balls with spiced mashed potato.",
+    "Roll and shallow-fry on a tawa."
+  ],
+  "provenance_class": "MODERN_DISH",
+  "confidence": {
+    "identification": 1,
+    "ingredients": 0.9,
+    "method": 0.9
+  },
+  "contested_points": [],
+  "modern_counterpart_id": null,
+  "substitution_story": null,
+  "restore_today": null,
+  "region": "North India",
+  "season": null,
+  "vitalife_relevance": "none",
+  "verification": {
+    "status": "editor_verified",
+    "checked_by": "Vitalife editorial extraction — “Recipes: Before British”",
+    "checked_on": "2026-07-30",
+    "note": "Modern counterpart record. Describes current practice and makes no claim about any historical text, so there is nothing to verify against an edition."
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "id": "swap-potato-bulk",
+  "modern_item": "potato",
+  "aliases": [
+    "aloo",
+    "potatoes",
+    "आलू",
+    "batata"
+  ],
+  "options": [
+    {
+      "swap": "White peas or kabuli chana, half of it mashed",
+      "ratio": "2 cups diced potato → 2 cups cooked white peas or kabuli chana, half mashed to hold the dish together and half left whole for texture.",
+      "taste_and_texture": "Holds a mash together nearly as well, with more bite. It will not go silky the way potato does, so it is the wrong swap where silkiness is the point.",
+      "nutritional_rationale": "Protein and fibre up, glycaemic load down."
+    },
+    {
+      "swap": "Ash gourd, pumpkin, bottle gourd or yam",
+      "ratio": "1:1 by volume, but cook for less time and use less water — gourds carry a lot of their own.",
+      "taste_and_texture": "Wetter and lighter, and it collapses rather than holding cubes. This is what these dishes used before the potato arrived, so it tastes older rather than worse.",
+      "nutritional_rationale": "Higher water content, lower starch, more fibre per serving."
+    }
+  ],
+  "where_it_went": "The potato arrived from the Americas after the 16th century and proved cheaper, more storable and more filling than the gourds and yams it replaced — taking over a role several indigenous vegetables had held rather than adding a new one."
+}

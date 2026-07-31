@@ -1,0 +1,144 @@
+{
+  "id": "arisi-upma-001",
+  "slug": "upma",
+  "dish_name_modern": "Upma",
+  "dish_name_source": "Arisi upma / Uppittu",
+  "aliases": [
+    "uppuma",
+    "uppittu",
+    "arisi upma",
+    "akki tari uppittu",
+    "उपमा",
+    "உப்புமா"
+  ],
+  "share_verdict": "Upma wasn't born from rava. It simply learned to wear it.",
+  "tier": "ancient",
+  "source": {
+    "text": "Regional culinary archives and Dravidian culinary lexicography (Uppittu / Uppuma)",
+    "author": null,
+    "century": "Pre-20th CE",
+    "locus": null,
+    "edition": null,
+    "page": null
+  },
+  "original_text": null,
+  "transliteration": null,
+  "translation": null,
+  "ingredients": [
+    {
+      "name": "broken rice, coarsely stone-ground",
+      "sanskrit": "arisi",
+      "quantity_source": null,
+      "quantity_modern": "1 cup",
+      "function": "the base grain. Soaked, air-dried and ground coarse on a sil-batta into a fibre-rich rice rava — wheat semolina was practically absent from South Indian kitchens"
+    },
+    {
+      "name": "millets or cracked wheat, regionally",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "as available",
+      "function": "the same dish took whatever grain the local fields grew; there was no single correct base"
+    },
+    {
+      "name": "black pepper",
+      "sanskrit": "marica",
+      "quantity_source": null,
+      "quantity_modern": "1 tsp",
+      "function": "the heat. Chilli is a Columbian-exchange arrival"
+    },
+    {
+      "name": "ginger",
+      "sanskrit": "ārdraka",
+      "quantity_source": null,
+      "quantity_modern": "1 inch",
+      "function": "aromatic and digestive"
+    },
+    {
+      "name": "mustard seed, urad dal, chana dal, curry leaf",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "1 tsp each",
+      "function": "the tempering"
+    },
+    {
+      "name": "sesame oil or ghee",
+      "sanskrit": "taila",
+      "quantity_source": null,
+      "quantity_modern": "2 tbsp",
+      "function": "the cooking fat"
+    }
+  ],
+  "method_reconstructed": [
+    "Soak the rice, air-dry it, and grind it coarse on a stone mortar. This is the step the dish is named around.",
+    "Dry-roast the grain until it smells nutty.",
+    "Temper mustard, urad dal, chana dal and curry leaf in sesame oil or ghee; add ginger and cracked pepper.",
+    "Pour in hot water and rain the grain in, stirring.",
+    "Cover and cook until the grain is soft but still grainy — it was never meant to be fluffy."
+  ],
+  "provenance_class": "RECONSTRUCTED",
+  "confidence": {
+    "identification": 0.85,
+    "ingredients": 0.8,
+    "method": 0.7
+  },
+  "contested_points": [
+    "Upma itself predates British rule; what the colonial period changed was the grain it was made from, not the existence of the dish.",
+    "There was no single pre-colonial upma — broken rice, coarse rice, millets and cracked wheat all appear, depending on the region."
+  ],
+  "modern_counterpart_id": "modern-upma-001",
+  "substitution_story": {
+    "changed": [
+      {
+        "from": "broken rice, millets or cracked wheat, ground at home",
+        "to": "industrially milled wheat semolina (rava)",
+        "period": "1942 onward, accelerating post-1945",
+        "driver": "the Japanese occupation of Burma in 1942 cut India's main external rice supply, and the colonial administration placed strict controls on domestic rice distribution while exporting stockpiles to feed Allied troops. Semolina — the cracked endosperm left over from milling wheat into maida at northern roller mills — was pushed into the South Indian market as \"Bombay Rava\", with state-subsidised cooking demonstrations and flyers claiming it was more nutritious than rice"
+      },
+      {
+        "from": "black pepper and ginger",
+        "to": "green and red chilli",
+        "period": "post-Columbian",
+        "driver": "chilli arrived with Portuguese trade and displaced pepper as everyday heat"
+      },
+      {
+        "from": "sesame oil or ghee",
+        "to": "refined vegetable oil",
+        "period": "mid-to-late 20th century",
+        "driver": "solvent extraction produced a cheap, neutral, long-shelf-life oil"
+      }
+    ],
+    "nutrition_delta": {
+      "fibre": "down",
+      "glycaemic_load": "up",
+      "protein": "down",
+      "iron": "down"
+    }
+  },
+  "restore_today": {
+    "ingredients": [
+      "1 cup broken rice, millet rava (foxtail or barnyard), or cracked wheat",
+      "2 tbsp cold-pressed sesame oil or ghee",
+      "1 tsp mustard seed, 1 tbsp urad dal, 1 tbsp chana dal, a sprig of curry leaves",
+      "1 tsp black pepper, cracked; 1 inch ginger",
+      "3 cups water, rock salt"
+    ],
+    "steps": [
+      "Dry-roast the grain until nutty. Coarse rice and millet both need a longer roast than semolina, and more water.",
+      "Temper mustard, both dals and curry leaf in the oil. Add ginger and cracked pepper.",
+      "Add three cups hot water and salt.",
+      "Rain the grain in with one hand while stirring with the other. Cover, lowest flame, 8–10 minutes.",
+      "Grainier and nuttier than the rava version, and it holds its shape instead of going soft.",
+      "The tempering carries most of the flavour, so a cold-pressed oil with a character of its own earns its place."
+    ],
+    "time_min": 30
+  },
+  "region": "South India",
+  "season": null,
+  "vitalife_relevance": "high",
+  "verification": {
+    "status": "editor_verified",
+    "checked_by": "Vitalife editorial extraction — “Recipes: Before British”",
+    "checked_on": "2026-07-30",
+    "note": "Transcribed from the editorial extraction, which cites regional culinary archives, Dravidian lexicography, British Raj military logistics and Famine Inquiry Commission records, and MTR's corporate archives. No single verse is claimed, so this is RECONSTRUCTED rather than ATTESTED."
+  }
+}

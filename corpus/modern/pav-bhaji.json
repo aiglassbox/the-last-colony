@@ -1,0 +1,119 @@
+{
+  "id": "modern-pav-bhaji-001",
+  "slug": "pav-bhaji",
+  "dish_name_modern": "Pav Bhaji",
+  "dish_name_source": null,
+  "aliases": [
+    "pao bhaji",
+    "pav bhaaji",
+    "पाव भाजी"
+  ],
+  "share_verdict": "Bombay, not antiquity. Restore the components, not the myth.",
+  "tier": "modern",
+  "source": {
+    "text": "Bombay street practice",
+    "author": null,
+    "century": "19th-20th CE",
+    "locus": null,
+    "edition": null,
+    "page": null
+  },
+  "original_text": null,
+  "transliteration": null,
+  "translation": null,
+  "ingredients": [
+    {
+      "name": "potato",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "4",
+      "function": "the mash. A Columbian-exchange arrival"
+    },
+    {
+      "name": "tomato",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "4",
+      "function": "acid and colour. Also a Columbian-exchange arrival"
+    },
+    {
+      "name": "cauliflower and capsicum",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "2 cups",
+      "function": "bulk. Both are post-classical arrivals in Indian cooking"
+    },
+    {
+      "name": "pav (refined-flour bread roll)",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "8",
+      "function": "the vehicle. Yeast-leavened refined-flour bread, Portuguese in origin"
+    },
+    {
+      "name": "butter",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "generous",
+      "function": "the finish, and most of what people are actually eating it for"
+    }
+  ],
+  "method_reconstructed": [
+    "Boil and mash potato and mixed vegetables.",
+    "Fry onion, tomato and spice blend in butter; fold the mash through.",
+    "Split and griddle the pav in butter."
+  ],
+  "provenance_class": "MODERN_DISH",
+  "confidence": {
+    "identification": 1,
+    "ingredients": 0.95,
+    "method": 0.9
+  },
+  "contested_points": [
+    "Almost every defining ingredient here arrived after the classical texts. This is a 19th-century Bombay dish and reads as one.",
+    "Its usual origin story ties it to mill-worker meals in Bombay; the details of that account vary between tellings."
+  ],
+  "modern_counterpart_id": null,
+  "substitution_story": {
+    "changed": [
+      {
+        "from": "no ancient original",
+        "to": "component-level restoration only",
+        "period": "n/a",
+        "driver": "there is no ancestor to recover; the parts can still be improved on their own terms"
+      }
+    ],
+    "nutrition_delta": {
+      "fibre": "up",
+      "protein": "up",
+      "glycaemic_load": "down"
+    }
+  },
+  "restore_today": {
+    "ingredients": [
+      "2 cups cooked white peas or kabuli chana, half of it mashed — carrying part of the load the potato usually carries alone",
+      "2 cups mixed vegetables, chopped small",
+      "3 tomatoes",
+      "Pav made with coarse whole wheat, or a millet flatbread if you would rather skip the roll",
+      "3 tbsp cold-pressed groundnut oil, plus a little ghee to finish",
+      "Ginger, garlic, black pepper, your usual spice blend"
+    ],
+    "steps": [
+      "Cook the peas or chana until soft. Mash half, leave half whole.",
+      "Fry ginger, garlic and the spice blend in the oil; add tomato and cook down properly — this is the step street vendors do not rush and home cooks do.",
+      "Fold in the vegetables and the pulse, mash to the texture you want, simmer ten minutes.",
+      "Griddle the bread in a little ghee.",
+      "Swapping part of the potato for a pulse moves protein and fibre up and glycaemic load down, without changing what the dish is. The frying fat is doing real flavour work here, so it is worth naming."
+    ],
+    "time_min": 45
+  },
+  "region": "Bombay / Maharashtra",
+  "season": null,
+  "vitalife_relevance": "high",
+  "verification": {
+    "status": "editor_verified",
+    "checked_by": "Editorial - no textual claim made",
+    "checked_on": "2026-07-30",
+    "note": "Classed MODERN_DISH. No ancient original is claimed and no locus is cited, so there is no citation to verify."
+  }
+}

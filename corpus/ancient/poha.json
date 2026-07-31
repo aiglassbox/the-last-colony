@@ -1,0 +1,130 @@
+{
+  "id": "prthuka-poha-001",
+  "slug": "poha",
+  "dish_name_modern": "Poha",
+  "dish_name_source": "Pṛthuka",
+  "aliases": [
+    "pohe",
+    "aval",
+    "beaten rice",
+    "flattened rice",
+    "पोहा",
+    "अवल"
+  ],
+  "share_verdict": "Red poha had bran on it. White poha has a mill behind it.",
+  "tier": "ancient",
+  "source": {
+    "text": "Pṛthuka (flattened rice) is referred to across the Sanskrit literature, including the Mānasollāsa",
+    "author": null,
+    "century": "Pre-12th CE, with the Mānasollāsa description 12th CE",
+    "locus": "Mānasollāsa, Adhyāya 13 (Annabhoga)",
+    "edition": "Gaekwad's Oriental Series",
+    "page": null
+  },
+  "original_text": null,
+  "transliteration": null,
+  "translation": null,
+  "ingredients": [
+    {
+      "name": "flattened whole rice",
+      "sanskrit": "pṛthuka",
+      "quantity_source": null,
+      "quantity_modern": "2 cups",
+      "function": "the dish. Parboiled paddy pounded flat — the bran is largely still on it, which is why the old versions are reddish rather than white"
+    },
+    {
+      "name": "sesame or coconut oil",
+      "sanskrit": "taila",
+      "quantity_source": null,
+      "quantity_modern": "2 tbsp",
+      "function": "the cooking fat and most of the aroma"
+    },
+    {
+      "name": "curry leaf",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "a sprig",
+      "function": "aromatic"
+    },
+    {
+      "name": "black pepper",
+      "sanskrit": "marica",
+      "quantity_source": null,
+      "quantity_modern": "1 tsp",
+      "function": "the heat, pre-chilli"
+    },
+    {
+      "name": "fresh coconut",
+      "sanskrit": "nārikela",
+      "quantity_source": null,
+      "quantity_modern": "1/4 cup, grated",
+      "function": "fat and body; a coastal staple long before it was a garnish"
+    }
+  ],
+  "method_reconstructed": [
+    "Rinse the flattened rice briefly and let it sit until it softens without going to paste.",
+    "Temper pepper and curry leaf in oil in a shallow pan.",
+    "Fold the softened rice through and warm it, without stirring it into mush.",
+    "Finish with grated coconut and rock salt."
+  ],
+  "provenance_class": "RECONSTRUCTED",
+  "confidence": {
+    "identification": 0.85,
+    "ingredients": 0.7,
+    "method": 0.5
+  },
+  "contested_points": [
+    "Pṛthuka is well attested as an ingredient and as an offering; a full described preparation matching modern poha is a weaker claim than the ingredient's antiquity.",
+    "The tempered, onion-and-potato breakfast poha of western India is a much later assembly — potato is a Columbian-exchange arrival."
+  ],
+  "modern_counterpart_id": "modern-poha-001",
+  "substitution_story": {
+    "changed": [
+      {
+        "from": "flattened rice made from parboiled paddy with the bran on",
+        "to": "thin white poha from polished rice",
+        "period": "20th century",
+        "driver": "mechanised flaking of pre-polished rice; the white version is faster to soften and looks cleaner on a plate"
+      },
+      {
+        "from": "coconut and cold-pressed oil as the fat",
+        "to": "refined seed oil, and potato for bulk",
+        "period": "mid 20th century onward",
+        "driver": "refined oil availability, and potato becoming the cheapest way to make a small quantity of grain feed more people"
+      }
+    ],
+    "nutrition_delta": {
+      "fibre": "down",
+      "iron": "down",
+      "glycaemic_load": "up",
+      "fat_quality": "mixed"
+    }
+  },
+  "restore_today": {
+    "ingredients": [
+      "2 cups red or thick poha (ask for 'jada poha' or red aval)",
+      "2 tbsp cold-pressed coconut or sesame oil",
+      "1 tsp black pepper, cracked",
+      "A sprig of curry leaves",
+      "1/4 cup grated fresh coconut",
+      "Rock salt"
+    ],
+    "steps": [
+      "Rinse the poha in a colander and leave it 10 minutes. Red poha takes longer to soften than white and does not collapse — that is the point of it.",
+      "Heat the oil, crackle the curry leaves and cracked pepper.",
+      "Fold the poha through on a low flame for three minutes.",
+      "Coconut and salt off the heat.",
+      "The oil is carrying this. A cold-pressed coconut or sesame oil is where the flavour comes from."
+    ],
+    "time_min": 20
+  },
+  "region": "West and South India",
+  "season": null,
+  "vitalife_relevance": "high",
+  "verification": {
+    "status": "unverified_seed",
+    "checked_by": null,
+    "checked_on": null,
+    "note": "Seed record. The ingredient is securely old; the preparation described here is reconstructed from period ingredient availability and has not been checked against a printed edition."
+  }
+}

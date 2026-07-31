@@ -1,0 +1,73 @@
+{
+  "id": "modern-idli-001",
+  "slug": "idli-modern",
+  "dish_name_modern": "Idli (as cooked today)",
+  "dish_name_source": null,
+  "aliases": [],
+  "share_verdict": null,
+  "tier": "modern",
+  "source": {
+    "text": "Contemporary household and commercial practice",
+    "author": null,
+    "century": "20th–21st CE",
+    "locus": null,
+    "edition": null,
+    "page": null
+  },
+  "original_text": null,
+  "transliteration": null,
+  "translation": null,
+  "ingredients": [
+    {
+      "name": "polished parboiled rice",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "3 cups",
+      "function": "65–75% of the batter. The ancient dish had none at all"
+    },
+    {
+      "name": "urad dal",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "1 cup",
+      "function": "reduced from the whole substance of the dish to a fermenting and binding agent"
+    },
+    {
+      "name": "fenugreek seed",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "1 tsp",
+      "function": "assists fermentation and browning"
+    },
+    {
+      "name": "iodised salt",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "to taste",
+      "function": "seasoning"
+    }
+  ],
+  "method_reconstructed": [
+    "Soak, grind, ferment 8–12 hours.",
+    "Steam in moulds and serve hot with sambar and chutney."
+  ],
+  "provenance_class": "MODERN_DISH",
+  "confidence": {
+    "identification": 1,
+    "ingredients": 0.9,
+    "method": 0.9
+  },
+  "contested_points": [],
+  "modern_counterpart_id": null,
+  "substitution_story": null,
+  "restore_today": null,
+  "region": "Pan-Indian",
+  "season": null,
+  "vitalife_relevance": "none",
+  "verification": {
+    "status": "editor_verified",
+    "checked_by": "Vitalife editorial extraction — “Recipes: Before British”",
+    "checked_on": "2026-07-30",
+    "note": "Modern counterpart record. Describes current practice and makes no claim about any historical text, so there is nothing to verify against an edition."
+  }
+}

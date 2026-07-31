@@ -1,0 +1,139 @@
+{
+  "id": "bedhai-paratha-001",
+  "slug": "bedhai",
+  "dish_name_modern": "Stuffed paratha",
+  "dish_name_source": "Urad kī Bharmā Roṭī (Bedhai)",
+  "aliases": [
+    "bedhai",
+    "bedmi",
+    "bedmi roti",
+    "aloo paratha",
+    "urad dal paratha",
+    "बेदई",
+    "बेड़मी"
+  ],
+  "share_verdict": "The stuffing was dal before the potato ever arrived.",
+  "tier": "ancient",
+  "source": {
+    "text": "Pāka Śāstra",
+    "author": null,
+    "century": "19th CE",
+    "locus": "Bhojan varga, p. 169",
+    "edition": "Pāka Śāstra (Hindi)",
+    "page": 169
+  },
+  "original_text": "गेहूँ का आटा विधिपूर्वक सानकर उसकी लोई बनावे उस लोई के भीतर उड़द की दाल की पीठी जिसमें तुमने गरम मसाला नमक और अदरख मिलाकर रखी हो उसे भरो फिर सावधानी से बेलकर तवे पर डालो जब तवे पर उतार कर चूल्हे में दूर की आँच से सेको और घी में चुपड़ कर ताजी (उसी समय) घर वालों को खिलाती जाओ। बेढ़ई रुचिकारक, वात नाशक, पुष्टिकारक …",
+  "transliteration": null,
+  "translation": "Knead wheat flour according to the method and make dough balls. Inside the dough ball, stuff the urad dal paste (pitthi) in which you have premixed garam masala, salt, and ginger. Roll it out carefully and put it on the griddle (tawa). Once it is cooked on the griddle, take it off and roast it on the stove at a distance from the flame. Smear it with ghee and serve it fresh, immediately, to the family members.",
+  "ingredients": [
+    {
+      "name": "whole wheat flour",
+      "sanskrit": "gehū̃ kā āṭā",
+      "quantity_source": null,
+      "quantity_modern": "2 cups",
+      "function": "the dough. Quantity is not specified in the text"
+    },
+    {
+      "name": "urad dal paste (pitthi)",
+      "sanskrit": "uṛad kī dāl kī pīṭhī",
+      "quantity_source": null,
+      "quantity_modern": "1 cup soaked and ground",
+      "function": "the stuffing, and the reason this is a protein-dense flatbread rather than a starch-on-starch one"
+    },
+    {
+      "name": "garam masala",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "1 tsp",
+      "function": "premixed into the dal paste, not sprinkled after"
+    },
+    {
+      "name": "ginger",
+      "sanskrit": "adrak",
+      "quantity_source": null,
+      "quantity_modern": "1 inch, grated",
+      "function": "premixed into the stuffing"
+    },
+    {
+      "name": "salt",
+      "sanskrit": "namak",
+      "quantity_source": null,
+      "quantity_modern": "to taste",
+      "function": "premixed into the stuffing"
+    },
+    {
+      "name": "ghee",
+      "sanskrit": "ghī",
+      "quantity_source": null,
+      "quantity_modern": "to finish",
+      "function": "smeared on the cooked bread"
+    }
+  ],
+  "method_reconstructed": [
+    "Knead wheat flour and form dough balls.",
+    "Stuff each ball with urad dal paste seasoned with garam masala, salt and ginger.",
+    "Roll out the stuffed dough carefully.",
+    "Cook on a tawa.",
+    "Take it off the tawa and roast it directly over distant flames of the choolha.",
+    "Smear with ghee and serve hot immediately."
+  ],
+  "provenance_class": "ATTESTED",
+  "confidence": {
+    "identification": 0.9,
+    "ingredients": 0.85,
+    "method": 0.9
+  },
+  "contested_points": [
+    "Bedhai or bedmi in UP and north India today is commonly deep-fried like a puri. This text explicitly describes a stuffed roti cooked on a tawa and finished over open flame — closer to a stuffed paratha or a rustic roti.",
+    "The source text also makes Ayurvedic claims about the dish. This project does not repeat medical claims of any kind, so they are recorded here as part of the text and not as anything else."
+  ],
+  "modern_counterpart_id": "modern-aloo-paratha-001",
+  "substitution_story": {
+    "changed": [
+      {
+        "from": "urad dal paste as the stuffing",
+        "to": "spiced potato",
+        "period": "post-16th century, consolidating through the 19th and 20th",
+        "driver": "the potato arrived from the Americas and became the most versatile and cheapest bulk filling available, displacing the pulse fillings that native vegetables and dals had held"
+      },
+      {
+        "from": "tawa, then roasted over distant flame, finished with ghee",
+        "to": "shallow- or deep-fried",
+        "period": "20th century",
+        "driver": "frying is faster and more forgiving than the two-stage tawa-and-flame method"
+      }
+    ],
+    "nutrition_delta": {
+      "protein": "down",
+      "fibre": "down",
+      "glycaemic_load": "up"
+    }
+  },
+  "restore_today": {
+    "ingredients": [
+      "2 cups whole wheat flour",
+      "1 cup urad dal, soaked 4 hours and ground to a thick paste",
+      "1 tsp garam masala, 1 inch ginger grated, salt — all mixed into the dal",
+      "Ghee to finish"
+    ],
+    "steps": [
+      "Knead the flour into a soft dough and rest it 20 minutes.",
+      "Grind the soaked urad thick — a paste, not a batter — and mix in garam masala, ginger and salt.",
+      "Flatten a dough ball, spoon the pitthi in, seal it, and roll out carefully. This is the step that takes practice; a thick paste tears less than a wet one.",
+      "Cook on a hot tawa, both sides.",
+      "Lift it off and hold it over the flame at a distance until it puffs.",
+      "Smear with ghee and eat it immediately — the text is insistent on that.",
+      "Against an aloo paratha it is higher in protein and fibre and lower in starch, and it keeps you full longer."
+    ],
+    "time_min": 50
+  },
+  "region": "North India",
+  "season": null,
+  "vitalife_relevance": "medium",
+  "verification": {
+    "status": "editor_verified",
+    "checked_by": "Vitalife editorial extraction — “Recipes: Before British”",
+    "checked_on": "2026-07-30",
+    "note": "Original Hindi passage, page number and section transcribed from the editorial extraction (Pāka Śāstra, p. 169). The Ayurvedic claims in the source are deliberately not carried into the record's claims."
+  }
+}

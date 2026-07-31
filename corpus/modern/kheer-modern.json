@@ -1,0 +1,73 @@
+{
+  "id": "modern-kheer-001",
+  "slug": "kheer-modern",
+  "dish_name_modern": "Kheer (as made today)",
+  "dish_name_source": null,
+  "aliases": [],
+  "share_verdict": null,
+  "tier": "modern",
+  "source": {
+    "text": "Contemporary household and commercial practice",
+    "author": null,
+    "century": "20th–21st CE",
+    "locus": null,
+    "edition": null,
+    "page": null
+  },
+  "original_text": null,
+  "transliteration": null,
+  "translation": null,
+  "ingredients": [
+    {
+      "name": "rice or millet",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "1/3 cup",
+      "function": "usually polished rice"
+    },
+    {
+      "name": "milk, or condensed milk",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "1 litre / 1 tin",
+      "function": "the tin removes the reduction step that made the ancient dish what it was"
+    },
+    {
+      "name": "sugar or jaggery, cooked in",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "3/4 cup",
+      "function": "sweetness now goes in the pot, not on the table"
+    },
+    {
+      "name": "cardamom, saffron, nuts",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "to taste",
+      "function": "aromatics and garnish; nuts fried in ghee"
+    }
+  ],
+  "method_reconstructed": [
+    "Cook grain in milk, or add milk to cooked grain.",
+    "Stir sugar in and finish with cardamom and nuts."
+  ],
+  "provenance_class": "MODERN_DISH",
+  "confidence": {
+    "identification": 1,
+    "ingredients": 0.9,
+    "method": 0.9
+  },
+  "contested_points": [],
+  "modern_counterpart_id": null,
+  "substitution_story": null,
+  "restore_today": null,
+  "region": "Pan-Indian",
+  "season": null,
+  "vitalife_relevance": "none",
+  "verification": {
+    "status": "editor_verified",
+    "checked_by": "Vitalife editorial extraction — “Recipes: Before British”",
+    "checked_on": "2026-07-30",
+    "note": "Modern counterpart record. Describes current practice and makes no claim about any historical text, so there is nothing to verify against an edition."
+  }
+}

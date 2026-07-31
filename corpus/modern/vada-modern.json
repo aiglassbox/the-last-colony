@@ -1,0 +1,73 @@
+{
+  "id": "modern-vada-001",
+  "slug": "vada-modern",
+  "dish_name_modern": "Vada (as cooked today)",
+  "dish_name_source": null,
+  "aliases": [],
+  "share_verdict": null,
+  "tier": "modern",
+  "source": {
+    "text": "Contemporary household and commercial practice",
+    "author": null,
+    "century": "20th-21st CE",
+    "locus": null,
+    "edition": null,
+    "page": null
+  },
+  "original_text": null,
+  "transliteration": null,
+  "translation": null,
+  "ingredients": [
+    {
+      "name": "urad dal",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "2 cups",
+      "function": "still the batter - this is one dish where the main ingredient did not change"
+    },
+    {
+      "name": "green chilli",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "2-3",
+      "function": "the heat, in place of black pepper"
+    },
+    {
+      "name": "refined blended seed oil",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "for deep frying",
+      "function": "frying medium, chosen for neutrality, price and smoke point rather than for flavour"
+    },
+    {
+      "name": "onion and curry leaf",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "to taste",
+      "function": "the modern aromatic base"
+    }
+  ],
+  "method_reconstructed": [
+    "Grind soaked urad dal thick and beat it light.",
+    "Shape and deep-fry in refined oil."
+  ],
+  "provenance_class": "MODERN_DISH",
+  "confidence": {
+    "identification": 1,
+    "ingredients": 0.9,
+    "method": 0.9
+  },
+  "contested_points": [],
+  "modern_counterpart_id": null,
+  "substitution_story": null,
+  "restore_today": null,
+  "region": "South India",
+  "season": null,
+  "vitalife_relevance": "none",
+  "verification": {
+    "status": "editor_verified",
+    "checked_by": "Editorial - contemporary practice, no textual claim",
+    "checked_on": "2026-07-30",
+    "note": "Modern counterpart record. Describes current practice; makes no claim about any historical text, so there is nothing to verify against an edition."
+  }
+}

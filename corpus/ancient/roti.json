@@ -1,0 +1,115 @@
+{
+  "id": "rotika-roti-001",
+  "slug": "roti",
+  "dish_name_modern": "Roti",
+  "dish_name_source": "Rotikā",
+  "aliases": [
+    "chapati",
+    "chapathi",
+    "phulka",
+    "rotli",
+    "रोटी",
+    "चपाती"
+  ],
+  "share_verdict": "The mill kept the flour. It threw away the germ.",
+  "tier": "ancient",
+  "source": {
+    "text": "Mānasollāsa",
+    "author": "Someśvara III",
+    "century": "12th CE",
+    "locus": "Adhyāya 13 (Annabhoga)",
+    "edition": "Gaekwad's Oriental Series",
+    "page": null
+  },
+  "original_text": null,
+  "transliteration": null,
+  "translation": null,
+  "ingredients": [
+    {
+      "name": "stone-ground whole wheat",
+      "sanskrit": "godhūma",
+      "quantity_source": null,
+      "quantity_modern": "2 cups",
+      "function": "the whole grain — bran, germ and endosperm, because there was no way to separate them at scale"
+    },
+    {
+      "name": "water",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "3/4 cup, warm",
+      "function": "hydration; whole-grain flour drinks more than refined"
+    },
+    {
+      "name": "ghee",
+      "sanskrit": "ghṛta",
+      "quantity_source": null,
+      "quantity_modern": "1 tsp in the dough, more to finish",
+      "function": "softens the crumb and carries fat-soluble nutrients from the bran"
+    }
+  ],
+  "method_reconstructed": [
+    "Grind the wheat on a stone quern, cool and slow. The germ oil stays in the flour.",
+    "Bring the flour together with warm water into a soft dough; rest it.",
+    "Roll thin on a board.",
+    "Cook on a hot griddle, then finish directly over embers so it puffs.",
+    "Smear with ghee."
+  ],
+  "provenance_class": "RECONSTRUCTED",
+  "confidence": {
+    "identification": 0.8,
+    "ingredients": 0.85,
+    "method": 0.7
+  },
+  "contested_points": [
+    "Several flatbreads are named in the medieval literature — rotikā, maṇḍaka, pūrikā and others — and mapping each onto a modern bread is not clean.",
+    "Wheat was a regional staple, not a national one. In much of the south and east the everyday flatbread was millet or rice, not wheat."
+  ],
+  "modern_counterpart_id": "modern-roti-001",
+  "substitution_story": {
+    "changed": [
+      {
+        "from": "stone-ground whole wheat, ground within days of eating",
+        "to": "roller-milled atta, often with the germ removed and bran added back",
+        "period": "late 19th century onward",
+        "driver": "roller mills separate bran, germ and endosperm cleanly and cheaply, which is what makes flour keep for months instead of weeks. The germ is the part that goes rancid, and the part with most of the fat-soluble vitamins"
+      },
+      {
+        "from": "wheat as one flatbread grain among many, regionally",
+        "to": "wheat and rice as the default grains nationally",
+        "period": "post-Independence",
+        "driver": "procurement and the public distribution system were built around wheat and rice; millets fell out of the supply chain and then off the plate"
+      }
+    ],
+    "nutrition_delta": {
+      "fibre": "down",
+      "glycaemic_load": "up",
+      "iron": "down",
+      "protein": "unchanged"
+    }
+  },
+  "restore_today": {
+    "ingredients": [
+      "2 cups whole wheat, or the coarsest chakki atta your kirana stocks",
+      "3/4 cup warm water",
+      "Ghee or a cold-pressed oil",
+      "Salt, optional — the old versions largely did without"
+    ],
+    "steps": [
+      "If you can get whole wheat berries, have them ground at a chakki and use the flour within a fortnight. That single change is most of the difference.",
+      "Bring the flour together with warm water, knead five minutes, rest 20.",
+      "Roll thin, cook on a hot tawa until it blisters, then hold it over the flame until it balloons.",
+      "Finish with ghee.",
+      "Coarser flour makes a heavier roti that tears rather than folds. That is what it is meant to be."
+    ],
+    "time_min": 35
+  },
+  "region": "North and West India",
+  "season": null,
+  "vitalife_relevance": "low",
+  "verification": {
+    "status": "unverified_seed",
+    "checked_by": null,
+    "checked_on": null,
+    "note": "Seed record. Chapter is correct; the verse has not been transcribed from the printed edition, so no verse number or page is claimed."
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "id": "swap-masala-powder",
+  "modern_item": "ready-made masala powder",
+  "aliases": [
+    "rasam powder",
+    "sambar powder",
+    "garam masala powder",
+    "curry powder",
+    "factory masala",
+    "मसाला पाउडर"
+  ],
+  "options": [
+    {
+      "swap": "Whole spices crushed fresh for the pot",
+      "ratio": "2 tsp blended powder → roughly 1 tbsp whole spices, crushed coarsely just before cooking. For rasam specifically: black peppercorns with a little long pepper (pippali).",
+      "taste_and_texture": "Sharper and more aromatic, and it fades faster — which is why the blend won. Crushing to order is the whole difference and there is no way around the five minutes it costs.",
+      "nutritional_rationale": "Volatile aromatic compounds degrade with time and grinding heat. This is a flavour swap; do not oversell it as a nutritional one."
+    },
+    {
+      "swap": "Long pepper (pippali) alongside black pepper",
+      "ratio": "Replace a quarter of the black pepper by weight with long pepper.",
+      "taste_and_texture": "Sweeter, more resinous heat that sits at the back of the throat. Long pepper is the ingredient most completely lost from South Indian cooking, not merely less common.",
+      "nutritional_rationale": "A flavour restoration, not a nutritional one. Said plainly."
+    }
+  ],
+  "where_it_went": "Commercial spice blending produced a consistent, shelf-stable powder cheaper than grinding at home, and the stone went out of the kitchen with it."
+}

@@ -1,0 +1,117 @@
+{
+  "id": "payasa-kheer-001",
+  "slug": "kheer",
+  "dish_name_modern": "Kheer",
+  "dish_name_source": "Pāyasa",
+  "aliases": [
+    "payasam",
+    "paysam",
+    "payesh",
+    "phirni",
+    "खीर",
+    "पायसम्"
+  ],
+  "share_verdict": "Payasa was barely sweet. You sweetened it yourself, at the table.",
+  "tier": "ancient",
+  "source": {
+    "text": "Mānasollāsa",
+    "author": "Someśvara III",
+    "century": "1129 CE",
+    "locus": "Annabhoga (the food chapter)",
+    "edition": "Gaekwad's Oriental Series",
+    "page": null
+  },
+  "original_text": null,
+  "transliteration": null,
+  "translation": "Foxtail millet, wild rice or aromatic rice cooked in buffalo milk that has first been reduced. Milky, faintly sweet from the reduction alone; sugar is added at the table, not in the pot.",
+  "ingredients": [
+    {
+      "name": "foxtail millet",
+      "sanskrit": "kaṅgu",
+      "quantity_source": null,
+      "quantity_modern": "1/3 cup",
+      "function": "the grain. Still fully available today as navane, thinai or kangni — not obsolete, merely displaced"
+    },
+    {
+      "name": "wild rice",
+      "sanskrit": "nīvāra",
+      "quantity_source": null,
+      "quantity_modern": "alternative to the millet",
+      "function": "a gathered wild grain, now essentially absent from Indian kitchens. Hand-pounded red rice is the closest modern stand-in by texture and cooking behaviour"
+    },
+    {
+      "name": "buffalo milk",
+      "sanskrit": "kṣīra",
+      "quantity_source": null,
+      "quantity_modern": "1 litre",
+      "function": "reduced first, then the grain cooked in it. The sweetness of the finished dish comes from this reduction, not from added sugar"
+    }
+  ],
+  "method_reconstructed": [
+    "Reduce the buffalo milk first, over a low fire, before any grain goes in.",
+    "Cook the millet or wild rice in the reduced milk until thick and lickable.",
+    "Serve mid-meal, not as a dessert. Sugar is offered at the table for those who want it."
+  ],
+  "provenance_class": "ATTESTED",
+  "confidence": {
+    "identification": 0.85,
+    "ingredients": 0.8,
+    "method": 0.8
+  },
+  "contested_points": [
+    "The identity of nīvāra is disputed — Hygroryza aristata (water-grass), wild Oryza rufipogon, and a generic term for self-sown paddy have all been argued. Caraka treats it as a distinct śūka-dhānya. The extraction presents all three and chooses none.",
+    "The order matters and is often reversed today: the milk is reduced first, and the grain cooked in it — not the grain cooked and milk added after."
+  ],
+  "modern_counterpart_id": "modern-kheer-001",
+  "substitution_story": {
+    "changed": [
+      {
+        "from": "sweetness from reduced milk alone, with sugar offered at the table",
+        "to": "sugar or jaggery cooked into the pot, and a great deal more of it",
+        "period": "colonial era onward",
+        "driver": "industrial sugar refining and a colonial sugar trade made sweetness cheap and uniform, and the dish moved from a mid-meal course to a dessert, where it is expected to be sweet"
+      },
+      {
+        "from": "foxtail millet or wild rice",
+        "to": "polished rice, or broken basmati",
+        "period": "late 19th century onward",
+        "driver": "mechanised milling and the collapse of millets out of the grain supply chain"
+      },
+      {
+        "from": "long reduction of whole buffalo milk",
+        "to": "condensed milk or milk powder to shorten the cook",
+        "period": "mid 20th century onward",
+        "driver": "dairy processing and packaging; the reduction is the expensive part in time and fuel"
+      }
+    ],
+    "nutrition_delta": {
+      "glycaemic_load": "up",
+      "fibre": "down",
+      "iron": "down",
+      "calcium": "unchanged"
+    }
+  },
+  "restore_today": {
+    "ingredients": [
+      "1 litre full-fat milk",
+      "1/3 cup foxtail millet (navane / thinai), or hand-pounded red rice",
+      "Jaggery or sugar — on the table, not in the pot"
+    ],
+    "steps": [
+      "Reduce the milk first. Low flame, wide pan, 30–40 minutes, stirring so it does not catch. This is the dish; there is no shortcut.",
+      "Add the millet to the reduced milk and cook until thick enough to lick off a spoon.",
+      "Serve it mid-meal, and put the jaggery on the table.",
+      "It will taste milky and only faintly sweet. That is not an incomplete kheer — that is what payasa was."
+    ],
+    "time_min": 55
+  },
+  "region": "Deccan",
+  "season": null,
+  "vitalife_relevance": "low",
+  "verification": {
+    "status": "editor_verified",
+    "checked_by": "Vitalife editorial extraction — “Recipes: Before British”",
+    "checked_on": "2026-07-30",
+    "note": "Passage located and rendered in the editorial extraction, dated 1129 CE, including the disputed identification of nīvāra. Devanagari not yet transcribed into this record."
+  }
+}

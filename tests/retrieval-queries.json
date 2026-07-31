@@ -1,0 +1,560 @@
+{
+  "note": "Hand-checked retrieval expectations. `expect` is the slug that must come back top, or null when the honest answer is 'not in the restored corpus yet'. Run with `npm run corpus:check-retrieval`. A regression here is a campaign risk, not a test failure: a wrong ancestor is worse than no ancestor.",
+  "cases": [
+    {
+      "q": "idli",
+      "expect": "idli"
+    },
+    {
+      "q": "idly",
+      "expect": "idli"
+    },
+    {
+      "q": "iddli",
+      "expect": "idli"
+    },
+    {
+      "q": "Idlee",
+      "expect": "idli"
+    },
+    {
+      "q": "इडली",
+      "expect": "idli"
+    },
+    {
+      "q": "இட்லி",
+      "expect": "idli"
+    },
+    {
+      "q": "idli banane ka tarika",
+      "expect": "idli"
+    },
+    {
+      "q": "mujhe idli ke bare mein batao",
+      "expect": "idli"
+    },
+    {
+      "q": "what was idli originally",
+      "expect": "idli"
+    },
+    {
+      "q": "restore my idli",
+      "expect": "idli"
+    },
+    {
+      "q": "rava idli",
+      "expect": "idli"
+    },
+    {
+      "q": "idli sambar",
+      "expect": "idli"
+    },
+    {
+      "q": "dosa",
+      "expect": "dosa"
+    },
+    {
+      "q": "dosai",
+      "expect": "dosa"
+    },
+    {
+      "q": "dhosa",
+      "expect": "dosa"
+    },
+    {
+      "q": "dose",
+      "expect": "dosa"
+    },
+    {
+      "q": "masala dosa",
+      "expect": "dosa"
+    },
+    {
+      "q": "தோசை",
+      "expect": "dosa"
+    },
+    {
+      "q": "dosa kaise banti hai",
+      "expect": "dosa"
+    },
+    {
+      "q": "history of the dosa",
+      "expect": "dosa"
+    },
+    {
+      "q": "vada",
+      "expect": "vada"
+    },
+    {
+      "q": "wada",
+      "expect": "vada"
+    },
+    {
+      "q": "vadai",
+      "expect": "vada"
+    },
+    {
+      "q": "medu vada",
+      "expect": "vada"
+    },
+    {
+      "q": "dahi vada",
+      "expect": "vada"
+    },
+    {
+      "q": "வடை",
+      "expect": "vada"
+    },
+    {
+      "q": "khichdi",
+      "expect": "khichdi"
+    },
+    {
+      "q": "khichadi",
+      "expect": "khichdi"
+    },
+    {
+      "q": "khichri",
+      "expect": "khichdi"
+    },
+    {
+      "q": "kichdi",
+      "expect": "khichdi"
+    },
+    {
+      "q": "khichuri",
+      "expect": "khichdi"
+    },
+    {
+      "q": "खिचड़ी",
+      "expect": "khichdi"
+    },
+    {
+      "q": "khichdi ki recipe",
+      "expect": "khichdi"
+    },
+    {
+      "q": "pongal",
+      "expect": "khichdi"
+    },
+    {
+      "q": "roti",
+      "expect": "roti"
+    },
+    {
+      "q": "chapati",
+      "expect": "roti"
+    },
+    {
+      "q": "chapathi",
+      "expect": "roti"
+    },
+    {
+      "q": "phulka",
+      "expect": "roti"
+    },
+    {
+      "q": "rotli",
+      "expect": "roti"
+    },
+    {
+      "q": "रोटी",
+      "expect": "roti"
+    },
+    {
+      "q": "roti kaise banaye",
+      "expect": "roti"
+    },
+    {
+      "q": "kheer",
+      "expect": "kheer"
+    },
+    {
+      "q": "payasam",
+      "expect": "kheer"
+    },
+    {
+      "q": "payesh",
+      "expect": "kheer"
+    },
+    {
+      "q": "phirni",
+      "expect": "kheer"
+    },
+    {
+      "q": "खीर",
+      "expect": "kheer"
+    },
+    {
+      "q": "rice kheer recipe",
+      "expect": "kheer"
+    },
+    {
+      "q": "poha",
+      "expect": "poha"
+    },
+    {
+      "q": "pohe",
+      "expect": "poha"
+    },
+    {
+      "q": "aval",
+      "expect": "poha"
+    },
+    {
+      "q": "aloo poha",
+      "expect": "poha"
+    },
+    {
+      "q": "flattened rice",
+      "expect": "poha"
+    },
+    {
+      "q": "पोहा",
+      "expect": "poha"
+    },
+    {
+      "q": "laddu",
+      "expect": "laddu"
+    },
+    {
+      "q": "ladoo",
+      "expect": "laddu"
+    },
+    {
+      "q": "laddoo",
+      "expect": "laddu"
+    },
+    {
+      "q": "besan ladoo",
+      "expect": "laddu"
+    },
+    {
+      "q": "motichoor",
+      "expect": "laddu"
+    },
+    {
+      "q": "लड्डू",
+      "expect": "laddu"
+    },
+    {
+      "q": "palak paneer",
+      "expect": "palak-paneer"
+    },
+    {
+      "q": "saag paneer",
+      "expect": "palak-paneer"
+    },
+    {
+      "q": "palak panir",
+      "expect": "palak-paneer"
+    },
+    {
+      "q": "पालक पनीर",
+      "expect": "palak-paneer"
+    },
+    {
+      "q": "palak paneer ka original version",
+      "expect": "palak-paneer"
+    },
+    {
+      "q": "gobi manchurian",
+      "expect": "gobi-manchurian"
+    },
+    {
+      "q": "gobhi manchurian",
+      "expect": "gobi-manchurian"
+    },
+    {
+      "q": "cauliflower manchurian",
+      "expect": "gobi-manchurian"
+    },
+    {
+      "q": "manchurian",
+      "expect": "gobi-manchurian"
+    },
+    {
+      "q": "pav bhaji",
+      "expect": "pav-bhaji"
+    },
+    {
+      "q": "pao bhaji",
+      "expect": "pav-bhaji"
+    },
+    {
+      "q": "pav bhaaji",
+      "expect": "pav-bhaji"
+    },
+    {
+      "q": "पाव भाजी",
+      "expect": "pav-bhaji"
+    },
+    {
+      "q": "upma",
+      "expect": "upma"
+    },
+    {
+      "q": "uppuma",
+      "expect": "upma"
+    },
+    {
+      "q": "uppittu",
+      "expect": "upma"
+    },
+    {
+      "q": "rava upma",
+      "expect": "upma"
+    },
+    {
+      "q": "उपमा",
+      "expect": "upma"
+    },
+    {
+      "q": "biryani",
+      "expect": null,
+      "why": "not in the corpus — must offer component restoration, not improvise a history"
+    },
+    {
+      "q": "samosa",
+      "expect": null,
+      "why": "not in the corpus"
+    },
+    {
+      "q": "rajma chawal",
+      "expect": null,
+      "why": "rajma is a Columbian-exchange bean and not in the corpus"
+    },
+    {
+      "q": "butter chicken",
+      "expect": null,
+      "why": "not in the corpus"
+    },
+    {
+      "q": "chicken tikka masala",
+      "expect": null,
+      "why": "not in the corpus"
+    },
+    {
+      "q": "misal pav",
+      "expect": null,
+      "why": "shares 'pav' with pav bhaji — the classic nearest-neighbour trap"
+    },
+    {
+      "q": "paneer tikka",
+      "expect": null,
+      "why": "shares 'paneer' with palak paneer — must not resolve to it"
+    },
+    {
+      "q": "gobi paratha",
+      "expect": null,
+      "why": "shares 'gobi' with gobi manchurian"
+    },
+    {
+      "q": "rice",
+      "expect": null,
+      "why": "an ingredient, not a dish — must not resolve to a rice dish"
+    },
+    {
+      "q": "dal",
+      "expect": "dal"
+    },
+    {
+      "q": "sambar",
+      "expect": null,
+      "why": "appears only inside the alias 'idli sambar'; alone it is a different dish"
+    },
+    {
+      "q": "dhokla",
+      "expect": null,
+      "why": "not in the corpus"
+    },
+    {
+      "q": "vada pav",
+      "expect": null,
+      "why": "two partial matches, neither complete — must decline rather than pick one"
+    },
+    {
+      "q": "thepla",
+      "expect": null,
+      "why": "not in the corpus"
+    },
+    {
+      "q": "bisi bele bath",
+      "expect": null,
+      "why": "not in the corpus, and close in kind to khichdi — must still decline"
+    },
+    {
+      "q": "puran poli",
+      "expect": null,
+      "why": "not yet in the corpus; a known gap, should be logged for expansion"
+    },
+    {
+      "q": "halwa",
+      "expect": null,
+      "why": "not in the corpus"
+    },
+    {
+      "q": "jalebi",
+      "expect": null,
+      "why": "not in the corpus"
+    },
+    {
+      "q": "sattu",
+      "expect": null,
+      "why": "not yet in the corpus; a known gap"
+    },
+    {
+      "q": "appam",
+      "expect": null,
+      "why": "not in the corpus"
+    },
+    {
+      "q": "asdfgh",
+      "expect": null,
+      "why": "gibberish"
+    },
+    {
+      "q": "",
+      "expect": null,
+      "why": "empty query"
+    },
+    {
+      "q": "recipe",
+      "expect": null,
+      "why": "all stopwords"
+    },
+    {
+      "q": "kaise banate hain",
+      "expect": null,
+      "why": "all stopwords, no dish named"
+    },
+    {
+      "q": "tell me about food",
+      "expect": null,
+      "why": "no dish named"
+    },
+    {
+      "q": "what did my grandmother eat",
+      "expect": null,
+      "why": "no dish named"
+    },
+    {
+      "q": "sushi",
+      "expect": null,
+      "why": "out of scope"
+    },
+    {
+      "q": "pizza",
+      "expect": null,
+      "why": "out of scope"
+    },
+    {
+      "q": "daal",
+      "expect": "dal"
+    },
+    {
+      "q": "supa",
+      "expect": "dal"
+    },
+    {
+      "q": "tovve",
+      "expect": "dal"
+    },
+    {
+      "q": "varan",
+      "expect": "dal"
+    },
+    {
+      "q": "pappu",
+      "expect": "dal"
+    },
+    {
+      "q": "दाल",
+      "expect": "dal"
+    },
+    {
+      "q": "rasam",
+      "expect": "rasam"
+    },
+    {
+      "q": "saaru",
+      "expect": "rasam"
+    },
+    {
+      "q": "chaaru",
+      "expect": "rasam"
+    },
+    {
+      "q": "pulusu",
+      "expect": "rasam"
+    },
+    {
+      "q": "ரசம்",
+      "expect": "rasam"
+    },
+    {
+      "q": "bedhai",
+      "expect": "bedhai"
+    },
+    {
+      "q": "bedmi",
+      "expect": "bedhai"
+    },
+    {
+      "q": "aloo paratha",
+      "expect": "bedhai"
+    },
+    {
+      "q": "urad dal paratha",
+      "expect": "bedhai"
+    },
+    {
+      "q": "बेदई",
+      "expect": "bedhai"
+    },
+    {
+      "q": "tahiri",
+      "expect": "tahiri"
+    },
+    {
+      "q": "tahari",
+      "expect": "tahiri"
+    },
+    {
+      "q": "aloo tahari",
+      "expect": "tahiri"
+    },
+    {
+      "q": "तहरी",
+      "expect": "tahiri"
+    },
+    {
+      "q": "gulab jamun",
+      "expect": "gulab-jamun"
+    },
+    {
+      "q": "gulabjamun",
+      "expect": "gulab-jamun"
+    },
+    {
+      "q": "chhena murki",
+      "expect": "gulab-jamun"
+    },
+    {
+      "q": "गुलाब जामुन",
+      "expect": "gulab-jamun"
+    },
+    {
+      "q": "arisi upma",
+      "expect": "upma"
+    },
+    {
+      "q": "akki tari uppittu",
+      "expect": "upma"
+    },
+    {
+      "q": "paysam",
+      "expect": "kheer"
+    }
+  ]
+}

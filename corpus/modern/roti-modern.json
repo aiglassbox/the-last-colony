@@ -1,0 +1,66 @@
+{
+  "id": "modern-roti-001",
+  "slug": "roti-modern",
+  "dish_name_modern": "Roti (as cooked today)",
+  "dish_name_source": null,
+  "aliases": [],
+  "share_verdict": null,
+  "tier": "modern",
+  "source": {
+    "text": "Contemporary household and commercial practice",
+    "author": null,
+    "century": "20th-21st CE",
+    "locus": null,
+    "edition": null,
+    "page": null
+  },
+  "original_text": null,
+  "transliteration": null,
+  "translation": null,
+  "ingredients": [
+    {
+      "name": "roller-milled atta",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "2 cups",
+      "function": "flour milled weeks or months earlier, commonly with the germ removed for shelf life and bran added back"
+    },
+    {
+      "name": "water",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "3/4 cup",
+      "function": "hydration"
+    },
+    {
+      "name": "refined oil or ghee",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "1 tsp",
+      "function": "softening"
+    }
+  ],
+  "method_reconstructed": [
+    "Knead, rest, roll thin.",
+    "Cook on a tawa and puff over the flame."
+  ],
+  "provenance_class": "MODERN_DISH",
+  "confidence": {
+    "identification": 1,
+    "ingredients": 0.9,
+    "method": 0.9
+  },
+  "contested_points": [],
+  "modern_counterpart_id": null,
+  "substitution_story": null,
+  "restore_today": null,
+  "region": "North and West India",
+  "season": null,
+  "vitalife_relevance": "none",
+  "verification": {
+    "status": "editor_verified",
+    "checked_by": "Editorial - contemporary practice, no textual claim",
+    "checked_on": "2026-07-30",
+    "note": "Modern counterpart record. Describes current practice; makes no claim about any historical text, so there is nothing to verify against an edition."
+  }
+}

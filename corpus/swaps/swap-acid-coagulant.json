@@ -1,0 +1,21 @@
+{
+  "id": "swap-acid-coagulant",
+  "modern_item": "lemon juice as a coagulant",
+  "aliases": [
+    "vinegar",
+    "citric acid",
+    "lemon",
+    "nimbu",
+    "acid for splitting milk",
+    "सिरका"
+  ],
+  "options": [
+    {
+      "swap": "Takra-maṇḍa — the thin whey drawn off the previous day's curd",
+      "ratio": "1 tbsp lemon juice → about 1 cup thin whey, added to hot milk a little at a time until it splits. Well-diluted buttermilk works the same way.",
+      "taste_and_texture": "The curd comes out softer and grainier, and without the sharp edge lemon or vinegar leave behind. The coagulant genuinely changes the texture — this is worth testing rather than taking on trust.",
+      "nutritional_rationale": "Nutritionally close. This swap is about texture and taste, not about any nutritional axis, and it would be dishonest to sell it as one."
+    }
+  ],
+  "where_it_went": "Lemon, vinegar and citric acid are faster, more reliable and available off a shelf. Whey has to be saved from yesterday, which is a habit the modern kitchen dropped."
+}

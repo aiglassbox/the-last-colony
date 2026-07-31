@@ -1,0 +1,80 @@
+{
+  "id": "modern-rasam-001",
+  "slug": "rasam-modern",
+  "dish_name_modern": "Rasam (as cooked today)",
+  "dish_name_source": null,
+  "aliases": [],
+  "share_verdict": null,
+  "tier": "modern",
+  "source": {
+    "text": "Contemporary household and commercial practice",
+    "author": null,
+    "century": "20th–21st CE",
+    "locus": null,
+    "edition": null,
+    "page": null
+  },
+  "original_text": null,
+  "transliteration": null,
+  "translation": null,
+  "ingredients": [
+    {
+      "name": "black pepper and red chilli",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "to taste",
+      "function": "chilli now shares the heat with pepper"
+    },
+    {
+      "name": "tomato",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "2",
+      "function": "a Columbian-exchange arrival, now a defining ingredient"
+    },
+    {
+      "name": "tamarind",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "a small ball",
+      "function": "still the base sour, alongside the tomato"
+    },
+    {
+      "name": "factory-ground rasam powder",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "2 tsp",
+      "function": "in place of spices crushed fresh for each pot"
+    },
+    {
+      "name": "ghee or refined vegetable oil",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "1 tbsp",
+      "function": "the fat"
+    }
+  ],
+  "method_reconstructed": [
+    "Simmer tamarind and tomato with rasam powder.",
+    "Temper and finish."
+  ],
+  "provenance_class": "MODERN_DISH",
+  "confidence": {
+    "identification": 1,
+    "ingredients": 0.9,
+    "method": 0.9
+  },
+  "contested_points": [],
+  "modern_counterpart_id": null,
+  "substitution_story": null,
+  "restore_today": null,
+  "region": "South India",
+  "season": null,
+  "vitalife_relevance": "none",
+  "verification": {
+    "status": "editor_verified",
+    "checked_by": "Vitalife editorial extraction — “Recipes: Before British”",
+    "checked_on": "2026-07-30",
+    "note": "Modern counterpart record. Describes current practice and makes no claim about any historical text, so there is nothing to verify against an edition."
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "swap-refined-sugar",
+  "modern_item": "refined sugar",
+  "aliases": [
+    "sugar",
+    "white sugar",
+    "cheeni",
+    "chini",
+    "शक्कर",
+    "चीनी",
+    "caster sugar"
+  ],
+  "options": [
+    {
+      "swap": "Jaggery (gur)",
+      "ratio": "1 cup sugar → 3/4 cup grated jaggery. Dissolve it separately and add off the heat, or it will split milk.",
+      "taste_and_texture": "Darker colour, a mineral edge, and a faint smokiness. In a pale dish it will look wrong — in kheer, halwa or a laddu it looks like it should.",
+      "nutritional_rationale": "Carries an iron and mineral fraction that refining removes. Comparable on total sugars — this is not a sugar-reduction swap."
+    },
+    {
+      "swap": "Palm jaggery or date paste",
+      "ratio": "1 cup sugar → 3/4 cup palm jaggery, or 1 cup soft date paste (reduce the liquid in the recipe by a third).",
+      "taste_and_texture": "Palm jaggery is more caramel and less grassy than cane gur. Date paste browns fast and can catch — it is the worse swap for anything that goes on a hot griddle.",
+      "nutritional_rationale": "Adds fibre in the date version; potassium in the palm version."
+    }
+  ],
+  "where_it_went": "Industrial refining and a colonial sugar trade made uniform white sugar cheap and aspirational; jaggery became the rural, second-choice option."
+}

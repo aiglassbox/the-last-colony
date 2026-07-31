@@ -1,0 +1,157 @@
+{
+  "id": "supa-dal-001",
+  "slug": "dal",
+  "dish_name_modern": "Dal",
+  "dish_name_source": "Sūpa",
+  "aliases": [
+    "tovve",
+    "varan",
+    "toor dal",
+    "dal tadka",
+    "दाल",
+    "पप्पू",
+    "pappu"
+  ],
+  "share_verdict": "Sūpa used seven pulses. Yours uses one.",
+  "tier": "ancient",
+  "source": {
+    "text": "Mānasollāsa",
+    "author": "Someśvara III",
+    "century": "1129 CE",
+    "locus": "Annabhoga (the food chapter)",
+    "edition": "Gaekwad's Oriental Series",
+    "page": null
+  },
+  "original_text": null,
+  "transliteration": null,
+  "translation": "Pigeon pea, black gram, lentil, cowpea — the cooks should use all of these for making sūpa. They may be cooked split or unsplit, according to taste. Chickpea, cowpea, lentil and mung should be split beforehand by the skilled, for cooking. Pigeon pea should be lightly roasted, then split in the mill. Once properly split and dehusked with the winnower, put cold water in the pot in a quantity equal to the split pulse, and set it on the stove. As it cooks on the fire, pour in hot water. For colour, add a little turmeric powder. Add water again and again until the cooking is complete. Make a powder of rock salt and add it at one-twentieth part. [Judge it] by colour, by sweetness of taste, by aroma, by softness, and by lightness — thus is the correct perfection of pulse-cooking declared. Nispāva beans and the dark pigeon peas are to be kept free of asafoetida. In cooking lentil and black gram, asafoetida water should be added. … While the mung is cooking, put in asafoetida water. Add fine pieces of fresh ginger. Add brinjal, split and fried in oil. Add lotus-rhizome rounds fried in oil, or priyāla seeds, and turn it with the ladle. Again and again add water, little by little. When well done, add powdered black pepper. Take it off, add dry-ginger powder, and stir with the ladle.",
+  "ingredients": [
+    {
+      "name": "pigeon pea, black gram, lentil, cowpea, chickpea, mung, nispāva",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "any of seven",
+      "function": "the dish is built on a range of pulses, chosen and prepared differently — pigeon pea lightly roasted before splitting, others split and winnowed"
+    },
+    {
+      "name": "turmeric",
+      "sanskrit": "haridrā",
+      "quantity_source": null,
+      "quantity_modern": "a little",
+      "function": "for colour, explicitly"
+    },
+    {
+      "name": "rock salt",
+      "sanskrit": "saindhava",
+      "quantity_source": null,
+      "quantity_modern": "one-twentieth part",
+      "function": "the text gives an actual proportion, which is rare"
+    },
+    {
+      "name": "asafoetida water",
+      "sanskrit": "hiṅgu",
+      "quantity_source": null,
+      "quantity_modern": "as appropriate",
+      "function": "added for lentil, black gram and mung — and explicitly kept away from nispāva beans and dark pigeon peas"
+    },
+    {
+      "name": "fresh ginger",
+      "sanskrit": "ārdraka",
+      "quantity_source": null,
+      "quantity_modern": "fine pieces",
+      "function": "added during cooking, not as a tempering at the end"
+    },
+    {
+      "name": "brinjal, lotus rhizome, priyāla seeds",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "fried in oil first",
+      "function": "vegetables pre-fried in oil and turned through the dal — the only place oil appears"
+    },
+    {
+      "name": "black pepper and dry ginger",
+      "sanskrit": "marica, śuṇṭhī",
+      "quantity_source": null,
+      "quantity_modern": "powdered, at the end",
+      "function": "the finish"
+    }
+  ],
+  "method_reconstructed": [
+    "Prepare the pulse: roast pigeon pea lightly and split it in the mill; split and winnow the others.",
+    "Put cold water in the pot equal in quantity to the split pulse, and set it on the stove.",
+    "As it cooks, pour in hot water — again and again, little by little, until done.",
+    "Add a little turmeric for colour, and rock salt at one-twentieth part.",
+    "Add asafoetida water where the pulse calls for it, and fine pieces of fresh ginger.",
+    "Stir through brinjal or lotus rhizome that has been split and fried in oil.",
+    "When well done, add powdered black pepper. Take it off, add dry-ginger powder, and stir."
+  ],
+  "provenance_class": "ATTESTED",
+  "confidence": {
+    "identification": 0.9,
+    "ingredients": 0.9,
+    "method": 0.9
+  },
+  "contested_points": [
+    "The text judges a finished dal by colour, sweetness, aroma, softness and lightness — a five-axis standard with no modern equivalent.",
+    "Some versions add pieces of mutton for relish; the passage records this as optional."
+  ],
+  "modern_counterpart_id": "modern-dal-001",
+  "substitution_story": {
+    "changed": [
+      {
+        "from": "seven pulses used across the repertoire, prepared differently by kind",
+        "to": "toor dal as the near-universal default",
+        "period": "20th century",
+        "driver": "mill-split dal standardised the supply, and pulse variety collapsed as acreage fell and distribution consolidated around a few kinds"
+      },
+      {
+        "from": "an open pot with water added incrementally, judged by eye",
+        "to": "a pressure cooker with the water added once",
+        "period": "mid 20th century onward",
+        "driver": "the pressure cooker made dal fast and repeatable, at the cost of the whole-ish texture the text describes"
+      },
+      {
+        "from": "black pepper and dry ginger stirred in at the end, oil only for pre-frying vegetables",
+        "to": "chilli, and a ghee or oil tadka poured over the top",
+        "period": "post-Columbian, consolidating in the 20th century",
+        "driver": "chilli displaced pepper, and the poured tempering became the defining gesture of the dish"
+      }
+    ],
+    "nutrition_delta": {
+      "protein": "unchanged",
+      "fibre": "down",
+      "iron": "down",
+      "fat_quality": "mixed"
+    }
+  },
+  "restore_today": {
+    "ingredients": [
+      "1 cup mixed pulses — mung, masoor, chana and toor together rather than toor alone",
+      "1/2 tsp turmeric",
+      "Rock salt, roughly a twentieth of the dry pulse by weight",
+      "1/4 tsp asafoetida in water",
+      "1 inch ginger in fine pieces, plus 1/2 tsp dry ginger powder",
+      "1 small brinjal, split and fried in a little sesame oil",
+      "1 tsp black pepper, powdered"
+    ],
+    "steps": [
+      "Roast the toor lightly before you start. Rinse and drain everything.",
+      "Cold water equal to the pulse, in an open pot, on the flame.",
+      "Top up with hot water, a little at a time, as it cooks. Do not walk away and do not use a pressure cooker — the incremental water is what gives the whole-ish texture.",
+      "Turmeric for colour, salt at about a twentieth, asafoetida water and fine ginger.",
+      "Stir through the fried brinjal.",
+      "Finish with powdered black pepper off the heat, then dry ginger.",
+      "No poured tadka, no chilli. It tastes of pulse, pepper and asafoetida, and it is lighter than the dal you are used to."
+    ],
+    "time_min": 60
+  },
+  "region": "Deccan",
+  "season": null,
+  "vitalife_relevance": "medium",
+  "verification": {
+    "status": "editor_verified",
+    "checked_by": "Vitalife editorial extraction — “Recipes: Before British”",
+    "checked_on": "2026-07-30",
+    "note": "Passage located and translated in full in the editorial extraction, dated 1129 CE. Devanagari not yet transcribed into this record."
+  }
+}

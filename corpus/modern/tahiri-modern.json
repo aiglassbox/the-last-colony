@@ -1,0 +1,79 @@
+{
+  "id": "modern-tahiri-001",
+  "slug": "tahiri-modern",
+  "dish_name_modern": "Aloo tahari (as cooked today)",
+  "dish_name_source": null,
+  "aliases": [],
+  "share_verdict": null,
+  "tier": "modern",
+  "source": {
+    "text": "Contemporary household and commercial practice",
+    "author": null,
+    "century": "20th–21st CE",
+    "locus": null,
+    "edition": null,
+    "page": null
+  },
+  "original_text": null,
+  "transliteration": null,
+  "translation": null,
+  "ingredients": [
+    {
+      "name": "potato",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "3, cubed",
+      "function": "the primary bulk vegetable, introduced after the 16th century"
+    },
+    {
+      "name": "rice",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "1 cup",
+      "function": "polished"
+    },
+    {
+      "name": "tomato and/or curd",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "to taste",
+      "function": "the souring agent, in place of tamarind"
+    },
+    {
+      "name": "red and green chilli",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "to taste",
+      "function": "the heat, in place of pepper and ginger"
+    },
+    {
+      "name": "refined vegetable oil",
+      "sanskrit": null,
+      "quantity_source": null,
+      "quantity_modern": "2 tbsp",
+      "function": "the cooking fat"
+    }
+  ],
+  "method_reconstructed": [
+    "Fry potato and spices, add rice and water, cook as a one-pot."
+  ],
+  "provenance_class": "MODERN_DISH",
+  "confidence": {
+    "identification": 1,
+    "ingredients": 0.9,
+    "method": 0.9
+  },
+  "contested_points": [],
+  "modern_counterpart_id": null,
+  "substitution_story": null,
+  "restore_today": null,
+  "region": "North India",
+  "season": null,
+  "vitalife_relevance": "none",
+  "verification": {
+    "status": "editor_verified",
+    "checked_by": "Vitalife editorial extraction — “Recipes: Before British”",
+    "checked_on": "2026-07-30",
+    "note": "Modern counterpart record. Describes current practice and makes no claim about any historical text, so there is nothing to verify against an edition."
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "id": "vataka-vada-001",
+  "slug": "vada",
+  "dish_name_modern": "Vada",
+  "dish_name_source": "Vaṭaka",
+  "aliases": [
+    "vadai",
+    "wada",
+    "medu vada",
+    "urad vada",
+    "वड़ा",
+    "வடை"
+  ],
+  "share_verdict": "The batter survived. The oil it fries in did not.",
+  "tier": "ancient",
+  "source": {
+    "text": "Vaṭaka is described across the Sanskrit culinary literature, including the Mānasollāsa",
+    "author": null,
+    "century": "Pre-12th CE, with the Mānasollāsa description 12th CE",
+    "locus": "Mānasollāsa, Adhyāya 13 (Annabhoga)",
+    "edition": "Gaekwad's Oriental Series",
+    "page": null
+  },
+  "original_text": null,
+  "transliteration": null,
+  "translation": null,
+  "ingredients": [
+    {
+      "name": "urad dal",
+      "sanskrit": "māṣa",
+      "quantity_source": null,
+      "quantity_modern": "2 cups, soaked 4 hours",
+      "function": "the entire cake. Ground thick, it whips like a batter and holds air, which is what makes a vada light rather than dense"
+    },
+    {
+      "name": "black pepper",
+      "sanskrit": "marica",
+      "quantity_source": null,
+      "quantity_modern": "1 tbsp, cracked",
+      "function": "the heat"
+    },
+    {
+      "name": "asafoetida",
+      "sanskrit": "hiṅgu",
+      "quantity_source": null,
+      "quantity_modern": "1/4 tsp",
+      "function": "digestive; standard with a heavy pulse"
+    },
+    {
+      "name": "ginger",
+      "sanskrit": "ārdraka",
+      "quantity_source": null,
+      "quantity_modern": "1 inch, minced",
+      "function": "aromatic and digestive"
+    },
+    {
+      "name": "sesame or coconut oil",
+      "sanskrit": "taila",
+      "quantity_source": null,
+      "quantity_modern": "for deep frying",
+      "function": "the frying medium — a regional, cold-pressed, single-source fat, and the flavour of the dish as much as the batter is"
+    }
+  ],
+  "method_reconstructed": [
+    "Soak and grind the urad dal thick, with almost no water.",
+    "Beat the batter by hand until it lightens and a dropped spoonful floats in water.",
+    "Work in cracked pepper, ginger and asafoetida.",
+    "Shape with a wet palm, thumb through the middle.",
+    "Fry in hot oil until it stops bubbling."
+  ],
+  "provenance_class": "RECONSTRUCTED",
+  "confidence": {
+    "identification": 0.8,
+    "ingredients": 0.8,
+    "method": 0.6
+  },
+  "contested_points": [
+    "Vaṭaka names a family of pulse cakes — fried, steamed, and sun-dried keeping-cakes — not exclusively the fried doughnut shape.",
+    "Which pulse is intended varies between descriptions; urad is the most common reading but not the only one."
+  ],
+  "modern_counterpart_id": "modern-vada-001",
+  "substitution_story": {
+    "changed": [
+      {
+        "from": "regional cold-pressed oil — sesame in the south-east, coconut in the south-west, mustard in the east",
+        "to": "refined, deodorised, blended seed oil",
+        "period": "mid-to-late 20th century",
+        "driver": "solvent extraction and refining produced a cheap neutral oil with a long shelf life and a high smoke point; the regional oils became specialty items"
+      },
+      {
+        "from": "black pepper as the heat",
+        "to": "green chilli",
+        "period": "post-Columbian, spreading through the 17th–18th centuries",
+        "driver": "chilli arrived with Portuguese trade and displaced pepper as everyday heat because it grew easily and cost less"
+      }
+    ],
+    "nutrition_delta": {
+      "protein": "unchanged",
+      "fibre": "unchanged",
+      "fat_quality": "mixed"
+    }
+  },
+  "restore_today": {
+    "ingredients": [
+      "2 cups whole urad dal, soaked 4 hours",
+      "1 tbsp black pepper, cracked",
+      "1 inch ginger, minced",
+      "1/4 tsp asafoetida",
+      "Rock salt",
+      "Cold-pressed sesame or coconut oil for frying"
+    ],
+    "steps": [
+      "Grind the dal thick — a tablespoon of water at a time, no more. Stop when it is fluffy and pale.",
+      "Beat it with your hand or a whisk for three minutes. Drop a bit into water: if it floats, it is ready.",
+      "Fold in pepper, ginger, asafoetida and salt.",
+      "Wet your palm, flatten a ball, make a hole, slide it into oil at about 170°C.",
+      "Fry until the bubbling slows and the colour is deep gold.",
+      "The frying medium is not neutral here. A cold-pressed sesame or coconut oil is half of what this tastes like — this is a dish where the fat is an ingredient, not a utility."
+    ],
+    "time_min": 50
+  },
+  "region": "South India",
+  "season": null,
+  "vitalife_relevance": "high",
+  "verification": {
+    "status": "unverified_seed",
+    "checked_by": null,
+    "checked_on": null,
+    "note": "Seed record. Composite description; not yet checked against a printed edition, so no verse number or page is claimed."
+  }
+}
