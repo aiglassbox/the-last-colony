@@ -226,8 +226,11 @@ export async function POST(request: NextRequest) {
             "This message is not in the restored corpus. Put the mode on the FIRST " +
             "line, exactly one of: MODE: REPLY | MODE: INDIANISE | MODE: MODERN | " +
             "MODE: RESTORE, then the reply on the following lines.\n" +
-            "- MODE: REPLY — a follow-up about the dish in <on_screen>; then plain " +
-            "prose, no markers. Never choose REPLY when <on_screen> is none.\n" +
+            "- MODE: REPLY — the message is a follow-up you can answer from the dish " +
+            "in <on_screen> or from the conversation so far (the turns above): an " +
+            "alternative ingredient, a method question, a challenge, a request to go " +
+            "deeper. Then plain prose, no markers. When the message names no new dish " +
+            "of its own, prefer REPLY over inventing a dish to restore.\n" +
             "- MODE: INDIANISE — the user named a dish that is NOT Indian in origin " +
             "(pizza, pasta, sushi, ice cream, ramen, a burger, and the like); then the " +
             "four §VERDICT§ §REBUILD§ §SWAPS§ §PLATE§ markers from the INDIANISATION " +
