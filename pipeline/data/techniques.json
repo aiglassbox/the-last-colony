@@ -1,5 +1,5 @@
 {
-  "note": "How to do an old technique in a modern kitchen. MAKE TODAY is not a new recipe — it is the same ancestral dish, cooked tonight. The ingredients stay traditional (that is the whole point: ghee, not vanaspati; gur, not refined sugar — see displacements.json), and only the *method* is translated: equipment that no longer exists, technology that makes it convenient, and a healthy substitute where something is genuinely unavailable. A shortcut that costs the dish its character is noted rather than taken. Matching is by `matches` against a recipe's method steps. These are equipment equivalences, not historical claims — anyone with a kitchen can check them, which is why they carry no source field.",
+  "note": "How to do an old technique in a modern kitchen. MAKE TODAY is not a new recipe, it is the same ancestral dish, cooked tonight. The ingredients stay traditional (that is the whole point: ghee, not vanaspati; gur, not refined sugar, see displacements.json), and only the *method* is translated: equipment that no longer exists, technology that makes it convenient, and a healthy substitute where something is genuinely unavailable. A shortcut that costs the dish its character is noted rather than taken. Matching is by `matches` against a recipe's method steps. These are equipment equivalences, not historical claims, anyone with a kitchen can check them, which is why they carry no source field.",
   "techniques": [
     {
       "id": "tech-charcoal-flame",
@@ -11,7 +11,7 @@
         "live coal",
         "fire-roast"
       ],
-      "modern": "roast directly on a gas flame, turning every 2-3 minutes until the skin blackens and the flesh collapses — about 10-12 minutes. No gas: grill under an oven broiler on the highest setting, turning once.",
+      "modern": "roast directly on a gas flame, turning every 2-3 minutes until the skin blackens and the flesh collapses, about 10-12 minutes. No gas: grill under an oven broiler on the highest setting, turning once.",
       "keep": "the direct flame. The smoke is the dish, not a side effect. An oven bake without any flame contact gives a different food.",
       "convenience": "a gas hob does this unattended in a way a charcoal fire never did"
     },
@@ -40,7 +40,7 @@
         "set aside for the night"
       ],
       "modern": "an oven with only the light on, or an instant pot on its yogurt setting, holds roughly 30-35°C. In a cold house, a warm cupboard works.",
-      "keep": "the time. Warmth speeds fermentation but does not replace it — a batter rushed at high heat sours without rising properly.",
+      "keep": "the time. Warmth speeds fermentation but does not replace it, a batter rushed at high heat sours without rising properly.",
       "convenience": "removes the seasonal problem: the same batter that rose in a Deccan summer will not rise in a Delhi January without help"
     },
     {
@@ -100,7 +100,7 @@
         "wrap in leaves",
         "leaf wrapping"
       ],
-      "modern": "banana leaf where it is sold — it is worth seeking out, because the leaf flavours the food. Otherwise baking parchment, then foil.",
+      "modern": "banana leaf where it is sold, it is worth seeking out, because the leaf flavours the food. Otherwise baking parchment, then foil.",
       "keep": "the leaf if you can get it. Foil holds steam but adds nothing; the original was a wrapper and a seasoning at once."
     },
     {
@@ -114,7 +114,7 @@
         "fry in oil",
         "fry in ghee"
       ],
-      "modern": "a kadai or deep pan, oil at 175-180°C — a pinch of dough should rise within a couple of seconds without browning at once.",
+      "modern": "a kadai or deep pan, oil at 175-180°C, a pinch of dough should rise within a couple of seconds without browning at once.",
       "keep": "the fat the record names. Frying in the traditional fat is the dish; swapping in a refined seed oil is the substitution this project exists to point at.",
       "convenience": "an air fryer will not reproduce this. Shallow-frying in less oil changes texture but keeps the fat honest, which is the better trade."
     },

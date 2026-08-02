@@ -28,7 +28,7 @@
       "sanskrit": "kṣīra, takra-maṇḍa",
       "quantity_source": null,
       "quantity_modern": "2 litres",
-      "function": "takra-maṇḍa is the thin whey drawn off curd — a gentle coagulant. Modern kitchens use lemon juice, vinegar or citric acid, all of which are harsher and genuinely change the curd's texture"
+      "function": "takra-maṇḍa is the thin whey drawn off curd, a gentle coagulant. Modern kitchens use lemon juice, vinegar or citric acid, all of which are harsher and genuinely change the curd's texture"
     },
     {
       "name": "rice flour",
@@ -56,7 +56,7 @@
       "sanskrit": "elā",
       "quantity_source": null,
       "quantity_modern": "4 pods",
-      "function": "the only aromatic — no rose, no saffron"
+      "function": "the only aromatic, no rose, no saffron"
     }
   ],
   "method_reconstructed": [
@@ -87,7 +87,7 @@
         "from": "takra-maṇḍa (whey) as the coagulant",
         "to": "lemon juice, vinegar or citric acid",
         "period": "20th century",
-        "driver": "faster and more reliable, and available off a shelf — but harsher on the curd"
+        "driver": "faster and more reliable, and available off a shelf, but harsher on the curd"
       },
       {
         "from": "cardamom alone, eaten within the meal",
@@ -108,12 +108,12 @@
       "1 cup thin whey from yesterday's curd (or well-diluted buttermilk) as the coagulant",
       "1/4 cup rice flour",
       "Ghee for frying",
-      "Sugar syrup with 4 cardamom pods — no rose, no saffron"
+      "Sugar syrup with 4 cardamom pods, no rose, no saffron"
     ],
     "steps": [
       "Heat the milk and split it with the whey rather than lemon. It curdles more slowly and the curd comes out softer.",
       "Drain in a cloth, then knead with rice flour until it binds.",
-      "Shape small, fry gently in ghee — hot fat will crack them.",
+      "Shape small, fry gently in ghee, hot fat will crack them.",
       "Soak in warm cardamom syrup.",
       "Grainy-soft and faintly lactic rather than melting. Higher in milk protein and lower in refined starch than a khoya-and-maida jamun."
     ],
@@ -124,7 +124,7 @@
   "vitalife_relevance": "low",
   "verification": {
     "status": "editor_verified",
-    "checked_by": "Vitalife editorial extraction — “Recipes: Before British”",
+    "checked_by": "Vitalife editorial extraction, “Recipes: Before British”",
     "checked_on": "2026-07-30",
     "note": "Passage located and rendered in the editorial extraction, dated 1129 CE, including the takra-maṇḍa coagulant note. Devanagari not yet transcribed into this record."
   }

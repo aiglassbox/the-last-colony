@@ -7,7 +7,7 @@
       "english": "Banana Rhizome in Ghee and Spices"
     },
     "source": {
-      "text": "Kshemakutuhalam",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
       "period": "c. 16th century CE",
       "citation": "Kshemakutuhalam, Kanda-saka (rhizome vegetables) section",
@@ -58,7 +58,10 @@
       "season": null
     },
     "notes": "Rhizome (kanda) preparation. Modern equivalent of the corm is plantain/banana stem base.",
-    "verification_status": "sourced-unverified"
+    "verification_status": "sourced-unverified",
+    "aliases": [
+      "Kadalikanda"
+    ]
   },
   {
     "id": "ksk-surana-002",
@@ -68,7 +71,7 @@
       "english": "Elephant Foot Yam in Sesame Oil"
     },
     "source": {
-      "text": "Kshemakutuhalam",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
       "period": "c. 16th century CE",
       "citation": "Kshemakutuhalam, Kanda-saka (rhizome vegetables) section",
@@ -127,8 +130,11 @@
       "occasion": null,
       "season": null
     },
-    "notes": "Elephant foot yam must be boiled in a sour medium first to cut its natural acridity — a step still followed today.",
-    "verification_status": "sourced-unverified"
+    "notes": "Elephant foot yam must be boiled in a sour medium first to cut its natural acridity, a step still followed today.",
+    "verification_status": "sourced-unverified",
+    "aliases": [
+      "Surana"
+    ]
   },
   {
     "id": "ksk-baingan-bharta-003",
@@ -138,10 +144,10 @@
       "english": "Charcoal-Roasted Brinjal Mash (early Baingan Bharta)"
     },
     "source": {
-      "text": "Kshemakutuhalam",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
       "period": "c. 16th century CE",
-      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section — Vrintaka preparation 10",
+      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section, Vrintaka preparation 10",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598698.html"
     },
     "region": "North India",
@@ -179,8 +185,11 @@
       "occasion": null,
       "season": null
     },
-    "notes": "The text itself notes this is 'the very popular preparation known as Bengana Bhartha nowadays' — a documented historical ancestor of modern baingan bharta.",
-    "verification_status": "sourced-unverified"
+    "notes": "The text itself notes this is 'the very popular preparation known as Bengana Bhartha nowadays', a documented historical ancestor of modern baingan bharta.",
+    "verification_status": "sourced-unverified",
+    "aliases": [
+      "Vrintaka (Bengana Bhartha)"
+    ]
   },
   {
     "id": "ksk-vrintaka-steamed-004",
@@ -190,10 +199,10 @@
       "english": "Steamed Brinjal in Ghee and Spices"
     },
     "source": {
-      "text": "Kshemakutuhalam",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
       "period": "c. 16th century CE",
-      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section — Vrintaka preparation 1",
+      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section, Vrintaka preparation 1",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598698.html"
     },
     "region": "North India",
@@ -257,7 +266,10 @@
       "season": null
     },
     "notes": "One of thirteen documented brinjal preparations in the Kshemakutuhalam.",
-    "verification_status": "sourced-unverified"
+    "verification_status": "sourced-unverified",
+    "aliases": [
+      "Vrintaka (Svinna)"
+    ]
   },
   {
     "id": "ksk-bimbaphala-005",
@@ -267,10 +279,10 @@
       "english": "Ivy Gourd Fried in Ghee"
     },
     "source": {
-      "text": "Kshemakutuhalam",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
       "period": "c. 16th century CE",
-      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section — Bimbaphala preparation 1",
+      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section, Bimbaphala preparation 1",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598698.html"
     },
     "region": "North / Central India",
@@ -313,7 +325,10 @@
       "season": null
     },
     "notes": "Modern tindora/ivy gourd stir-fry closely mirrors this method.",
-    "verification_status": "sourced-unverified"
+    "verification_status": "sourced-unverified",
+    "aliases": [
+      "Bimbaphala"
+    ]
   },
   {
     "id": "ksk-khandakusmanda-006",
@@ -323,10 +338,10 @@
       "english": "Sweet Ash Gourd in Milk and Ghee"
     },
     "source": {
-      "text": "Kshemakutuhalam",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
       "period": "c. 16th century CE",
-      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section — Kusmanda preparation 3",
+      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section, Kusmanda preparation 3",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598698.html"
     },
     "region": "North India",
@@ -376,7 +391,10 @@
       "season": null
     },
     "notes": "An early milk-and-ghee sweet, conceptually close to modern petha / ash-gourd halwa.",
-    "verification_status": "sourced-unverified"
+    "verification_status": "sourced-unverified",
+    "aliases": [
+      "Khandakusmanda"
+    ]
   },
   {
     "id": "ksk-karavelli-007",
@@ -386,10 +404,10 @@
       "english": "Bitter Gourd Cooked in Oil"
     },
     "source": {
-      "text": "Kshemakutuhalam",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
       "period": "c. 16th century CE",
-      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section — Karavelli preparation 2",
+      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section, Karavelli preparation 2",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598698.html"
     },
     "region": "North / Central India",
@@ -431,7 +449,10 @@
       "season": null
     },
     "notes": "A second Kshemakutuhalam method boils the karela in buttermilk first, then cooks it in fresh butter with rock salt.",
-    "verification_status": "sourced-unverified"
+    "verification_status": "sourced-unverified",
+    "aliases": [
+      "Karavelli"
+    ]
   },
   {
     "id": "ksk-kadaliphala-008",
@@ -441,10 +462,10 @@
       "english": "Banana Cooked in Ghee and Spices"
     },
     "source": {
-      "text": "Kshemakutuhalam",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
       "period": "c. 16th century CE",
-      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section — Kadaliphala",
+      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section, Kadaliphala",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598698.html"
     },
     "region": "North / Central India",
@@ -492,7 +513,10 @@
       "season": null
     },
     "notes": "Uses firm/raw plantain rather than ripe dessert banana, given the savoury spicing.",
-    "verification_status": "sourced-unverified"
+    "verification_status": "sourced-unverified",
+    "aliases": [
+      "Kadaliphala"
+    ]
   },
   {
     "id": "ksk-karkati-milk-009",
@@ -502,10 +526,10 @@
       "english": "Cucumber Simmered in Milk with Cardamom"
     },
     "source": {
-      "text": "Kshemakutuhalam",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
       "period": "c. 16th century CE",
-      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section — Karkati preparation 2",
+      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section, Karkati preparation 2",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598698.html"
     },
     "region": "North India",
@@ -552,7 +576,10 @@
       "season": null
     },
     "notes": "Uses the large mature cooking cucumber (dosakaya-type), not the small salad cucumber.",
-    "verification_status": "sourced-unverified"
+    "verification_status": "sourced-unverified",
+    "aliases": [
+      "Karkati (Kshira)"
+    ]
   },
   {
     "id": "ksk-amalaka-010",
@@ -562,10 +589,10 @@
       "english": "Roasted Indian Gooseberry with Ghee and Cumin"
     },
     "source": {
-      "text": "Kshemakutuhalam",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
       "period": "c. 16th century CE",
-      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section — Amalaka",
+      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section, Amalaka",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598698.html"
     },
     "region": "North / Central India",
@@ -608,7 +635,10 @@
       "season": null
     },
     "notes": "Asafoetida-smoke fumigation (dhupana) is an authentic historical flavouring technique.",
-    "verification_status": "sourced-unverified"
+    "verification_status": "sourced-unverified",
+    "aliases": [
+      "Amalaka"
+    ]
   },
   {
     "id": "man-fish-fry-011",
@@ -618,10 +648,10 @@
       "english": "Spiced Fried Fish"
     },
     "source": {
-      "text": "Manasollasa (Abhilashitartha Chintamani)",
+      "text": "Manasollasa",
       "author": "King Someshvara III (Western Chalukya dynasty)",
       "period": "12th century CE (c. 1130 CE)",
-      "citation": "Manasollasa, Bhartur Upabhogakarana (food/enjoyment section) — fish preparation",
+      "citation": "Manasollasa, Bhartur Upabhogakarana (food/enjoyment section), fish preparation",
       "url": "https://en.wikipedia.org/wiki/Manasollasa"
     },
     "region": "Deccan (Karnataka / Western Chalukya court)",
@@ -677,7 +707,10 @@
       "season": null
     },
     "notes": "From one of the world's oldest cookbooks. Exact chapter/verse number should be confirmed against a translated edition of the Manasollasa before publishing.",
-    "verification_status": "sourced-needs-primary-check"
+    "verification_status": "sourced-needs-primary-check",
+    "aliases": [
+      "Matsya Bharjita"
+    ]
   },
   {
     "id": "man-iddarika-012",
@@ -693,10 +726,10 @@
       "english": "Fermented Urad Dal Steamed Cakes (medieval idli)"
     },
     "source": {
-      "text": "Manasollasa (Abhilashitartha Chintamani)",
+      "text": "Manasollasa",
       "author": "King Someshvara III (Western Chalukya dynasty)",
       "period": "12th century CE (c. 1130 CE)",
-      "citation": "Manasollasa, Bhartur Upabhogakarana (food/enjoyment section) — iddarika",
+      "citation": "Manasollasa, Bhartur Upabhogakarana (food/enjoyment section), iddarika",
       "url": "https://en.wikipedia.org/wiki/Manasollasa"
     },
     "region": "Deccan (Karnataka / Western Chalukya court)",
@@ -745,10 +778,10 @@
       "english": "Stretched Wheat Flatbread Baked on a Pan"
     },
     "source": {
-      "text": "Manasollasa (Abhilashitartha Chintamani)",
+      "text": "Manasollasa",
       "author": "King Someshvara III (Western Chalukya dynasty)",
       "period": "12th century CE (c. 1130 CE)",
-      "citation": "Manasollasa, cooking chapter — Mandaka",
+      "citation": "Manasollasa, cooking chapter, Mandaka",
       "url": "https://www.wisdomlib.org/hinduism/essay/manasollasa-study-of-arts-and-sciences/d/doc1474614.html"
     },
     "region": "Deccan (Karnataka / Western Chalukya court)",
@@ -798,7 +831,10 @@
       "season": null
     },
     "notes": "An early roti/rumali-style flatbread. The text says a fourfold (very thin) variety is considered best.",
-    "verification_status": "sourced-unverified"
+    "verification_status": "sourced-unverified",
+    "aliases": [
+      "Mandaka"
+    ]
   },
   {
     "id": "man-polika-014",
@@ -808,10 +844,10 @@
       "english": "Sweet-Stuffed Stretched Flatbread (early puran poli)"
     },
     "source": {
-      "text": "Manasollasa (Abhilashitartha Chintamani)",
+      "text": "Manasollasa",
       "author": "King Someshvara III (Western Chalukya dynasty)",
       "period": "12th century CE (c. 1130 CE)",
-      "citation": "Manasollasa, cooking chapter — Polika",
+      "citation": "Manasollasa, cooking chapter, Polika",
       "url": "https://www.wisdomlib.org/hinduism/essay/manasollasa-study-of-arts-and-sciences/d/doc1474614.html"
     },
     "region": "Deccan (Karnataka / Western Chalukya court)",
@@ -841,7 +877,10 @@
       "season": null
     },
     "notes": "A documented ancestor of the stuffed sweet flatbread (puran poli / obbattu).",
-    "verification_status": "sourced-unverified"
+    "verification_status": "sourced-unverified",
+    "aliases": [
+      "Polika"
+    ]
   },
   {
     "id": "man-purika-015",
@@ -851,10 +890,10 @@
       "english": "Fried Wheat Puri"
     },
     "source": {
-      "text": "Manasollasa (Abhilashitartha Chintamani)",
+      "text": "Manasollasa",
       "author": "King Someshvara III (Western Chalukya dynasty)",
       "period": "12th century CE (c. 1130 CE)",
-      "citation": "Manasollasa, cooking chapter — Purika",
+      "citation": "Manasollasa, cooking chapter, Purika",
       "url": "https://www.wisdomlib.org/hinduism/essay/manasollasa-study-of-arts-and-sciences/d/doc1474614.html"
     },
     "region": "Deccan (Karnataka / Western Chalukya court)",
@@ -882,7 +921,10 @@
       "season": null
     },
     "notes": "A clear 12th-century description of the puri.",
-    "verification_status": "sourced-unverified"
+    "verification_status": "sourced-unverified",
+    "aliases": [
+      "Purika"
+    ]
   },
   {
     "id": "man-dosaka-016",
@@ -898,10 +940,10 @@
       "english": "Bengal-Gram Griddle Cake (early dosa)"
     },
     "source": {
-      "text": "Manasollasa (Abhilashitartha Chintamani)",
+      "text": "Manasollasa",
       "author": "King Someshvara III (Western Chalukya dynasty)",
       "period": "12th century CE (c. 1130 CE)",
-      "citation": "Manasollasa, cooking chapter — Dosaka (Bengal-gram type)",
+      "citation": "Manasollasa, cooking chapter, Dosaka (Bengal-gram type)",
       "url": "https://www.wisdomlib.org/hinduism/essay/manasollasa-study-of-arts-and-sciences/d/doc1474614.html"
     },
     "region": "Deccan (Karnataka / Western Chalukya court)",
@@ -955,10 +997,10 @@
       "english": "Fried Gram-Flour Ring (early vada / doughnut)"
     },
     "source": {
-      "text": "Manasollasa (Abhilashitartha Chintamani)",
+      "text": "Manasollasa",
       "author": "King Someshvara III (Western Chalukya dynasty)",
       "period": "12th century CE (c. 1130 CE)",
-      "citation": "Manasollasa, cooking chapter — Gharika",
+      "citation": "Manasollasa, cooking chapter, Gharika",
       "url": "https://www.wisdomlib.org/hinduism/essay/manasollasa-study-of-arts-and-sciences/d/doc1474614.html"
     },
     "region": "Deccan (Karnataka / Western Chalukya court)",
@@ -1002,7 +1044,10 @@
       "season": null
     },
     "notes": "The perforated fried ring is a clear ancestor of the vada / medu vada.",
-    "verification_status": "sourced-unverified"
+    "verification_status": "sourced-unverified",
+    "aliases": [
+      "Gharika"
+    ]
   },
   {
     "id": "man-vatika-018",
@@ -1012,10 +1057,10 @@
       "english": "Sweet Fried Gram-Flour Balls"
     },
     "source": {
-      "text": "Manasollasa (Abhilashitartha Chintamani)",
+      "text": "Manasollasa",
       "author": "King Someshvara III (Western Chalukya dynasty)",
       "period": "12th century CE (c. 1130 CE)",
-      "citation": "Manasollasa, cooking chapter — Vatika",
+      "citation": "Manasollasa, cooking chapter, Vatika",
       "url": "https://www.wisdomlib.org/hinduism/essay/manasollasa-study-of-arts-and-sciences/d/doc1474614.html"
     },
     "region": "Deccan (Karnataka / Western Chalukya court)",
@@ -1057,8 +1102,11 @@
       "occasion": "royal court cuisine",
       "season": null
     },
-    "notes": "Variations: Kanjika Vatika (the fried balls soaked in thin rice gruel) and Temana (soaked in a spiced curd mixture with ginger, coriander, cumin, pepper and asafoetida) — an early dahi-vada.",
-    "verification_status": "sourced-unverified"
+    "notes": "Variations: Kanjika Vatika (the fried balls soaked in thin rice gruel) and Temana (soaked in a spiced curd mixture with ginger, coriander, cumin, pepper and asafoetida), an early dahi-vada.",
+    "verification_status": "sourced-unverified",
+    "aliases": [
+      "Vatika"
+    ]
   },
   {
     "id": "man-payasa-019",
@@ -1075,10 +1123,10 @@
       "english": "Rice Pudding with Milk and Sugar"
     },
     "source": {
-      "text": "Manasollasa (Abhilashitartha Chintamani)",
+      "text": "Manasollasa",
       "author": "King Someshvara III (Western Chalukya dynasty)",
       "period": "12th century CE (c. 1130 CE)",
-      "citation": "Manasollasa, cooking chapter — Payasa",
+      "citation": "Manasollasa, cooking chapter, Payasa",
       "url": "https://www.wisdomlib.org/hinduism/essay/manasollasa-study-of-arts-and-sciences/d/doc1474614.html"
     },
     "region": "Deccan (Karnataka / Western Chalukya court)",
@@ -1131,10 +1179,10 @@
       "english": "Lotus Buds Cooked in Ghee and Spices"
     },
     "source": {
-      "text": "Kshemakutuhalam",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
       "period": "c. 16th century CE",
-      "citation": "Kshemakutuhalam, Puspa-saka (flower-vegetables) section — Nalini",
+      "citation": "Kshemakutuhalam, Puspa-saka (flower-vegetables) section, Nalini",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598700.html"
     },
     "region": "North / Central India",
@@ -1185,8 +1233,11 @@
       "occasion": null,
       "season": null
     },
-    "notes": "The buttermilk pre-boil tempers bitterness before frying — a recurring technique for flower vegetables.",
-    "verification_status": "sourced-unverified"
+    "notes": "The buttermilk pre-boil tempers bitterness before frying, a recurring technique for flower vegetables.",
+    "verification_status": "sourced-unverified",
+    "aliases": [
+      "Nalini"
+    ]
   },
   {
     "id": "ksk-shobhanjana-021",
@@ -1196,10 +1247,10 @@
       "english": "Drumstick Flowers Cooked in Oil"
     },
     "source": {
-      "text": "Kshemakutuhalam",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
       "period": "c. 16th century CE",
-      "citation": "Kshemakutuhalam, Puspa-saka (flower-vegetables) section — Shobhanjana",
+      "citation": "Kshemakutuhalam, Puspa-saka (flower-vegetables) section, Shobhanjana",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598700.html"
     },
     "region": "North / Central India",
@@ -1236,7 +1287,10 @@
       "season": null
     },
     "notes": "Moringa flowers are still cooked this way in South Indian home cooking.",
-    "verification_status": "sourced-unverified"
+    "verification_status": "sourced-unverified",
+    "aliases": [
+      "Shobhanjana"
+    ]
   },
   {
     "id": "ksk-amrapallava-022",
@@ -1246,10 +1300,10 @@
       "english": "Tender Mango Sprouts in Ghee"
     },
     "source": {
-      "text": "Kshemakutuhalam",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
       "period": "c. 16th century CE",
-      "citation": "Kshemakutuhalam, Puspa-saka (flower-vegetables) section — Amrapallavah",
+      "citation": "Kshemakutuhalam, Puspa-saka (flower-vegetables) section, Amrapallavah",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598700.html"
     },
     "region": "North / Central India",
@@ -1302,7 +1356,10 @@
       "season": null
     },
     "notes": "One record with two documented variants (savoury and sweet).",
-    "verification_status": "sourced-unverified"
+    "verification_status": "sourced-unverified",
+    "aliases": [
+      "Amrapallavah"
+    ]
   },
   {
     "id": "ksk-karirakusum-023",
@@ -1312,10 +1369,10 @@
       "english": "Sun-Dried Hibiscus Flowers in Oil"
     },
     "source": {
-      "text": "Kshemakutuhalam",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
       "period": "c. 16th century CE",
-      "citation": "Kshemakutuhalam, Puspa-saka (flower-vegetables) section — Karirakusum",
+      "citation": "Kshemakutuhalam, Puspa-saka (flower-vegetables) section, Karirakusum",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598700.html"
     },
     "region": "North / Central India",
@@ -1369,7 +1426,10 @@
       "season": null
     },
     "notes": "Sun-drying before cooking is an authentic preservation-and-flavour step.",
-    "verification_status": "sourced-unverified"
+    "verification_status": "sourced-unverified",
+    "aliases": [
+      "Karirakusum"
+    ]
   },
   {
     "id": "ksk-matsya-024",
@@ -1379,7 +1439,7 @@
       "english": "Spiced Fish Simmered in Buttermilk"
     },
     "source": {
-      "text": "Kshemakutuhalam",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
       "period": "c. 16th century CE",
       "citation": "Kshemakutuhalam, fish (Matsya) preparations section",
@@ -1451,8 +1511,11 @@
       "occasion": null,
       "season": null
     },
-    "notes": "The Kshemakutuhalam also names seven fish dishes (Matsya Pralehah, Matsyakhanda Pralehah, Matsyapistika, Matsya Purana, Matsya Putapaka, Matsya Mandaka, Matsyendari) — candidates for future records once their methods are sourced.",
-    "verification_status": "sourced-unverified"
+    "notes": "The Kshemakutuhalam also names seven fish dishes (Matsya Pralehah, Matsyakhanda Pralehah, Matsyapistika, Matsya Purana, Matsya Putapaka, Matsya Mandaka, Matsyendari), candidates for future records once their methods are sourced.",
+    "verification_status": "sourced-unverified",
+    "aliases": [
+      "Matsya"
+    ]
   },
   {
     "id": "pbr-arisi-upma-025",
@@ -1473,7 +1536,7 @@
       "text": "Pre-British South Indian tradition (VITALIFE 'Before British Food' compilation)",
       "author": "Traditional / regional",
       "period": "Pre-19th century (pre-colonial)",
-      "citation": "Arisi Upma — broken-rice and millet upma before wheat semolina (rava)",
+      "citation": "Arisi Upma, broken-rice and millet upma before wheat semolina (rava)",
       "url": "https://en.wikipedia.org/wiki/Upma"
     },
     "region": "South India",
@@ -1547,7 +1610,7 @@
       "occasion": "breakfast",
       "season": null
     },
-    "notes": "Pre-British upma used local rice and millets, not wheat semolina (rava). Rava upma spread during the WWII-era rice shortages in the Madras Presidency. Modern additions — green chilli, carrots, peas, potato, tomato, peanuts, cashews — are later. Heat traditionally came from black pepper and ginger, not chilli.",
+    "notes": "Pre-British upma used local rice and millets, not wheat semolina (rava). Rava upma spread during the WWII-era rice shortages in the Madras Presidency. Modern additions, green chilli, carrots, peas, potato, tomato, peanuts, cashews, are later. Heat traditionally came from black pepper and ginger, not chilli.",
     "verification_status": "sourced-needs-primary-check"
   },
   {
@@ -1628,7 +1691,7 @@
       "Extract tamarind juice in water.",
       "Simmer the tamarind water with the crushed pepper-spice mix, asafoetida and salt.",
       "Temper curry leaves in sesame oil or ghee and add.",
-      "Do not add tomato or red chilli — the heat comes from pepper alone."
+      "Do not add tomato or red chilli, the heat comes from pepper alone."
     ],
     "properties": {
       "ayurvedic": "Pepper and long pepper are digestive stimulants; a traditional remedy for colds and indigestion.",
@@ -1734,10 +1797,10 @@
       "english": "Flat Bean Cooked in Oil"
     },
     "source": {
-      "text": "Kshemakutuhalam",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
       "period": "c. 16th century CE",
-      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section — Nispava",
+      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section, Nispava",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598698.html"
     },
     "region": "North / Central India",
@@ -1790,10 +1853,10 @@
       "english": "Snake Gourd in Ghee"
     },
     "source": {
-      "text": "Kshemakutuhalam",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
       "period": "c. 16th century CE",
-      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section — Brhat Patolaka",
+      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section, Brhat Patolaka",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598698.html"
     },
     "region": "North / Central India",
@@ -1842,10 +1905,10 @@
       "english": "Sweet Bottle Gourd in Ghee and Curd"
     },
     "source": {
-      "text": "Kshemakutuhalam",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
       "period": "c. 16th century CE",
-      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section — Alabu (sweet variety)",
+      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section, Alabu (sweet variety)",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598698.html"
     },
     "region": "North / Central India",
@@ -1902,10 +1965,10 @@
       "english": "Watermelon Cooked with Asafoetida"
     },
     "source": {
-      "text": "Kshemakutuhalam",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
       "period": "c. 16th century CE",
-      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section — Tindisaka",
+      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section, Tindisaka",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598698.html"
     },
     "region": "North / Central India",
@@ -1953,10 +2016,10 @@
       "english": "Tender Tamarind Cooked with Buttermilk"
     },
     "source": {
-      "text": "Kshemakutuhalam",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
       "period": "c. 16th century CE",
-      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section — Tenti",
+      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section, Tenti",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598698.html"
     },
     "region": "North / Central India",
@@ -2019,10 +2082,10 @@
       "english": "Kantakari Berries in Ghee"
     },
     "source": {
-      "text": "Kshemakutuhalam",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
       "period": "c. 16th century CE",
-      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section — Kantakari",
+      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section, Kantakari",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598698.html"
     },
     "region": "North / Central India",
@@ -2076,10 +2139,10 @@
       "english": "Pepper-Stuffed Spine Gourd"
     },
     "source": {
-      "text": "Kshemakutuhalam",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
       "period": "c. 16th century CE",
-      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section — Karkotaka",
+      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section, Karkotaka",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598698.html"
     },
     "region": "North / Central India",
@@ -2138,10 +2201,10 @@
       "english": "Water Chestnut Fried in Ghee"
     },
     "source": {
-      "text": "Kshemakutuhalam",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
       "period": "c. 16th century CE",
-      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section — Visanaphala",
+      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section, Visanaphala",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598698.html"
     },
     "region": "North / Central India",
@@ -2195,10 +2258,10 @@
       "english": "Cluster Fig in Sour Buttermilk and Ghee"
     },
     "source": {
-      "text": "Kshemakutuhalam",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
       "period": "c. 16th century CE",
-      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section — Udumbara",
+      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section, Udumbara",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598698.html"
     },
     "region": "North / Central India",
@@ -2256,10 +2319,10 @@
       "english": "Velvet Bean in Ghee and Spices"
     },
     "source": {
-      "text": "Kshemakutuhalam",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
       "period": "c. 16th century CE",
-      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section — Kapikacchu",
+      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section, Kapikacchu",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598698.html"
     },
     "region": "North / Central India",
@@ -2318,10 +2381,10 @@
       "english": "Green Chickpeas Cooked in Oil"
     },
     "source": {
-      "text": "Kshemakutuhalam",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
       "period": "c. 16th century CE",
-      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section — Harita Canaka",
+      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section, Harita Canaka",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598698.html"
     },
     "region": "North / Central India",
@@ -2379,10 +2442,10 @@
       "english": "Cowpea Cooked in Ghee"
     },
     "source": {
-      "text": "Kshemakutuhalam",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
       "period": "c. 16th century CE",
-      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section — Rajamasa",
+      "citation": "Kshemakutuhalam, Phala-saka (fruit-vegetables) section, Rajamasa",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598698.html"
     },
     "region": "North / Central India",
@@ -2429,10 +2492,10 @@
       "english": "Kutaja Flowers Cooked in Oil"
     },
     "source": {
-      "text": "Kshemakutuhalam",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
       "period": "c. 16th century CE",
-      "citation": "Kshemakutuhalam, Puspa-saka (flower-vegetables) section — Kutajapuspa",
+      "citation": "Kshemakutuhalam, Puspa-saka (flower-vegetables) section, Kutajapuspa",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598700.html"
     },
     "region": "North / Central India",
@@ -2490,10 +2553,10 @@
       "english": "Agasti Flowers in Buttermilk and Ghee"
     },
     "source": {
-      "text": "Kshemakutuhalam",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
       "period": "c. 16th century CE",
-      "citation": "Kshemakutuhalam, Puspa-saka (flower-vegetables) section — Agastikusuma",
+      "citation": "Kshemakutuhalam, Puspa-saka (flower-vegetables) section, Agastikusuma",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598700.html"
     },
     "region": "North / Central India",
@@ -2545,10 +2608,10 @@
       "english": "Tender Neem Sprouts in Ghee and Buttermilk"
     },
     "source": {
-      "text": "Kshemakutuhalam",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
       "period": "c. 16th century CE",
-      "citation": "Kshemakutuhalam, Puspa-saka (flower-vegetables) section — Nimbapallavah",
+      "citation": "Kshemakutuhalam, Puspa-saka (flower-vegetables) section, Nimbapallavah",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598700.html"
     },
     "region": "North / Central India",
@@ -2607,9 +2670,9 @@
       "english": "Bathua / Lamb's quarters (Chenopodium) preparation"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kshemasharma — A Critical Study; Section: Ayurveda cooking rules of Patra-saka (Leafy vegetables)",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kṣemaśarman); critical study by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala, chapter on Patra-saka (leafy vegetables); wisdomlib critical study, footnotes 82-92",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598699.html"
     },
@@ -2674,9 +2737,9 @@
       "english": "Spiny amaranth (Amaranthus spinosus) preparation"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kshemasharma — A Critical Study; Section: Ayurveda cooking rules of Patra-saka (Leafy vegetables)",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kṣemaśarman); critical study by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala, chapter on Patra-saka (leafy vegetables); wisdomlib critical study, footnotes 82-92",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598699.html"
     },
@@ -2745,9 +2808,9 @@
       "english": "Coffee senna leaves (Cassia occidentalis) preparation"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kshemasharma — A Critical Study; Section: Ayurveda cooking rules of Patra-saka (Leafy vegetables)",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kṣemaśarman); critical study by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala, chapter on Patra-saka (leafy vegetables); wisdomlib critical study, footnotes 82-92",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598699.html"
     },
@@ -2801,9 +2864,9 @@
       "english": "Bitter luffa leaves (Luffa echinata) preparation"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kshemasharma — A Critical Study; Section: Ayurveda cooking rules of Patra-saka (Leafy vegetables)",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kṣemaśarman); critical study by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala, chapter on Patra-saka (leafy vegetables); wisdomlib critical study, footnotes 82-92",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598699.html"
     },
@@ -2857,9 +2920,9 @@
       "english": "Velvet leaf (Cissampelos pareira) preparation"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kshemasharma — A Critical Study; Section: Ayurveda cooking rules of Patra-saka (Leafy vegetables)",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kṣemaśarman); critical study by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala, chapter on Patra-saka (leafy vegetables); wisdomlib critical study, footnotes 82-92",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598699.html"
     },
@@ -2924,9 +2987,9 @@
       "english": "Malabar spinach (Basella rubra) preparation"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kshemasharma — A Critical Study; Section: Ayurveda cooking rules of Patra-saka (Leafy vegetables)",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kṣemaśarman); critical study by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala, chapter on Patra-saka (leafy vegetables); wisdomlib critical study, footnotes 82-92",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598699.html"
     },
@@ -2986,9 +3049,9 @@
       "english": "Dill leaves (Anethum sowa) preparation"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kshemasharma — A Critical Study; Section: Ayurveda cooking rules of Patra-saka (Leafy vegetables)",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kṣemaśarman); critical study by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala, chapter on Patra-saka (leafy vegetables); wisdomlib critical study, footnotes 82-92",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598699.html"
     },
@@ -3036,9 +3099,9 @@
       "english": "Fenugreek leaves (Trigonella foenum-graecum) preparation"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kshemasharma — A Critical Study; Section: Ayurveda cooking rules of Patra-saka (Leafy vegetables)",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kṣemaśarman); critical study by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala, chapter on Patra-saka (leafy vegetables); wisdomlib critical study, footnotes 82-92",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598699.html"
     },
@@ -3088,9 +3151,9 @@
       "english": "Black nightshade leaves (Solanum nigrum) preparation"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kshemasharma — A Critical Study; Section: Ayurveda cooking rules of Patra-saka (Leafy vegetables)",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kṣemaśarman); critical study by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala, chapter on Patra-saka (leafy vegetables); wisdomlib critical study, footnotes 82-92",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598699.html"
     },
@@ -3139,9 +3202,9 @@
       "english": "Indian spurge tree leaves (Euphorbia neriifolia) preparation"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kshemasharma — A Critical Study; Section: Ayurveda cooking rules of Patra-saka (Leafy vegetables)",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kṣemaśarman); critical study by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala, chapter on Patra-saka (leafy vegetables); wisdomlib critical study, footnotes 82-92",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598699.html"
     },
@@ -3196,9 +3259,9 @@
       "english": "Sickle senna leaves (Cassia tora) preparation"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kshemasharma — A Critical Study; Section: Ayurveda cooking rules of Patra-saka (Leafy vegetables)",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kṣemaśarman); critical study by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala, chapter on Patra-saka (leafy vegetables); wisdomlib critical study, footnotes 82-92",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598699.html"
     },
@@ -3254,9 +3317,9 @@
       "english": "Purslane (Portulaca quadrifida) preparation"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kshemasharma — A Critical Study; Section: Ayurveda cooking rules of Patra-saka (Leafy vegetables)",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kṣemaśarman); critical study by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala, chapter on Patra-saka (leafy vegetables); wisdomlib critical study, footnotes 82-92",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598699.html"
     },
@@ -3321,9 +3384,9 @@
       "english": "Gram (chickpea) plant leaves preparation"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kshemasharma — A Critical Study; Section: Ayurveda cooking rules of Patra-saka (Leafy vegetables)",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kṣemaśarman); critical study by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala, chapter on Patra-saka (leafy vegetables); wisdomlib critical study, footnotes 82-92",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598699.html"
     },
@@ -3414,9 +3477,9 @@
       "english": "Jute leaves (Corchorus fascicularis) preparation"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kshemasharma — A Critical Study; Section: Ayurveda cooking rules of Patra-saka (Leafy vegetables)",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kṣemaśarman); critical study by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala, chapter on Patra-saka (leafy vegetables); wisdomlib critical study, footnotes 82-92",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598699.html"
     },
@@ -3468,9 +3531,9 @@
       "english": "Nali leafy greens preparation"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kshemasharma — A Critical Study; Section: Ayurveda cooking rules of Patra-saka (Leafy vegetables)",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kṣemaśarman); critical study by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala, chapter on Patra-saka (leafy vegetables); wisdomlib critical study, footnotes 82-92",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598699.html"
     },
@@ -3519,9 +3582,9 @@
       "english": "Spinach (Spinacia oleracea) preparation"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kshemasharma — A Critical Study; Section: Ayurveda cooking rules of Patra-saka (Leafy vegetables)",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kṣemaśarman); critical study by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala, chapter on Patra-saka (leafy vegetables); wisdomlib critical study, footnotes 82-92",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598699.html"
     },
@@ -3580,9 +3643,9 @@
       "english": "Sorrel leaves (Rumex vesicarius) preparation"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kshemasharma — A Critical Study; Section: Ayurveda cooking rules of Patra-saka (Leafy vegetables)",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kṣemaśarman); critical study by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala, chapter on Patra-saka (leafy vegetables); wisdomlib critical study, footnotes 82-92",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598699.html"
     },
@@ -3636,9 +3699,9 @@
       "english": "Hogweed leaves (Boerhavia diffusa) preparation"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kshemasharma — A Critical Study; Section: Ayurveda cooking rules of Patra-saka (Leafy vegetables)",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kṣemaśarman); critical study by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala, chapter on Patra-saka (leafy vegetables); wisdomlib critical study, footnotes 82-92",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598699.html"
     },
@@ -3687,9 +3750,9 @@
       "english": "Leadwort leaves (Plumbago zeylanica) preparation"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kshemasharma — A Critical Study; Section: Ayurveda cooking rules of Patra-saka (Leafy vegetables)",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kṣemaśarman); critical study by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala, chapter on Patra-saka (leafy vegetables); wisdomlib critical study, footnotes 82-92",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598699.html"
     },
@@ -3748,9 +3811,9 @@
       "english": "Safflower leaves (Carthamus tinctorius) preparation"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kshemasharma — A Critical Study; Section: Ayurveda cooking rules of Patra-saka (Leafy vegetables)",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kṣemaśarman); critical study by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala, chapter on Patra-saka (leafy vegetables); wisdomlib critical study, footnotes 82-92",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598699.html"
     },
@@ -3804,9 +3867,9 @@
       "english": "Jivanti leaves (Leptadenia reticulata) preparation"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kshemasharma — A Critical Study; Section: Ayurveda cooking rules of Patra-saka (Leafy vegetables)",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kṣemaśarman); critical study by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala, chapter on Patra-saka (leafy vegetables); wisdomlib critical study, footnotes 82-92",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598699.html"
     },
@@ -3864,9 +3927,9 @@
       "english": "Plain cooked (drained) rice"
     },
     "source": {
-      "text": "Kṣemakutūhala (Kshemakutuhala) of Kṣemaśarman — 4th utsava (Cooking), section 'Common preparations in Ayurvedic cookery'",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarman (Kshemasharma)",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kṣemaśarman, Kṣemakutūhala, 4th utsava (Pāka), 'Common preparations in Ayurvedic cookery'; critical study on wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598703.html"
     },
@@ -3921,9 +3984,9 @@
       "english": "Rice-and-pulse porridge (khichdi)"
     },
     "source": {
-      "text": "Kṣemakutūhala (Kshemakutuhala) of Kṣemaśarman — 4th utsava (Cooking), section 'Common preparations in Ayurvedic cookery'",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarman (Kshemasharma)",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kṣemaśarman, Kṣemakutūhala, 4th utsava (Pāka), 'Common preparations in Ayurvedic cookery'; critical study on wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598703.html"
     },
@@ -3990,8 +4053,8 @@
     "source": {
       "text": "Kshemakutuhala",
       "author": "Kshemasharma",
-      "period": "16th century CE",
-      "citation": "Kshemasharma, Kshemakutuhala — Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
+      "period": "c. 16th century CE",
+      "citation": "Kshemasharma, Kshemakutuhala, Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598695.html"
     },
     "region": "Medieval India (Sanskrit culinary tradition)",
@@ -4046,8 +4109,8 @@
     "source": {
       "text": "Kshemakutuhala",
       "author": "Kshemasharma",
-      "period": "16th century CE",
-      "citation": "Kshemasharma, Kshemakutuhala — Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
+      "period": "c. 16th century CE",
+      "citation": "Kshemasharma, Kshemakutuhala, Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598695.html"
     },
     "region": "Medieval India (Sanskrit culinary tradition)",
@@ -4148,8 +4211,8 @@
     "source": {
       "text": "Kshemakutuhala",
       "author": "Kshemasharma",
-      "period": "16th century CE",
-      "citation": "Kshemasharma, Kshemakutuhala — Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
+      "period": "c. 16th century CE",
+      "citation": "Kshemasharma, Kshemakutuhala, Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598695.html"
     },
     "region": "Medieval India (Sanskrit culinary tradition)",
@@ -4229,8 +4292,8 @@
     "source": {
       "text": "Kshemakutuhala",
       "author": "Kshemasharma",
-      "period": "16th century CE",
-      "citation": "Kshemasharma, Kshemakutuhala — Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
+      "period": "c. 16th century CE",
+      "citation": "Kshemasharma, Kshemakutuhala, Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598695.html"
     },
     "region": "Medieval India (Sanskrit culinary tradition)",
@@ -4282,8 +4345,8 @@
     "source": {
       "text": "Kshemakutuhala",
       "author": "Kshemasharma",
-      "period": "16th century CE",
-      "citation": "Kshemasharma, Kshemakutuhala — Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
+      "period": "c. 16th century CE",
+      "citation": "Kshemasharma, Kshemakutuhala, Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598695.html"
     },
     "region": "Medieval India (Sanskrit culinary tradition)",
@@ -4344,8 +4407,8 @@
     "source": {
       "text": "Kshemakutuhala",
       "author": "Kshemasharma",
-      "period": "16th century CE",
-      "citation": "Kshemasharma, Kshemakutuhala — Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
+      "period": "c. 16th century CE",
+      "citation": "Kshemasharma, Kshemakutuhala, Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598695.html"
     },
     "region": "Medieval India (Sanskrit culinary tradition)",
@@ -4420,8 +4483,8 @@
     "source": {
       "text": "Kshemakutuhala",
       "author": "Kshemasharma",
-      "period": "16th century CE",
-      "citation": "Kshemasharma, Kshemakutuhala — Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
+      "period": "c. 16th century CE",
+      "citation": "Kshemasharma, Kshemakutuhala, Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598695.html"
     },
     "region": "Medieval India (Sanskrit culinary tradition)",
@@ -4466,8 +4529,8 @@
     "source": {
       "text": "Kshemakutuhala",
       "author": "Kshemasharma",
-      "period": "16th century CE",
-      "citation": "Kshemasharma, Kshemakutuhala — Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
+      "period": "c. 16th century CE",
+      "citation": "Kshemasharma, Kshemakutuhala, Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598695.html"
     },
     "region": "Medieval India (Sanskrit culinary tradition)",
@@ -4516,8 +4579,8 @@
     "source": {
       "text": "Kshemakutuhala",
       "author": "Kshemasharma",
-      "period": "16th century CE",
-      "citation": "Kshemasharma, Kshemakutuhala — Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
+      "period": "c. 16th century CE",
+      "citation": "Kshemasharma, Kshemakutuhala, Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598695.html"
     },
     "region": "Medieval India (Sanskrit culinary tradition)",
@@ -4566,8 +4629,8 @@
     "source": {
       "text": "Kshemakutuhala",
       "author": "Kshemasharma",
-      "period": "16th century CE",
-      "citation": "Kshemasharma, Kshemakutuhala — Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
+      "period": "c. 16th century CE",
+      "citation": "Kshemasharma, Kshemakutuhala, Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598695.html"
     },
     "region": "Medieval India (Sanskrit culinary tradition)",
@@ -4622,8 +4685,8 @@
     "source": {
       "text": "Kshemakutuhala",
       "author": "Kshemasharma",
-      "period": "16th century CE",
-      "citation": "Kshemasharma, Kshemakutuhala — Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
+      "period": "c. 16th century CE",
+      "citation": "Kshemasharma, Kshemakutuhala, Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598695.html"
     },
     "region": "Medieval India (Sanskrit culinary tradition)",
@@ -4688,10 +4751,10 @@
       "english": "Sweet milk-and-ginger meat"
     },
     "source": {
-      "text": "Kshemakutuhala (citing Kashyapa-samhita)",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma",
-      "period": "16th century CE",
-      "citation": "Kshemasharma, Kshemakutuhala — Cooking rules and usage of Meat in Ayurveda (recipe attributed to Kashyapa-samhita); English critical study, wisdomlib.org",
+      "period": "c. 16th century CE",
+      "citation": "Kshemasharma, Kshemakutuhala, Cooking rules and usage of Meat in Ayurveda (recipe attributed to Kashyapa-samhita); English critical study, wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598695.html"
     },
     "region": "Medieval India (Sanskrit culinary tradition)",
@@ -4762,8 +4825,8 @@
     "source": {
       "text": "Kshemakutuhala",
       "author": "Kshemasharma",
-      "period": "16th century CE",
-      "citation": "Kshemasharma, Kshemakutuhala — Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
+      "period": "c. 16th century CE",
+      "citation": "Kshemasharma, Kshemakutuhala, Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598695.html"
     },
     "region": "Medieval India (Sanskrit culinary tradition)",
@@ -4818,8 +4881,8 @@
     "source": {
       "text": "Kshemakutuhala",
       "author": "Kshemasharma",
-      "period": "16th century CE",
-      "citation": "Kshemasharma, Kshemakutuhala — Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
+      "period": "c. 16th century CE",
+      "citation": "Kshemasharma, Kshemakutuhala, Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598695.html"
     },
     "region": "Medieval India (Sanskrit culinary tradition)",
@@ -4875,8 +4938,8 @@
     "source": {
       "text": "Kshemakutuhala",
       "author": "Kshemasharma",
-      "period": "16th century CE",
-      "citation": "Kshemasharma, Kshemakutuhala — Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
+      "period": "c. 16th century CE",
+      "citation": "Kshemasharma, Kshemakutuhala, Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598695.html"
     },
     "region": "Medieval India (Sanskrit culinary tradition)",
@@ -4947,8 +5010,8 @@
     "source": {
       "text": "Kshemakutuhala",
       "author": "Kshemasharma",
-      "period": "16th century CE",
-      "citation": "Kshemasharma, Kshemakutuhala — Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
+      "period": "c. 16th century CE",
+      "citation": "Kshemasharma, Kshemakutuhala, Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598695.html"
     },
     "region": "Medieval India (Sanskrit culinary tradition)",
@@ -4992,8 +5055,8 @@
     "source": {
       "text": "Kshemakutuhala",
       "author": "Kshemasharma",
-      "period": "16th century CE",
-      "citation": "Kshemasharma, Kshemakutuhala — Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
+      "period": "c. 16th century CE",
+      "citation": "Kshemasharma, Kshemakutuhala, Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598695.html"
     },
     "region": "Medieval India (Sanskrit culinary tradition)",
@@ -5060,8 +5123,8 @@
     "source": {
       "text": "Kshemakutuhala",
       "author": "Kshemasharma",
-      "period": "16th century CE",
-      "citation": "Kshemasharma, Kshemakutuhala — Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
+      "period": "c. 16th century CE",
+      "citation": "Kshemasharma, Kshemakutuhala, Cooking rules and usage of Meat in Ayurveda; English critical study, wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598695.html"
     },
     "region": "Medieval India (Sanskrit culinary tradition)",
@@ -5116,9 +5179,9 @@
       "english": "Ghee (clarified butter)"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala)",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarma (Kshemasharma); critical study and translation by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE (original text); critical study 1988",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala by Kshemasharma – A Critical Study, ed. H. V. Bhuptani (1988), chapter 'Milk products and preparations in Ayurvedic cookery'",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598704.html"
     },
@@ -5163,9 +5226,9 @@
       "english": "Buttermilk"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala)",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarma (Kshemasharma); critical study and translation by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE (original text); critical study 1988",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala by Kshemasharma – A Critical Study, ed. H. V. Bhuptani (1988), chapter 'Milk products and preparations in Ayurvedic cookery'",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598704.html"
     },
@@ -5230,9 +5293,9 @@
       "english": "Asafoetida-scented buttermilk"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala)",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarma (Kshemasharma); critical study and translation by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE (original text); critical study 1988",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala by Kshemasharma – A Critical Study, ed. H. V. Bhuptani (1988), chapter 'Milk products and preparations in Ayurvedic cookery'",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598704.html"
     },
@@ -5285,9 +5348,9 @@
       "english": "Spiced buttermilk"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala)",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarma (Kshemasharma); critical study and translation by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE (original text); critical study 1988",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala by Kshemasharma – A Critical Study, ed. H. V. Bhuptani (1988), chapter 'Milk products and preparations in Ayurvedic cookery'",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598704.html"
     },
@@ -5356,9 +5419,9 @@
       "english": "Fumigated aged buttermilk"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala)",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarma (Kshemasharma); critical study and translation by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE (original text); critical study 1988",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala by Kshemasharma – A Critical Study, ed. H. V. Bhuptani (1988), chapter 'Milk products and preparations in Ayurvedic cookery'",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598704.html"
     },
@@ -5408,9 +5471,9 @@
       "english": "Curd (yogurt)"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala)",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarma (Kshemasharma); critical study and translation by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE (original text); critical study 1988",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala by Kshemasharma – A Critical Study, ed. H. V. Bhuptani (1988), chapter 'Milk products and preparations in Ayurvedic cookery'",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598704.html"
     },
@@ -5472,9 +5535,9 @@
       "english": "Dried milk powder"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala)",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarma (Kshemasharma); critical study and translation by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE (original text); critical study 1988",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala by Kshemasharma – A Critical Study, ed. H. V. Bhuptani (1988), chapter 'Milk products and preparations in Ayurvedic cookery'",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598704.html"
     },
@@ -5515,9 +5578,9 @@
       "english": "Fried chhena dumplings in milk or syrup"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala)",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarma (Kshemasharma); critical study and translation by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE (original text); critical study 1988",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala by Kshemasharma – A Critical Study, ed. H. V. Bhuptani (1988), chapter 'Milk products and preparations in Ayurvedic cookery'",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598704.html"
     },
@@ -5567,9 +5630,9 @@
       "english": "Milk-solids and rice laddu"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala)",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarma (Kshemasharma); critical study and translation by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE (original text); critical study 1988",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala by Kshemasharma – A Critical Study, ed. H. V. Bhuptani (1988), chapter 'Milk products and preparations in Ayurvedic cookery'",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598704.html"
     },
@@ -5624,9 +5687,9 @@
       "english": "Milk-and-sugar solids"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala)",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarma (Kshemasharma); critical study and translation by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE (original text); critical study 1988",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala by Kshemasharma – A Critical Study, ed. H. V. Bhuptani (1988), chapter 'Milk products and preparations in Ayurvedic cookery'",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598704.html"
     },
@@ -5670,9 +5733,9 @@
       "english": "Milk-solids with parched rice and almond"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala)",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarma (Kshemasharma); critical study and translation by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE (original text); critical study 1988",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala by Kshemasharma – A Critical Study, ed. H. V. Bhuptani (1988), chapter 'Milk products and preparations in Ayurvedic cookery'",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598704.html"
     },
@@ -5731,9 +5794,9 @@
       "english": "Milk-filled fried wheat dumpling"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala)",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarma (Kshemasharma); critical study and translation by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE (original text); critical study 1988",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala by Kshemasharma – A Critical Study, ed. H. V. Bhuptani (1988), chapter 'Milk products and preparations in Ayurvedic cookery'",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598704.html"
     },
@@ -5784,9 +5847,9 @@
       "english": "Fried spiced milk-solids"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala)",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarma (Kshemasharma); critical study and translation by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE (original text); critical study 1988",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala by Kshemasharma – A Critical Study, ed. H. V. Bhuptani (1988), chapter 'Milk products and preparations in Ayurvedic cookery'",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598704.html"
     },
@@ -5835,9 +5898,9 @@
       "english": "Plain wheat-flour and milk halwa"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala)",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarma (Kshemasharma); critical study and translation by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE (original text); critical study 1988",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala by Kshemasharma – A Critical Study, ed. H. V. Bhuptani (1988), chapter 'Milk products and preparations in Ayurvedic cookery'",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598704.html"
     },
@@ -5904,9 +5967,9 @@
       "english": "Ghevar (fried wheat-milk cake)"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala)",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarma (Kshemasharma); critical study and translation by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE (original text); critical study 1988",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala by Kshemasharma – A Critical Study, ed. H. V. Bhuptani (1988), chapter 'Milk products and preparations in Ayurvedic cookery'",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598704.html"
     },
@@ -5970,9 +6033,9 @@
       "english": "Coconut ghevar"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala)",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarma (Kshemasharma); critical study and translation by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE (original text); critical study 1988",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala by Kshemasharma – A Critical Study, ed. H. V. Bhuptani (1988), chapter 'Milk products and preparations in Ayurvedic cookery'",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598704.html"
     },
@@ -6036,9 +6099,9 @@
       "english": "Milk-curd ghevar"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala)",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarma (Kshemasharma); critical study and translation by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE (original text); critical study 1988",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala by Kshemasharma – A Critical Study, ed. H. V. Bhuptani (1988), chapter 'Milk products and preparations in Ayurvedic cookery'",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598704.html"
     },
@@ -6092,9 +6155,9 @@
       "english": "Water-chestnut ghevar"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala)",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarma (Kshemasharma); critical study and translation by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE (original text); critical study 1988",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala by Kshemasharma – A Critical Study, ed. H. V. Bhuptani (1988), chapter 'Milk products and preparations in Ayurvedic cookery'",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598704.html"
     },
@@ -6148,9 +6211,9 @@
       "english": "Rice-flour ghevar"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala)",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarma (Kshemasharma); critical study and translation by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE (original text); critical study 1988",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala by Kshemasharma – A Critical Study, ed. H. V. Bhuptani (1988), chapter 'Milk products and preparations in Ayurvedic cookery'",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598704.html"
     },
@@ -6204,9 +6267,9 @@
       "english": "Mango-juice ghevar"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala)",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarma (Kshemasharma); critical study and translation by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE (original text); critical study 1988",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala by Kshemasharma – A Critical Study, ed. H. V. Bhuptani (1988), chapter 'Milk products and preparations in Ayurvedic cookery'",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598704.html"
     },
@@ -6256,9 +6319,9 @@
       "english": "Royal millet-milk pudding"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala)",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarma (Kshemasharma); critical study and translation by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE (original text); critical study 1988",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala by Kshemasharma – A Critical Study, ed. H. V. Bhuptani (1988), chapter 'Milk products and preparations in Ayurvedic cookery'",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598704.html"
     },
@@ -6312,9 +6375,9 @@
       "english": "Orange milk pudding"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala)",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarma (Kshemasharma); critical study and translation by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE (original text); critical study 1988",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala by Kshemasharma – A Critical Study, ed. H. V. Bhuptani (1988), chapter 'Milk products and preparations in Ayurvedic cookery'",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598704.html"
     },
@@ -6376,9 +6439,9 @@
       "english": "Coconut milk pudding"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala)",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarma (Kshemasharma); critical study and translation by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE (original text); critical study 1988",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala by Kshemasharma – A Critical Study, ed. H. V. Bhuptani (1988), chapter 'Milk products and preparations in Ayurvedic cookery'",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598704.html"
     },
@@ -6440,9 +6503,9 @@
       "english": "Reduced sweetened milk (rabri/basundi)"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala)",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarma (Kshemasharma); critical study and translation by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE (original text); critical study 1988",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala by Kshemasharma – A Critical Study, ed. H. V. Bhuptani (1988), chapter 'Milk products and preparations in Ayurvedic cookery'",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598704.html"
     },
@@ -6492,9 +6555,9 @@
       "english": "Curd-and-rice preparation"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala)",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarma (Kshemasharma); critical study and translation by Hiteshbhai Vrajalal Bhuptani",
-      "period": "16th century CE (original text); critical study 1988",
+      "period": "c. 16th century CE",
       "citation": "Kshemakutuhala by Kshemasharma – A Critical Study, ed. H. V. Bhuptani (1988), chapter 'Milk products and preparations in Ayurvedic cookery'",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598704.html"
     },
@@ -6539,9 +6602,9 @@
       "english": "Unripe (tender) mango cool drink"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kṣemaśarman",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarman (Kshemasharma)",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kṣemakutūhala, 12th utsava (Pānakāni / beverages); critical study by Hiteshbhai Vrajalal Bhuptani, via wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598707.html"
     },
@@ -6601,9 +6664,9 @@
       "english": "Ripe mango cool drink"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kṣemaśarman",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarman (Kshemasharma)",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kṣemakutūhala, 12th utsava (Pānakāni / beverages); critical study by Hiteshbhai Vrajalal Bhuptani, via wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598707.html"
     },
@@ -6660,9 +6723,9 @@
       "english": "Tamarind cool drink"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kṣemaśarman",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarman (Kshemasharma)",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kṣemakutūhala, 12th utsava (Pānakāni / beverages); critical study by Hiteshbhai Vrajalal Bhuptani, via wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598707.html"
     },
@@ -6732,9 +6795,9 @@
       "english": "Jambul (black plum) cool drink"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kṣemaśarman",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarman (Kshemasharma)",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kṣemakutūhala, 12th utsava (Pānakāni / beverages); critical study by Hiteshbhai Vrajalal Bhuptani, via wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598707.html"
     },
@@ -6798,9 +6861,9 @@
       "english": "Citron cool drink"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kṣemaśarman",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarman (Kshemasharma)",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kṣemakutūhala, 12th utsava (Pānakāni / beverages); critical study by Hiteshbhai Vrajalal Bhuptani, via wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598707.html"
     },
@@ -6858,9 +6921,9 @@
       "english": "Citron-and-coconut cool drink ('golden ray')"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kṣemaśarman",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarman (Kshemasharma)",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kṣemakutūhala, 12th utsava (Pānakāni / beverages); critical study by Hiteshbhai Vrajalal Bhuptani, via wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598707.html"
     },
@@ -6909,9 +6972,9 @@
       "english": "Lemon cool drink"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kṣemaśarman",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarman (Kshemasharma)",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kṣemakutūhala, 12th utsava (Pānakāni / beverages); critical study by Hiteshbhai Vrajalal Bhuptani, via wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598707.html"
     },
@@ -6970,9 +7033,9 @@
       "english": "Karonda cool drink"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kṣemaśarman",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarman (Kshemasharma)",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kṣemakutūhala, 12th utsava (Pānakāni / beverages); critical study by Hiteshbhai Vrajalal Bhuptani, via wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598707.html"
     },
@@ -7027,9 +7090,9 @@
       "english": "Orange cool drink"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kṣemaśarman",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarman (Kshemasharma)",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kṣemakutūhala, 12th utsava (Pānakāni / beverages); critical study by Hiteshbhai Vrajalal Bhuptani, via wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598707.html"
     },
@@ -7082,9 +7145,9 @@
       "english": "Indian jujube (ber) cool drink"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kṣemaśarman",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarman (Kshemasharma)",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kṣemakutūhala, 12th utsava (Pānakāni / beverages); critical study by Hiteshbhai Vrajalal Bhuptani, via wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598707.html"
     },
@@ -7156,9 +7219,9 @@
       "english": "Chironji (Buchanania) cool drink"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kṣemaśarman",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarman (Kshemasharma)",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kṣemakutūhala, 12th utsava (Pānakāni / beverages); critical study by Hiteshbhai Vrajalal Bhuptani, via wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598707.html"
     },
@@ -7218,9 +7281,9 @@
       "english": "Fermented sour grain drink (kanji)"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) by Kṣemaśarman",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarman (Kshemasharma)",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "Kṣemakutūhala, 12th utsava (Pānakāni / beverages); critical study by Hiteshbhai Vrajalal Bhuptani, via wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598707.html"
     },
@@ -7297,7 +7360,7 @@
       "english": "Rohita (rohu) fish praleha (spiced fish crushed with curd)"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) — Cooking rules and usage of Fish in Ayurveda",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kṣema Śarma)",
       "period": "16th century CE (c. 1549 CE)",
       "citation": "Kshemakutuhala by Kshemasharma: A Critical Study; Rohita described as the best of all types of fish",
@@ -7363,7 +7426,7 @@
       "english": "Palasi fish cooked in sesame oil"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) — Cooking rules and usage of Fish in Ayurveda",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kṣema Śarma)",
       "period": "16th century CE (c. 1549 CE)",
       "citation": "Kshemakutuhala by Kshemasharma: A Critical Study; fish varieties",
@@ -7433,7 +7496,7 @@
       "english": "Pathina (catfish) cooked in mustard oil and buttermilk"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) — Cooking rules and usage of Fish in Ayurveda",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kṣema Śarma)",
       "period": "16th century CE (c. 1549 CE)",
       "citation": "Kshemakutuhala by Kshemasharma: A Critical Study; fish varieties",
@@ -7494,7 +7557,7 @@
       "english": "Mangurika (magur catfish) roasted and smoked"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) — Cooking rules and usage of Fish in Ayurveda",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kṣema Śarma)",
       "period": "16th century CE (c. 1549 CE)",
       "citation": "Kshemakutuhala by Kshemasharma: A Critical Study; fish varieties (magurika)",
@@ -7525,7 +7588,7 @@
       },
       {
         "original": "asafoetida (hingu)",
-        "modern_name": "asafoetida (hing) — used as smoke",
+        "modern_name": "asafoetida (hing), used as smoke",
         "quantity": "not specified"
       }
     ],
@@ -7555,7 +7618,7 @@
       "english": "Gundi fish fried with spices"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) — Cooking rules and usage of Fish in Ayurveda",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kṣema Śarma)",
       "period": "16th century CE (c. 1549 CE)",
       "citation": "Kshemakutuhala by Kshemasharma: A Critical Study; fish varieties",
@@ -7612,7 +7675,7 @@
       "english": "Small fish cooked in sesame oil with spices"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) — Cooking rules and usage of Fish in Ayurveda",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kṣema Śarma)",
       "period": "16th century CE (c. 1549 CE)",
       "citation": "Kshemakutuhala by Kshemasharma: A Critical Study; small fish (suksma-matsya)",
@@ -7662,7 +7725,7 @@
       "english": "Maragala fish with mung paste (fried, baked or steamed)"
     },
     "source": {
-      "text": "Kshemakutuhala (Kṣemakutūhala) — Cooking rules and usage of Fish in Ayurveda",
+      "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kṣema Śarma)",
       "period": "16th century CE (c. 1549 CE)",
       "citation": "Kshemakutuhala by Kshemasharma: A Critical Study; maragala fish",
@@ -7715,9 +7778,9 @@
       "english": "Boar / Pork preparation (dehairing and mild-fire cooking)"
     },
     "source": {
-      "text": "Manasollasa (Abhilashitartha Chintamani) - section on ancient cooking and cookery",
+      "text": "Manasollasa",
       "author": "Someshvara III (Kalyani Chalukya dynasty)",
-      "period": "12th century CE (c. 1129 CE)",
+      "period": "early 12th century CE (c. 1129 CE)",
       "citation": "Ganganatha Jha Research Institute study essay, '8. Ancient Indian Cooking and Cookery (according to Manasollasa)'",
       "url": "https://www.wisdomlib.org/hinduism/essay/manasollasa-study-of-arts-and-sciences/d/doc1474614.html"
     },
@@ -7775,9 +7838,9 @@
       "english": "Panaka (sweet drink)"
     },
     "source": {
-      "text": "Manasollasa of Someshvara III, as described (paraphrased) in Kamat's Potpourri: Social Life — Food and Drinks",
+      "text": "Manasollasa",
       "author": "Someshvara III (Chalukya king); paraphrase and translation by Jyotsna K. Kamat",
-      "period": "12th century CE (Manasollasa composed c. 1129 CE)",
+      "period": "early 12th century CE (c. 1129 CE)",
       "citation": "Jyotsna Kamat, 'Food and Drinks' (Kamat's Potpourri, Social Life in Medieval Karnataka), paraphrasing the Manasollasa of Someshvara III. Secondary-source paraphrase; original Sanskrit verse not transcribed on the page.",
       "url": "http://www.kamat.com/database/books/sociallife/food_drink.htm"
     },
@@ -7835,7 +7898,7 @@
       "english": "Meat rice (meat biriyani)"
     },
     "source": {
-      "text": "Pākadarpaṇam (Pakadarpana) of King Nala — non-vegetarian rice preparation, as described in the book review of 'The Pākadarpaṇam: The text on Indian cookery by King Nala'",
+      "text": "Pakadarpana",
       "author": "Nala (attributed author of the Pākadarpaṇam); reviewed by SDM College of Ayurveda, Hassan",
       "period": "Medieval Sanskrit culinary text (pre-1600 CE; date uncertain, attributed to legendary King Nala)",
       "citation": "Book Review, 'The Pāka darpaṇam: The text on Indian cookery by King Nala', Ancient Science of Life, Apr-Jun 2014, Vol. 33, Issue 4, pp. 259-260",
@@ -7910,7 +7973,7 @@
       "occasion": null,
       "season": null
     },
-    "notes": "The source names further specific non-vegetarian rice variants of this preparation — mudga taṇḍula māṃsānna (green-gram meat rice), plāvaka māṃsodana (sparrow-meat biriyani), and kukkuṭa māṃsodana (chicken biriyani) — but gives no distinct ingredients or method for them, so they are not listed as separate recipes. The text also warns of 'gara viṣa' (combinatorial poison), e.g. sesame oil plus camphor, noting such combinations become non-toxic when used with meat and cooked rice.",
+    "notes": "The source names further specific non-vegetarian rice variants of this preparation, mudga taṇḍula māṃsānna (green-gram meat rice), plāvaka māṃsodana (sparrow-meat biriyani), and kukkuṭa māṃsodana (chicken biriyani), but gives no distinct ingredients or method for them, so they are not listed as separate recipes. The text also warns of 'gara viṣa' (combinatorial poison), e.g. sesame oil plus camphor, noting such combinations become non-toxic when used with meat and cooked rice.",
     "verification_status": "sourced-unverified"
   },
   {
@@ -7931,7 +7994,7 @@
       "english": "Brinjal (Eggplant) Preparation"
     },
     "source": {
-      "text": "Pākadarpaṇa (Paka Darpana) of Nala",
+      "text": "Pakadarpana",
       "author": "Attributed to King Nala of the Nishadhas; English translation by Dr. Madhulika, ed. Jayaram Yadav (Chaukhambha Orientalia, Varanasi, 2013)",
       "period": "Attributed to the legendary King Nala; scholars date the text to c. 12th–13th century CE (not earlier than ~1200 CE per Meulenbeld), before red pepper reached India",
       "citation": "Nala, Pākadarpaṇa (śāka / vegetable section, Chapter 1), trans. Dr. Madhulika, ed. Jayaram Yadav, Chaukhambha Orientalia, 2013, as quoted verbatim in 'Literature: Paaka Darpana', Indic Civilizational Portal",
@@ -8008,7 +8071,7 @@
       "Mix it with asafoetida, Kaayaphala (Kaidarya / curry leaf) and coriander powder.",
       "Add pieces of garlic and ginger and keep it on the fire.",
       "Cut the round brinjal fruit into pieces and keep them in hot water for a while, then bring them out of the water.",
-      "Make a paste of spices — black pepper, coriander and cumin seeds (jeera) — mixed with ripe tamarind and curd.",
+      "Make a paste of spices, black pepper, coriander and cumin seeds (jeera), mixed with ripe tamarind and curd.",
       "Coat the brinjal pieces with this paste and fry them in cow's ghee (clarified butter).",
       "Take the pieces out and make them fragrant with camphor."
     ],
@@ -8037,7 +8100,7 @@
       "english": "Sweet Mango Lickable (Fruit-and-Sugar Preserve)"
     },
     "source": {
-      "text": "Pakadarpana (Paka Darpanam) of Maharaja Nala, tr. Dr. Madhulika; described in the book review by Dr. Naveen Kodlady, Ancient Science of Life, Vol 33 Issue 4",
+      "text": "Pakadarpana",
       "author": "Maharaja Nala (translator Dr. Madhulika)",
       "period": "Medieval India, pre-17th century (name-evidence points to c. 1200 AD or earlier)",
       "citation": "Kodlady N. Book Review: 'Pakadarpana - The text on Indian cookery of King Nala'. Ancient Science of Life. 2014 Apr-Jun;33(4):259-262. Original: Pakadarpana of Maharaja Nala, tr. Dr. Madhulika, ed. Prof. Jayaram Yadav, Chowkambha Orientalia, Varanasi, 2013. Chapter 8 (Lehya Prakaranam).",
@@ -8099,7 +8162,7 @@
       "english": "Cooled Fragrant Drinking Water"
     },
     "source": {
-      "text": "Pakadarpana (Paka Darpanam) of Maharaja Nala, tr. Dr. Madhulika; described in the book review by Dr. Naveen Kodlady, Ancient Science of Life, Vol 33 Issue 4",
+      "text": "Pakadarpana",
       "author": "Maharaja Nala (translator Dr. Madhulika)",
       "period": "Medieval India, pre-17th century (name-evidence points to c. 1200 AD or earlier)",
       "citation": "Kodlady N. Book Review: 'Pakadarpana - The text on Indian cookery of King Nala'. Ancient Science of Life. 2014 Apr-Jun;33(4):259-262. Original: Pakadarpana of Maharaja Nala, tr. Dr. Madhulika, ed. Prof. Jayaram Yadav, Chowkambha Orientalia, Varanasi, 2013. Chapter 9 (Saitya Jala Nirmana Prakaranam).",
@@ -8915,14 +8978,14 @@
       "english": "Thick rice gruel / porridge"
     },
     "source": {
-      "text": "Sushruta Samhita, Sutrasthana, Chapter 46 (Annapana-vidhi), Kritanna-varga",
+      "text": "Sushruta Samhita",
       "author": "Suśruta; English translation by Kaviraj Kunja Lal Bhishagratna",
       "period": "Ancient India; text compiled c. 6th century BCE onward, redacted by c. 3rd–4th century CE; translation 1907–1916",
       "citation": "Sushruta Samhita, Sutrasthana 46, Kritanna-varga (Food and Drink), Bhishagratna English translation",
       "url": "https://chestofbooks.com/health/india/Sushruta-Samhita/Food-And-Drink-Part-14.html"
     },
     "region": "Ancient India (Indian subcontinent)",
-    "category": "Kritanna (prepared food) — gruel",
+    "category": "Kritanna (prepared food), gruel",
     "ingredients": [
       {
         "original": "taṇḍula",
@@ -8962,14 +9025,14 @@
       "english": "Pulse soup / lentil broth"
     },
     "source": {
-      "text": "Sushruta Samhita, Sutrasthana, Chapter 46 (Annapana-vidhi), Kritanna-varga",
+      "text": "Sushruta Samhita",
       "author": "Suśruta; English translation by Kaviraj Kunja Lal Bhishagratna",
       "period": "Ancient India; text compiled c. 6th century BCE onward, redacted by c. 3rd–4th century CE; translation 1907–1916",
       "citation": "Sushruta Samhita, Sutrasthana 46, Kritanna-varga (Food and Drink), Bhishagratna English translation",
       "url": "https://chestofbooks.com/health/india/Sushruta-Samhita/Food-And-Drink-Part-14.html"
     },
     "region": "Ancient India (Indian subcontinent)",
-    "category": "Kritanna (prepared food) — soup",
+    "category": "Kritanna (prepared food), soup",
     "ingredients": [
       {
         "original": "mudga (dāla)",
@@ -9003,14 +9066,14 @@
       "english": "Spiced boneless meat paste preparation"
     },
     "source": {
-      "text": "Sushruta Samhita, Sutrasthana, Chapter 46 (Annapana-vidhi), Kritanna-varga (meat preparations)",
+      "text": "Sushruta Samhita",
       "author": "Suśruta; English translation by Kaviraj Kunja Lal Bhishagratna",
       "period": "Ancient India; text compiled c. 6th century BCE onward, redacted by c. 3rd–4th century CE; translation 1907–1916",
       "citation": "Sushruta Samhita, Sutrasthana 46, Kritanna-varga (Food and Drink, continued), Bhishagratna English translation",
       "url": "https://chestofbooks.com/health/india/Sushruta-Samhita/Food-And-Drink-Part-14-Continued.html"
     },
     "region": "Ancient India (Indian subcontinent)",
-    "category": "Kritanna (prepared food) — meat preparation",
+    "category": "Kritanna (prepared food), meat preparation",
     "ingredients": [
       {
         "original": "māṃsa",
@@ -9069,14 +9132,14 @@
       "english": "Fried-and-braised spiced meat"
     },
     "source": {
-      "text": "Sushruta Samhita, Sutrasthana, Chapter 46 (Annapana-vidhi), Kritanna-varga (meat preparations)",
+      "text": "Sushruta Samhita",
       "author": "Suśruta; English translation by Kaviraj Kunja Lal Bhishagratna",
       "period": "Ancient India; text compiled c. 6th century BCE onward, redacted by c. 3rd–4th century CE; translation 1907–1916",
       "citation": "Sushruta Samhita, Sutrasthana 46, Kritanna-varga (Food and Drink, continued), Bhishagratna English translation",
       "url": "https://chestofbooks.com/health/india/Sushruta-Samhita/Food-And-Drink-Part-14-Continued.html"
     },
     "region": "Ancient India (Indian subcontinent)",
-    "category": "Kritanna (prepared food) — meat preparation",
+    "category": "Kritanna (prepared food), meat preparation",
     "ingredients": [
       {
         "original": "māṃsa",
@@ -9135,14 +9198,14 @@
       "english": "Sesame-luted roasted meat"
     },
     "source": {
-      "text": "Sushruta Samhita, Sutrasthana, Chapter 46 (Annapana-vidhi), Kritanna-varga (meat preparations)",
+      "text": "Sushruta Samhita",
       "author": "Suśruta; English translation by Kaviraj Kunja Lal Bhishagratna",
       "period": "Ancient India; text compiled c. 6th century BCE onward, redacted by c. 3rd–4th century CE; translation 1907–1916",
       "citation": "Sushruta Samhita, Sutrasthana 46, Kritanna-varga (Food and Drink, continued), Bhishagratna English translation",
       "url": "https://chestofbooks.com/health/india/Sushruta-Samhita/Food-And-Drink-Part-14-Continued.html"
     },
     "region": "Ancient India (Indian subcontinent)",
-    "category": "Kritanna (prepared food) — meat preparation",
+    "category": "Kritanna (prepared food), meat preparation",
     "ingredients": [
       {
         "original": "māṃsa",
@@ -9186,14 +9249,14 @@
       "english": "Barley-flour drink/dough"
     },
     "source": {
-      "text": "Sushruta Samhita, Sutrasthana, Chapter 46 (Annapana-vidhi), Kritanna-varga",
+      "text": "Sushruta Samhita",
       "author": "Suśruta; English translation by Kaviraj Kunja Lal Bhishagratna",
       "period": "Ancient India; text compiled c. 6th century BCE onward, redacted by c. 3rd–4th century CE; translation 1907–1916",
       "citation": "Sushruta Samhita, Sutrasthana 46, Kritanna-varga (Food and Drink, continued), Bhishagratna English translation",
       "url": "https://chestofbooks.com/health/india/Sushruta-Samhita/Food-And-Drink-Part-14-Continued.html"
     },
     "region": "Ancient India (Indian subcontinent)",
-    "category": "Kritanna (prepared food) — flour preparation",
+    "category": "Kritanna (prepared food), flour preparation",
     "ingredients": [
       {
         "original": "yava cūrṇa / saktu",
@@ -9239,7 +9302,7 @@
       "english": "Sweet fermented wine (from sugarcane/jaggery)"
     },
     "source": {
-      "text": "Manasollasa, section on wines/liquors (verses 5.10.431-449 referenced)",
+      "text": "Manasollasa",
       "author": "King Someshvara III (Bhulokamalla), Kalyani Chalukya dynasty",
       "period": "early 12th century CE (c. 1129 CE)",
       "citation": "Manasollasa 5.10.431-449 (recipes for various kinds of wine); Sanskrit verse: 'gudaiksurasasambhutam kalena vikrtim gatam | dhataki-puspasamsiktam khamdasammisritam madhu'",
@@ -9297,7 +9360,7 @@
       "english": "Fermented liquors (palm, coconut, date, grape, sugarcane)"
     },
     "source": {
-      "text": "Manasollasa — art of preparing wine and asava",
+      "text": "Manasollasa",
       "author": "King Someshvara III (Bhulokamalla), Kalyani Chalukya dynasty",
       "period": "early 12th century CE (c. 1129 CE)",
       "citation": "Manasollasa, chapter on brewing alcoholic beverages (Talimadya, Narikelasava, Khajurasava, and grape/sugarcane wine); as summarised on Wikipedia's Manasollasa article",
@@ -9333,7 +9396,7 @@
       }
     ],
     "steps": [
-      "Select the fermentable base: grape or sugarcane for the common wines; or unusual sources — palm sap (Talimadya), coconut (Narikelasava), or date (Khajurasava).",
+      "Select the fermentable base: grape or sugarcane for the common wines; or unusual sources, palm sap (Talimadya), coconut (Narikelasava), or date (Khajurasava).",
       "Brew/ferment the juice or sap of the chosen base to produce the asava."
     ],
     "properties": {
@@ -9359,13 +9422,13 @@
       "english": "Chicken simmered in sour ajika water with ginger, fenugreek and coriander, finished with ghee, garlic and asafoetida"
     },
     "source": {
-      "text": "Manasollasa (Abhilashitartha Chintamani) of King Someshvara III, 12th century CE — meat (mamsa) preparations of the annabhoga section; translated and reconstructed on the 'Manasollasa Dishes' page.",
+      "text": "Manasollasa",
       "author": "King Someshvara III (Western/Kalyani Chalukya dynasty)",
       "period": "12th century CE (c. 1131 CE)",
       "citation": "Manasollasa, annabhoga (meat) section; Irayari Vairavi, 'Manasollasa Dishes' (fetched 2026-07-31).",
       "url": "https://sites.google.com/site/vairavisca/Home/creations/manasollasa-dishes"
     },
-    "region": "Deccan — Kalyani Chalukya kingdom, present-day Karnataka",
+    "region": "Deccan, Kalyani Chalukya kingdom, present-day Karnataka",
     "category": "poultry",
     "ingredients": [
       {
@@ -9626,10 +9689,10 @@
       "english": "Ghee-fried wheat rounds filled with milk paste"
     },
     "source": {
-      "text": "Kṣemakutūhala",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarman (Kshema Sharma)",
-      "period": "16th century CE",
-      "citation": "Kshemakutuhala, Ch. 4 (Cooking) — Milk products and preparations; wisdomlib.org",
+      "period": "c. 16th century CE",
+      "citation": "Kshemakutuhala, Ch. 4 (Cooking), Milk products and preparations; wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598704.html"
     },
     "region": "India (medieval; Sanskrit culinary tradition)",
@@ -9677,10 +9740,10 @@
       "english": "Ghee-roasted milk rounds in syrup"
     },
     "source": {
-      "text": "Kṣemakutūhala",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarman (Kshema Sharma)",
-      "period": "16th century CE",
-      "citation": "Kshemakutuhala, Ch. 4 (Cooking) — Milk products and preparations; wisdomlib.org",
+      "period": "c. 16th century CE",
+      "citation": "Kshemakutuhala, Ch. 4 (Cooking), Milk products and preparations; wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598704.html"
     },
     "region": "India (medieval; Sanskrit culinary tradition)",
@@ -9728,10 +9791,10 @@
       "english": "Spiced fried milk curd pieces"
     },
     "source": {
-      "text": "Kṣemakutūhala",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarman (Kshema Sharma)",
-      "period": "16th century CE",
-      "citation": "Kshemakutuhala, Ch. 4 (Cooking) — Milk products and preparations; wisdomlib.org",
+      "period": "c. 16th century CE",
+      "citation": "Kshemakutuhala, Ch. 4 (Cooking), Milk products and preparations; wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598704.html"
     },
     "region": "India (medieval; Sanskrit culinary tradition)",
@@ -9762,7 +9825,7 @@
       "occasion": null,
       "season": null
     },
-    "notes": "A savory paneer-like preparation.",
+    "notes": "A savoury paneer-like preparation.",
     "verification_status": "sourced-unverified"
   },
   {
@@ -9777,10 +9840,10 @@
       "english": "Orange-milk dessert"
     },
     "source": {
-      "text": "Kṣemakutūhala",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarman (Kshema Sharma)",
-      "period": "16th century CE",
-      "citation": "Kshemakutuhala, Ch. 4 (Cooking) — Milk products and preparations; wisdomlib.org",
+      "period": "c. 16th century CE",
+      "citation": "Kshemakutuhala, Ch. 4 (Cooking), Milk products and preparations; wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598704.html"
     },
     "region": "India (medieval; Sanskrit culinary tradition)",
@@ -9839,10 +9902,10 @@
       "english": "Ripe mango juice beverage"
     },
     "source": {
-      "text": "Kṣemakutūhala",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarman (Kshema Sharma)",
-      "period": "16th century CE",
-      "citation": "Kshemakutuhala, Ch. 4 (Cooking) — Panakani (Beverages); wisdomlib.org",
+      "period": "c. 16th century CE",
+      "citation": "Kshemakutuhala, Ch. 4 (Cooking), Panakani (Beverages); wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598707.html"
     },
     "region": "India (medieval; Sanskrit culinary tradition)",
@@ -9897,10 +9960,10 @@
       "english": "Caravriksha fruit beverage"
     },
     "source": {
-      "text": "Kṣemakutūhala",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarman (Kshema Sharma)",
-      "period": "16th century CE",
-      "citation": "Kshemakutuhala, Ch. 4 (Cooking) — Panakani (Beverages); wisdomlib.org",
+      "period": "c. 16th century CE",
+      "citation": "Kshemakutuhala, Ch. 4 (Cooking), Panakani (Beverages); wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598707.html"
     },
     "region": "India (medieval; Sanskrit culinary tradition)",
@@ -9956,10 +10019,10 @@
       "english": "Mango wheat sweet in syrup"
     },
     "source": {
-      "text": "Kṣemakutūhala",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarman (Kshema Sharma)",
-      "period": "16th century CE",
-      "citation": "Kshemakutuhala, Ch. 4 (Cooking) — Cereal preparations; wisdomlib.org",
+      "period": "c. 16th century CE",
+      "citation": "Kshemakutuhala, Ch. 4 (Cooking), Cereal preparations; wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598705.html"
     },
     "region": "India (medieval; Sanskrit culinary tradition)",
@@ -10021,10 +10084,10 @@
       "english": "Ghee-fried wheat sweet in honey/sugar syrup"
     },
     "source": {
-      "text": "Kṣemakutūhala",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarman (Kshema Sharma)",
-      "period": "16th century CE",
-      "citation": "Kshemakutuhala, Ch. 4 (Cooking) — Cereal preparations; wisdomlib.org",
+      "period": "c. 16th century CE",
+      "citation": "Kshemakutuhala, Ch. 4 (Cooking), Cereal preparations; wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598705.html"
     },
     "region": "India (medieval; Sanskrit culinary tradition)",
@@ -10092,10 +10155,10 @@
       "english": "Sweet fried wheat cake"
     },
     "source": {
-      "text": "Kṣemakutūhala",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarman (Kshema Sharma)",
-      "period": "16th century CE",
-      "citation": "Kshemakutuhala, Ch. 4 (Cooking) — Cereal preparations; wisdomlib.org",
+      "period": "c. 16th century CE",
+      "citation": "Kshemakutuhala, Ch. 4 (Cooking), Cereal preparations; wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598705.html"
     },
     "region": "India (medieval; Sanskrit culinary tradition)",
@@ -10148,10 +10211,10 @@
       "english": "Jalebi (syrup-soaked coils)"
     },
     "source": {
-      "text": "Kṣemakutūhala",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarman (Kshema Sharma)",
-      "period": "16th century CE",
-      "citation": "Kshemakutuhala, Ch. 4 (Cooking) — Cereal preparations; wisdomlib.org",
+      "period": "c. 16th century CE",
+      "citation": "Kshemakutuhala, Ch. 4 (Cooking), Cereal preparations; wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598705.html"
     },
     "region": "India (medieval; Sanskrit culinary tradition)",
@@ -10210,10 +10273,10 @@
       "english": "Camphor-sugar stuffed fried rolls"
     },
     "source": {
-      "text": "Kṣemakutūhala",
+      "text": "Kshemakutuhala",
       "author": "Kṣemaśarman (Kshema Sharma)",
-      "period": "16th century CE",
-      "citation": "Kshemakutuhala, Ch. 4 (Cooking) — Cereal preparations; wisdomlib.org",
+      "period": "c. 16th century CE",
+      "citation": "Kshemakutuhala, Ch. 4 (Cooking), Cereal preparations; wisdomlib.org",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598705.html"
     },
     "region": "India (medieval; Sanskrit culinary tradition)",
@@ -10267,8 +10330,8 @@
     "source": {
       "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kshemasharman)",
-      "period": "16th century CE",
-      "citation": "Kshemakutuhala by Kshemasharma — A Critical Study; Cooking rules and usage of Meat in Ayurveda (Utsava on Mamsa)",
+      "period": "c. 16th century CE",
+      "citation": "Kshemakutuhala by Kshemasharma, A Critical Study; Cooking rules and usage of Meat in Ayurveda (Utsava on Mamsa)",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598695.html"
     },
     "region": "North/Central India",
@@ -10333,8 +10396,8 @@
     "source": {
       "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kshemasharman)",
-      "period": "16th century CE",
-      "citation": "Kshemakutuhala by Kshemasharma — A Critical Study; Cooking rules and usage of Meat in Ayurveda (Utsava on Mamsa)",
+      "period": "c. 16th century CE",
+      "citation": "Kshemakutuhala by Kshemasharma, A Critical Study; Cooking rules and usage of Meat in Ayurveda (Utsava on Mamsa)",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598695.html"
     },
     "region": "North/Central India",
@@ -10414,8 +10477,8 @@
     "source": {
       "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kshemasharman)",
-      "period": "16th century CE",
-      "citation": "Kshemakutuhala by Kshemasharma — A Critical Study; Cooking rules and usage of Meat in Ayurveda (Utsava on Mamsa)",
+      "period": "c. 16th century CE",
+      "citation": "Kshemakutuhala by Kshemasharma, A Critical Study; Cooking rules and usage of Meat in Ayurveda (Utsava on Mamsa)",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598695.html"
     },
     "region": "North/Central India",
@@ -10475,8 +10538,8 @@
     "source": {
       "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kshemasharman)",
-      "period": "16th century CE",
-      "citation": "Kshemakutuhala by Kshemasharma — A Critical Study; Cooking rules and usage of Meat in Ayurveda (Utsava on Mamsa)",
+      "period": "c. 16th century CE",
+      "citation": "Kshemakutuhala by Kshemasharma, A Critical Study; Cooking rules and usage of Meat in Ayurveda (Utsava on Mamsa)",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598695.html"
     },
     "region": "North/Central India",
@@ -10542,8 +10605,8 @@
     "source": {
       "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kshemasharman)",
-      "period": "16th century CE",
-      "citation": "Kshemakutuhala by Kshemasharma — A Critical Study; Cooking rules and usage of Meat in Ayurveda (Utsava on Mamsa)",
+      "period": "c. 16th century CE",
+      "citation": "Kshemakutuhala by Kshemasharma, A Critical Study; Cooking rules and usage of Meat in Ayurveda (Utsava on Mamsa)",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598695.html"
     },
     "region": "North/Central India",
@@ -10603,8 +10666,8 @@
     "source": {
       "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kshemasharman)",
-      "period": "16th century CE",
-      "citation": "Kshemakutuhala by Kshemasharma — A Critical Study; Cooking rules and usage of Meat in Ayurveda (Utsava on Mamsa)",
+      "period": "c. 16th century CE",
+      "citation": "Kshemakutuhala by Kshemasharma, A Critical Study; Cooking rules and usage of Meat in Ayurveda (Utsava on Mamsa)",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598695.html"
     },
     "region": "North/Central India",
@@ -10665,8 +10728,8 @@
     "source": {
       "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kshemasharman)",
-      "period": "16th century CE",
-      "citation": "Kshemakutuhala by Kshemasharma — A Critical Study; Cooking rules and usage of Meat in Ayurveda (Utsava on Mamsa)",
+      "period": "c. 16th century CE",
+      "citation": "Kshemakutuhala by Kshemasharma, A Critical Study; Cooking rules and usage of Meat in Ayurveda (Utsava on Mamsa)",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598695.html"
     },
     "region": "North/Central India",
@@ -10737,8 +10800,8 @@
     "source": {
       "text": "Kshemakutuhala",
       "author": "Kshemasharma (Kshemasharman)",
-      "period": "16th century CE",
-      "citation": "Kshemakutuhala by Kshemasharma — A Critical Study; Cooking rules and usage of Meat in Ayurveda (Utsava on Mamsa)",
+      "period": "c. 16th century CE",
+      "citation": "Kshemakutuhala by Kshemasharma, A Critical Study; Cooking rules and usage of Meat in Ayurveda (Utsava on Mamsa)",
       "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598695.html"
     },
     "region": "North/Central India",
@@ -10796,7 +10859,7 @@
       "english": "Puri (balloon bread) stuffed with aromatics"
     },
     "source": {
-      "text": "Ni'matnama-i-Nasir Shahi (The Ni'matnama Manuscript of the Sultans of Mandu: The Sultan's Book of Delights)",
+      "text": "Ni'matnama-i-Nasir Shahi",
       "author": "Norah M. Titley (translation); compiled for Ghiyath Shah and Nasir Shah of Malwa",
       "period": "c. 1495-1505 (15th-16th century), Malwa Sultanate",
       "citation": "Titley, N. M. (2005). The Ni'matnama Manuscript of the Sultans of Mandu, RoutledgeCurzon. British Library Persian MS 149.",
@@ -10868,7 +10931,7 @@
       "english": "Rice Fried in Ghee with Camphor and Ambergris"
     },
     "source": {
-      "text": "Ni'matnama-i-Nasir Shahi (The Ni'matnama Manuscript of the Sultans of Mandu: The Sultan's Book of Delights)",
+      "text": "Ni'matnama-i-Nasir Shahi",
       "author": "Norah M. Titley (translation); compiled for Ghiyath Shah and Nasir Shah of Malwa",
       "period": "c. 1495-1505 (15th-16th century), Malwa Sultanate",
       "citation": "Titley, N. M. (2005). The Ni'matnama Manuscript of the Sultans of Mandu, RoutledgeCurzon. British Library Persian MS 149.",
@@ -10941,7 +11004,7 @@
       "english": "Qaliya of Meat, Milk and Rice"
     },
     "source": {
-      "text": "Ni'matnama-i-Nasir Shahi (The Ni'matnama Manuscript of the Sultans of Mandu: The Sultan's Book of Delights)",
+      "text": "Ni'matnama-i-Nasir Shahi",
       "author": "Norah M. Titley (translation); compiled for Ghiyath Shah and Nasir Shah of Malwa",
       "period": "c. 1495-1505 (15th-16th century), Malwa Sultanate",
       "citation": "Titley, N. M. (2005). The Ni'matnama Manuscript of the Sultans of Mandu, RoutledgeCurzon. British Library Persian MS 149.",
@@ -11020,7 +11083,7 @@
       "english": "Phini (fried sweet dough in syrup)"
     },
     "source": {
-      "text": "Ni'matnama-i-Nasir Shahi (The Ni'matnama Manuscript of the Sultans of Mandu: The Sultan's Book of Delights)",
+      "text": "Ni'matnama-i-Nasir Shahi",
       "author": "Norah M. Titley (translation); compiled for Ghiyath Shah and Nasir Shah of Malwa",
       "period": "c. 1495-1505 (15th-16th century), Malwa Sultanate",
       "citation": "Titley, N. M. (2005). The Ni'matnama Manuscript of the Sultans of Mandu, RoutledgeCurzon. British Library Persian MS 149.",
@@ -11078,7 +11141,7 @@
       "english": "Coconut-stuffed baked wheat cake"
     },
     "source": {
-      "text": "Soopa Shastra of Mangarasa III (Kannada culinary text, c. 1508 CE), coconut cake preparation quoted in the blog post 'The Soopa Shastra of Mangarasa III'",
+      "text": "Soopa Shastra",
       "author": "Mangarasa III",
       "period": "c. 1508 CE (medieval Karnataka)",
       "citation": "Blog Eclectica (nikhilmani1977.wordpress.com), 'The Soopa Shastra of Mangarasa III', quoting a coconut cake recipe from the translated Soopa Shastra",
@@ -11164,12 +11227,12 @@
     "source": {
       "text": "Sushruta Samhita",
       "author": "Sushruta (English trans. Kaviraj Kunja Lal Bhishagratna)",
-      "period": "Ancient (text c. 1st millennium BCE); Bhishagratna translation 1907-1916",
+      "period": "Ancient India; text compiled c. 6th century BCE onward, redacted by c. 3rd–4th century CE; translation 1907–1916",
       "citation": "Sushruta Samhita, Sutrasthana, Chapter XLVI (Annapana-vidhi Adhyaya), Kritanna Varga (section on cooked/prepared foods, continued)",
       "url": "https://chestofbooks.com/health/india/Sushruta-Samhita/Food-And-Drink-Part-14-Continued.html"
     },
     "region": "Ancient India (Indian subcontinent)",
-    "category": "kritanna (prepared food) — soup",
+    "category": "kritanna (prepared food), soup",
     "ingredients": [
       {
         "original": "dadhi-mastu / curd cream",
@@ -11209,9 +11272,9 @@
       "english": "Gram-flour fritter (besan vada)"
     },
     "source": {
-      "text": "Bhavaprakasha Nighantu, Krutanna varga — as reviewed in Khatale V. et al.",
+      "text": "Bhavaprakasha Nighantu",
       "author": "Bhavamishra (Bhāvamiśra)",
-      "period": "16th century CE",
+      "period": "c. 16th century CE",
       "citation": "International Ayurvedic Medical Journal, Aug 2024, p.1453, cited to Bhavaprakash Nighantu Krutanna varga (ref 42, p.718)",
       "url": "https://www.wisdomlib.org/uploads/journals/iamj/2024-issue-08-august/1449_1457_1.pdf"
     },
@@ -11225,7 +11288,7 @@
       },
       {
         "original": "Kwathita (kadhi: kokam, dadhi, besan)",
-        "modern_name": "kadhi — kokum, curd/yoghurt and gram flour",
+        "modern_name": "kadhi, kokum, curd/yoghurt and gram flour",
         "quantity": "for immersing the fritters"
       }
     ],
@@ -11256,7 +11319,7 @@
       "english": "Meat broth / soup"
     },
     "source": {
-      "text": "Kritanna-varga preparation — as reviewed in Khatale V. et al.",
+      "text": "Kritanna-varga preparation, as reviewed in Khatale V. et al.",
       "author": "Compiled in review citing Charaka Samhita Sutrasthana; item belongs to the kritanna-varga (mamsa/kritanna) class also treated in Bhavaprakasha Nighantu",
       "period": "classical Ayurveda; Bhavaprakasha 16th century CE",
       "citation": "International Ayurvedic Medical Journal, Aug 2024, p.1451, item 5 (Mamsarasa), cited to Charaka Samhita Sutrasthana (ref 8)",
@@ -11344,7 +11407,7 @@
       },
       {
         "original": "hunise / nimbe rasa",
-        "modern_name": "tamarind and lemon juice (souring agents)",
+        "modern_name": "tamarind and lime juice (souring agents)",
         "quantity": "unspecified"
       },
       {
@@ -11366,7 +11429,7 @@
     "steps": [
       "Cook mung dal, urad dal or chana dal in water until it reaches the consistency of gruel.",
       "Grind cardamom, cumin, coriander, black pepper and mustard seeds into a paste and stir into the cooked dal.",
-      "Flavor the mixture with souring agents such as tamarind and lemon juice.",
+      "Flavour the mixture with souring agents such as tamarind and lime juice.",
       "Garnish with mustard seeds, cumin seeds, asafoetida and curry leaves fried in a small quantity of ghee or oil."
     ],
     "properties": {
@@ -11449,7 +11512,7 @@
     "name": {
       "original": "Arali chiguru savory dish",
       "transliteration": "arali-belada palya",
-      "english": "Pipal-shoot and bael-leaf savory dish"
+      "english": "Pipal-shoot and bael-leaf savoury dish"
     },
     "source": {
       "text": "Lokopakara",
@@ -11506,7 +11569,7 @@
       "Soak the shoots of pipal tree in buttermilk.",
       "Add tender leaves of bael fruit and salt.",
       "Add water, milk, Indian gooseberry and mango, and cook.",
-      "The final product will be a soft and savory dish."
+      "The final product will be a soft and savoury dish."
     ],
     "properties": {
       "ayurvedic": null,
@@ -11568,7 +11631,7 @@
       "Grind small cut pieces of coral-berry leaves with salt and lime juice.",
       "Separately grind red hibiscus flowers in buttermilk.",
       "Mix the two together.",
-      "The result is a light coral-colored savory dish."
+      "The result is a light coral-coloured savoury dish."
     ],
     "properties": {
       "ayurvedic": null,

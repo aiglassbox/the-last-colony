@@ -136,16 +136,62 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
 
   // ---- scrolling ----------------------------------------------------------
 
+  /**
+   * Set while the follow animation is moving the thread itself.
+   *
+   * Without it the animation's own scroll fires this handler, sees it has not
+   * caught up yet, concludes the reader scrolled away and stops following.
+   */
+  const selfScrolling = useRef(false);
+
   const onScroll = () => {
     const el = threadRef.current;
-    if (!el) return;
+    if (!el || selfScrolling.current) return;
     stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
   };
 
+  /**
+   * Follow the text rather than jump past it.
+   *
+   * `scrollTop = scrollHeight` lands on the bottom of the card, which during a
+   * restoration turn is the collapsed beat headers and the share buttons, not
+   * the sentence being written. Every token then re-jumped there, so the reader
+   * was held below the writing for the whole turn.
+   *
+   * Easing toward the target instead means the view drifts down at roughly the
+   * speed the words arrive, and the line being written stays where the eye
+   * already is. Anyone who scrolls up keeps their place: `stick` is false and
+   * this does nothing until they come back down.
+   */
+  const follow = useRef<number | null>(null);
   useEffect(() => {
-    if (!stick.current) return;
-    const el = threadRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
+    if (!stick.current || follow.current !== null) return;
+    const step = () => {
+      const el = threadRef.current;
+      if (!el || !stick.current) {
+        follow.current = null;
+        return;
+      }
+      const target = el.scrollHeight - el.clientHeight;
+      const gap = target - el.scrollTop;
+      if (gap < 1) {
+        follow.current = null;
+        return;
+      }
+      // A long way behind is a new turn, not streaming: close it quickly.
+      selfScrolling.current = true;
+      el.scrollTop += gap > 600 ? gap : Math.max(1, gap * 0.18);
+      // The scroll event lands after this frame, so the flag clears after it.
+      requestAnimationFrame(() => {
+        selfScrolling.current = false;
+      });
+      follow.current = requestAnimationFrame(step);
+    };
+    follow.current = requestAnimationFrame(step);
+    return () => {
+      if (follow.current !== null) cancelAnimationFrame(follow.current);
+      follow.current = null;
+    };
   }, [conversations]);
 
   // ---- sending ------------------------------------------------------------

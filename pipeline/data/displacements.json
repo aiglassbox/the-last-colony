@@ -8,7 +8,7 @@
         "ghee",
         "clarified butter"
       ],
-      "replaced_by": "vanaspati — partially hydrogenated vegetable fat",
+      "replaced_by": "vanaspati, partially hydrogenated vegetable fat",
       "when": "1930s onward",
       "driver": "cost. Desi ghee was expensive in British India and used sparingly; a Dutch firm brought hydrogenated vegetable oil in as a cheap substitute, and Lever Brothers formed the Hindustan Vanaspati Manufacturing Company in 1931, producing at Sewri near Bombay. The Dalda brand launched in 1937 and became the default cooking fat in millions of households.",
       "nutrition_axis": "fat_quality",
@@ -23,7 +23,7 @@
     },
     {
       "id": "disp-gur-refined-sugar",
-      "traditional": "gur / khandsari — unrefined and partially refined cane sugar",
+      "traditional": "gur / khandsari, unrefined and partially refined cane sugar",
       "matches": [
         "sugar",
         "jaggery",
@@ -131,7 +131,7 @@
     },
     {
       "id": "disp-ghani-refined-oil",
-      "traditional": "kachi ghani — cold-pressed oil from a wooden or stone press",
+      "traditional": "kachi ghani, cold-pressed oil from a wooden or stone press",
       "matches": [
         "sesame oil",
         "gingelly",
@@ -190,7 +190,7 @@
       ],
       "replaced_by": "LPG and gas stoves",
       "when": "accelerating from 2016",
-      "driver": "deliberate policy. The Pradhan Mantri Ujjwala Yojana launched in 2016 to replace solid biomass — firewood, charcoal, dung cakes — with LPG, and had provided over 103 million connections by March 2024. LPG coverage rose from 62% of households in 2016 to near-universal availability by 2021, though roughly 40% of the population still cooks at least partly on solid fuel.",
+      "driver": "deliberate policy. The Pradhan Mantri Ujjwala Yojana launched in 2016 to replace solid biomass, firewood, charcoal, dung cakes, with LPG, and had provided over 103 million connections by March 2024. LPG coverage rose from 62% of households in 2016 to near-universal availability by 2021, though roughly 40% of the population still cooks at least partly on solid fuel.",
       "nutrition_axis": "fat_quality",
       "direction": "unchanged",
       "comparison": "This changes how a dish is cooked rather than what is in it. Charcoal and ember roasting impart smoke that a gas flame does not; the ingredients are unaffected.",

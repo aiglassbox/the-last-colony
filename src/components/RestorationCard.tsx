@@ -84,7 +84,9 @@ export function RestorationCard({ data }: { data: CardData }) {
               editorial verdict on the record stands in. It is the same line the
               share image uses, so the card is never blank and never invents. */}
           {data.beats.VERDICT ?? (data.streaming ? "" : (ancient?.share_verdict ?? ""))}
-          {data.streaming && !data.beats.THEN && <span className="caret" aria-hidden />}
+          {data.streaming &&
+            !data.beats.THEN &&
+            (data.beats.VERDICT ? <span className="caret" aria-hidden /> : <Waiting />)}
         </p>
         {ancient && (
           <div style={{ marginTop: "0.85rem" }}>
@@ -263,11 +265,29 @@ function Beat({
   );
 }
 
+/**
+ * The pause before a beat has any text.
+ *
+ * A model takes about a second to its first token, and a card that shows
+ * nothing for that second reads as broken. This is not a spinner: it sits on
+ * the line the text will occupy, at the size the text will be, so nothing jumps
+ * when the words arrive.
+ */
+export function Waiting() {
+  return (
+    <span className="thinking" aria-label="Writing" role="status">
+      <span aria-hidden />
+      <span aria-hidden />
+      <span aria-hidden />
+    </span>
+  );
+}
+
 function Prose({ text, streaming }: { text?: string; streaming: boolean }) {
   if (!text) {
     return streaming ? (
       <p style={{ margin: 0, color: "var(--ink-muted)" }}>
-        <span className="caret" aria-hidden />
+        <Waiting />
       </p>
     ) : null;
   }
@@ -555,7 +575,7 @@ function ModernRecipe({ text, streaming }: { text?: string; streaming: boolean }
   if (!text) {
     return streaming ? (
       <p style={{ margin: 0, color: "var(--ink-muted)" }}>
-        <span className="caret" aria-hidden />
+        <Waiting />
       </p>
     ) : null;
   }

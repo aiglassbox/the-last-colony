@@ -1,5 +1,6 @@
 import displacementData from "@pipeline/data/displacements.json";
 import type { Recipe } from "@pipeline/lib/types";
+import { stripEmDashes } from "@/lib/model/punctuation";
 import { makeToday, matchesIngredient } from "./make-today";
 
 import type { CorpusRecord, Ingredient } from "./types";
@@ -100,7 +101,7 @@ function ingredientOf(source: Recipe["ingredients"][number]): Ingredient {
   const name = modern || original;
 
   return {
-    name: clarifyPeriodForm(name),
+    name: stripEmDashes(clarifyPeriodForm(name)),
     sanskrit: original && original !== modern ? original : null,
     quantity_source: quantity || null,
     quantity_modern: null,
@@ -123,15 +124,35 @@ function ingredientOf(source: Recipe["ingredients"][number]): Ingredient {
  * for the losses, since "rock salt" needs no clarifying and must never be
  * nudged away from iodised salt.
  */
+/**
+ * Not every displacement is a word whose referent moved.
+ *
+ * "pulses as a daily staple" and "millets and other coarse grains" describe what
+ * was on the plate, not what an ingredient was. Appending one to an ingredient
+ * name produced "mung dal, urad dal, or chana dal (split, hulled) (pulses as a
+ * daily staple in this period)", which is both unreadable and not true of the
+ * ingredient. A period form is a name, so a phrase is not one.
+ */
+const MAX_FORM_WORDS = 4;
+
+function isPeriodForm(traditional: string): boolean {
+  return traditional.split(/[(—,]/)[0].trim().split(/\s+/).length <= MAX_FORM_WORDS;
+}
+
 function clarifyPeriodForm(name: string): string {
   const lower = name.toLowerCase();
   for (const d of DISPLACEMENTS) {
     if (d.caution) continue;
+    if (!isPeriodForm(d.traditional)) continue;
     if (!matchesIngredient(lower, d.matches)) continue;
     // Already specific enough — the record said "sesame oil", not "oil".
     const traditional = d.traditional.split(/[—(]/)[0].trim();
     if (lower.includes(traditional.toLowerCase().split(" ")[0])) return name;
-    return `${name} — ${traditional} in this period`;
+    // Brackets rather than a dash. This string is an ingredient name in a table
+    // cell, and rule 7 applies to it exactly as it applies to prose: the
+    // sanitiser only sees model output, so anything built here reaches the
+    // reader unfiltered.
+    return `${name} (${traditional} in this period)`;
   }
   return name;
 }
@@ -176,12 +197,17 @@ export function toCorpusRecord(recipe: Recipe): CorpusRecord {
     transliteration: null,
     translation: null,
     ingredients: recipe.ingredients.map(ingredientOf),
-    method_reconstructed: recipe.steps,
+    // House style applies to these, and only to these. Ingredient names, steps
+    // and notes are editorial English written for this corpus, so rule 7 covers
+    // them like any other line we put on screen. A quoted passage would not be
+    // touched, and there is none here: `original_text`, `transliteration` and
+    // `translation` are null for every pipeline record by design.
+    method_reconstructed: recipe.steps.map(stripEmDashes),
     provenance_class,
     // Not measured for these records. Mid values rather than invented
     // confidence; nothing in the UI reads them today.
     confidence: { identification: 0.5, ingredients: 0.5, method: 0.5 },
-    contested_points: recipe.notes ? [recipe.notes] : [],
+    contested_points: recipe.notes ? [stripEmDashes(recipe.notes)] : [],
     modern_counterpart_id: null,
     substitution_story: substitutionStoryOf(recipe),
     restore_today: null,
@@ -263,7 +289,14 @@ function substitutionStoryOf(recipe: Recipe): CorpusRecord["substitution_story"]
   };
 }
 
-/** True when a record came from the index rather than `corpus/`. */
+/**
+ * True when a record came from the index rather than `corpus/`.
+ *
+ * Not "has no verdict and no method": every `*-modern` counterpart in `corpus/`
+ * is null on both, so that test called 14 of the 31 hand-authored records
+ * imported. What actually separates the two is the citation URL, which the
+ * mapper always carries through and no hand-authored record has.
+ */
 export function isVectorRecord(record: CorpusRecord): boolean {
-  return record.restore_today === null && record.share_verdict === null;
+  return Boolean(record.source.url);
 }

@@ -1182,6 +1182,53 @@ body {
   }
 }
 
+/* Shown where a beat has no text yet.
+   The caret is a typing cue and needs something to trail; on an empty line it
+   is a lone blinking block, which reads as a rendering fault rather than as
+   work in progress. Three settling dots say the same thing and say it calmly. */
+.thinking {
+  display: inline-flex;
+  gap: 0.28em;
+  align-items: center;
+  height: 1.05em;
+}
+
+.thinking span {
+  width: 0.34em;
+  height: 0.34em;
+  border-radius: 999px;
+  background: var(--orange);
+  opacity: 0.35;
+  animation: settle 1.25s ease-in-out infinite;
+}
+
+.thinking span:nth-child(2) {
+  animation-delay: 0.16s;
+}
+.thinking span:nth-child(3) {
+  animation-delay: 0.32s;
+}
+
+@keyframes settle {
+  0%,
+  70%,
+  100% {
+    opacity: 0.28;
+    transform: translateY(0);
+  }
+  35% {
+    opacity: 1;
+    transform: translateY(-0.18em);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .thinking span {
+    animation: none;
+    opacity: 0.5;
+  }
+}
+
 .caret::after {
   content: "";
   display: inline-block;

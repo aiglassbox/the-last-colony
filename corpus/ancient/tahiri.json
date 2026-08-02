@@ -16,7 +16,7 @@
     "text": "Mānasollāsa",
     "author": "Someśvara III",
     "century": "1129 CE",
-    "locus": "Annabhoga — the rice and vegetable preparations",
+    "locus": "Annabhoga, the rice and vegetable preparations",
     "edition": "Gaekwad's Oriental Series",
     "page": null
   },
@@ -29,7 +29,7 @@
       "sanskrit": "kuṣmāṇḍa",
       "quantity_source": null,
       "quantity_modern": "2 cups, diced",
-      "function": "the main vegetable, indigenous to India — high in water, low in starch"
+      "function": "the main vegetable, indigenous to India, high in water, low in starch"
     },
     {
       "name": "brinjal, bottle gourd, snake gourd, pumpkin, yam",
@@ -85,7 +85,7 @@
   "substitution_story": {
     "changed": [
       {
-        "from": "ash gourd and other indigenous vegetables — brinjal, bottle gourd, snake gourd, pumpkin, yam",
+        "from": "ash gourd and other indigenous vegetables, brinjal, bottle gourd, snake gourd, pumpkin, yam",
         "to": "potato as the primary bulk vegetable",
         "period": "post-16th century",
         "driver": "the potato arrived from the Americas and proved cheaper, more storable and more filling than the gourds and yams it replaced. It did not add a vegetable to the repertoire so much as take over the role several native ones had held"
@@ -110,7 +110,7 @@
   },
   "restore_today": {
     "ingredients": [
-      "2 cups ash gourd (petha / kumbalanga), diced — or pumpkin, bottle gourd, yam",
+      "2 cups ash gourd (petha / kumbalanga), diced, or pumpkin, bottle gourd, yam",
       "1 cup hand-pounded or single-polished rice",
       "2 tbsp cold-pressed sesame oil",
       "1 tsp black pepper, 1 inch ginger",
@@ -130,7 +130,7 @@
   "vitalife_relevance": "high",
   "verification": {
     "status": "editor_verified",
-    "checked_by": "Vitalife editorial extraction — “Recipes: Before British”",
+    "checked_by": "Vitalife editorial extraction, “Recipes: Before British”",
     "checked_on": "2026-07-30",
     "note": "Transcribed from the editorial extraction, which points at the Mānasollāsa's rice-and-vegetable preparations generally rather than a single passage. Classed RECONSTRUCTED for that reason."
   }

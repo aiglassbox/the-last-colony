@@ -84,7 +84,7 @@
     "method": 0.9
   },
   "contested_points": [
-    "Bedhai or bedmi in UP and north India today is commonly deep-fried like a puri. This text explicitly describes a stuffed roti cooked on a tawa and finished over open flame — closer to a stuffed paratha or a rustic roti.",
+    "Bedhai or bedmi in UP and north India today is commonly deep-fried like a puri. This text explicitly describes a stuffed roti cooked on a tawa and finished over open flame, closer to a stuffed paratha or a rustic roti.",
     "The source text also makes Ayurvedic claims about the dish. This project does not repeat medical claims of any kind, so they are recorded here as part of the text and not as anything else."
   ],
   "modern_counterpart_id": "modern-aloo-paratha-001",
@@ -113,16 +113,16 @@
     "ingredients": [
       "2 cups whole wheat flour",
       "1 cup urad dal, soaked 4 hours and ground to a thick paste",
-      "1 tsp garam masala, 1 inch ginger grated, salt — all mixed into the dal",
+      "1 tsp garam masala, 1 inch ginger grated, salt, all mixed into the dal",
       "Ghee to finish"
     ],
     "steps": [
       "Knead the flour into a soft dough and rest it 20 minutes.",
-      "Grind the soaked urad thick — a paste, not a batter — and mix in garam masala, ginger and salt.",
+      "Grind the soaked urad thick, a paste, not a batter, and mix in garam masala, ginger and salt.",
       "Flatten a dough ball, spoon the pitthi in, seal it, and roll out carefully. This is the step that takes practice; a thick paste tears less than a wet one.",
       "Cook on a hot tawa, both sides.",
       "Lift it off and hold it over the flame at a distance until it puffs.",
-      "Smear with ghee and eat it immediately — the text is insistent on that.",
+      "Smear with ghee and eat it immediately, the text is insistent on that.",
       "Against an aloo paratha it is higher in protein and fibre and lower in starch, and it keeps you full longer."
     ],
     "time_min": 50
@@ -132,7 +132,7 @@
   "vitalife_relevance": "medium",
   "verification": {
     "status": "editor_verified",
-    "checked_by": "Vitalife editorial extraction — “Recipes: Before British”",
+    "checked_by": "Vitalife editorial extraction, “Recipes: Before British”",
     "checked_on": "2026-07-30",
     "note": "Original Hindi passage, page number and section transcribed from the editorial extraction (Pāka Śāstra, p. 169). The Ayurvedic claims in the source are deliberately not carried into the record's claims."
   }

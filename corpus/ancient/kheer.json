@@ -30,7 +30,7 @@
       "sanskrit": "kaṅgu",
       "quantity_source": null,
       "quantity_modern": "1/3 cup",
-      "function": "the grain. Still fully available today as navane, thinai or kangni — not obsolete, merely displaced"
+      "function": "the grain. Still fully available today as navane, thinai or kangni, not obsolete, merely displaced"
     },
     {
       "name": "wild rice",
@@ -59,8 +59,8 @@
     "method": 0.8
   },
   "contested_points": [
-    "The identity of nīvāra is disputed — Hygroryza aristata (water-grass), wild Oryza rufipogon, and a generic term for self-sown paddy have all been argued. Caraka treats it as a distinct śūka-dhānya. The extraction presents all three and chooses none.",
-    "The order matters and is often reversed today: the milk is reduced first, and the grain cooked in it — not the grain cooked and milk added after."
+    "The identity of nīvāra is disputed, Hygroryza aristata (water-grass), wild Oryza rufipogon, and a generic term for self-sown paddy have all been argued. Caraka treats it as a distinct śūka-dhānya. The extraction presents all three and chooses none.",
+    "The order matters and is often reversed today: the milk is reduced first, and the grain cooked in it, not the grain cooked and milk added after."
   ],
   "modern_counterpart_id": "modern-kheer-001",
   "substitution_story": {
@@ -95,13 +95,13 @@
     "ingredients": [
       "1 litre full-fat milk",
       "1/3 cup foxtail millet (navane / thinai), or hand-pounded red rice",
-      "Jaggery or sugar — on the table, not in the pot"
+      "Jaggery or sugar, on the table, not in the pot"
     ],
     "steps": [
       "Reduce the milk first. Low flame, wide pan, 30–40 minutes, stirring so it does not catch. This is the dish; there is no shortcut.",
       "Add the millet to the reduced milk and cook until thick enough to lick off a spoon.",
       "Serve it mid-meal, and put the jaggery on the table.",
-      "It will taste milky and only faintly sweet. That is not an incomplete kheer — that is what payasa was."
+      "It will taste milky and only faintly sweet. That is not an incomplete kheer, that is what payasa was."
     ],
     "time_min": 55
   },
@@ -110,7 +110,7 @@
   "vitalife_relevance": "low",
   "verification": {
     "status": "editor_verified",
-    "checked_by": "Vitalife editorial extraction — “Recipes: Before British”",
+    "checked_by": "Vitalife editorial extraction, “Recipes: Before British”",
     "checked_on": "2026-07-30",
     "note": "Passage located and rendered in the editorial extraction, dated 1129 CE, including the disputed identification of nīvāra. Devanagari not yet transcribed into this record."
   }

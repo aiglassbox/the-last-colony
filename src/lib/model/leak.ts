@@ -64,7 +64,7 @@ const FINGERPRINTS: string[] = [
  * The trade is made the other way: hold barely a sentence, and rely on
  * `redact` for a leak that only becomes recognisable later.
  */
-export const LEAK_HOLD = 180;
+export const LEAK_HOLD = 120;
 
 /** The fingerprint a passage reproduces, or null. Case-sensitive by design. */
 export function findLeak(text: string): string | null {

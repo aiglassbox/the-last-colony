@@ -29,7 +29,7 @@
       "sanskrit": "māṣa",
       "quantity_source": null,
       "quantity_modern": "2 cups, soaked",
-      "function": "the entire batter. Zero rice — the ancient idli is 100% urad, which is why it was dense, soft and custardy rather than light and open"
+      "function": "the entire batter. Zero rice, the ancient idli is 100% urad, which is why it was dense, soft and custardy rather than light and open"
     },
     {
       "name": "asafoetida water",
@@ -70,7 +70,7 @@
   "method_reconstructed": [
     "Soak split black gram and rub off the husks by hand.",
     "Grind on the grinding-stone, mix in the seasonings, and knead many times in a pot.",
-    "Set it aside until the paste has soured — the text is explicit that it is soured before moulding.",
+    "Set it aside until the paste has soured, the text is explicit that it is soured before moulding.",
     "Spoon into vaṭikā moulds, cover with other vessels, and cook through.",
     "Take off the heat, scatter powdered pepper over, smear with ghee.",
     "Fumigate with asafoetida-ghee and cumin. Serve well-cooled, white and smooth."
@@ -82,7 +82,7 @@
     "method": 0.85
   },
   "contested_points": [
-    "The passage describes a soured urad paste, so the batter was fermented — but it says nothing about rice, and the modern 2:1 to 3:1 rice-to-urad batter has no basis in it.",
+    "The passage describes a soured urad paste, so the batter was fermented, but it says nothing about rice, and the modern 2:1 to 3:1 rice-to-urad batter has no basis in it.",
     "The cakes were served cooled, not hot from the steamer."
   ],
   "modern_counterpart_id": "modern-idli-001",
@@ -122,7 +122,7 @@
       "Work in the asafoetida water, ginger and salt. Cover and leave 8–12 hours somewhere warm, until it smells sour.",
       "Fill greased moulds three-quarters full, cover, and steam 12–14 minutes.",
       "Scatter powdered pepper over, smear with ghee, and finish with cumin.",
-      "Let them cool before eating — the text is specific about that, and a cooled 100% urad cake is a different thing from a hot rice idli.",
+      "Let them cool before eating, the text is specific about that, and a cooled 100% urad cake is a different thing from a hot rice idli.",
       "Denser and custardy, and it tastes of dal and pepper rather than of nothing."
     ],
     "time_min": 45
@@ -132,7 +132,7 @@
   "vitalife_relevance": "none",
   "verification": {
     "status": "editor_verified",
-    "checked_by": "Vitalife editorial extraction — “Recipes: Before British”",
+    "checked_by": "Vitalife editorial extraction, “Recipes: Before British”",
     "checked_on": "2026-07-30",
     "note": "Passage located and translated in the editorial extraction, dated 1129 CE. The Devanagari has not yet been transcribed into this record, so the source drawer shows the translation and says so."
   }
