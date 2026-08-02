@@ -1,5 +1,6 @@
 "use client";
 
+import { parseCommand } from "@/lib/chat/commands";
 import type { CorpusRecord } from "@/lib/corpus/types";
 
 /**
@@ -67,11 +68,32 @@ export function emptyConversation(): Conversation {
   };
 }
 
-/** First user message, trimmed. The convention every chat product uses. */
+const MAX_TITLE = 42;
+
+/** Raises the first letter of each word, leaving the rest of it alone. */
+function titleCase(text: string): string {
+  return text.replace(/\S+/g, (word) => word[0].toUpperCase() + word.slice(1));
+}
+
+/**
+ * The first user message as a thread name.
+ *
+ * The composer sends `/recipe-card kheer`, but the slash is addressed to the
+ * server, not to the reader — the rail should read `Kheer · Recipe Card`. The
+ * command survives as a suffix rather than being dropped, so two threads on
+ * the same dish under different commands stay tellable apart.
+ */
 export function deriveTitle(messages: ChatMessage[]): string {
   const first = messages.find((m) => m.role === "user")?.text.trim();
   if (!first) return "New restoration";
-  return first.length > 42 ? `${first.slice(0, 42)}…` : first;
+
+  const { command, rest } = parseCommand(first);
+  if (!rest) return command ? command.short : "New restoration";
+
+  const suffix = command ? ` · ${command.short}` : "";
+  const room = MAX_TITLE - suffix.length;
+  const dish = titleCase(rest);
+  return (dish.length > room ? `${dish.slice(0, room - 1)}…` : dish) + suffix;
 }
 
 function read(): Conversation[] {

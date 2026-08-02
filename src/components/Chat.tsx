@@ -23,6 +23,7 @@ import {
   subscribe,
   type ChatMessage,
 } from "@/lib/chat/store";
+import { PROSE, Typewriter } from "@/lib/chat/typewriter";
 import type { CorpusRecord } from "@/lib/corpus/types";
 import {
   getServerSnapshot as railServerSnapshot,
@@ -58,7 +59,7 @@ const SUBHEADING =
   "Enter a modern dish to unearth its original, pre-1858 recipe and see what British cash-crop policies erased from our diet.";
 
 interface StreamEvent {
-  type: "meta" | "delta" | "text" | "done" | "error";
+  type: "meta" | "delta" | "text" | "done" | "error" | "redact";
   mode?: "restoration" | "conversation" | "indianize";
   records?: CorpusRecord[];
   empty?: boolean;
@@ -102,6 +103,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const abortRef = useRef<AbortController | null>(null);
+  const typerRef = useRef<Typewriter | null>(null);
   const threadRef = useRef<HTMLDivElement>(null);
   const stick = useRef(true);
   const promptRef = useRef<HTMLTextAreaElement>(null);
@@ -186,6 +188,19 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
       const controller = new AbortController();
       abortRef.current = controller;
 
+      // The wire order is the reveal order, so one queue covers every beat.
+      const typer = new Typewriter((key, text) => {
+        if (key === PROSE) {
+          patchMessage(conversationId, replyId, (m) => ({ ...m, text: m.text + text }));
+          return;
+        }
+        patchMessage(conversationId, replyId, (m) => ({
+          ...m,
+          beats: { ...m.beats, [key]: (m.beats?.[key] ?? "") + text },
+        }));
+      });
+      typerRef.current = typer;
+
       try {
         const res = await fetch("/api/chat", {
           method: "POST",
@@ -243,22 +258,26 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                 }));
               }
             } else if (evt.type === "delta" && evt.beat) {
-              const beat = evt.beat;
-              patchMessage(conversationId, replyId, (m) => ({
-                ...m,
-                beats: { ...m.beats, [beat]: (m.beats?.[beat] ?? "") + (evt.text ?? "") },
-              }));
+              typer.push(evt.beat, evt.text ?? "");
             } else if (evt.type === "text") {
-              patchMessage(conversationId, replyId, (m) => ({
-                ...m,
-                text: m.text + (evt.text ?? ""),
-              }));
+              typer.push(PROSE, evt.text ?? "");
+            } else if (evt.type === "redact") {
+              // The server caught the completion reproducing the prompt after
+              // some of it had already been sent. Drop what was rendered, and
+              // the queue with it, before the refusal arrives.
+              typer.cancel();
+              patchMessage(conversationId, replyId, (m) => ({ ...m, text: "", beats: {} }));
             } else if (evt.type === "error") {
               patchMessage(conversationId, replyId, (m) => ({ ...m, error: evt.message }));
             }
           }
         }
+
+        // The wire is done; the caret is not. Hold the turn open until the
+        // queue has emptied, or the card would snap to its full text.
+        await typer.finish();
       } catch (err) {
+        typer.cancel();
         if ((err as Error).name !== "AbortError") {
           patchMessage(conversationId, replyId, (m) => ({
             ...m,
@@ -267,6 +286,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
         }
       } finally {
         abortRef.current = null;
+        typerRef.current = null;
         patchMessage(conversationId, replyId, (m) => ({
           ...m,
           streaming: false,

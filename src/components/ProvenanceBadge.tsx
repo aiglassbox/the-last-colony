@@ -25,7 +25,7 @@ const COPY: Record<ProvenanceClass, { label: string; colour: string; explain: st
     label: "Reconstructed",
     colour: "var(--reconstructed)",
     explain:
-      "A source describes this dish, but not completely. The gaps — quantities, timings, sometimes the method — are filled in from food history and from how related preparations were handled. The ingredients are from the text; the recipe is a careful reading.",
+      "A source describes this dish, but not completely. The gaps (quantities, timings, sometimes the method) are filled in from food history and from how related preparations were handled. The ingredients are from the text; the recipe is a careful reading.",
   },
   INFERRED: {
     label: "Inferred",
@@ -37,7 +37,7 @@ const COPY: Record<ProvenanceClass, { label: string; colour: string; explain: st
     label: "Modern dish",
     colour: "var(--modern)",
     explain:
-      "This dish has no ancient original, and we are not going to invent one. What can be restored are its components — the thickener, the fat, the flour, the sweetener.",
+      "This dish has no ancient original, and we are not going to invent one. What can be restored are its components: the thickener, the fat, the flour, the sweetener.",
   },
 };
 

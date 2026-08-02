@@ -196,7 +196,7 @@ export function SwapPanel({
               {!record && (
                 <p style={{ margin: "0.3rem 0 0", color: "var(--ink-soft)", fontSize: "0.9rem" }}>
                   No swap record for this yet. Rather than guess a ratio, we would rather say
-                  so — it has been logged.
+                  so. It has been logged.
                 </p>
               )}
 

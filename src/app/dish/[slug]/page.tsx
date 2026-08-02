@@ -21,7 +21,7 @@ export async function generateMetadata(props: PageProps<"/dish/[slug]">): Promis
   const record = await fileCorpus.bySlug(slug);
   if (!record) return { title: "Not in the restored corpus" };
 
-  const title = `${record.dish_name_modern} — The Great Indian Food Restoration`;
+  const title = `${record.dish_name_modern}: The Great Indian Food Restoration`;
   const description =
     record.provenance_class === "MODERN_DISH"
       ? `${record.dish_name_modern} has no ancient original. Here is what can be restored anyway.`

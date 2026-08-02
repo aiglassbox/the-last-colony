@@ -8,6 +8,9 @@ import { renderIndianizationBlock } from "@/lib/indianization";
 import { BeatParser, INDIANIZE_BEATS, MarkerParser, type StreamingParser } from "@/lib/model/beats";
 import { renderComponentSwaps, renderCorpusBlock, renderRecord } from "@/lib/model/corpus-block";
 import { auditProse, isClean } from "@/lib/model/guards";
+import { lastSentenceEnd, MAX_SENTENCE_HOLD, stripHealthClaims } from "@/lib/model/health";
+import { findLeak, LEAK_HOLD, LEAK_REFUSAL } from "@/lib/model/leak";
+import { danglingTail, styleProse } from "@/lib/model/punctuation";
 import { activeProvider, asQuotaError, MAX_TOKENS, RefusalError } from "@/lib/model/provider";
 import { SYSTEM_PROMPT } from "@/lib/model/system-prompt";
 import { retrieveBySlug, retrieveForDish } from "@/lib/retrieval/retrieve";
@@ -91,6 +94,16 @@ export async function POST(request: NextRequest) {
   const query = rest;
 
   const retrieval = slug ? await retrieveBySlug(slug) : await retrieveForDish(query);
+
+  // A slug names a record directly, so an empty result means the slug is not
+  // one. Asking the model about it invites an answer about some other dish
+  // entirely: `does-not-exist` has come back as a confident card about palak
+  // paneer, which is the prompt's own worked example resurfacing as an answer.
+  // The page route already refuses an unknown slug; the API has to as well.
+  if (slug && retrieval.empty) {
+    return Response.json({ error: "not in the restored corpus" }, { status: 404 });
+  }
+
   const isResolve = retrieval.empty && !slug;
   const label = slug || query;
   const provider = activeProvider();
@@ -130,6 +143,13 @@ export async function POST(request: NextRequest) {
         return;
       }
 
+      // Characters that actually reached the reader. Not the same as what the
+      // model wrote: a restoration turn is parsed for §markers§, and prose that
+      // never emits one is dropped on the floor by the parser.
+      let emitted = 0;
+      /** Set when the completion started reproducing the prompt. */
+      let leaked: string | null = null;
+
       /** Drains a model stream into card beats or prose; returns the full text. */
       async function pump(
         iter: AsyncIterator<string>,
@@ -138,18 +158,90 @@ export async function POST(request: NextRequest) {
         asProse: boolean,
       ): Promise<string> {
         let full = "";
-        const handle = (text: string) => {
+        let carry = "";
+        // Nothing is emitted until the opening of the completion has been read.
+        // A prompt dump begins at the first token, so holding briefly catches it
+        // with the card still blank; text already on screen cannot be recalled.
+        let pending = "";
+        let released = false;
+
+        const release = (text: string) => {
+          if (!text) return;
+          if (asProse) {
+            emitted += text.length;
+            emit({ type: "text", text });
+          } else if (parser) {
+            for (const d of parser.push(text)) {
+              emitted += d.text.length;
+              emit({ type: "delta", ...d });
+            }
+          }
+        };
+
+        const push = (text: string) => {
+          if (!text || leaked) return;
           full += text;
-          if (asProse) emit({ type: "text", text });
-          else if (parser) for (const d of parser.push(text)) emit({ type: "delta", ...d });
+
+          if (!released) {
+            pending += text;
+            leaked = findLeak(pending);
+            if (leaked || pending.length < LEAK_HOLD) return;
+            released = true;
+            release(pending);
+            pending = "";
+            return;
+          }
+
+          // Past the opening, a fingerprint can still appear, and it can span a
+          // chunk boundary, so the tail of what came before is checked with it.
+          leaked = findLeak(full.slice(-(LEAK_HOLD + text.length)));
+          if (leaked) return;
+          release(text);
+        };
+
+        const flushPending = () => {
+          if (leaked || released || !pending) return;
+          released = true;
+          release(pending);
+          pending = "";
+        };
+
+        // A rewrite can land on a chunk boundary, so the trailing fragment it
+        // might be part of is held back until the next chunk shows what follows.
+        //
+        // The unit is a sentence, not a character, because a health claim can
+        // only be judged against the whole sentence: the adjective is cut where
+        // the sentence survives without it and the sentence is dropped where it
+        // does not. Half a sentence cannot be told apart from either.
+        const handle = (chunk: string) => {
+          const merged = carry + chunk;
+          const boundary = lastSentenceEnd(merged);
+          if (!boundary && merged.length < MAX_SENTENCE_HOLD) {
+            carry = merged;
+            return;
+          }
+          // A passage with no sentence end in it at all is released anyway
+          // rather than held forever; only the punctuation rules apply to it.
+          const cut = boundary || merged.length - danglingTail(merged);
+          carry = merged.slice(cut);
+          push(stripHealthClaims(styleProse(merged.slice(0, cut))));
         };
         if (first) handle(first);
         for (;;) {
+          if (leaked) break;
           const { value, done } = await iter.next();
           if (done) break;
           if (value) handle(value);
         }
-        if (!asProse && parser) for (const d of parser.end()) emit({ type: "delta", ...d });
+        // The stream is over, so whatever is left is a complete thought.
+        push(stripHealthClaims(styleProse(carry)));
+        // A reply shorter than the hold is the common case, not an edge one.
+        flushPending();
+        if (!asProse && parser)
+          for (const d of parser.end()) {
+            emitted += d.text.length;
+            emit({ type: "delta", ...d });
+          }
         return full;
       }
 
@@ -176,6 +268,9 @@ export async function POST(request: NextRequest) {
 
         let full: string;
         let auditRecords: CorpusRecord[];
+        // Which channel a fallback would have to go down, if the model returns
+        // nothing usable. Set alongside every pump call.
+        let proseTurn = false;
 
         if (!isResolve) {
           // ---- Corpus hit (or slug): deterministic restoration -------------
@@ -209,6 +304,7 @@ export async function POST(request: NextRequest) {
             `${renderCorpusBlock(records)}${swapBlock}\n\n${instruction}${directive}\n\nUser said: ${label}`,
           )[Symbol.asyncIterator]();
           auditRecords = records;
+          proseTurn = false;
           full = await pump(iter, undefined, new BeatParser(), false);
         } else {
           // ---- Corpus miss: the model decides the turn ----------------------
@@ -242,7 +338,9 @@ export async function POST(request: NextRequest) {
             "§VERDICT§ states plainly it is a modern dish, not ancient; §THEN§ gives its " +
             "short honest history and names which defining ingredients are Columbian-" +
             "exchange arrivals; §WHAT_CHANGED§ the nutrition shift on a named axis; " +
-            "§RESTORE_TODAY§ a healthier version built from <component_swaps> and older " +
+            // Not "a healthier version": the model echoes the brief's own
+            // wording back onto the card, and that word is a health claim.
+            "§RESTORE_TODAY§ a version built from <component_swaps> and older " +
             "cooking principles. Do not invent an ancient text or verse.\n" +
             "- MODE: RESTORE — an Indian dish that likely had an older form we simply " +
             "have not documented yet (not obviously modern); then the same four markers, " +
@@ -306,7 +404,54 @@ export async function POST(request: NextRequest) {
                 ? new BeatParser()
                 : null;
           auditRecords = outRecords;
-          full = await pump(iter, remainder, parser, resolved === "reply");
+          proseTurn = resolved === "reply";
+          full = await pump(iter, remainder, parser, proseTurn);
+        }
+
+        // The completion started reproducing the prompt. Whatever it was going
+        // to say next is not worth the rest of the rule list, so the turn ends
+        // here and the reader gets a refusal instead of a document.
+        if (leaked) {
+          console.warn(
+            `[prompt-leak] ${JSON.stringify({
+              query: label,
+              vendor: provider.vendor,
+              model: provider.model,
+              fingerprint: leaked,
+              emitted,
+            })}`,
+          );
+          // Caught after the hold released, so some of the dump is already on
+          // screen. Tell the client to throw away what it has rendered for this
+          // turn before the refusal replaces it.
+          if (emitted) emit({ type: "redact" });
+          emit(
+            proseTurn
+              ? { type: "text", text: LEAK_REFUSAL }
+              : { type: "delta", beat: "VERDICT", text: LEAK_REFUSAL },
+          );
+          emit({ type: "done" });
+          controller.close();
+          return;
+        }
+
+        // Nothing reached the reader. Two ways to get here, and they want
+        // different answers. If the model wrote prose but never a §marker§ the
+        // parser dropped it, so the words are recoverable and putting them in
+        // the verdict is better than throwing them away. If it wrote nothing at
+        // all, say so: retrieval declining is correct and common, `rice` is
+        // ambiguous rather than a dish, but a blank card reads as broken, and
+        // inventing a dish to fill it is the one thing this must never do.
+        if (!emitted) {
+          const text =
+            full.trim() ||
+            "I could not match that to a dish. Name one dish on its own, " +
+              "the way you would say it at home, and I will show you what it was.";
+          emit(
+            proseTurn
+              ? { type: "text", text }
+              : { type: "delta", beat: "VERDICT", text },
+          );
         }
 
         // Tripwire, not a gate. The badge and source strip already come from the

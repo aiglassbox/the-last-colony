@@ -18,6 +18,8 @@ export interface SlashCommand {
   /** Without the leading slash. */
   slug: string;
   label: string;
+  /** Label for the thread title, where the dish is already the subject. */
+  short: string;
   /** Composer placeholder once the command is in the box. */
   hint: string;
   /** Appended to the turn instruction. Narrows the answer; never widens it. */
@@ -28,6 +30,7 @@ export const COMMANDS: SlashCommand[] = [
   {
     slug: "recipe-card",
     label: "Generate Recipe Card",
+    short: "Recipe Card",
     hint: "…and the dish to lay out as a card",
     instruction:
       "The reader asked for a recipe card. Make RESTORE_TODAY complete enough to " +
@@ -38,6 +41,7 @@ export const COMMANDS: SlashCommand[] = [
   {
     slug: "pre-raj",
     label: "Pre-Raj Version",
+    short: "Pre-Raj",
     hint: "…and the dish to take back before 1858",
     instruction:
       "The reader asked specifically what this dish was before the colonial " +
@@ -47,6 +51,7 @@ export const COMMANDS: SlashCommand[] = [
   {
     slug: "healthier-swap",
     label: "Healthier Swap",
+    short: "Swap",
     hint: "…and the ingredient or dish to swap",
     instruction:
       "The reader asked for a substitution. Every swap must come from the swap " +
@@ -57,6 +62,7 @@ export const COMMANDS: SlashCommand[] = [
   {
     slug: "oil-match",
     label: "Oil Match",
+    short: "Oil Match",
     hint: "…and the dish to match a cooking fat to",
     instruction:
       "The reader asked which cooking fat suits this dish. Answer from the fat " +

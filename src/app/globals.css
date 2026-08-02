@@ -1009,6 +1009,12 @@ body {
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+  /* Content scrolls beneath the composer, so the last 40px fades out rather
+     than being sliced off at a hard edge. The fade masks the content itself:
+     painting a band of --stage over it instead left a pale seam wherever the
+     glow behind was orange and the flat colour was not. */
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 40px), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 40px), transparent);
 }
 
 .thread__inner {
@@ -1021,19 +1027,6 @@ body {
   position: relative;
   flex: 0 0 auto;
   padding: 0 var(--s-5) var(--s-5);
-}
-
-/* Content scrolls beneath the composer, so it fades out rather than being
-   sliced off at a hard edge. */
-.thread__foot::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 100%;
-  height: 40px;
-  pointer-events: none;
-  background: linear-gradient(to top, var(--stage), transparent);
 }
 
 .thread__foot-inner {

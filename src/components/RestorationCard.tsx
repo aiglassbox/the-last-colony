@@ -79,7 +79,7 @@ export function RestorationCard({ data }: { data: CardData }) {
             }}
           >
             {data.modern
-              ? "A modern dish — no ancient original. What follows is its short history and a lighter version built on older principles, not drawn from a specific text."
+              ? "A modern dish, with no ancient original. What follows is its short history and a lighter version built on older principles, not drawn from a specific text."
               : "Not in the restored corpus yet. Nothing below is drawn from a text, because there is no text here to draw from."}
           </p>
         )}
@@ -290,7 +290,7 @@ function IngredientTable({ record }: { record: CorpusRecord }) {
                 )}
               </td>
               <td style={{ ...cell, color: "var(--ink-soft)", whiteSpace: "nowrap" }}>
-                {i.quantity_modern ?? i.quantity_source ?? "—"}
+                {i.quantity_modern ?? i.quantity_source ?? "not recorded"}
               </td>
               <td style={{ ...cell, color: "var(--ink-soft)" }}>{i.function}</td>
             </tr>
@@ -358,7 +358,7 @@ function SourceStrip({ record, onOpen }: { record: CorpusRecord; onOpen: () => v
         <div style={{ fontSize: "0.82rem", color: "var(--ink-soft)" }}>
           {verified
             ? [record.source.locus, record.source.edition].filter(Boolean).join(" · ")
-            : "Citation not yet verified — no verse or page shown"}
+            : "Citation not yet verified, so no verse or page is shown"}
         </div>
       </div>
       <span className="mono" style={{ marginLeft: "auto", color: "var(--orange)" }}>
@@ -445,8 +445,8 @@ function NutritionDelta({ record }: { record: CorpusRecord }) {
         ))}
       </div>
       <p style={{ margin: "0.6rem 0 0", fontSize: "0.8rem", color: "var(--ink-muted)" }}>
-        A comparison between two versions of one dish. Not a health claim, and not advice —
-        for anything personal, talk to a doctor or a dietitian.
+        A comparison between two versions of one dish. Not a health claim, and not advice.
+        For anything personal, talk to a doctor or a dietitian.
       </p>
     </div>
   );

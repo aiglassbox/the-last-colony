@@ -81,8 +81,8 @@ export function History({ conversations, currentId, onSelect, onDelete, onNew }:
           <div className="history__empty card">
             <MessageSquare size={22} aria-hidden />
             <p>
-              Name a dish and the thread will be saved here. Nothing leaves the browser — clearing
-              site data clears the history with it.
+              Name a dish and the thread will be saved here. Nothing leaves the browser, so
+              clearing site data clears the history with it.
             </p>
           </div>
         ) : (

@@ -49,8 +49,15 @@ export async function GET(_request: Request, ctx: RouteContext<"/api/share/[slug
     ? await fileCorpus.byId(record.modern_counterpart_id)
     : null;
 
-  const then = record.ingredients.slice(0, 5).map((i) => i.name);
-  const now = (counterpart?.ingredients ?? []).slice(0, 5).map((i) => i.name);
+  // Which column the record's own ingredients belong in depends on where the
+  // record sits in time. A modern dish has no ancestor to diff against, so its
+  // ingredients are the Now — filing potato, tomato and pav under THEN would
+  // claim exactly the history the record was written to deny.
+  const own = record.ingredients.slice(0, 5).map((i) => i.name);
+  const other = (counterpart?.ingredients ?? []).slice(0, 5).map((i) => i.name);
+  const isModern = record.provenance_class === "MODERN_DISH";
+  const then = isModern ? other : own;
+  const now = isModern ? own : other;
 
   return new ImageResponse(
     (
@@ -101,8 +108,8 @@ export async function GET(_request: Request, ctx: RouteContext<"/api/share/[slug
 
         {(then.length > 0 || now.length > 0) && (
           <div style={{ display: "flex", gap: 28 }}>
-            <Column title="Then" colour={THEN} items={then} />
-            <Column title="Now" colour={NOW} items={now} />
+            {then.length > 0 && <Column title="Then" colour={THEN} items={then} />}
+            {now.length > 0 && <Column title="Now" colour={NOW} items={now} />}
           </div>
         )}
 

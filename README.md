@@ -31,7 +31,7 @@ src/lib/retrieval/ normalisation, BM25, the threshold and ambiguity gates
 src/lib/model/     system prompt, corpus block, streaming beat parser
 src/lib/chat/      conversation state as an external store, localStorage-backed
 src/app/           chat surface, /dish/[slug], API routes, 1080×1350 share card
-tests/             105 hand-checked retrieval queries
+tests/             132 hand-checked retrieval queries
 ```
 
 ### Two kinds of turn
@@ -172,7 +172,7 @@ fibre, glycaemic load — because "healthier" on its own is not a claim this
 project makes, and some entries say outright that they win on flavour and
 nothing else.
 
-`tests/retrieval-queries.json` holds 105 hand-checked queries covering Hinglish
+`tests/retrieval-queries.json` holds 132 hand-checked queries covering Hinglish
 spellings, Devanagari and Tamil, and the traps above. The harness fails the
 build on any **wrong** answer and on more misses than `ALLOWED_MISSES` (zero).
 
