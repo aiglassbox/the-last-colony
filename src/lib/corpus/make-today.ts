@@ -47,18 +47,45 @@ const DISPLACEMENTS = (displacementData as { displacements: Displacement[] }).di
 const TECHNIQUES = (techniqueData as { techniques: Technique[] }).techniques;
 
 /**
+ * Matching that does not fire inside other words.
+ *
+ * Plain `includes` found "dal" in "kadalikanda" — the Sanskrit for banana
+ * rhizome — and told a reader to keep the pulses in a dish that has none. Every
+ * table in this project has now been bitten by substring matching at least
+ * once, so the boundaries are explicit.
+ *
+ * `whole` for ingredients, where every term is a complete word. Prefix-only for
+ * techniques, where terms like "deep-fr" and "fumigat" are deliberately partial
+ * so they catch "deep-fried" and "fumigating".
+ */
+export function matchesIngredient(haystack: string, terms: string[]): boolean {
+  return matches(haystack, terms, "whole");
+}
+
+function matches(haystack: string, terms: string[], mode: "whole" | "prefix"): boolean {
+  return terms.some((term) => {
+    const escaped = term.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const pattern = mode === "whole" ? `\\b${escaped}\\b` : `\\b${escaped}`;
+    return new RegExp(pattern, "i").test(haystack);
+  });
+}
+
+/**
  * Which displaced ingredients the cook should hold on to.
  *
  * **Not every displacement is a loss, and this is the safety rule.** Rock salt
  * gave way to iodised salt through a public-health programme that corrected a
  * real deficiency, and solid fuel gave way to LPG because its smoke causes
- * respiratory disease. Both entries carry `direction: "up"` and a caution
- * saying so. Feeding them through a "keep the traditional side" instruction
- * would tell a reader to avoid iodised salt and cook on charcoal, which is
- * advice that harms people.
+ * respiratory disease. Telling a reader to reverse either is advice that harms
+ * them, so both are excluded.
  *
- * So only a displacement that actually went the wrong way — `direction: "down"`,
- * and no caution attached — becomes something to preserve.
+ * The test is the presence of a `caution`, which is what that field marks. It
+ * is emphatically **not** `direction`, which only says which way a nutrition
+ * axis moved and means opposite things on different axes: fat quality went
+ * *down* with vanaspati and glycaemic load went *up* with refined sugar, and
+ * both are losses. Filtering on `direction === "down"` silently dropped the
+ * sugar guidance from every sweet dish in the corpus — 76 recipes — because its
+ * axis happens to point the other way.
  */
 export function keepTraditional(recipe: Recipe): Array<{ keep: string; not: string }> {
   const haystack = recipe.ingredients
@@ -66,17 +93,14 @@ export function keepTraditional(recipe: Recipe): Array<{ keep: string; not: stri
     .join(" | ");
 
   return DISPLACEMENTS.filter(
-    (d) =>
-      d.direction === "down" &&
-      !d.caution &&
-      d.matches.some((m) => haystack.includes(m.toLowerCase())),
+    (d) => !d.caution && matches(haystack, d.matches, "whole"),
   ).map((d) => ({ keep: d.traditional, not: d.replaced_by }));
 }
 
 /** Archaic methods in this recipe's steps, and how to do them now. */
 export function translateTechniques(recipe: Recipe): Technique[] {
   const steps = recipe.steps.join(" ").toLowerCase();
-  return TECHNIQUES.filter((t) => t.matches.some((m) => steps.includes(m.toLowerCase())));
+  return TECHNIQUES.filter((t) => matches(steps, t.matches, "prefix"));
 }
 
 export interface MakeToday {

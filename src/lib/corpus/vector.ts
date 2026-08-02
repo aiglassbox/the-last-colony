@@ -1,6 +1,6 @@
 import displacementData from "@pipeline/data/displacements.json";
 import type { Recipe } from "@pipeline/lib/types";
-import { makeToday } from "./make-today";
+import { makeToday, matchesIngredient } from "./make-today";
 
 import type { CorpusRecord, Ingredient } from "./types";
 
@@ -207,9 +207,10 @@ function substitutionStoryOf(recipe: Recipe): CorpusRecord["substitution_story"]
     .map((i) => `${i.modern_name ?? ""} ${i.original ?? ""}`.toLowerCase())
     .join(" | ");
 
-  const applicable = DISPLACEMENTS.filter((d) =>
-    d.matches.some((m) => haystack.includes(m.toLowerCase())),
-  );
+  // Word boundaries, not substrings: "dal" otherwise matches "kadalikanda".
+  // Shared with `make-today.ts` so the two derivations cannot disagree about
+  // which displacements apply to the same dish.
+  const applicable = DISPLACEMENTS.filter((d) => matchesIngredient(haystack, d.matches));
   if (applicable.length === 0) return null;
 
   const nutrition_delta: Record<string, string> = {};
