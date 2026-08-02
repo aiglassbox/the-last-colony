@@ -164,21 +164,36 @@ export const fileCorpus: CorpusRepository = {
     // names could never answer.
     //
     // It also breaks rule 3, "retrieval declines rather than guesses". With it
-    // on, `tests/retrieval-queries.json` falls from 132/132 to 108/132:
+    // on, `tests/retrieval-queries.json` gives 114/132 — eighteen wrong
+    // ancestors. Those eighteen were separated by hand from six cases that were
+    // merely stale expectations (samosa, jalebi, puran poli, sambar, halwa,
+    // sattu all have genuine records among the 199, and are now marked
+    // `via: "vector"`), so what remains is real:
     //
-    //     "asdfgh"          -> ksk-tindisaka-031      (0.57)
-    //     "recipe"          -> pbr-arisi-upma-025     (0.64)
-    //     "butter chicken"  -> wf-puryalakhya-153     (0.60)
+    //     not a dish at all (5)   "asdfgh", "recipe", "kaise banate hain",
+    //                             "tell me about food", "what did my grandmother eat"
+    //     foreign dish (2)        "sushi" -> Spiced Fried Fish
+    //                             "pizza" -> Pre-Colonial Vegetable Rice
+    //     modern Indian (9)       "butter chicken" -> a 12th-century chicken dish
+    //                             "dhokla", "thepla", "misal pav", "paneer tikka",
+    //                             "biryani", "rajma chawal", "bisi bele bath",
+    //                             "chicken tikka masala"
+    //     ambiguous (1)           "rice"
+    //     false cognate (1)       "appam" -> Apupa, a fried sweet cake
     //
-    // A wrong ancestor for butter chicken is the campaign risk this project
-    // exists to avoid. And no threshold fixes it: "asdfgh" scores 0.57 while
-    // "jalebi" scores 0.72 and is *correct* — the pipeline's own negative
-    // controls found the same overlap, on cosine and on rerank scores alike.
+    // No threshold separates these from the good hits: "asdfgh" scores 0.57
+    // while "jalebi" scores 0.72 and is correct. The pipeline's negative
+    // controls found the same overlap on cosine and on all three rerankers.
     //
-    // What is missing is a decline gate for the vector path equivalent to the
-    // unknown-token veto and ambiguity gate the keyword path already has.
-    // Until that exists and the harness passes at 132/132 with this on, the
-    // wider net stays behind a switch.
+    // But the categories point at the fix. Foreign dishes and modern Indian
+    // dishes are already handled — the model classifies them as INDIANISE and
+    // MODERN, and the card frames them honestly. The bug is one of ordering:
+    // retrieval answers first, so a corpus hit is declared before the model
+    // ever gets to say "this is modern". The wider net probably belongs on the
+    // resolve path, offered to the model as context, rather than on the hit
+    // path where it silently wins.
+    //
+    // Until that is built and the harness passes with this on, it stays off.
     if (process.env.VECTOR_FALLBACK !== "on") return [];
 
     // Failure returns empty rather than throwing. An index outage should cost

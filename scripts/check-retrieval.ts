@@ -17,13 +17,25 @@ interface Case {
   q: string;
   expect: string | null;
   why?: string;
+  /**
+   * `vector` marks a case only the pipeline index can answer. Six queries —
+   * samosa, jalebi, puran poli, sambar, halwa, sattu — have genuine records
+   * among the 199 and none among the 31, so they expected `null` purely
+   * because the test predates the index. They are real expectations, not
+   * optional ones, and skipping them when the fallback is off is the honest
+   * reading: the answer exists, this configuration just cannot reach it.
+   */
+  via?: "vector";
 }
 
 const ALLOWED_MISSES = 0;
+const VECTOR_ON = process.env.VECTOR_FALLBACK === "on";
 
 async function main() {
   const path = join(process.cwd(), "tests", "retrieval-queries.json");
-  const { cases } = JSON.parse(readFileSync(path, "utf8")) as { cases: Case[] };
+  const all = (JSON.parse(readFileSync(path, "utf8")) as { cases: Case[] }).cases;
+  const skipped = VECTOR_ON ? [] : all.filter((c) => c.via === "vector");
+  const cases = VECTOR_ON ? all : all.filter((c) => c.via !== "vector");
 
   const misses: Array<{ c: Case; got: string | null; score: number }> = [];
   const wrongs: Array<{ c: Case; got: string | null; score: number }> = [];
@@ -43,6 +55,12 @@ async function main() {
   }
 
   console.log(`\n${pass}/${cases.length} hand-checked queries pass\n`);
+  if (skipped.length) {
+    console.log(
+      `  (${skipped.length} skipped — answerable only via the index, which is off: ` +
+        `${skipped.map((c) => `"${c.q}"`).join(", ")}.\n   Run with VECTOR_FALLBACK=on to include them.)\n`,
+    );
+  }
 
   if (misses.length) {
     console.log(`  MISS (${misses.length}) — expected a dish, retrieval declined:`);
