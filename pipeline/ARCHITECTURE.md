@@ -206,9 +206,16 @@ smoke test had suggested otherwise — `bge` returned 0.947 for a correct record
 against 0.002 for its neighbours — but that was one query, and across the full
 negative-control set no cutoff separates the populations.
 
-The `bge` version of this measurement is **unfinished**: Pinecone's 500/month
-rerank quota ran out before it could run. So "can a cross-encoder reject junk"
-is answered *no for Jina* and *unknown for bge*.
+Measured again on `Qwen3-Reranker-4B`, at 97% the best reranker here:
+
+```
+worst genuine match  0.0102
+best junk query      0.1302     overlap of 0.1200
+```
+
+Same answer. **Three rerankers, three overlaps** — junk outscores the weakest
+real answer on every one, exactly as it does on cosine. Treat "a score threshold
+can reject junk" as settled: it cannot, at either stage.
 
 **Rejection therefore remains the grounding prompt's job**, backed by the fact
 that every hit carries its own citation. Do not add a rerank-score cutoff
@@ -279,18 +286,31 @@ was not the shipped one.
 present wins, `RERANK_PROVIDER` forces a choice. Measured on the same 32-query
 gold set, with `gemini-embedding-001` underneath:
 
-| Reranker | R@1 | R@3 | MRR | devanagari R@1 |
-|---|---|---|---|---|
-| none (dense only) | 88% | 97% | 0.925 | 100% |
-| **`bge-reranker-v2-m3`** (Pinecone) | **97%** | **100%** | **0.984** | **100%** |
-| `jina-reranker-v3` | 91% | 94% | 0.933 | 75% |
+| Reranker | Host | R@1 | R@3 | MRR | Ceiling |
+|---|---|---|---|---|---|
+| none (dense only) | — | 88% | 97% | 0.925 | — |
+| `bge-reranker-v2-m3` | Pinecone | 97% | 100% | 0.984 | 500 req/month, org-wide |
+| **`Qwen3-Reranker-4B`** | **DeepInfra** | **97%** | **100%** | **0.984** | **none — pay per token** |
+| `jina-reranker-v3` | Jina | 91% | 94% | 0.933 | 100k tokens/min |
 
-**Jina is a downgrade here, and not a marginal one.** Its Recall@3 is *below
+**`Qwen3-Reranker-4B` on DeepInfra is the one to use, and is the default.** It
+matches `bge` exactly — same 97%, same 31-first/1-second/0-missed distribution —
+and is the only option with no monthly ceiling: billing is per token, roughly
+$0.08 per thousand queries. The two ceilings above are not theoretical; both
+were hit during this work, and each time retrieval silently degraded to
+dense-only until `rerank:check` was run.
+
+**Jina is a downgrade, and not a marginal one.** Its Recall@3 is *below
 dense-only* — it demotes correct answers dense retrieval had already placed in
-the top three — and Devanagari Recall@1 falls from 100% to 75%, which is the
-multilingual capability this corpus most depends on. It is kept as a configured
-option because its free allowance is generous enough to run the eval, which is
-how these numbers exist at all. It is not the production choice.
+the top three — and Devanagari Recall@1 falls from 100% to 75%, the multilingual
+capability this corpus most depends on. It stays configured because its free
+allowance unblocked the evaluation that produced these numbers. It is not the
+production choice.
+
+Two lessons worth keeping. Newer and larger did not mean better: `jina-v3` is
+both, and lost six points. And a reranker's quality is a property of the model,
+not the host — the question was never "which vendor", it was "which model, and
+where can it run without a wall".
 
 `bge-reranker-v2-m3` is the model to run. The obstacle is only where to host it:
 Pinecone caps the free plan at **500 rerank requests per month across the whole
