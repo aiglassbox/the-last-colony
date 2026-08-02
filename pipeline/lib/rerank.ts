@@ -1,5 +1,5 @@
-import { env } from './env.js';
-import { pinecone } from './pinecone.js';
+import { env } from './env';
+import { pinecone } from './pinecone';
 
 /**
  * Cross-encoder reranking, behind a vendor seam.

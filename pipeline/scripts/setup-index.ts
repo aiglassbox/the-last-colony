@@ -5,8 +5,8 @@
  * switch embedding model or EMBEDDING_DIMENSION later, you must delete the
  * index and re-create it, then re-run sync.
  */
-import { env } from '../lib/env.js';
-import { indexExists, pinecone } from '../lib/pinecone.js';
+import { env } from '../lib/env';
+import { indexExists, pinecone } from '../lib/pinecone';
 
 const name = env.pineconeIndex;
 

@@ -1,6 +1,6 @@
 import { Pinecone, type Index } from '@pinecone-database/pinecone';
-import { env } from './env.js';
-import type { RecipeMetadata } from './types.js';
+import { env } from './env';
+import type { RecipeMetadata } from './types';
 
 /**
  * One namespace per corpus. This is a safety boundary, not tidiness.

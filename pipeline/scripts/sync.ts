@@ -9,11 +9,11 @@
  * So running it twice in a row is a no-op, and it is always safe to re-run.
  */
 import { readFile } from 'node:fs/promises';
-import { env } from '../lib/env.js';
-import { embedDocuments } from '../lib/embeddings.js';
-import { NAMESPACES, indexExists, namespaced, recipeIndex } from '../lib/pinecone.js';
-import { buildEmbeddingText, buildMetadata, contentHash } from '../lib/recipe-text.js';
-import type { Recipe } from '../lib/types.js';
+import { env } from '../lib/env';
+import { embedDocuments } from '../lib/embeddings';
+import { NAMESPACES, indexExists, namespaced, recipeIndex } from '../lib/pinecone';
+import { buildEmbeddingText, buildMetadata, contentHash } from '../lib/recipe-text';
+import type { Recipe } from '../lib/types';
 
 const RECIPES_PATH = new URL('../data/recipes.json', import.meta.url);
 const UPSERT_BATCH = 50;

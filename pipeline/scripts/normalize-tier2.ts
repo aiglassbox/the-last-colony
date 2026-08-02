@@ -17,7 +17,7 @@
  * data/dishes.json is a derived artifact: safe to delete and regenerate.
  */
 import { readFile, writeFile } from 'node:fs/promises';
-import type { ModernDish, Substitution } from '../lib/types.js';
+import type { ModernDish, Substitution } from '../lib/types';
 
 const DEFAULT_CSV = new URL('../data/raw/indian_recipes.csv', import.meta.url);
 const SUBS_PATH = new URL('../data/substitutions.json', import.meta.url);

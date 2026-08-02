@@ -8,7 +8,7 @@
  * prove the middle step — the finite component→Indian lookup — works from data.
  */
 import { readFile } from 'node:fs/promises';
-import type { IndianizationRule } from '../lib/types.js';
+import type { IndianizationRule } from '../lib/types';
 
 const MAP = new URL('../data/indianization.json', import.meta.url);
 const rules = JSON.parse(await readFile(MAP, 'utf8')) as IndianizationRule[];

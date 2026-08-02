@@ -24,10 +24,10 @@
  */
 import { readFile, writeFile } from 'node:fs/promises';
 import 'dotenv/config';
-import { PROVIDERS } from '../eval/providers.js';
-import { buildEmbeddingText, buildRerankText } from '../lib/recipe-text.js';
-import { rerank, RERANK_CANDIDATES } from '../lib/rerank.js';
-import type { Recipe } from '../lib/types.js';
+import { PROVIDERS } from '../eval/providers';
+import { buildEmbeddingText, buildRerankText } from '../lib/recipe-text';
+import { rerank, RERANK_CANDIDATES } from '../lib/rerank';
+import type { Recipe } from '../lib/types';
 
 interface GoldQuery {
   category: string;

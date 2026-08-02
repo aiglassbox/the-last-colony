@@ -1,5 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
-import { env } from './env.js';
+import { env } from './env';
 
 let client: GoogleGenAI | null = null;
 function genai(): GoogleGenAI {

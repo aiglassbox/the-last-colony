@@ -13,7 +13,7 @@
  * the Pinecone key was valid the entire time it was refusing to serve.
  */
 import 'dotenv/config';
-import { activeReranker, rerank } from '../lib/rerank.js';
+import { activeReranker, rerank } from '../lib/rerank';
 
 const reranker = activeReranker();
 

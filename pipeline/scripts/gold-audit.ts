@@ -29,7 +29,7 @@
  * rather than guessed at. Their bias stays unmeasured, and the report says so.
  */
 import { readFile } from 'node:fs/promises';
-import type { Recipe } from '../lib/types.js';
+import type { Recipe } from '../lib/types';
 
 interface GoldQuery {
   category: string;

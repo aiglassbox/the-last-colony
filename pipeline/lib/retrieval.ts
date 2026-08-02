@@ -1,8 +1,8 @@
-import { embedQuery } from './embeddings.js';
-import { NAMESPACES, namespaced, type NamespaceName } from './pinecone.js';
-import { buildRerankText, recipeFromMetadata } from './recipe-text.js';
-import { rerank, RERANK_CANDIDATES } from './rerank.js';
-import type { Recipe, RecipeMetadata } from './types.js';
+import { embedQuery } from './embeddings';
+import { NAMESPACES, namespaced, type NamespaceName } from './pinecone';
+import { buildRerankText, recipeFromMetadata } from './recipe-text';
+import { rerank, RERANK_CANDIDATES } from './rerank';
+import type { Recipe, RecipeMetadata } from './types';
 
 /**
  * The query side of the RAG.

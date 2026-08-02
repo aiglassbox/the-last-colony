@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import type { Recipe, RecipeMetadata } from './types.js';
+import type { Recipe, RecipeMetadata } from './types';
 
 /**
  * One recipe = one chunk (per the blueprint: "chunk tight").
