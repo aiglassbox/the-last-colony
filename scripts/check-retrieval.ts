@@ -29,7 +29,7 @@ interface Case {
 }
 
 const ALLOWED_MISSES = 0;
-const VECTOR_ON = process.env.VECTOR_FALLBACK === "on";
+const VECTOR_ON = process.env.VECTOR_FALLBACK !== "off";
 
 async function main() {
   const path = join(process.cwd(), "tests", "retrieval-queries.json");
@@ -43,7 +43,18 @@ async function main() {
 
   for (const c of cases) {
     const result = await retrieveForDish(c.q);
-    const got = result.empty ? null : result.records[0].slug;
+    // A `via: vector` case is no longer answered by retrieval alone. Semantic
+    // neighbours arrive as candidates and the model decides whether any is
+    // genuinely an older form, so the assertion is that retrieval *surfaced*
+    // the record — not that it declared it. Declaring it was the bug.
+    const got =
+      c.via === "vector"
+        ? ((result.candidates ?? []).find((r) => r.slug === c.expect)?.slug ??
+          (result.candidates ?? [])[0]?.slug ??
+          null)
+        : result.empty
+          ? null
+          : result.records[0].slug;
 
     if (got === c.expect) {
       pass++;

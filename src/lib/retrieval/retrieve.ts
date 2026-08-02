@@ -44,11 +44,25 @@ export async function retrieveForDish(
   const keyword = await repo.searchKeyword(query, MAX_INJECTED_RECORDS);
 
   if (!keyword.length || keyword[0].score < minScore) {
-    // Vectors are the fallback, not the default. When they are wired up they
-    // inherit the same threshold discipline: below it, we return empty.
+    // Vectors are the fallback, and deliberately not a decision.
+    //
+    // They used to return a hit, which meant a nearest neighbour became "the
+    // ancestor" with nothing having asked whether the dish has one. Eighteen
+    // queries in the harness went wrong that way: butter chicken reached a
+    // twelfth-century chicken dish, pizza reached pre-colonial vegetable rice,
+    // asdfgh reached watermelon. No score separated them from the good matches
+    // — "asdfgh" scored 0.57 and "jalebi" 0.72, and jalebi was correct.
+    //
+    // So the turn stays a miss and the neighbours ride along as candidates.
+    // What decides is the model, which classifies the dish as modern, foreign
+    // or genuinely old before any record is shown — and already gets butter
+    // chicken and pizza right. This is an ordering fix, not a scoring one.
     const vector = await repo.searchVectors(query, MAX_INJECTED_RECORDS);
-    if (!vector.length) return { ...EMPTY, top_score: keyword[0]?.score ?? 0 };
-    return withCounterparts(vector, "vector", repo);
+    return {
+      ...EMPTY,
+      top_score: keyword[0]?.score ?? 0,
+      candidates: vector.length ? vector.map((h) => h.record) : undefined,
+    };
   }
 
   if (isAmbiguous(keyword)) {

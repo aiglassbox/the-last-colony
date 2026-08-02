@@ -166,4 +166,19 @@ export interface RetrievalResult {
   matched_on: "alias" | "name" | "vector" | null;
   /** True when nothing cleared the threshold. The product says so out loud. */
   empty: boolean;
+  /**
+   * Semantic matches that are **not** an answer.
+   *
+   * Vector search always returns its nearest neighbours, and nearest is not the
+   * same as right: "butter chicken" reaches a twelfth-century chicken dish and
+   * "asdfgh" reaches watermelon. Treating those as hits declared an ancestor
+   * before anything had judged whether the dish even has one.
+   *
+   * So they arrive here instead, and the turn stays a miss. The model is asked
+   * what kind of dish this is — modern, foreign, or genuinely old — and only a
+   * RESTORE verdict promotes a candidate to a record. That ordering is the
+   * whole point: the model already answers this correctly for butter chicken
+   * and pizza, it was simply never consulted.
+   */
+  candidates?: CorpusRecord[];
 }

@@ -337,9 +337,26 @@ export async function POST(request: NextRequest) {
             ? `<on_screen>\n${carried.map(renderRecord).join("\n\n")}\n</on_screen>`
             : "<on_screen>none</on_screen>";
 
+          // Semantic neighbours from the index. Offered, never assumed: they are
+          // whatever the vector search found nearest, which for a modern or
+          // foreign dish is a coincidence wearing a citation. Only a RESTORE
+          // verdict below turns one into a record on screen.
+          const candidates = retrieval.candidates ?? [];
+          const candidateBlock = candidates.length
+            ? `<semantic_candidates>\nThese records are the closest matches in the ` +
+              `restored corpus by meaning. They are NOT confirmed to be this dish's ` +
+              `ancestor — vector search always returns its nearest neighbour, even ` +
+              `for a modern dish, a foreign dish, or a word that is not a dish at ` +
+              `all. Use one ONLY if you declare MODE: RESTORE, and only if it is ` +
+              `genuinely an older form of what the user named. If the dish is modern ` +
+              `or foreign, ignore these entirely.\n` +
+              `${candidates.map(renderRecord).join("\n\n")}\n</semantic_candidates>\n\n`
+            : "";
+
           const resolvePrompt =
             `${onScreen}\n\n${renderComponentSwaps(await fileCorpus.swaps())}\n\n` +
             `${renderIndianizationBlock()}\n\n` +
+            candidateBlock +
             "This message is not in the restored corpus. Put the mode on the FIRST " +
             "line, exactly one of: MODE: REPLY | MODE: INDIANISE | MODE: MODERN | " +
             "MODE: RESTORE, then the reply on the following lines.\n" +
@@ -347,7 +364,9 @@ export async function POST(request: NextRequest) {
             "in <on_screen> or from the conversation so far (the turns above): an " +
             "alternative ingredient, a method question, a challenge, a request to go " +
             "deeper. Then plain prose, no markers. When the message names no new dish " +
-            "of its own, prefer REPLY over inventing a dish to restore.\n" +
+            "of its own, prefer REPLY over inventing a dish to restore. A message " +
+            "that DOES name a dish is not a REPLY, even when the only record for it " +
+            "is in <semantic_candidates>.\n" +
             "- MODE: INDIANISE — the user named a dish that is NOT Indian in origin " +
             "(pizza, pasta, sushi, ice cream, ramen, a burger, and the like); then the " +
             "four §VERDICT§ §REBUILD§ §SWAPS§ §PLATE§ markers from the INDIANISATION " +
@@ -366,10 +385,18 @@ export async function POST(request: NextRequest) {
             // wording back onto the card, and that word is a health claim.
             "§RESTORE_TODAY§ a version built from <component_swaps> and older " +
             "cooking principles. Do not invent an ancient text or verse.\n" +
-            "- MODE: RESTORE — a dish you are confident is INDIAN in origin and that " +
-            "likely had an older form nobody has documented here yet (not obviously " +
-            "modern); then the same four markers, doing COMPONENT RESTORATION from " +
-            "<component_swaps>.\n" +
+            "- MODE: RESTORE — a dish you are confident is INDIAN in origin and not " +
+            "obviously modern. Two cases fall under it:\n" +
+            "  (a) <semantic_candidates> above contains a record that genuinely IS an " +
+            "older form of the dish the user named — the same dish, or its direct " +
+            "ancestor under another name. Declare RESTORE and write the four markers " +
+            "about THAT record; it will be shown beside your prose. Judge this on the " +
+            "dish, not on the fact that a candidate was offered: the search returns " +
+            "its nearest neighbour whether or not one is right, so a chicken dish " +
+            "surfacing for butter chicken means nothing.\n" +
+            "  (b) no candidate fits, but the dish plausibly had an older form nobody " +
+            "has documented here; then the same four markers, doing COMPONENT " +
+            "RESTORATION from <component_swaps>.\n" +
             "  RESTORE asserts two things: that the dish is Indian, and that an older " +
             "form plausibly existed. Do not reach for it because nothing else fits. If " +
             "you cannot name the region or tradition the dish belongs to, you are not " +
@@ -400,12 +427,22 @@ export async function POST(request: NextRequest) {
             ? buf.slice(m.index + m[0].length).replace(/^[^\n]*\n?/, "")
             : buf;
 
-          const { mode, kind } = RESOLUTION[resolved];
-          const outRecords = resolved === "reply" ? carried : [];
+          const base = RESOLUTION[resolved];
+          const { mode } = base;
+          // A RESTORE verdict is the model saying "this dish is Indian and did
+          // have an older form". Only then does a candidate become the record
+          // the card renders from — and the card is a real restoration, not the
+          // corpus-gap framing, because we have the record after all.
+          const promoted = resolved === "restore" ? candidates : [];
+          const outRecords = resolved === "reply" ? carried : promoted;
           // MODERN and RESTORE both render a recordless restoration card. The
           // reader tells them apart by the reason the card states, which is now
           // `kind` rather than a pair of booleans the card had to decode.
           const restorationLike = resolved === "modern" || resolved === "restore";
+
+          // `gap` says "we hold no record for this". With a promoted candidate
+          // that is no longer true, so the card must not say it.
+          const kind = promoted.length ? ("record" satisfies TurnKind) : base.kind;
 
           emit({
             type: "meta",

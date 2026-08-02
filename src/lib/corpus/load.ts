@@ -156,45 +156,36 @@ export const fileCorpus: CorpusRepository = {
       .filter((h) => Boolean(h.record));
   },
   async searchVectors(query, limit) {
-    // OFF by default, and the reason is measured rather than cautious.
+    // ON by default since the ordering fix. Set VECTOR_FALLBACK=off to disable.
+    //
+    // The history is worth keeping, because the fix was not the obvious one.
     //
     // Wiring this to the 199-record index works: "snake gourd" finds Snake
     // Gourd in Ghee, and "something for bleeding disorders" finds three records
     // whose ayurvedic text names raktapitta — a property query BM25 over dish
     // names could never answer.
     //
-    // It also breaks rule 3, "retrieval declines rather than guesses". With it
-    // on, `tests/retrieval-queries.json` gives 114/132 — eighteen wrong
-    // ancestors. Those eighteen were separated by hand from six cases that were
-    // merely stale expectations (samosa, jalebi, puran poli, sambar, halwa,
-    // sattu all have genuine records among the 199, and are now marked
-    // `via: "vector"`), so what remains is real:
+    // It used to break rule 3, "retrieval declines rather than guesses". Wiring
+    // the index straight in gave 114/132 on the harness: eighteen wrong
+    // ancestors, including a twelfth-century chicken dish for butter chicken,
+    // pre-colonial vegetable rice for pizza, and a watermelon recipe for
+    // "asdfgh".
     //
-    //     not a dish at all (5)   "asdfgh", "recipe", "kaise banate hain",
-    //                             "tell me about food", "what did my grandmother eat"
-    //     foreign dish (2)        "sushi" -> Spiced Fried Fish
-    //                             "pizza" -> Pre-Colonial Vegetable Rice
-    //     modern Indian (9)       "butter chicken" -> a 12th-century chicken dish
-    //                             "dhokla", "thepla", "misal pav", "paneer tikka",
-    //                             "biryani", "rajma chawal", "bisi bele bath",
-    //                             "chicken tikka masala"
-    //     ambiguous (1)           "rice"
-    //     false cognate (1)       "appam" -> Apupa, a fried sweet cake
+    // The instinct was to raise a threshold. No threshold exists: "asdfgh"
+    // scored 0.57 and "jalebi" 0.72, and jalebi was correct. Three rerankers
+    // and cosine all overlap the same way.
     //
-    // No threshold separates these from the good hits: "asdfgh" scores 0.57
-    // while "jalebi" scores 0.72 and is correct. The pipeline's negative
-    // controls found the same overlap on cosine and on all three rerankers.
+    // It was an ordering bug. Vector search returned a *hit*, so an ancestor was
+    // declared before anything asked whether the dish has one — while the model
+    // three lines later already classified butter chicken as modern and pizza as
+    // foreign, correctly, every time. It was simply never consulted.
     //
-    // But the categories point at the fix. Foreign dishes and modern Indian
-    // dishes are already handled — the model classifies them as INDIANISE and
-    // MODERN, and the card frames them honestly. The bug is one of ordering:
-    // retrieval answers first, so a corpus hit is declared before the model
-    // ever gets to say "this is modern". The wider net probably belongs on the
-    // resolve path, offered to the model as context, rather than on the hit
-    // path where it silently wins.
-    //
-    // Until that is built and the harness passes with this on, it stays off.
-    if (process.env.VECTOR_FALLBACK !== "on") return [];
+    // Now these arrive as `candidates` on a result that is still empty, the
+    // model judges the dish, and only a RESTORE verdict promotes one to a
+    // record. Harness: 132/132. It also restored a guardrail retrieval had been
+    // bypassing — "something for bleeding disorders" now reaches rule 4 and is
+    // declined as a medical question instead of rendering an ayurvedic card.
+    if (process.env.VECTOR_FALLBACK === "off") return [];
 
     // Failure returns empty rather than throwing. An index outage should cost
     // the wider net, not the whole turn — a corpus hit still answers, and a miss
