@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { track } from "@/lib/analytics";
 import { parseCommand } from "@/lib/chat/commands";
+import { parseResolved, RESOLUTION, type TurnKind, type TurnMode } from "@/lib/chat/turn";
 import { fileCorpus } from "@/lib/corpus/load";
 import type { CorpusRecord } from "@/lib/corpus/types";
 import { renderIndianizationBlock } from "@/lib/indianization";
@@ -13,6 +14,7 @@ import { findLeak, LEAK_HOLD, LEAK_REFUSAL } from "@/lib/model/leak";
 import { danglingTail, styleProse } from "@/lib/model/punctuation";
 import { activeProvider, asQuotaError, MAX_TOKENS, RefusalError } from "@/lib/model/provider";
 import { SYSTEM_PROMPT } from "@/lib/model/system-prompt";
+import { checkRate, clientKey } from "@/lib/rate-limit";
 import { retrieveBySlug, retrieveForDish } from "@/lib/retrieval/retrieve";
 
 /**
@@ -49,27 +51,24 @@ interface ChatRequest {
   slug?: string;
 }
 
-type Mode = "restoration" | "conversation" | "indianize";
-type Resolved = "indianise" | "modern" | "restore" | "reply";
-
 function encodeEvent(obj: unknown): Uint8Array {
   return new TextEncoder().encode(JSON.stringify(obj) + "\n");
-}
-
-/** The mode the model declared on its first line; defaults safe if it didn't. */
-function parseResolved(head: string): Resolved {
-  const m = /MODE:\s*(INDIANISE|MODERN|RESTORE|REPLY)/i.exec(head);
-  const word = m?.[1].toUpperCase();
-  if (word === "INDIANISE") return "indianise";
-  if (word === "MODERN") return "modern";
-  if (word === "REPLY") return "reply";
-  return "restore";
 }
 
 /** Prior turns, replayed as plain text. Long threads are trimmed from the front. */
 const MAX_HISTORY_TURNS = 20;
 
 export async function POST(request: NextRequest) {
+  // Ahead of the body read: a turn that will be refused should not spend the
+  // work, and this endpoint is the one that spends model quota.
+  const rate = checkRate(clientKey(request));
+  if (!rate.ok) {
+    return Response.json(
+      { error: "Too many requests just now. Wait a moment and try again." },
+      { status: 429, headers: { "retry-after": String(rate.retryAfter) } },
+    );
+  }
+
   let body: ChatRequest;
   try {
     body = (await request.json()) as ChatRequest;
@@ -120,15 +119,43 @@ export async function POST(request: NextRequest) {
     async start(controller) {
       const emit = (obj: unknown) => controller.enqueue(encodeEvent(obj));
 
+      // A slash command with no dish behind it. There is nothing to retrieve
+      // and nothing to restore, so this is not a card at all — it used to fall
+      // through to the resolver, which rendered the model's hook question
+      // inside an empty restoration card and stamped "not in the restored
+      // corpus yet" onto a dish the reader had not named. Ask for the dish as
+      // prose, and never involve the model: the answer is known here.
+      if (!slug && !query) {
+        emit({
+          type: "meta",
+          mode: "conversation" satisfies TurnMode,
+          kind: null,
+          top_score: 0,
+          records: [],
+        });
+        emit({
+          type: "text",
+          text:
+            command?.ask ??
+            "Name one Indian dish you eat almost every week, and I will show you " +
+              "what it used to be.",
+        });
+        emit({ type: "done" });
+        controller.close();
+        return;
+      }
+
       // The record half of a card owes nothing to the model, so a missing key
       // costs the prose and not the card.
       if (!provider) {
-        // Without a model a corpus miss cannot be resolved, so it shows as an
-        // empty restoration rather than guessing a turn type.
+        // Without a model, a corpus miss cannot be resolved at all — and a card
+        // is exactly the wrong guess, because every reason a card could state
+        // is one the model was going to decide. Retrieval either found a record
+        // or it did not, so say only that.
         emit({
           type: "meta",
-          mode: "restoration",
-          empty: retrieval.empty,
+          mode: (retrieval.empty ? "conversation" : "restoration") satisfies TurnMode,
+          kind: retrieval.empty ? null : ("record" satisfies TurnKind),
           top_score: retrieval.top_score,
           records: retrieval.records,
         });
@@ -274,34 +301,28 @@ export async function POST(request: NextRequest) {
 
         if (!isResolve) {
           // ---- Corpus hit (or slug): deterministic restoration -------------
+          // Retrieval was non-empty to get here: an empty slug lookup already
+          // returned 404, and an empty search set `isResolve`. So this branch
+          // always has records, and the no-record variants it used to carry
+          // were unreachable.
           const records = retrieval.records;
           emit({
             type: "meta",
-            mode: "restoration" satisfies Mode,
-            empty: !records.length,
+            mode: "restoration" satisfies TurnMode,
+            kind: "record" satisfies TurnKind,
             top_score: retrieval.top_score,
             records,
           });
-          if (records.length) {
-            track("dish_restored", {
-              query: label,
-              slug: records[0].slug,
-              provenance: records[0].provenance_class,
-              score: retrieval.top_score,
-            });
-          }
-
-          const swapBlock = records.length
-            ? ""
-            : `\n\n${renderComponentSwaps(await fileCorpus.swaps())}`;
-          const instruction = records.length
-            ? "This is a RESTORATION turn. Emit the four §markers§."
-            : "This is a RESTORATION turn with no record. Emit the four §markers§, " +
-              "say plainly that the dish is not in the restored corpus, and spend the " +
-              "card on COMPONENT RESTORATION using the swaps above.";
+          track("dish_restored", {
+            query: label,
+            slug: records[0].slug,
+            provenance: records[0].provenance_class,
+            score: retrieval.top_score,
+          });
 
           const iter = call(
-            `${renderCorpusBlock(records)}${swapBlock}\n\n${instruction}${directive}\n\nUser said: ${label}`,
+            `${renderCorpusBlock(records)}\n\nThis is a RESTORATION turn. Emit the four ` +
+              `§markers§.${directive}\n\nUser said: ${label}`,
           )[Symbol.asyncIterator]();
           auditRecords = records;
           proseTurn = false;
@@ -335,16 +356,26 @@ export async function POST(request: NextRequest) {
             "original (biryani, butter chicken, pav bhaji, gobi manchurian, samosa, most " +
             "restaurant food, anything defined by potato, tomato, chilli or cauliflower). " +
             "Then the four §VERDICT§ §THEN§ §WHAT_CHANGED§ §RESTORE_TODAY§ markers: " +
-            "§VERDICT§ states plainly it is a modern dish, not ancient; §THEN§ gives its " +
-            "short honest history and names which defining ingredients are Columbian-" +
-            "exchange arrivals; §WHAT_CHANGED§ the nutrition shift on a named axis; " +
+            "§VERDICT§ states plainly it is a modern dish, not ancient; §THEN§ names " +
+            "which of its defining ingredients are Columbian-exchange arrivals and what " +
+            "its components were before, drawn from where_it_went in <component_swaps> " +
+            "and nothing else — do not narrate the dish's history from your own " +
+            "knowledge; §WHAT_CHANGED§ the nutrition shift on an axis <component_swaps> " +
+            "actually names; " +
             // Not "a healthier version": the model echoes the brief's own
             // wording back onto the card, and that word is a health claim.
             "§RESTORE_TODAY§ a version built from <component_swaps> and older " +
             "cooking principles. Do not invent an ancient text or verse.\n" +
-            "- MODE: RESTORE — an Indian dish that likely had an older form we simply " +
-            "have not documented yet (not obviously modern); then the same four markers, " +
-            "framed as a corpus gap, doing COMPONENT RESTORATION from <component_swaps>.\n" +
+            "- MODE: RESTORE — a dish you are confident is INDIAN in origin and that " +
+            "likely had an older form nobody has documented here yet (not obviously " +
+            "modern); then the same four markers, doing COMPONENT RESTORATION from " +
+            "<component_swaps>.\n" +
+            "  RESTORE asserts two things: that the dish is Indian, and that an older " +
+            "form plausibly existed. Do not reach for it because nothing else fits. If " +
+            "you cannot name the region or tradition the dish belongs to, you are not " +
+            "confident it is Indian: use INDIANISE if it is foreign, and REPLY if you " +
+            "genuinely do not know. An honest 'I do not know what this is' is a better " +
+            "answer than a card about a dish nobody can place.\n" +
             "For MODERN and RESTORE, format the §RESTORE_TODAY§ section as: one short " +
             "opening line, then a line reading INGREDIENTS with each ingredient on its " +
             "own line beginning with '- ' and a kirana quantity, then a line reading " +
@@ -369,23 +400,17 @@ export async function POST(request: NextRequest) {
             ? buf.slice(m.index + m[0].length).replace(/^[^\n]*\n?/, "")
             : buf;
 
-          const mode: Mode =
-            resolved === "indianise"
-              ? "indianize"
-              : resolved === "reply"
-                ? "conversation"
-                : "restoration";
+          const { mode, kind } = RESOLUTION[resolved];
           const outRecords = resolved === "reply" ? carried : [];
-          // MODERN and RESTORE both render as an empty restoration card; the only
-          // difference the reader sees is the framing — a modern dish is stated
-          // as modern, a gap is stated as not-yet-documented.
+          // MODERN and RESTORE both render a recordless restoration card. The
+          // reader tells them apart by the reason the card states, which is now
+          // `kind` rather than a pair of booleans the card had to decode.
           const restorationLike = resolved === "modern" || resolved === "restore";
 
           emit({
             type: "meta",
             mode,
-            empty: restorationLike,
-            modern: resolved === "modern",
+            kind,
             top_score: retrieval.top_score,
             records: outRecords,
           });
@@ -435,23 +460,36 @@ export async function POST(request: NextRequest) {
           return;
         }
 
-        // Nothing reached the reader. Two ways to get here, and they want
-        // different answers. If the model wrote prose but never a §marker§ the
-        // parser dropped it, so the words are recoverable and putting them in
-        // the verdict is better than throwing them away. If it wrote nothing at
-        // all, say so: retrieval declining is correct and common, `rice` is
-        // ambiguous rather than a dish, but a blank card reads as broken, and
-        // inventing a dish to fill it is the one thing this must never do.
+        // Nothing reached the reader. Either the model wrote prose and never a
+        // §marker§, so the parser dropped all of it, or it wrote nothing at all
+        // — retrieval declining is correct and common, `rice` is ambiguous
+        // rather than a dish. Both want the same treatment, and it is not the
+        // verdict beat.
+        //
+        // This used to put the recovered text into §VERDICT§, which is a display
+        // headline (clamp to 1.75rem, weight 700) sized for one line under
+        // twelve words. A paragraph landed there as a banner, under a card whose
+        // "not in the restored corpus yet" note described a dish the reader had
+        // never named. Since `emitted` is zero, nothing has painted yet, so the
+        // turn can still be moved: re-declare it as conversation and let the
+        // words render as what they actually are.
         if (!emitted) {
           const text =
             full.trim() ||
             "I could not match that to a dish. Name one dish on its own, " +
               "the way you would say it at home, and I will show you what it was.";
-          emit(
-            proseTurn
-              ? { type: "text", text }
-              : { type: "delta", beat: "VERDICT", text },
-          );
+          if (!proseTurn) {
+            emit({
+              type: "meta",
+              mode: "conversation" satisfies TurnMode,
+              kind: null,
+              top_score: retrieval.top_score,
+              // The dish on screen is unchanged by a turn that rendered nothing,
+              // so the carried records stay carried.
+              records: auditRecords,
+            });
+          }
+          emit({ type: "text", text });
         }
 
         // Tripwire, not a gate. The badge and source strip already come from the

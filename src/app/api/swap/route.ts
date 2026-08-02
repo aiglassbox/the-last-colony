@@ -5,7 +5,9 @@ import { fileCorpus } from "@/lib/corpus/load";
 import type { SwapRecord } from "@/lib/corpus/types";
 import { renderSwapBlock } from "@/lib/model/corpus-block";
 import { activeProvider } from "@/lib/model/provider";
+import { sanitiseCompletion } from "@/lib/model/sanitise";
 import { SWAP_SYSTEM_PROMPT } from "@/lib/model/system-prompt";
+import { checkRate, clientKey } from "@/lib/rate-limit";
 
 /**
  * The ingredient swap endpoint. Handles both the single-item swap and the
@@ -28,6 +30,14 @@ export interface SwapResponse {
 }
 
 export async function POST(request: NextRequest) {
+  const rate = checkRate(clientKey(request));
+  if (!rate.ok) {
+    return Response.json(
+      { error: "Too many requests. Wait a moment and try again." },
+      { status: 429, headers: { "retry-after": String(rate.retryAfter) } },
+    );
+  }
+
   let body: SwapRequest;
   try {
     body = (await request.json()) as SwapRequest;
@@ -59,7 +69,7 @@ export async function POST(request: NextRequest) {
   const provider = activeProvider();
   if (provider) {
     try {
-      note = await provider.completeText({
+      const raw = await provider.completeText({
         system: SWAP_SYSTEM_PROMPT,
         maxTokens: 700,
         messages: [
@@ -71,6 +81,15 @@ export async function POST(request: NextRequest) {
               "cook. No headings, no lists, no restating the ratios.",
           },
         ],
+      });
+      // Swap records are not corpus records, so the audit runs with no records
+      // behind it — which is the stricter reading, and the right one: a
+      // sourceless attribution in this note has nothing on screen to check it.
+      note = sanitiseCompletion(raw, [], {
+        where: "swap",
+        vendor: provider.vendor,
+        model: provider.model,
+        query: items.join(", "),
       });
     } catch (err) {
       console.error(`[swap] ${provider.vendor} error`, err);

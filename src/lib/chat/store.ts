@@ -1,6 +1,7 @@
 "use client";
 
 import { parseCommand } from "@/lib/chat/commands";
+import type { TurnKind, TurnMode } from "@/lib/chat/turn";
 import type { CorpusRecord } from "@/lib/corpus/types";
 
 /**
@@ -16,7 +17,7 @@ import type { CorpusRecord } from "@/lib/corpus/types";
  * like a chat.
  */
 
-export type TurnMode = "restoration" | "conversation" | "indianize";
+export type { TurnMode } from "@/lib/chat/turn";
 
 export interface ChatMessage {
   id: string;
@@ -24,11 +25,16 @@ export interface ChatMessage {
   /** Plain text. Replayed to the model, and shown directly on prose turns. */
   text: string;
   mode?: TurnMode;
+  /** Why this turn is what it is. Drives every reason the card states. */
+  kind?: TurnKind;
   /** Present on restoration turns — drives the card. */
   records?: CorpusRecord[];
   beats?: Partial<Record<string, string>>;
+  /**
+   * Superseded by `kind`. Still read, never written: threads persisted before
+   * `kind` existed are on readers' devices carrying these. See `kindOf`.
+   */
   empty?: boolean;
-  /** An empty restoration that is a modern dish, not a corpus gap — reframes the card. */
   modern?: boolean;
   streaming?: boolean;
   error?: string;
@@ -171,24 +177,40 @@ export function flush(): void {
 
 // --- convenience mutators -------------------------------------------------
 
-export function patchConversation(id: string, fn: (c: Conversation) => Conversation): void {
+export function patchConversation(
+  id: string,
+  fn: (c: Conversation) => Conversation,
+  { touch = true }: { touch?: boolean } = {},
+): void {
   update((s) => ({
     ...s,
     conversations: s.conversations.map((c) =>
-      c.id === id ? { ...fn(c), updatedAt: Date.now() } : c,
+      c.id === id ? { ...fn(c), updatedAt: touch ? Date.now() : c.updatedAt } : c,
     ),
   }));
 }
 
+/**
+ * Tokens landing in a message are not activity on the thread.
+ *
+ * `updatedAt` orders the rail and the history list, and this runs once per
+ * revealed chunk — stamping it here re-sorted the sidebar on every frame of a
+ * reply. The turn already bumped the timestamp when its messages were appended,
+ * which is the moment that actually happened.
+ */
 export function patchMessage(
   conversationId: string,
   messageId: string,
   fn: (m: ChatMessage) => ChatMessage,
 ): void {
-  patchConversation(conversationId, (c) => ({
-    ...c,
-    messages: c.messages.map((m) => (m.id === messageId ? fn(m) : m)),
-  }));
+  patchConversation(
+    conversationId,
+    (c) => ({
+      ...c,
+      messages: c.messages.map((m) => (m.id === messageId ? fn(m) : m)),
+    }),
+    { touch: false },
+  );
 }
 
 export function startConversation(): string {

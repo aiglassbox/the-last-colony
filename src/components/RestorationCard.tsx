@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { trackClient } from "@/lib/analytics";
+import type { TurnKind } from "@/lib/chat/turn";
 import type { CorpusRecord } from "@/lib/corpus/types";
 import type { Beat } from "@/lib/model/beats";
 import { toPlainText } from "@/lib/model/plain-text";
@@ -23,12 +24,32 @@ import { SourceDrawer } from "./SourceDrawer";
 
 export interface CardData {
   records: CorpusRecord[];
-  empty: boolean;
-  /** True when the empty card is a modern dish (not a corpus gap) — reframes the note. */
-  modern?: boolean;
+  kind: TurnKind;
   beats: Partial<Record<string, string>>;
   streaming: boolean;
 }
+
+/**
+ * Why this card has no record, in the reader's terms.
+ *
+ * One entry per reason, rather than a sentence assembled from flags. The
+ * distinction that matters is the last two: a gap is a statement about us and
+ * implies a record could arrive later, while a foreign dish is a statement
+ * about the dish and no amount of corpus work will change it. Saying "not in
+ * the restored corpus yet" under a pizza promised a record that can never
+ * exist.
+ */
+const RECORDLESS_NOTE: Partial<Record<TurnKind, string>> = {
+  modern:
+    "A modern dish, with no ancient original. What follows is its short history and " +
+    "a version built on older principles, not drawn from a specific text.",
+  gap:
+    "An Indian dish we hold no record for yet. Nothing below is drawn from a text, " +
+    "because there is no text here to draw from.",
+  foreign:
+    "Not an Indian-origin dish, so there is nothing here to restore. Nothing below " +
+    "is drawn from a text, and none is implied.",
+};
 
 const TITLES: Record<Beat, string> = {
   VERDICT: "The verdict",
@@ -70,7 +91,7 @@ export function RestorationCard({ data }: { data: CardData }) {
             <ProvenanceBadge record={ancient} />
           </div>
         )}
-        {data.empty && (
+        {RECORDLESS_NOTE[data.kind] && (
           <p
             style={{
               margin: "0.85rem 0 0",
@@ -78,9 +99,7 @@ export function RestorationCard({ data }: { data: CardData }) {
               color: "var(--ink-soft)",
             }}
           >
-            {data.modern
-              ? "A modern dish, with no ancient original. What follows is its short history and a lighter version built on older principles, not drawn from a specific text."
-              : "Not in the restored corpus yet. Nothing below is drawn from a text, because there is no text here to draw from."}
+            {RECORDLESS_NOTE[data.kind]}
           </p>
         )}
       </div>

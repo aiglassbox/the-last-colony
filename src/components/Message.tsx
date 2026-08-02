@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import type { ChatMessage } from "@/lib/chat/store";
+import { kindOf } from "@/lib/chat/turn";
 import { toPlainText } from "@/lib/model/plain-text";
 
 import { IndianisationCard } from "./IndianisationCard";
@@ -31,8 +32,7 @@ export function Message({ message }: { message: ChatMessage }) {
         <RestorationCard
           data={{
             records: message.records ?? [],
-            empty: Boolean(message.empty),
-            modern: Boolean(message.modern),
+            kind: kindOf(message),
             beats: message.beats ?? {},
             streaming: Boolean(message.streaming),
           }}

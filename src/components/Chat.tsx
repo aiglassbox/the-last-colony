@@ -23,6 +23,7 @@ import {
   subscribe,
   type ChatMessage,
 } from "@/lib/chat/store";
+import type { TurnKind, TurnMode } from "@/lib/chat/turn";
 import { PROSE, Typewriter } from "@/lib/chat/typewriter";
 import type { CorpusRecord } from "@/lib/corpus/types";
 import {
@@ -60,10 +61,9 @@ const SUBHEADING =
 
 interface StreamEvent {
   type: "meta" | "delta" | "text" | "done" | "error" | "redact";
-  mode?: "restoration" | "conversation" | "indianize";
+  mode?: TurnMode;
+  kind?: TurnKind | null;
   records?: CorpusRecord[];
-  empty?: boolean;
-  modern?: boolean;
   beat?: string;
   text?: string;
   message?: string;
@@ -103,7 +103,6 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const abortRef = useRef<AbortController | null>(null);
-  const typerRef = useRef<Typewriter | null>(null);
   const threadRef = useRef<HTMLDivElement>(null);
   const stick = useRef(true);
   const promptRef = useRef<HTMLTextAreaElement>(null);
@@ -167,11 +166,13 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
 
       const userMsg: ChatMessage = { id: newId(), role: "user", text: trimmed || (slug ?? "") };
       const replyId = newId();
+      // No mode until `meta` says which one. Seeding "restoration" painted an
+      // empty card for one round-trip on every turn, including the prose ones
+      // that never wanted a card at all.
       const reply: ChatMessage = {
         id: replyId,
         role: "assistant",
         text: "",
-        mode: "restoration",
         beats: {},
         streaming: true,
       };
@@ -199,7 +200,6 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
           beats: { ...m.beats, [key]: (m.beats?.[key] ?? "") + text },
         }));
       });
-      typerRef.current = typer;
 
       try {
         const res = await fetch("/api/chat", {
@@ -247,16 +247,19 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
               patchMessage(conversationId, replyId, (m) => ({
                 ...m,
                 mode: evt.mode ?? "restoration",
+                kind: evt.kind ?? undefined,
                 records,
-                empty: Boolean(evt.empty),
-                modern: Boolean(evt.modern),
               }));
-              if (records.length) {
-                patchConversation(conversationId, (c) => ({
-                  ...c,
-                  activeRecordIds: records.map((r) => r.id),
-                }));
-              }
+              // Assigned unconditionally, including when empty. Guarding this on
+              // `records.length` left the previous dish active through any turn
+              // that carried none — ask for kheer, then pizza, then "what oil?",
+              // and the follow-up was answered about kheer. The server echoes the
+              // carried records back on a reply turn, so clearing here is only
+              // ever clearing something that genuinely left the screen.
+              patchConversation(conversationId, (c) => ({
+                ...c,
+                activeRecordIds: records.map((r) => r.id),
+              }));
             } else if (evt.type === "delta" && evt.beat) {
               typer.push(evt.beat, evt.text ?? "");
             } else if (evt.type === "text") {
@@ -286,7 +289,6 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
         }
       } finally {
         abortRef.current = null;
-        typerRef.current = null;
         patchMessage(conversationId, replyId, (m) => ({
           ...m,
           streaming: false,

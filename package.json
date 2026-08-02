@@ -10,7 +10,8 @@
     "lint": "eslint",
     "corpus:validate": "tsx scripts/validate-corpus.ts",
     "corpus:check-retrieval": "tsx scripts/check-retrieval.ts",
-    "check": "npm run corpus:validate && npm run corpus:check-retrieval"
+    "check:routing": "tsx scripts/check-routing.ts",
+    "check": "npm run corpus:validate && npm run corpus:check-retrieval && npm run check:routing"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",
