@@ -17,7 +17,8 @@
     "gold:audit": "tsx scripts/gold-audit.ts",
     "gold:audit:write": "tsx scripts/gold-audit.ts --write",
     "gold:apply": "tsx scripts/gold-apply.ts",
-    "gold:apply:dry": "tsx scripts/gold-apply.ts --dry-run"
+    "gold:apply:dry": "tsx scripts/gold-apply.ts --dry-run",
+    "make-today": "tsx scripts/make-today-sheet.ts"
   },
   "dependencies": {
     "@google/genai": "^1.0.0",

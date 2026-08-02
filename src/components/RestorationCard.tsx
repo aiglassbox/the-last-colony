@@ -151,7 +151,15 @@ export function RestorationCard({ data }: { data: CardData }) {
 
       <Beat beat="WHAT_CHANGED" open={open.WHAT_CHANGED} onToggle={toggle}>
         <Prose text={data.beats.WHAT_CHANGED} streaming={data.streaming} />
-        {ancient && modern && <ThenNow ancient={ancient} modern={modern} />}
+        {ancient && modern ? (
+          <ThenNow ancient={ancient} modern={modern} />
+        ) : (
+          /* No modern counterpart record — but the substitution story names what
+             replaced what, so the diff can be drawn from that instead. Records
+             from the index have no counterpart and would otherwise show nothing
+             here, which is the beat doing the most work on the card. */
+          <ThenNowFromChanges record={ancient} />
+        )}
         {ancient?.substitution_story && <NutritionDelta record={ancient} />}
       </Beat>
 
@@ -405,6 +413,43 @@ function ThenNow({ ancient, modern }: { ancient: CorpusRecord; modern: CorpusRec
         />
         <Column title="Now" colour="var(--now)" items={modern.ingredients.map((i) => i.name)} />
       </div>
+    </div>
+  );
+}
+
+/**
+ * Then/Now drawn from the substitution story rather than a counterpart record.
+ *
+ * The original diff needs two records — an ancient dish and the modern dish it
+ * became — and only the fourteen hand-authored records have that pair. The 199
+ * indexed records have no counterpart, so this beat rendered empty for them.
+ *
+ * But the diff was never really about two dishes. It is about what replaced
+ * what, and `substitution_story.changed` says so directly: ghee became
+ * vanaspati, gur became mill-refined sugar. Each of those pairs is sourced in
+ * `displacements.json`, so this shows the same comparison from stronger
+ * evidence — an ingredient-level claim with a citation, rather than an
+ * inference from two ingredient lists sitting side by side.
+ */
+function ThenNowFromChanges({ record }: { record: CorpusRecord | null }) {
+  const changed = record?.substitution_story?.changed ?? [];
+  if (changed.length === 0) return null;
+  return (
+    <div className="scroll-x" style={{ marginTop: "1rem" }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "0.8rem",
+          minWidth: 360,
+        }}
+      >
+        <Column title="Then" colour="var(--orange)" items={changed.map((c) => c.from)} />
+        <Column title="Now" colour="var(--now)" items={changed.map((c) => c.to)} />
+      </div>
+      <p style={{ margin: "0.6rem 0 0", fontSize: "0.8rem", color: "var(--ink-muted)" }}>
+        These substitutions happened across Indian kitchens, not only in this dish.
+      </p>
     </div>
   );
 }

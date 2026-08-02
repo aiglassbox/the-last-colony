@@ -17,3 +17,6 @@ next-env.d.ts
 # unchecked for redistribution — pipeline/ARCHITECTURE.md says so. The derived
 # pipeline/data/dishes.json is what the code actually reads, and is committed.
 pipeline/data/raw/
+
+# Generated authoring sheets — regenerate with npm run make-today
+pipeline/data/make-today-sheet.md

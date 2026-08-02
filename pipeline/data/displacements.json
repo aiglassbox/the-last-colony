@@ -176,6 +176,31 @@
       },
       "confidence": "medium — well evidenced that pulse availability fell, less precise on attributing it solely to procurement policy",
       "verification_status": "sourced-unverified"
+    },
+    {
+      "id": "disp-solid-fuel-lpg",
+      "traditional": "charcoal, firewood and the open chulha",
+      "matches": [
+        "charcoal",
+        "firewood",
+        "wood fire",
+        "tandoor",
+        "leaves (for wrapping)",
+        "embers"
+      ],
+      "replaced_by": "LPG and gas stoves",
+      "when": "accelerating from 2016",
+      "driver": "deliberate policy. The Pradhan Mantri Ujjwala Yojana launched in 2016 to replace solid biomass — firewood, charcoal, dung cakes — with LPG, and had provided over 103 million connections by March 2024. LPG coverage rose from 62% of households in 2016 to near-universal availability by 2021, though roughly 40% of the population still cooks at least partly on solid fuel.",
+      "nutrition_axis": "fat_quality",
+      "direction": "unchanged",
+      "comparison": "This changes how a dish is cooked rather than what is in it. Charcoal and ember roasting impart smoke that a gas flame does not; the ingredients are unaffected.",
+      "caution": "Do not frame this as a loss. Smoke from solid-fuel cooking is a major cause of respiratory disease and the transition was a public-health intervention that worked. The honest point is that a dish specified for embers or a tandoor is rarely cooked that way now, not that something was taken away.",
+      "source": {
+        "text": "Household energy transition in rural India in the wake of Pradhan Mantri Ujjwala Yojana, Discover Sustainability",
+        "url": "https://link.springer.com/article/10.1007/s43621-025-02241-2"
+      },
+      "confidence": "high on the transition and its dating; this is a cooking-method change rather than an ingredient substitution, and the entry says so",
+      "verification_status": "sourced-unverified"
     }
   ]
 }
