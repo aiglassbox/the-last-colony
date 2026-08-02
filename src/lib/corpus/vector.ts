@@ -13,6 +13,8 @@ interface Displacement {
   driver: string;
   nutrition_axis: string;
   direction: string;
+  /** Present only on changes that were gains. See `keepTraditional`. */
+  caution?: string;
 }
 
 const DISPLACEMENTS = (displacementData as { displacements: Displacement[] }).displacements;
@@ -95,13 +97,43 @@ function ingredientOf(source: Recipe["ingredients"][number]): Ingredient {
   const original = source.original?.trim() ?? "";
   const modern = source.modern_name?.trim() ?? "";
   const quantity = source.quantity?.trim() ?? "";
+  const name = modern || original;
+
   return {
-    name: modern || original,
+    name: clarifyPeriodForm(name),
     sanskrit: original && original !== modern ? original : null,
     quantity_source: quantity || null,
     quantity_modern: null,
     function: "not recorded in this source",
   };
+}
+
+/**
+ * Names the form an ingredient took when the record was written.
+ *
+ * A sixteenth-century text says "sugar", and a reader in 2026 pictures the
+ * white stuff in a supermarket bag. By our own sourced entry, mill-refined
+ * white sugar does not exist at scale until the late nineteenth century, so
+ * that word cannot mean what it now means. The card was printing "sugar" in the
+ * ingredient table and "keep gur, not white sugar" three beats below, and
+ * contradicting itself in front of the reader.
+ *
+ * This is not a substitution. It is a translation of a word whose referent
+ * moved, and it only fires where a displacement documents that move — and only
+ * for the losses, since "rock salt" needs no clarifying and must never be
+ * nudged away from iodised salt.
+ */
+function clarifyPeriodForm(name: string): string {
+  const lower = name.toLowerCase();
+  for (const d of DISPLACEMENTS) {
+    if (d.caution) continue;
+    if (!matchesIngredient(lower, d.matches)) continue;
+    // Already specific enough — the record said "sesame oil", not "oil".
+    const traditional = d.traditional.split(/[—(]/)[0].trim();
+    if (lower.includes(traditional.toLowerCase().split(" ")[0])) return name;
+    return `${name} — ${traditional} in this period`;
+  }
+  return name;
 }
 
 /**
