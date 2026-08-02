@@ -38,6 +38,22 @@ export interface Source {
   locus: string | null;
   edition: string | null;
   page: number | null;
+  /**
+   * A free-text reference to where the record came from, and a link to it.
+   *
+   * Distinct from `locus`, and the distinction is the whole point. A locus is a
+   * checked chapter-and-verse an editor has opened the printed edition to
+   * confirm, and an unverified record must not show one. A citation is simply
+   * where this record was drawn from — it makes no claim to have been verified,
+   * so it can and should be shown even while `locus` is withheld.
+   *
+   * Every record in the retrieval index carries both, and dropping them left a
+   * card naming a text with no way for a reader to go and look.
+   *
+   * Optional because the 31 hand-authored records predate them.
+   */
+  citation?: string | null;
+  url?: string | null;
 }
 
 export interface Ingredient {

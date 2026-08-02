@@ -110,12 +110,16 @@ export function toCorpusRecord(recipe: Recipe): CorpusRecord {
       text: recipe.source.text,
       author: recipe.source.author || null,
       century: recipe.source.period,
-      // Withheld: unverified records must not show a verse or page, and the
-      // pipeline's `citation` is a free-text reference rather than a checked
-      // locus. `source.url` has nowhere to go in this schema.
+      // Withheld: an unverified record must not show a verse or page. That is
+      // a rule about *checked* references, not about provenance in general.
       locus: null,
       edition: null,
       page: null,
+      // Always carried. Every one of the 199 has both, and a card that names a
+      // text without saying where it came from or how to reach it is asking to
+      // be taken on trust — which is the opposite of the point.
+      citation: recipe.source.citation || null,
+      url: recipe.source.url || null,
     },
     // An editor has not transcribed a passage for these. `name.original` is a
     // dish name in Devanagari, not source text, and putting it here would read

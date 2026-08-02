@@ -1,0 +1,57 @@
+{
+  "note": "What displaced what, and on whose authority. Each entry documents one ingredient-level substitution that happened across the Indian plate, so a recipe's WHAT CHANGED beat can be derived from its ingredients rather than written per dish. Every claim carries a source; nothing here is asserted from general knowledge. `confidence` is honest about how well the specific claim is evidenced, and `direction` names which way the nutrition axis actually moved — including when it moved for the better, because forcing every change into a decline narrative would be untrue and the project does not need it to be. Matching is by `matches` against a recipe's ingredient names. Pilot: three of a planned twelve.",
+  "displacements": [
+    {
+      "id": "disp-ghee-vanaspati",
+      "traditional": "ghee (clarified butter)",
+      "matches": ["ghee", "clarified butter"],
+      "replaced_by": "vanaspati — partially hydrogenated vegetable fat",
+      "when": "1930s onward",
+      "driver": "cost. Desi ghee was expensive in British India and used sparingly; a Dutch firm brought hydrogenated vegetable oil in as a cheap substitute, and Lever Brothers formed the Hindustan Vanaspati Manufacturing Company in 1931, producing at Sewri near Bombay. The Dalda brand launched in 1937 and became the default cooking fat in millions of households.",
+      "nutrition_axis": "fat_quality",
+      "direction": "down",
+      "comparison": "Partial hydrogenation converts liquid unsaturated oils to a solid fat and produces trans-fatty acids. Ghee contains none.",
+      "source": {
+        "text": "Dalda — Hindustan Vanaspati Manufacturing Company, Lever Brothers",
+        "url": "https://en.wikipedia.org/wiki/Dalda"
+      },
+      "confidence": "high",
+      "verification_status": "sourced-unverified"
+    },
+    {
+      "id": "disp-gur-refined-sugar",
+      "traditional": "gur / khandsari — unrefined and partially refined cane sugar",
+      "matches": ["sugar", "jaggery", "gur", "khand"],
+      "replaced_by": "mill-refined white sugar",
+      "when": "late nineteenth century onward",
+      "driver": "colonial industrial and export imperatives. Refined sugar granulates and keeps, which suited mills and shipping in a way gur did not, so large mills displaced small khandsari and gur units. A cultural preference for white and refined foods, imported with colonial aesthetics, gave refined sugar a prestige gur never recovered. As late as the early 1930s roughly two-thirds of Indian cane still went to gur and khandsari.",
+      "nutrition_axis": "glycaemic_load",
+      "direction": "up",
+      "comparison": "Gur retains cane molasses and its trace minerals; mill-refined sugar is close to pure sucrose. Comparative only — this is a statement about the two sweeteners, not about anyone's diet.",
+      "source": {
+        "text": "Withstanding Globalization in Northern India: Farmers Make Sugar for Local Consumption",
+        "url": "https://link.springer.com/chapter/10.1007/978-3-031-22813-1_4"
+      },
+      "confidence": "high on the displacement, medium on precise dating — sources agree on the pattern and vary on when it tipped",
+      "verification_status": "sourced-unverified"
+    },
+    {
+      "id": "disp-rock-salt-iodised",
+      "traditional": "rock salt (sendha namak)",
+      "matches": ["rock salt", "sendha"],
+      "replaced_by": "iodised free-flowing salt",
+      "when": "1962 in goitre-endemic districts; nationwide policy from 1983-86",
+      "driver": "public health, not commerce. India recognised all states as goitre-prone in 1983 and announced universal salt iodisation in 1986; the programme was renamed the National Iodine Deficiency Disorders Control Programme in 1992, with mandatory fortification of salt for human consumption. Tata Salt, the first branded iodised salt, launched in 1983.",
+      "nutrition_axis": "iodine",
+      "direction": "up",
+      "comparison": "Iodised salt carries added iodine that rock salt does not. This substitution corrected a widespread deficiency and is a public-health success.",
+      "caution": "Do not frame this as a loss. Iodine deficiency causes real and preventable harm, and this change was deliberate and beneficial. It belongs in the corpus because it is a documented change to what is in the kitchen, not because something was taken away. A card that implies otherwise would be both wrong and irresponsible.",
+      "source": {
+        "text": "Towards universal salt iodisation in India: achievements, challenges and future actions",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6860305/"
+      },
+      "confidence": "high",
+      "verification_status": "sourced-unverified"
+    }
+  ]
+}
