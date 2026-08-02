@@ -26,8 +26,13 @@ cd pipeline
 npm install
 cp .env.example .env   # PINECONE_API_KEY, GEMINI_API_KEY, and a reranker key
 npm run rerank:check   # confirm reranking is live, not silently degraded
+npm run search -- "something that helps with digestion"
 npm run eval           # measure retrieval quality
 ```
+
+`npm run search` is the quickest way to see what the index actually holds. It
+prints both scores: the dense score found the record, the rerank score ordered
+it. When they disagree, the reranker is earning its place.
 
 Neither package imports the other **yet**. The app still keyword-searches its
 own 31-record corpus in `corpus/`, while 199 recipes sit indexed next door.

@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "search": "tsx scripts/search.ts",
     "index:setup": "tsx scripts/setup-index.ts",
     "sync": "tsx scripts/sync.ts",
     "sync:dry": "tsx scripts/sync.ts --dry-run",
