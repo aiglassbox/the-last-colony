@@ -1,0 +1,131 @@
+{
+  "note": "How to do an old technique in a modern kitchen. MAKE TODAY is not a new recipe — it is the same ancestral dish, cooked tonight. The ingredients stay traditional (that is the whole point: ghee, not vanaspati; gur, not refined sugar — see displacements.json), and only the *method* is translated: equipment that no longer exists, technology that makes it convenient, and a healthy substitute where something is genuinely unavailable. A shortcut that costs the dish its character is noted rather than taken. Matching is by `matches` against a recipe's method steps. These are equipment equivalences, not historical claims — anyone with a kitchen can check them, which is why they carry no source field.",
+  "techniques": [
+    {
+      "id": "tech-charcoal-flame",
+      "archaic": "roasting directly on charcoal or embers",
+      "matches": [
+        "charcoal",
+        "ember",
+        "open fire",
+        "live coal",
+        "fire-roast"
+      ],
+      "modern": "roast directly on a gas flame, turning every 2-3 minutes until the skin blackens and the flesh collapses — about 10-12 minutes. No gas: grill under an oven broiler on the highest setting, turning once.",
+      "keep": "the direct flame. The smoke is the dish, not a side effect. An oven bake without any flame contact gives a different food.",
+      "convenience": "a gas hob does this unattended in a way a charcoal fire never did"
+    },
+    {
+      "id": "tech-grinding-stone",
+      "archaic": "grinding on a stone (sil-batta, quern), pounding in a mortar",
+      "matches": [
+        "grinding stone",
+        "quern",
+        "pound",
+        "pestle",
+        "mortar",
+        "sil"
+      ],
+      "modern": "a mixer grinder in short pulses, scraping down between them. Add liquid a spoon at a time rather than all at once.",
+      "keep": "a coarse texture. A stone crushed and tore; a blade cuts, and running it continuously makes a smooth paste the original never was. Pulse, do not blend.",
+      "convenience": "minutes instead of the better part of an hour"
+    },
+    {
+      "id": "tech-ambient-fermentation",
+      "archaic": "fermenting by ambient warmth, overnight or longer",
+      "matches": [
+        "ferment",
+        "leave overnight",
+        "keep overnight",
+        "set aside for the night"
+      ],
+      "modern": "an oven with only the light on, or an instant pot on its yogurt setting, holds roughly 30-35°C. In a cold house, a warm cupboard works.",
+      "keep": "the time. Warmth speeds fermentation but does not replace it — a batter rushed at high heat sours without rising properly.",
+      "convenience": "removes the seasonal problem: the same batter that rose in a Deccan summer will not rise in a Delhi January without help"
+    },
+    {
+      "id": "tech-earthen-pot",
+      "archaic": "cooking in an earthen or clay pot",
+      "matches": [
+        "earthen",
+        "clay pot",
+        "mud pot",
+        "earthenware"
+      ],
+      "modern": "a heavy-bottomed pan, or a cast-iron or clay handi if you have one. Lower the flame slightly against a thin modern base.",
+      "keep": "slow, even heat. Earthenware held heat gently and let a little moisture through; a thin steel pan scorches where a clay pot simmered."
+    },
+    {
+      "id": "tech-steaming",
+      "archaic": "steaming over water, in cloth or a covered vessel",
+      "matches": [
+        "steam"
+      ],
+      "modern": "any steamer, an idli stand, or a colander over a covered pan of simmering water.",
+      "keep": "the lid, and a full boil underneath. This one has barely changed in a thousand years.",
+      "convenience": "an electric steamer or pressure cooker with the weight off does it without watching"
+    },
+    {
+      "id": "tech-fumigation",
+      "archaic": "fumigating with asafoetida smoke, agarwood or fragrant resin",
+      "matches": [
+        "fumigat",
+        "smoke",
+        "smoked",
+        "dhungar",
+        "dhoop"
+      ],
+      "modern": "the dhungar method: sit a small steel bowl in the finished dish, put a lit piece of charcoal in it, drip a little ghee on, cover immediately for 2-3 minutes.",
+      "keep": "the covered pause. The smoke has to be trapped or it does nothing.",
+      "convenience": "no substitute for this one. Liquid smoke is a different flavour and says so."
+    },
+    {
+      "id": "tech-tandoor",
+      "archaic": "a tandoor or pit oven",
+      "matches": [
+        "tandoor",
+        "pit oven",
+        "underground oven"
+      ],
+      "modern": "an oven at its highest setting with a preheated baking steel or heavy tray, or a cast-iron tawa on a high flame for breads.",
+      "keep": "fierce heat, and a hot surface to slap the dough onto. A moderate oven bakes; a tandoor sears."
+    },
+    {
+      "id": "tech-leaf-wrapping",
+      "archaic": "wrapping in leaves before roasting or steaming",
+      "matches": [
+        "wrapped in leaf",
+        "wrapped in leaves",
+        "leaf-wrapped",
+        "wrap in leaves",
+        "leaf wrapping"
+      ],
+      "modern": "banana leaf where it is sold — it is worth seeking out, because the leaf flavours the food. Otherwise baking parchment, then foil.",
+      "keep": "the leaf if you can get it. Foil holds steam but adds nothing; the original was a wrapper and a seasoning at once."
+    },
+    {
+      "id": "tech-deep-frying",
+      "archaic": "deep-frying in a wide vessel of oil or ghee",
+      "matches": [
+        "deep-fr",
+        "deep fry",
+        "fried in oil",
+        "fried in ghee",
+        "fry in oil",
+        "fry in ghee"
+      ],
+      "modern": "a kadai or deep pan, oil at 175-180°C — a pinch of dough should rise within a couple of seconds without browning at once.",
+      "keep": "the fat the record names. Frying in the traditional fat is the dish; swapping in a refined seed oil is the substitution this project exists to point at.",
+      "convenience": "an air fryer will not reproduce this. Shallow-frying in less oil changes texture but keeps the fat honest, which is the better trade."
+    },
+    {
+      "id": "tech-stretching",
+      "archaic": "stretching dough thin with a pesini or by hand",
+      "matches": [
+        "pesini",
+        "stretch"
+      ],
+      "modern": "a rolling pin on a lightly floured board; rest the dough 20-30 minutes first so it stretches instead of springing back."
+    }
+  ]
+}

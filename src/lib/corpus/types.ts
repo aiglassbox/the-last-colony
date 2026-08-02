@@ -94,6 +94,26 @@ export interface RestoreToday {
   time_min: number;
 }
 
+/**
+ * How to cook a record's own method in a modern kitchen.
+ *
+ * Distinct from `restore_today`, which is a complete tested recipe with amounts
+ * and a time, hand-written per dish. This is the weaker but derivable thing:
+ * the historical method translated — which ingredient to keep in its
+ * traditional form, and how to do a technique that needs equipment nobody has.
+ *
+ * Assembled from `displacements.json` and `techniques.json`, so every line
+ * traces to a table. Carries no quantities on purpose: ten records state real
+ * proportions and the rest say "to cook", and filling that gap with invented
+ * numbers would be writing recipes and presenting them as history.
+ */
+export interface MakeTodayNotes {
+  /** Ingredients worth keeping traditional, and the modern default to avoid. */
+  keep: Array<{ keep: string; not: string }>;
+  /** Archaic technique, and how to do it now. */
+  techniques: Array<{ archaic: string; modern: string; keep?: string }>;
+}
+
 export type VitalifeRelevance = "none" | "low" | "medium" | "high";
 
 export interface CorpusRecord {
@@ -131,6 +151,8 @@ export interface CorpusRecord {
   modern_counterpart_id: string | null;
   substitution_story: SubstitutionStory | null;
   restore_today: RestoreToday | null;
+  /** Derived, not authored. Optional because the 31 curated records have a real one. */
+  make_today_notes?: MakeTodayNotes | null;
   region: string | null;
   season: string | null;
   vitalife_relevance: VitalifeRelevance;

@@ -175,6 +175,7 @@ export function RestorationCard({ data }: { data: CardData }) {
           // same way the ancient card structures a record's restore_today.
           <ModernRecipe text={data.beats.RESTORE_TODAY} streaming={data.streaming} />
         )}
+        {ancient?.make_today_notes && <MakeTodayNotes notes={ancient.make_today_notes} />}
       </Beat>
 
       {ancient && (
@@ -594,6 +595,61 @@ function ModernRecipe({ text, streaming }: { text?: string; streaming: boolean }
         </>
       )}
       {streaming && <span className="caret" aria-hidden />}
+    </div>
+  );
+}
+
+/**
+ * Cooking a record's own method in a modern kitchen.
+ *
+ * Not a recipe — a translation. Both halves are derived from tables rather
+ * than written per dish: which ingredient to keep traditional comes from
+ * `displacements.json`, and how to do a technique without the equipment comes
+ * from `techniques.json`.
+ *
+ * The "keep" list is filtered upstream to genuine losses only. Rock salt gave
+ * way to iodised salt and charcoal to LPG, and both were public-health gains —
+ * telling a reader to reverse those would be advice that harms them.
+ */
+function MakeTodayNotes({ notes }: { notes: NonNullable<CorpusRecord["make_today_notes"]> }) {
+  if (notes.keep.length === 0 && notes.techniques.length === 0) return null;
+  return (
+    <div style={{ marginTop: "1.1rem", maxWidth: "62ch" }}>
+      {notes.keep.length > 0 && (
+        <>
+          <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
+            Keep these as the record has them
+          </div>
+          <ul style={{ margin: "0 0 1rem", paddingLeft: "1.1rem" }}>
+            {notes.keep.map((k) => (
+              <li key={k.keep} style={{ fontSize: "0.9rem", marginBottom: "0.3rem" }}>
+                {k.keep}
+                <span style={{ color: "var(--ink-soft)" }}> — not {k.not}</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      {notes.techniques.length > 0 && (
+        <>
+          <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
+            Doing it in a modern kitchen
+          </div>
+          {notes.techniques.map((t) => (
+            <div key={t.archaic} style={{ marginBottom: "0.7rem" }}>
+              <div style={{ fontSize: "0.9rem" }}>{t.modern}</div>
+              {t.keep && (
+                <div style={{ fontSize: "0.84rem", color: "var(--ink-soft)", marginTop: "0.2rem" }}>
+                  Keep {t.keep}
+                </div>
+              )}
+            </div>
+          ))}
+        </>
+      )}
+      <p style={{ margin: "0.4rem 0 0", fontSize: "0.8rem", color: "var(--ink-muted)" }}>
+        The record gives a method but not amounts, so quantities are yours to judge.
+      </p>
     </div>
   );
 }

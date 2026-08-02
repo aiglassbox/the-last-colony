@@ -1,5 +1,6 @@
 import displacementData from "@pipeline/data/displacements.json";
 import type { Recipe } from "@pipeline/lib/types";
+import { makeToday } from "./make-today";
 
 import type { CorpusRecord, Ingredient } from "./types";
 
@@ -152,6 +153,18 @@ export function toCorpusRecord(recipe: Recipe): CorpusRecord {
     modern_counterpart_id: null,
     substitution_story: substitutionStoryOf(recipe),
     restore_today: null,
+    make_today_notes: (() => {
+      const mt = makeToday(recipe);
+      if (!mt) return null;
+      return {
+        keep: mt.keep,
+        techniques: mt.techniques.map((t) => ({
+          archaic: t.archaic,
+          modern: t.modern,
+          keep: t.keep,
+        })),
+      };
+    })(),
     region: recipe.region || null,
     season: recipe.properties.season,
     vitalife_relevance: "none",
