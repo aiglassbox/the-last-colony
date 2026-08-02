@@ -1,0 +1,323 @@
+[
+  {
+    "category": "devanagari",
+    "q": "सूरण",
+    "expect": [
+      "ksk-surana-002"
+    ]
+  },
+  {
+    "category": "devanagari",
+    "q": "कदलीकन्द",
+    "expect": [
+      "ksk-kadalikanda-001"
+    ]
+  },
+  {
+    "category": "devanagari",
+    "q": "पायस",
+    "expect": [
+      "man-payasa-019"
+    ]
+  },
+  {
+    "category": "devanagari",
+    "q": "इड्डरिका",
+    "expect": [
+      "man-iddarika-012"
+    ]
+  },
+  {
+    "category": "transliteration",
+    "q": "surana",
+    "expect": [
+      "ksk-surana-002"
+    ]
+  },
+  {
+    "category": "transliteration",
+    "q": "iddarika",
+    "expect": [
+      "man-iddarika-012"
+    ]
+  },
+  {
+    "category": "transliteration",
+    "q": "karavelli",
+    "expect": [
+      "ksk-karavelli-007"
+    ]
+  },
+  {
+    "category": "transliteration",
+    "q": "amrapallava",
+    "expect": [
+      "ksk-amrapallava-022"
+    ]
+  },
+  {
+    "category": "english-name",
+    "q": "elephant foot yam",
+    "expect": [
+      "ksk-surana-002"
+    ]
+  },
+  {
+    "category": "english-name",
+    "q": "bitter gourd",
+    "expect": [
+      "ksk-karavelli-007"
+    ]
+  },
+  {
+    "category": "english-name",
+    "q": "ivy gourd tindora",
+    "expect": [
+      "ksk-bimbaphala-005"
+    ]
+  },
+  {
+    "category": "english-name",
+    "q": "rice pudding kheer",
+    "expect": [
+      "man-payasa-019"
+    ]
+  },
+  {
+    "category": "ingredient",
+    "q": "what did they cook in sesame oil",
+    "expect": [
+      "wf-pal-s-matsya-p-ka-122",
+      "wf-s-k-ma-matsya-p-ka-126",
+      "ksk-surana-002",
+      "wf-cukraka-059",
+      "wf-palakya-058",
+      "wf-punarnava-060",
+      "wf-vataka-155"
+    ]
+  },
+  {
+    "category": "ingredient",
+    "q": "dishes using kokum",
+    "expect": [
+      "man-fish-fry-011"
+    ]
+  },
+  {
+    "category": "ingredient",
+    "q": "recipes made with buttermilk",
+    "expect": [
+      "wf-takra-085",
+      "wf-mamsasuri-080",
+      "ksk-matsya-024",
+      "wf-gaurita-takra-087",
+      "wf-patha-047",
+      "ksk-agastikusuma-041",
+      "wf-acchika-088",
+      "ksk-tenti-032",
+      "wf-p-h-na-matsya-p-ka-123",
+      "ksk-nalini-020",
+      "ksk-karirakusum-023"
+    ]
+  },
+  {
+    "category": "ingredient",
+    "q": "anything made from bengal gram flour",
+    "expect": [
+      "wf-vesanavatika-phulauri-182",
+      "man-vatika-018",
+      "man-gharika-017",
+      "man-dosaka-016"
+    ]
+  },
+  {
+    "category": "ingredient",
+    "q": "sweet dishes with cardamom and milk",
+    "expect": [
+      "ksk-karkati-milk-009",
+      "ksk-khandakusmanda-006",
+      "wf-haalu-unde-195",
+      "wf-yava-hittina-sihi-189"
+    ]
+  },
+  {
+    "category": "ayurvedic",
+    "q": "something for bleeding disorders",
+    "expect": [
+      "ksk-khandakusmanda-006",
+      "wf-karamarda-panaka-116",
+      "ksk-kutajapuspa-040",
+      "ksk-karavelli-007",
+      "ksk-amalaka-010"
+    ]
+  },
+  {
+    "category": "ayurvedic",
+    "q": "recipes that are good for hair",
+    "expect": [
+      "ksk-nalini-020",
+      "ksk-kadalikanda-001"
+    ]
+  },
+  {
+    "category": "ayurvedic",
+    "q": "food that helps with piles",
+    "expect": [
+      "wf-hinguvasita-agholaka-086",
+      "ksk-surana-002",
+      "ksk-tenti-032"
+    ]
+  },
+  {
+    "category": "ayurvedic",
+    "q": "what to eat when you have no appetite",
+    "expect": [
+      "ksk-bimbaphala-005",
+      "ksk-amrapallava-022",
+      "wf-mrga-mamsa-171",
+      "wf-amlikaphala-panaka-111",
+      "wf-jambuphala-panaka-112"
+    ]
+  },
+  {
+    "category": "ayurvedic",
+    "q": "cooling foods for the body",
+    "expect": [
+      "wf-karambhaka-108",
+      "ksk-visanaphala-035",
+      "ksk-karkati-milk-009",
+      "ksk-tindisaka-031",
+      "ksk-kadalikanda-001",
+      "ksk-khandakusmanda-006",
+      "ksk-karavelli-007",
+      "ksk-kadaliphala-008"
+    ]
+  },
+  {
+    "category": "source-period",
+    "q": "dishes from the 12th century Chalukya court",
+    "expect": [
+      "man-fish-fry-011",
+      "man-payasa-019",
+      "man-vatika-018",
+      "man-purika-015",
+      "man-iddarika-012",
+      "man-gharika-017",
+      "man-polika-014",
+      "man-dosaka-016",
+      "man-mandaka-013",
+      "wf-puryalakhya-153"
+    ]
+  },
+  {
+    "category": "source-period",
+    "q": "sixteenth century north indian cooking",
+    "expect": [
+      "ksk-matsya-024",
+      "ksk-vrintaka-steamed-004",
+      "wf-praleha-169",
+      "ksk-nalini-020",
+      "ksk-karkati-milk-009",
+      "wf-kacchapa-mamsa-174",
+      "ksk-baingan-bharta-003",
+      "wf-sulya-070",
+      "ksk-khandakusmanda-006",
+      "wf-mamsendari-076",
+      "ksk-kadalikanda-001",
+      "ksk-surana-002",
+      "ksk-bimbaphala-005",
+      "ksk-karavelli-007",
+      "ksk-kadaliphala-008",
+      "ksk-amalaka-010",
+      "ksk-shobhanjana-021",
+      "ksk-amrapallava-022",
+      "ksk-karirakusum-023"
+    ]
+  },
+  {
+    "category": "paraphrase",
+    "q": "ancient version of idli",
+    "expect": [
+      "man-iddarika-012"
+    ]
+  },
+  {
+    "category": "paraphrase",
+    "q": "the medieval ancestor of the dosa",
+    "expect": [
+      "man-dosaka-016"
+    ]
+  },
+  {
+    "category": "paraphrase",
+    "q": "old recipe similar to puran poli",
+    "expect": [
+      "man-polika-014"
+    ]
+  },
+  {
+    "category": "paraphrase",
+    "q": "how did they make smoky mashed eggplant",
+    "expect": [
+      "ksk-baingan-bharta-003"
+    ]
+  },
+  {
+    "category": "paraphrase",
+    "q": "flowers that were cooked as vegetables",
+    "expect": [
+      "ksk-shobhanjana-021",
+      "ksk-kutajapuspa-040",
+      "ksk-nalini-020",
+      "ksk-agastikusuma-041",
+      "wf-palya-185",
+      "ksk-karirakusum-023",
+      "wf-breynia-dasavala-palya-187"
+    ]
+  },
+  {
+    "category": "paraphrase",
+    "q": "a sweet made by simmering a vegetable in milk",
+    "expect": [
+      "ksk-karkati-milk-009",
+      "ksk-khandakusmanda-006"
+    ]
+  },
+  {
+    "category": "paraphrase",
+    "q": "early form of vada",
+    "expect": [
+      "man-gharika-017",
+      "wf-vataka-155",
+      "wf-vesanavatika-phulauri-182"
+    ]
+  },
+  {
+    "category": "paraphrase",
+    "q": "deep fried puffed bread",
+    "expect": [
+      "wf-puri-176",
+      "man-purika-015"
+    ]
+  },
+  {
+    "category": "negative",
+    "q": "how do I make pizza",
+    "expect": []
+  },
+  {
+    "category": "negative",
+    "q": "chicken tikka masala recipe",
+    "expect": []
+  },
+  {
+    "category": "negative",
+    "q": "best pasta carbonara",
+    "expect": []
+  },
+  {
+    "category": "negative",
+    "q": "what is the capital of France",
+    "expect": []
+  }
+]

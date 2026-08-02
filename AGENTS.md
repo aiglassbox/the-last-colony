@@ -1,5 +1,33 @@
 # Working in this repo
 
+## The only remote is ours
+
+`origin` is `github.com/Anjali-Kore/recipe_project`. That is the only repository
+anything here may push to.
+
+This codebase began as a copy of `aiglassbox/the-last-colony`, someone else's
+project. It was read once, at the start, and the link has been removed. **Do not
+add it back as a remote, do not fetch from it, and never push anything anywhere
+near it.** There is no upstream to sync with and no pull request to open: the
+shared history was squashed into this repo's base commit, so the two have no
+common ancestor and could not merge even if asked.
+
+If a task seems to need upstream code, stop and ask. A `pre-push` hook in this
+clone rejects any push to a host other than ours, but the hook is local — the
+rule is the instruction, not the hook.
+
+## Two packages, one repo
+
+The app is at the root: Next.js, `src/`, deployed as the website.
+
+`pipeline/` is a separate npm package — the retrieval engine that embeds the
+199-recipe corpus into Pinecone and searches it. Its own `package.json`, its own
+`node_modules`, its own `.env`, its own tsconfig. Run its commands from inside
+`pipeline/`; run the app's from the root. The root tsconfig and eslint config
+both exclude it on purpose.
+
+See `pipeline/ARCHITECTURE.md` for how retrieval works and what has been measured.
+
 ## This is not the Next.js you know
 
 Next 16 with Turbopack. APIs and conventions differ from older versions — read

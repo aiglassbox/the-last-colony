@@ -7,3 +7,13 @@ next-env.d.ts
 .env
 .env.local
 .DS_Store
+
+# --- pipeline/ -------------------------------------------------------------
+# The retrieval engine is a second npm package inside this repo: its own
+# package.json, its own dependencies, its own install. `node_modules` and `.env`
+# above match at any depth, but these need naming explicitly.
+
+# The Kaggle source CSV for Tier 2 (11.7MB). Re-downloadable, and its licence is
+# unchecked for redistribution — pipeline/ARCHITECTURE.md says so. The derived
+# pipeline/data/dishes.json is what the code actually reads, and is committed.
+pipeline/data/raw/

@@ -1,0 +1,473 @@
+<title>Ancient Indian Recipe Chatbot — Blueprint</title>
+<style>
+  :root {
+    --paper: #f4f2ec;
+    --paper-raised: #faf9f4;
+    --ink: #20222b;
+    --ink-soft: #3c3e47;
+    --muted: #6b6a62;
+    --haldi: #bd7d16;
+    --haldi-deep: #9a6410;
+    --indigo: #33487a;
+    --rule: #ddd8cc;
+    --rule-strong: #cbc5b5;
+    --callout: #f0ece0;
+    --good: #4f7a3f;
+    --shadow: 0 1px 2px rgba(32,34,43,.06), 0 8px 28px rgba(32,34,43,.05);
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, "Cascadia Code", "SF Mono", "Consolas", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #16171c;
+      --paper-raised: #1e2027;
+      --ink: #e8e5db;
+      --ink-soft: #c3c1b8;
+      --muted: #918e83;
+      --haldi: #d99a2b;
+      --haldi-deep: #eab54f;
+      --indigo: #869ad2;
+      --rule: #2c2e37;
+      --rule-strong: #3a3d47;
+      --callout: #1f2129;
+      --good: #86b06f;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="light"] {
+    --paper: #f4f2ec; --paper-raised: #faf9f4; --ink: #20222b; --ink-soft: #3c3e47;
+    --muted: #6b6a62; --haldi: #bd7d16; --haldi-deep: #9a6410; --indigo: #33487a;
+    --rule: #ddd8cc; --rule-strong: #cbc5b5; --callout: #f0ece0; --good: #4f7a3f;
+    --shadow: 0 1px 2px rgba(32,34,43,.06), 0 8px 28px rgba(32,34,43,.05);
+  }
+  :root[data-theme="dark"] {
+    --paper: #16171c; --paper-raised: #1e2027; --ink: #e8e5db; --ink-soft: #c3c1b8;
+    --muted: #918e83; --haldi: #d99a2b; --haldi-deep: #eab54f; --indigo: #869ad2;
+    --rule: #2c2e37; --rule-strong: #3a3d47; --callout: #1f2129; --good: #86b06f;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 24px 96px; }
+
+  /* ---- Masthead ---- */
+  header.masthead {
+    padding: 72px 0 40px;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 8px;
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--haldi-deep);
+    margin: 0 0 18px;
+  }
+  h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(2.1rem, 5vw, 3.1rem);
+    line-height: 1.08;
+    letter-spacing: -.01em;
+    text-wrap: balance;
+    margin: 0 0 18px;
+  }
+  h1 .tint { color: var(--haldi-deep); font-style: italic; }
+  .standfirst {
+    font-family: var(--serif);
+    font-size: 1.25rem;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    max-width: 60ch;
+    margin: 0 0 28px;
+  }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    font-family: var(--mono); font-size: 12.5px; color: var(--muted);
+  }
+  .chip {
+    border: 1px solid var(--rule-strong);
+    border-radius: 100px;
+    padding: 4px 12px;
+    background: var(--paper-raised);
+  }
+  .chip b { color: var(--ink); font-weight: 600; }
+
+  /* ---- Sections ---- */
+  section { padding: 48px 0; border-bottom: 1px solid var(--rule); }
+  section:last-of-type { border-bottom: none; }
+  .kicker {
+    display: flex; align-items: baseline; gap: 14px; margin: 0 0 20px;
+  }
+  .kicker .num {
+    font-family: var(--mono); font-size: 13px; font-weight: 600;
+    color: var(--haldi); letter-spacing: .05em;
+    padding-top: 4px;
+  }
+  h2 {
+    font-family: var(--serif); font-weight: 600;
+    font-size: 1.75rem; line-height: 1.15; letter-spacing: -.01em;
+    text-wrap: balance; margin: 0;
+  }
+  h3 {
+    font-family: var(--sans); font-weight: 650;
+    font-size: 1.02rem; letter-spacing: .01em;
+    margin: 32px 0 8px;
+  }
+  p { margin: 0 0 16px; }
+  strong { font-weight: 650; color: var(--ink); }
+  a { color: var(--indigo); text-decoration-color: color-mix(in srgb, var(--indigo) 40%, transparent); text-underline-offset: 2px; }
+  a:hover { text-decoration-color: var(--indigo); }
+  ul { margin: 0 0 16px; padding-left: 0; list-style: none; }
+  ul li { position: relative; padding-left: 22px; margin-bottom: 9px; }
+  ul li::before {
+    content: ""; position: absolute; left: 4px; top: .72em;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--haldi);
+  }
+  ul li ul { margin: 9px 0 4px; }
+  ul li ul li::before { background: none; border: 1.4px solid var(--rule-strong); }
+
+  .lead-hl { color: var(--haldi-deep); font-weight: 600; }
+
+  /* ---- Data source cards ---- */
+  .sources { display: grid; gap: 14px; margin: 8px 0 4px; }
+  @media (min-width: 620px) { .sources { grid-template-columns: 1fr 1fr; } }
+  .src {
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 18px 18px 16px;
+    box-shadow: var(--shadow);
+  }
+  .src .tier {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--muted); margin: 0 0 8px;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .src h3 { margin: 0 0 6px; font-size: .98rem; }
+  .src p { margin: 0; font-size: .92rem; color: var(--ink-soft); line-height: 1.55; }
+  .src .names { font-family: var(--serif); font-style: italic; color: var(--ink); }
+
+  /* ---- Schema code block ---- */
+  .code {
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--haldi);
+    border-radius: 10px;
+    padding: 18px 20px;
+    overflow-x: auto;
+    font-family: var(--mono); font-size: 13.5px; line-height: 1.7;
+    color: var(--ink-soft);
+    margin: 6px 0 18px;
+  }
+  .code .k { color: var(--indigo); }
+  .code .c { color: var(--muted); font-style: italic; }
+
+  /* ---- Pipeline flow ---- */
+  .flow {
+    display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px;
+    margin: 20px 0 8px;
+  }
+  .flow .step {
+    flex: 1 1 130px;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 12px 14px;
+    box-shadow: var(--shadow);
+  }
+  .flow .step .n { font-family: var(--mono); font-size: 11px; color: var(--haldi); }
+  .flow .step .t { font-weight: 650; font-size: .9rem; margin-top: 3px; }
+  .flow .step .d { font-size: .8rem; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+  .flow .arrow { align-self: center; color: var(--rule-strong); font-size: 18px; }
+
+  /* ---- Callout ---- */
+  .callout {
+    background: var(--callout);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin: 18px 0;
+    display: flex; gap: 14px;
+  }
+  .callout .mark {
+    font-family: var(--serif); font-style: italic; font-weight: 600;
+    color: var(--haldi-deep); font-size: 1.4rem; line-height: 1; flex-shrink: 0;
+  }
+  .callout p { margin: 0; font-size: .95rem; color: var(--ink-soft); }
+  .callout strong { color: var(--ink); }
+
+  /* ---- Two-col tactic lists ---- */
+  .cols { display: grid; gap: 24px; }
+  @media (min-width: 620px) { .cols { grid-template-columns: 1fr 1fr; gap: 32px; } }
+  .cols h3 { margin-top: 0; display: flex; align-items: center; gap: 8px; }
+  .cols h3 .glyph { color: var(--haldi); font-family: var(--serif); }
+
+  /* ---- Roadmap ---- */
+  .road { display: grid; gap: 0; margin: 4px 0; }
+  .phase {
+    display: grid; grid-template-columns: 48px 1fr; gap: 18px;
+    padding: 20px 0; border-top: 1px solid var(--rule);
+  }
+  .phase:first-child { border-top: none; }
+  .phase .idx {
+    font-family: var(--serif); font-size: 1.6rem; font-weight: 600;
+    color: var(--haldi); line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .phase h3 { margin: 0 0 4px; font-size: 1.05rem; }
+  .phase p { margin: 0; font-size: .93rem; color: var(--ink-soft); }
+  .phase .tag {
+    font-family: var(--mono); font-size: 11px; color: var(--muted);
+    letter-spacing: .05em; margin-top: 7px;
+  }
+
+  /* ---- Stack table ---- */
+  .table-scroll { overflow-x: auto; margin: 6px 0 4px; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; }
+  th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted); font-weight: 600;
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  td .comp { font-weight: 650; }
+  td .why { color: var(--muted); font-size: .85rem; }
+  tbody tr:last-child td { border-bottom: none; }
+
+  footer {
+    padding: 40px 0 0; color: var(--muted);
+    font-family: var(--mono); font-size: 12px;
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px;
+  }
+
+  :focus-visible { outline: 2px solid var(--haldi); outline-offset: 3px; border-radius: 3px; }
+  @media (prefers-reduced-motion: no-preference) {
+    a, .src { transition: text-decoration-color .15s ease; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">Product Blueprint · v1</p>
+    <h1>A chatbot for <span class="tint">ancient Indian</span> recipes</h1>
+    <p class="standfirst">Where to source the data, how to structure and serve it, and the specific choices that keep the bot fast and — the hard part — historically accurate.</p>
+    <div class="meta-row">
+      <span class="chip">Approach <b>RAG + citations</b></span>
+      <span class="chip">Model <b>Gemini 3 Flash</b></span>
+      <span class="chip">Stack <b>Next.js</b></span>
+    </div>
+  </header>
+
+  <section>
+    <div class="kicker"><span class="num">00</span><h2>The core idea</h2></div>
+    <p>There is <span class="lead-hl">no ready-made dataset</span> of ancient Indian recipes. Building it — collecting, translating, and structuring historical texts — is the real work, roughly <strong>60–70% of the effort</strong>. That's not a detour; it's where accuracy is won or lost.</p>
+    <p>The bot itself should be a <strong>retrieval system, not a memory system</strong>. It looks up real recipes from your curated store and answers only from what it finds, always citing the source. That single decision is what prevents it from inventing a plausible-sounding recipe that no historical text ever recorded.</p>
+  </section>
+
+  <section>
+    <div class="kicker"><span class="num">01</span><h2>Where the data comes from</h2></div>
+    <p>Ancient recipes live in Sanskrit and regional-language texts, often only in historical translation. Sources, ranked by authenticity:</p>
+    <div class="sources">
+      <div class="src">
+        <p class="tier"><span class="dot" style="background:var(--good)"></span>Primary · highest authenticity</p>
+        <h3>Classical culinary texts</h3>
+        <p><span class="names">Manasollasa</span> (12th c., among the earliest cookbooks), <span class="names">Pakadarpana</span>, <span class="names">Kshemakutuhalam</span>, <span class="names">Bhojana Kutuhala</span> — actual recipes and food science.</p>
+      </div>
+      <div class="src">
+        <p class="tier"><span class="dot" style="background:var(--good)"></span>Primary · medicinal food</p>
+        <h3>Ayurvedic texts</h3>
+        <p><span class="names">Charaka Samhita</span> and <span class="names">Sushruta Samhita</span> — food preparations tied to properties, seasons, and health.</p>
+      </div>
+      <div class="src">
+        <p class="tier"><span class="dot" style="background:var(--haldi)"></span>Digitized archives</p>
+        <h3>Where to actually find them</h3>
+        <p><a href="https://archive.org">archive.org</a>, <a href="https://www.wisdomlib.org">wisdomlib.org</a>, and <strong>GRETIL</strong> (digital Sanskrit corpus) — many with English translations.</p>
+      </div>
+      <div class="src">
+        <p class="tier"><span class="dot" style="background:var(--indigo)"></span>Secondary · well-sourced</p>
+        <h3>Food-history scholarship</h3>
+        <p>K.T. Achaya's <span class="names">Indian Food: A Historical Companion</span> and <span class="names">A Historical Dictionary of Indian Food</span>; academic papers and museum digitizations.</p>
+      </div>
+    </div>
+    <div class="callout">
+      <span class="mark">!</span>
+      <p><strong>Vet everything.</strong> Historical translations carry errors that compound. Blogs and generic listicles vary wildly in quality — treat them as leads to verify against a primary source, never as ground truth.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker"><span class="num">02</span><h2>How to structure each recipe</h2></div>
+    <p>Don't feed raw PDFs to the bot. Convert every recipe into a <strong>structured record</strong>. This is what makes answers precise, cite-able, and usable in a modern kitchen.</p>
+    <div class="code">{
+  <span class="k">name</span>:            <span class="c">// original + transliteration + English</span>
+  <span class="k">source</span>:          <span class="c">// text title, century, page/citation</span>
+  <span class="k">region</span>:          <span class="c">// e.g. Deccan, Bengal, Tamilakam</span>
+  <span class="k">ingredients</span>: [   <span class="c">// each with a MODERN equivalent</span>
+    { original, modern_name, quantity }
+  ],
+  <span class="k">steps</span>:           <span class="c">// ordered preparation</span>
+  <span class="k">properties</span>:      <span class="c">// ayurvedic / occasion / season</span>
+  <span class="k">notes</span>:           <span class="c">// archaic units, substitutions</span>
+}</div>
+    <p>The <strong>modern-equivalent layer</strong> matters: archaic measures and renamed or extinct ingredients need translation, or the recipe stays a museum piece instead of something someone can cook.</p>
+  </section>
+
+  <section>
+    <div class="kicker"><span class="num">03</span><h2>Architecture — retrieval, not fine-tuning</h2></div>
+    <p>Use <strong>RAG (Retrieval-Augmented Generation)</strong>. The flow:</p>
+    <div class="flow">
+      <div class="step"><div class="n">01</div><div class="t">Embed query</div><div class="d">Turn the question into a vector</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="n">02</div><div class="t">Retrieve</div><div class="d">Top 3–5 matching recipes from the vector DB</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="n">03</div><div class="t">Ground</div><div class="d">Feed matches + question to Gemini</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="n">04</div><div class="t">Answer</div><div class="d">Reply only from sources, with citations</div></div>
+    </div>
+    <h3>Why RAG beats fine-tuning here</h3>
+    <ul>
+      <li><strong>Accuracy</strong> — the model answers from retrieved real text, so it can't fabricate an "ancient" recipe. This is the number-one risk.</li>
+      <li><strong>Cheap to update</strong> — add recipes by inserting records; no retraining.</li>
+      <li><strong>Citations</strong> — every answer traces back to a specific text and page.</li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="kicker"><span class="num">04</span><h2>The decision engine — three ways to answer</h2></div>
+    <p>The bot doesn't just look recipes up. It first <strong>classifies the dish</strong>, then takes one of three routes. The rule that protects accuracy: only Tier 1 is a real historical recipe — Tiers 2 and 3 are clearly <strong>labelled as adaptations</strong>, never passed off as ancient.</p>
+    <div class="sources" style="grid-template-columns:1fr;">
+      <div class="src">
+        <p class="tier"><span class="dot" style="background:var(--good)"></span>Tier 1 · the dish exists in the ancient texts</p>
+        <h3>Serve the authentic recipe, cited</h3>
+        <p>Example: <span class="names">khichdi</span>. Retrieve it from the recipe DB and return it as written, citing the source text and period. <strong>Provenance label: “Authentic — from [text], [century].”</strong></p>
+      </div>
+      <div class="src">
+        <p class="tier"><span class="dot" style="background:var(--haldi)"></span>Tier 2 · Indian dish, but not in the ancient texts</p>
+        <h3>Adapt it healthier from tradition</h3>
+        <p>Example: <span class="names">palak paneer</span>. Take the dish and swap rich modern ingredients for healthier ones drawn from the <strong>substitutions DB</strong> and Ayurvedic sources — e.g. full-fat cream → a lighter cashew or ash-gourd paste; refined sugar → jaggery. <strong>Provenance label: “Healthier adaptation — inspired by traditional principles.”</strong></p>
+      </div>
+      <div class="src">
+        <p class="tier"><span class="dot" style="background:var(--indigo)"></span>Tier 3 · dish is not Indian in origin</p>
+        <h3>Offer an Indianized, healthier version</h3>
+        <p>Example: <span class="names">pasta, pizza</span>. Rebuild it with Indian ingredients and healthier techniques (steaming/roasting over deep-frying, whole grains, spice-and-buttermilk gravies). <strong>Provenance label: “Indian-inspired fusion — a modern reinterpretation.”</strong></p>
+      </div>
+    </div>
+    <div class="callout">
+      <span class="mark">!</span>
+      <p><strong>Classification is the hard part.</strong> Gemini Flash decides the tier (helped by the retrieval score — a strong DB match ⇒ Tier 1). When it's unsure, it should ask or state its assumption, not guess silently. And health claims stay gentle: Ayurvedic properties are <strong>traditional guidance, not medical advice</strong>.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker"><span class="num">05</span><h2>Fast &amp; accurate — the two dials</h2></div>
+    <div class="cols">
+      <div>
+        <h3><span class="glyph">⏱</span> Make it quick</h3>
+        <ul>
+          <li><strong>Chunk tight</strong> — one recipe per chunk, so retrieval stays focused.</li>
+          <li><strong>Retrieve few</strong> — top 3–5, not 50.</li>
+          <li><strong>Cache</strong> embeddings once; cache answers to common questions.</li>
+          <li><strong>Context caching</strong> on Gemini for the static system prompt.</li>
+          <li><strong>One fast model</strong> — Gemini 3 Flash for every call: low latency, low cost, strong enough for grounded RAG.</li>
+          <li><strong>Stream</strong> the reply (Next.js edge + streaming) so text appears instantly.</li>
+        </ul>
+      </div>
+      <div>
+        <h3><span class="glyph">✦</span> Make it accurate</h3>
+        <ul>
+          <li><strong>Ground strictly</strong> — "answer only from the provided sources; if it's not there, say so."</li>
+          <li><strong>Always cite</strong> the text and period.</li>
+          <li><strong>Human-verify</strong> translations and archaic-term mappings.</li>
+          <li><strong>Fail gracefully</strong> — say "not found" instead of guessing.</li>
+          <li><strong>Modern-equivalent layer</strong> for ingredients and units.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout">
+      <span class="mark">✦</span>
+      <p><strong>The whole game is anti-hallucination.</strong> A bot that confidently invents an "ancient" recipe is worse than one that admits it doesn't know. Grounding + citations + a vetted dataset are the three things that make it trustworthy.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker"><span class="num">06</span><h2>Suggested tech stack</h2></div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Layer</th><th>Pick</th><th>Why</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Frontend + Backend</td><td class="comp">Next.js</td><td class="why">One framework: React UI plus Route Handlers (API) in the same app. Deploy on Vercel.</td></tr>
+          <tr><td>LLM</td><td class="comp">Gemini 3 Flash</td><td class="why">One model for every call — fast, low-cost, and strong enough for grounded, cited answers.</td></tr>
+          <tr><td>Embeddings</td><td class="comp">Gemini embeddings</td><td class="why">Same provider as the LLM (one SDK, one key) — keeps the stack simple.</td></tr>
+          <tr><td>Vector DB</td><td class="comp">Supabase (pgvector)</td><td class="why">Postgres + vector search in one, serverless-friendly for Next.js. Pinecone if you'd rather stay fully managed.</td></tr>
+          <tr><td>Substitutions DB</td><td class="comp">JSON → Postgres</td><td class="why">Healthier-swap table (rich ingredient → traditional lighter alternative) that powers Tiers 2 &amp; 3.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker"><span class="num">07</span><h2>Build order</h2></div>
+    <p>Order matters here — each phase de-risks the next. Go end-to-end small before going wide.</p>
+    <div class="road">
+      <div class="phase">
+        <div class="idx">1</div>
+        <div>
+          <h3>Collect &amp; structure</h3>
+          <p>Pull 20–50 recipes from one or two good sources. Fit each into the schema.</p>
+          <p class="tag">Deliverable · a small, clean, cited dataset</p>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="idx">2</div>
+        <div>
+          <h3>Prototype the RAG loop</h3>
+          <p>A Next.js app with a Route Handler that embeds, retrieves from pgvector, and calls Gemini over that small set. Get a working chat.</p>
+          <p class="tag">Deliverable · you can ask it a question and get a cited answer</p>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="idx">3</div>
+        <div>
+          <h3>Test &amp; tune accuracy</h3>
+          <p>Do answers match the source? Fix chunking, prompts, and grounding rules.</p>
+          <p class="tag">Deliverable · trusted, verifiable outputs</p>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="idx">4</div>
+        <div>
+          <h3>Scale up</h3>
+          <p>Grow the dataset, add caching for speed, and polish the Next.js UI. Ship on Vercel.</p>
+          <p class="tag">Deliverable · a fast, shippable product</p>
+        </div>
+      </div>
+    </div>
+    <div class="callout">
+      <span class="mark">→</span>
+      <p>Starting with <strong>one source and ~30 recipes end-to-end</strong> will teach you more than collecting a thousand recipes first. Build the thin slice, then widen it.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Ancient Indian Recipe Chatbot — Blueprint</span>
+    <span>RAG · Gemini · Next.js · Vetted historical sources</span>
+  </footer>
+
+</div>
