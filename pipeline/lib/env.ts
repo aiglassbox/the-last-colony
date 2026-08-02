@@ -49,6 +49,9 @@ export const env = {
   get cohereApiKey() {
     return process.env.COHERE_API_KEY;
   },
+  get deepinfraApiKey() {
+    return process.env.DEEPINFRA_API_KEY;
+  },
   get hasPineconeKey() {
     return Boolean(process.env.PINECONE_API_KEY);
   },

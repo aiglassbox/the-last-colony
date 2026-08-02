@@ -87,7 +87,7 @@ async function withRetry<T>(fn: () => Promise<T>, attempts = 4): Promise<T> {
 }
 
 export interface Reranker {
-  readonly vendor: 'pinecone' | 'jina' | 'cohere';
+  readonly vendor: 'pinecone' | 'jina' | 'cohere' | 'deepinfra';
   readonly model: string;
   /** Scores every document against the query; returns at most `topN`, ranked. */
   score(query: string, documents: string[], topN: number): Promise<Scored[]>;
@@ -231,6 +231,65 @@ function cohereReranker(): Reranker {
   };
 }
 
+// --- DeepInfra ---------------------------------------------------------------
+
+/**
+ * DeepInfra, hosting the Qwen3-Reranker family. Pay-per-token with no monthly
+ * request cap, which is the property the other hosted options lack: Pinecone
+ * stops dead at 500 requests a month and Jina throttles at 100k tokens a
+ * minute. At roughly 3,000 tokens per rerank, Qwen3-4B works out near $0.08
+ * per thousand queries.
+ *
+ * Its API is shaped differently from the others and the difference matters:
+ * the model name is part of the URL, `queries` is an array even for one query,
+ * and the response is a flat `scores` array **aligned to the order documents
+ * were sent** rather than a ranked list. So the ranking is done here — index,
+ * sort, truncate — instead of arriving pre-sorted.
+ */
+function deepinfraReranker(): Reranker {
+  const model = env.rerankModel ?? 'Qwen/Qwen3-Reranker-4B';
+  return {
+    vendor: 'deepinfra',
+    model,
+    score(query, documents, topN) {
+      return withRetry(async () => {
+        const response = await fetch(
+          `https://api.deepinfra.com/v1/inference/${model}`,
+          {
+            method: 'POST',
+            headers: {
+              'content-type': 'application/json',
+              authorization: `bearer ${env.deepinfraApiKey}`,
+            },
+            body: JSON.stringify({ queries: [query], documents }),
+          },
+        );
+        if (response.status === 429) {
+          throw new RateLimited('deepinfra', (await response.text()).slice(0, 200));
+        }
+        if (!response.ok) {
+          throw new Error(
+            `deepinfra rerank ${response.status}: ${(await response.text()).slice(0, 300)}`,
+          );
+        }
+        const body = (await response.json()) as { scores?: number[] };
+        const scores = body.scores ?? [];
+        if (scores.length !== documents.length) {
+          // A misaligned array would silently attach every score to the wrong
+          // document, which reads as a working reranker producing nonsense.
+          throw new Error(
+            `deepinfra returned ${scores.length} scores for ${documents.length} documents`,
+          );
+        }
+        return scores
+          .map((score, index) => ({ index, score }))
+          .sort((a, b) => b.score - a.score)
+          .slice(0, topN);
+      });
+    },
+  };
+}
+
 // --- selection --------------------------------------------------------------
 
 /**
@@ -243,11 +302,14 @@ function cohereReranker(): Reranker {
 export function activeReranker(): Reranker | null {
   const forced = env.rerankProvider?.toLowerCase();
 
+  if (forced === 'deepinfra') return env.deepinfraApiKey ? deepinfraReranker() : null;
   if (forced === 'jina') return env.jinaApiKey ? jinaReranker() : null;
   if (forced === 'cohere') return env.cohereApiKey ? cohereReranker() : null;
   if (forced === 'pinecone') return env.hasPineconeKey ? pineconeReranker() : null;
   if (forced === 'none') return null;
 
+  // DeepInfra first: the only one here with no monthly request ceiling.
+  if (env.deepinfraApiKey) return deepinfraReranker();
   if (env.jinaApiKey) return jinaReranker();
   if (env.cohereApiKey) return cohereReranker();
   if (env.hasPineconeKey) return pineconeReranker();
