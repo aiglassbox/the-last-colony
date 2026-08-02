@@ -1,6 +1,20 @@
+import displacementData from "@pipeline/data/displacements.json";
 import type { Recipe } from "@pipeline/lib/types";
 
 import type { CorpusRecord, Ingredient } from "./types";
+
+interface Displacement {
+  id: string;
+  traditional: string;
+  matches: string[];
+  replaced_by: string;
+  when: string;
+  driver: string;
+  nutrition_axis: string;
+  direction: string;
+}
+
+const DISPLACEMENTS = (displacementData as { displacements: Displacement[] }).displacements;
 
 /**
  * The seam between the app's corpus and the pipeline's index.
@@ -11,15 +25,16 @@ import type { CorpusRecord, Ingredient } from "./types";
  * `pipeline/` holds 199 recipes drawn from cited texts, indexed in Pinecone,
  * searchable by meaning rather than by name.
  *
- * The 199 are a wider net, not a richer record. Mapping one into a `CorpusRecord`
+* The 199 are a wider net. Mapping one into a `CorpusRecord`
  * is therefore mostly a exercise in refusing to invent the fields it does not
  * have, because every one of those fields is rendered on screen as fact:
  *
  *   - `Ingredient.function` is "the column that does the teaching". A pipeline
  *     record has no such field, so it says so rather than guessing a reason a
  *     historical cook used an ingredient.
- *   - `substitution_story` and `modern_counterpart_id` drive the Then/Now diff
- *     and the nutrition delta. Absent, so null: the card simply omits them.
+ *   - `modern_counterpart_id` drives the Then/Now ingredient diff. Absent, so
+ *     null: the card omits it. `substitution_story` is the exception — it is
+ *     derived from `displacements.json`, where each claim carries a source.
  *   - `share_verdict` is written by an editor precisely so the most
  *     screenshotted artefact is never generated. Absent, so null.
  *   - `restore_today` is a real tested method. Absent, so the card falls back to
@@ -135,12 +150,70 @@ export function toCorpusRecord(recipe: Recipe): CorpusRecord {
     confidence: { identification: 0.5, ingredients: 0.5, method: 0.5 },
     contested_points: recipe.notes ? [recipe.notes] : [],
     modern_counterpart_id: null,
-    substitution_story: null,
+    substitution_story: substitutionStoryOf(recipe),
     restore_today: null,
     region: recipe.region || null,
     season: recipe.properties.season,
     vitalife_relevance: "none",
     verification,
+  };
+}
+
+/**
+ * The WHAT CHANGED beat, derived from the record's own ingredients.
+ *
+ * These 199 records document how a dish was made and say nothing about what
+ * happened to it since — which is two thirds of the product missing. Writing
+ * that per dish is 199 research jobs; writing it per *ingredient* is eight,
+ * because the corpus is concentrated (ghee appears in 98 recipes, sugar in 76).
+ *
+ * So `data/displacements.json` holds one sourced narrative per displaced
+ * ingredient, and this matches them against what the recipe actually contains.
+ * Every claim on the card traces to an entry with a citation and a URL. Nothing
+ * is inferred here, which is the point: three attempts at deriving this
+ * automatically — name overlap, ingredient overlap, reverse-matching the swap
+ * rules — all produced confident nonsense like "lotus buds displaced by
+ * caffeinated soft drinks".
+ *
+ * `nutrition_delta` only carries axes the schema defines. The salt entry names
+ * iodine, which is not one of them and which moved *up* — a public-health gain,
+ * not a loss — so it contributes a change without a delta rather than being
+ * bent into the decline narrative.
+ */
+const DELTA_AXES = new Set([
+  "protein",
+  "fibre",
+  "glycaemic_load",
+  "iron",
+  "calcium",
+  "fat_quality",
+]);
+
+function substitutionStoryOf(recipe: Recipe): CorpusRecord["substitution_story"] {
+  const haystack = recipe.ingredients
+    .map((i) => `${i.modern_name ?? ""} ${i.original ?? ""}`.toLowerCase())
+    .join(" | ");
+
+  const applicable = DISPLACEMENTS.filter((d) =>
+    d.matches.some((m) => haystack.includes(m.toLowerCase())),
+  );
+  if (applicable.length === 0) return null;
+
+  const nutrition_delta: Record<string, string> = {};
+  for (const d of applicable) {
+    if (DELTA_AXES.has(d.nutrition_axis)) nutrition_delta[d.nutrition_axis] = d.direction;
+  }
+
+  return {
+    changed: applicable.map((d) => ({
+      from: d.traditional,
+      to: d.replaced_by,
+      period: d.when,
+      driver: d.driver,
+    })),
+    nutrition_delta: nutrition_delta as CorpusRecord["substitution_story"] extends null
+      ? never
+      : NonNullable<CorpusRecord["substitution_story"]>["nutrition_delta"],
   };
 }
 
