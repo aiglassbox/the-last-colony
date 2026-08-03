@@ -707,6 +707,58 @@ body {
     var(--sh-focus);
 }
 
+/* The shortcut in force, shown in the box rather than typed into it. Sits above
+   the field so the caret starts where the reader's own words go. */
+.composer__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  padding: var(--s-4) var(--s-5) 0;
+}
+
+.command-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.28rem 0.4rem 0.28rem 0.7rem;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--orange) 14%, transparent);
+  border: 1px solid color-mix(in oklab, var(--orange) 38%, transparent);
+  color: var(--orange);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.command-chip__x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.05rem;
+  height: 1.05rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.7;
+  transition:
+    opacity var(--dur) var(--ease),
+    background var(--dur) var(--ease);
+}
+
+.command-chip__x:hover,
+.command-chip__x:focus-visible {
+  opacity: 1;
+  background: color-mix(in oklab, var(--orange) 22%, transparent);
+}
+
+/* With a chip above it the field has its own top padding already. */
+.composer__chips + .composer__field {
+  padding-top: var(--s-3);
+}
+
 .composer__field {
   display: block;
   width: 100%;
