@@ -1,5 +1,6 @@
 "use client";
 
+import { Download } from "lucide-react";
 import { useState } from "react";
 
 import { trackClient } from "@/lib/analytics";
@@ -24,6 +25,8 @@ import { SourceDrawer } from "./SourceDrawer";
 
 export interface CardData {
   records: CorpusRecord[];
+  /** What the reader asked for. Names the dish on a card with no record. */
+  query?: string;
   kind: TurnKind;
   beats: Partial<Record<string, string>>;
   streaming: boolean;
@@ -58,12 +61,85 @@ const TITLES: Record<Beat, string> = {
   RESTORE_TODAY: "Restore it today",
 };
 
+/** What the footer of a recordless card should say where a source would go. */
+const SHARE_FOOTER: Partial<Record<TurnKind, { note: string; kind: string }>> = {
+  modern: { note: "Component restoration", kind: "Modern dish, no ancient original" },
+  gap: { note: "Component restoration", kind: "No record held yet" },
+  foreign: { note: "Indian reinterpretation", kind: "Not an Indian dish" },
+};
+
+/**
+ * Where the download button points, and what the file is called.
+ *
+ * A record card is rendered server-side from the record, so the slug is all the
+ * route needs. A card with no record has nothing on the server to render from,
+ * so what is on screen travels in the query string instead: the dish, the
+ * verdict the model wrote, and the first few ingredients of the version it
+ * offered. No text, no verse, no period, no provenance class — the things the
+ * share image must never generate are exactly the things a recordless turn
+ * never had.
+ */
+function shareTarget(
+  data: CardData,
+  ancient: CorpusRecord | null,
+): { href: string; filename: string; slug: string } | null {
+  if (ancient) {
+    return {
+      href: `/api/share/${ancient.slug}`,
+      filename: `kranti-cookbook-${ancient.slug}.png`,
+      slug: ancient.slug,
+    };
+  }
+
+  const verdict = (data.beats.VERDICT ?? "").trim();
+  const footer = SHARE_FOOTER[data.kind];
+  // Mid-stream there is no verdict yet, and nothing to put on a card.
+  if (!verdict || !footer) return null;
+
+  const dish = titleCase(data.query ?? "") || firstLine(verdict);
+  const recipe = parseModernRecipe(data.beats.RESTORE_TODAY ?? "");
+  const now = recipe.ingredients.slice(0, 6);
+  const steps = recipe.steps.slice(0, 7);
+
+  const params = new URLSearchParams({
+    dish,
+    verdict,
+    note: footer.note,
+    kind: footer.kind,
+  });
+  if (now.length) {
+    params.set("now", now.join("|"));
+    params.set("nowLabel", "Cook this");
+  }
+  if (steps.length) params.set("steps", steps.join("|"));
+
+  const slug = dish.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "restoration";
+  return {
+    href: `/api/share/turn?${params.toString()}`,
+    filename: `kranti-cookbook-${slug}.png`,
+    slug,
+  };
+}
+
+/** Last resort when the reply carries no query: the verdict's opening clause. */
+function firstLine(verdict: string): string {
+  const first = verdict.split(/[.!?]/)[0].trim();
+  return first.length > 3 && first.length <= 60 ? first : verdict.slice(0, 60);
+}
+
+/** A typed query is lower case; the line above a headline should not be. */
+function titleCase(text: string): string {
+  return text.trim().slice(0, 60).replace(/\S+/g, (w) => w[0].toUpperCase() + w.slice(1));
+}
+
 export function RestorationCard({ data }: { data: CardData }) {
   const [open, setOpen] = useState<Record<Beat, boolean>>({
     VERDICT: true,
     THEN: true,
     WHAT_CHANGED: false,
-    RESTORE_TODAY: false,
+    // Open. This is the one beat the reader is meant to act on, and behind a
+    // collapsed header it reads as though the card never says how to cook it.
+    RESTORE_TODAY: true,
   });
   const [drawer, setDrawer] = useState(false);
 
@@ -74,6 +150,11 @@ export function RestorationCard({ data }: { data: CardData }) {
       : null) ?? null;
 
   const toggle = (b: Beat) => setOpen((o) => ({ ...o, [b]: !o[b] }));
+
+  // Every card that has something to say can be taken away. A record card is
+  // built server-side from the record; a card with no record is built from what
+  // is on screen, because otherwise half the product cannot travel.
+  const share = shareTarget(data, ancient);
 
   return (
     <article className="card" style={{ marginTop: "1rem" }}>
@@ -180,7 +261,7 @@ export function RestorationCard({ data }: { data: CardData }) {
         {ancient?.make_today_notes && <MakeTodayNotes notes={ancient.make_today_notes} />}
       </Beat>
 
-      {ancient && (
+      {share && (
         <div
           style={{
             borderTop: "1px solid var(--line)",
@@ -190,13 +271,18 @@ export function RestorationCard({ data }: { data: CardData }) {
             flexWrap: "wrap",
           }}
         >
+          {/* Downloads rather than opening in a tab. The card is a 1080×1350
+              image made to be posted, and a reader who wanted to look at it is
+              already looking at the card it was made from. */}
           <a
-            href={`/api/share/${ancient.slug}`}
-            target="_blank"
-            rel="noreferrer"
-            onClick={() => trackClient("card_shared", { slug: ancient.slug })}
+            href={share.href}
+            download={share.filename}
+            onClick={() => trackClient("card_shared", { slug: share.slug })}
             className="mono"
             style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.45rem",
               padding: "0.45rem 0.8rem",
               borderRadius: 999,
               border: "1px solid var(--line-strong)",
@@ -204,20 +290,8 @@ export function RestorationCard({ data }: { data: CardData }) {
               textDecoration: "none",
             }}
           >
-            Share card
-          </a>
-          <a
-            href={`/dish/${ancient.slug}`}
-            className="mono"
-            style={{
-              padding: "0.45rem 0.8rem",
-              borderRadius: 999,
-              border: "1px solid var(--line-strong)",
-              color: "var(--ink)",
-              textDecoration: "none",
-            }}
-          >
-            Permalink
+            <Download size={14} aria-hidden />
+            Download card
           </a>
         </div>
       )}
@@ -283,6 +357,41 @@ export function Waiting() {
   );
 }
 
+/**
+ * A run of lines that belong to one another: a paragraph, a list, or steps.
+ *
+ * The model writes ingredients as "- " lines and steps as "1." lines whether or
+ * not the turn asked for INGREDIENTS and METHOD headers. Splitting only on
+ * blank lines ran those back into a single paragraph, so a method arrived as
+ * one long sentence with the step numbers still in it.
+ */
+type Block =
+  | { kind: "p"; lines: string[] }
+  | { kind: "ul"; lines: string[] }
+  | { kind: "ol"; lines: string[] };
+
+const BULLET = /^[-*•]\s+/;
+const NUMBER = /^\d+[.)]\s+/;
+
+function toBlocks(text: string): Block[] {
+  const blocks: Block[] = [];
+  for (const line of text.split("\n")) {
+    const l = line.trim();
+    if (!l) {
+      // A blank line closes whatever was open, so the next run starts fresh.
+      if (blocks.length && blocks[blocks.length - 1].lines.length) blocks.push({ kind: "p", lines: [] });
+      continue;
+    }
+    const kind: Block["kind"] = BULLET.test(l) ? "ul" : NUMBER.test(l) ? "ol" : "p";
+    const content = l.replace(BULLET, "").replace(NUMBER, "");
+    const last = blocks[blocks.length - 1];
+    // Prose wraps, so consecutive plain lines join. List items never do.
+    if (last && last.kind === kind && (kind !== "p" || last.lines.length)) last.lines.push(content);
+    else blocks.push({ kind, lines: [content] });
+  }
+  return blocks.filter((b) => b.lines.length);
+}
+
 function Prose({ text, streaming }: { text?: string; streaming: boolean }) {
   if (!text) {
     return streaming ? (
@@ -293,13 +402,35 @@ function Prose({ text, streaming }: { text?: string; streaming: boolean }) {
   }
   return (
     <div style={{ maxWidth: "62ch" }}>
-      {toPlainText(text)
-        .split(/\n{2,}/)
-        .map((para, i) => (
-          <p key={i} style={{ margin: i === 0 ? "0 0 0.6rem" : "0 0 0.6rem" }}>
-            {para}
+      {toBlocks(toPlainText(text)).map((block, i) => {
+        if (block.kind === "ul") {
+          return (
+            <ul key={i} style={{ margin: "0 0 0.7rem", paddingLeft: "1.1rem" }}>
+              {block.lines.map((l, k) => (
+                <li key={k} style={{ marginBottom: "0.22rem", fontSize: "0.92rem" }}>
+                  {l}
+                </li>
+              ))}
+            </ul>
+          );
+        }
+        if (block.kind === "ol") {
+          return (
+            <ol key={i} style={{ margin: "0 0 0.7rem", paddingLeft: "1.15rem" }}>
+              {block.lines.map((l, k) => (
+                <li key={k} style={{ marginBottom: "0.4rem", fontSize: "0.92rem" }}>
+                  {l}
+                </li>
+              ))}
+            </ol>
+          );
+        }
+        return (
+          <p key={i} style={{ margin: "0 0 0.6rem" }}>
+            {block.lines.join(" ")}
           </p>
-        ))}
+        );
+      })}
     </div>
   );
 }
@@ -547,6 +678,7 @@ function parseModernRecipe(text: string): {
   intro: string;
   ingredients: string[];
   steps: string[];
+  outro: string;
 } {
   let section: "intro" | "ing" | "steps" = "intro";
   const intro: string[] = [];
@@ -566,9 +698,30 @@ function parseModernRecipe(text: string): {
     }
     if (section === "intro") intro.push(l);
     else if (section === "ing") ingredients.push(l.replace(/^[-*•]\s*/, ""));
-    else steps.push(l.replace(/^\d+[.)]\s*/, ""));
+    else steps.push(l);
   }
-  return { intro: intro.join(" "), ingredients, steps };
+
+  // A sentence at the end that carries no step number is the line about what
+  // the result tastes like, not a step. Numbering it makes the reader look for
+  // something to do in it.
+  //
+  // Only when the steps are numbered at all: a model that numbered none of them
+  // wrote a plain list, and pulling its tail off would be reading a convention
+  // that is not there.
+  const numbered = steps.some((s) => /^\d+[.)]/.test(s));
+  const outro: string[] = [];
+  if (numbered) {
+    while (steps.length > 1 && !/^\d+[.)]/.test(steps[steps.length - 1])) {
+      outro.unshift(steps.pop()!);
+    }
+  }
+
+  return {
+    intro: intro.join(" "),
+    ingredients,
+    steps: steps.map((s) => s.replace(/^\d+[.)]\s*/, "")),
+    outro: outro.join(" "),
+  };
 }
 
 function ModernRecipe({ text, streaming }: { text?: string; streaming: boolean }) {
@@ -579,7 +732,7 @@ function ModernRecipe({ text, streaming }: { text?: string; streaming: boolean }
       </p>
     ) : null;
   }
-  const { intro, ingredients, steps } = parseModernRecipe(text);
+  const { intro, ingredients, steps, outro } = parseModernRecipe(text);
   if (!ingredients.length && !steps.length) {
     return <Prose text={text} streaming={streaming} />;
   }
@@ -613,6 +766,9 @@ function ModernRecipe({ text, streaming }: { text?: string; streaming: boolean }
             ))}
           </ol>
         </>
+      )}
+      {outro && (
+        <p style={{ margin: "0.8rem 0 0", lineHeight: 1.6, color: "var(--ink-soft)" }}>{outro}</p>
       )}
       {streaming && <span className="caret" aria-hidden />}
     </div>

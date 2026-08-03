@@ -165,7 +165,10 @@ Two to four sentences of prose framing the restored dish.
 Two to four sentences on the mechanism, then one line of nutrition delta.
 
 §RESTORE_TODAY§
-Two to four sentences, or a tight list, on cooking it this week.
+Two to four sentences, or a tight list, on cooking it this week. Where the turn
+asks for INGREDIENTS and METHOD, give them in that shape instead: the card
+draws a list from one and numbered steps from the other, and a paragraph of
+quantities and timings is unusable at the moment it is meant to be used.
 
 Write the markers exactly as shown, each alone on its line.
 

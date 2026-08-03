@@ -32,6 +32,7 @@ export function Message({ message }: { message: ChatMessage }) {
         <RestorationCard
           data={{
             records: message.records ?? [],
+            query: message.query,
             kind: kindOf(message),
             beats: message.beats ?? {},
             streaming: Boolean(message.streaming),

@@ -221,6 +221,9 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
         text: "",
         beats: {},
         streaming: true,
+        // Minus any slash command: "/pre-raj biryani" is a request about
+        // biryani, and biryani is what belongs on the share card.
+        query: parseCommand(trimmed).rest || slug || trimmed,
       };
 
       const priorMessages = base.messages;

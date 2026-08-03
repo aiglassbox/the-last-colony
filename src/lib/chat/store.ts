@@ -29,6 +29,15 @@ export interface ChatMessage {
   kind?: TurnKind;
   /** Present on restoration turns — drives the card. */
   records?: CorpusRecord[];
+  /**
+   * What the reader asked for, kept on the reply.
+   *
+   * A card with a record names the dish from the record. A card without one has
+   * only the model's prose, and the share image needs a dish to put above the
+   * headline: taking the first sentence of the verdict printed the same line
+   * twice.
+   */
+  query?: string;
   beats?: Partial<Record<string, string>>;
   /**
    * Superseded by `kind`. Still read, never written: threads persisted before

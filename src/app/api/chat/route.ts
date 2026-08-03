@@ -320,9 +320,27 @@ export async function POST(request: NextRequest) {
             score: retrieval.top_score,
           });
 
+          // A record that carries its own tested `restore_today` has the card
+          // draw the ingredients and steps from it, and the beat is the prose
+          // above that list. A record without one leaves the beat as the only
+          // recipe on the card, and the card parses it — so it has to arrive in
+          // the shape the parser reads, or it renders as a paragraph nobody can
+          // cook from.
+          const ownRecipe = records.some((r) => r.restore_today);
+          const shape = ownRecipe
+            ? "\n§RESTORE_TODAY§ is two or three sentences of prose only. The card " +
+              "already prints the tested ingredients and numbered method from the " +
+              "record directly beneath your text, so a second list there is the same " +
+              "recipe twice. Say why this version is worth cooking, not what is in it."
+            : "\nFormat §RESTORE_TODAY§ as: one short opening line, then a line " +
+              "reading INGREDIENTS with each ingredient on its own line beginning " +
+              "with '- ' and a kirana quantity, then a line reading METHOD with the " +
+              "steps numbered 1., 2., 3., one per line. Plain text only, no other " +
+              "markdown.";
+
           const iter = call(
             `${renderCorpusBlock(records)}\n\nThis is a RESTORATION turn. Emit the four ` +
-              `§markers§.${directive}\n\nUser said: ${label}`,
+              `§markers§.${shape}${directive}\n\nUser said: ${label}`,
           )[Symbol.asyncIterator]();
           auditRecords = records;
           proseTurn = false;

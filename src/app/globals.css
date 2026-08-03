@@ -144,6 +144,29 @@
   box-sizing: border-box;
 }
 
+/* Tailwind's preflight strips list markers from every ol and ul, which is the
+   right default for navigation and wrong for a recipe. A method without its
+   step numbers is a wall of sentences, and the reader cannot tell where one
+   instruction ends and the next begins — which is exactly what a person
+   cooking from a phone needs to see. Restored inside the card only, so the
+   rail and the history list keep the reset. */
+.card ol {
+  list-style: decimal outside;
+}
+
+.card ul {
+  list-style: disc outside;
+}
+
+.card li::marker {
+  color: var(--ink-muted);
+  font-size: 0.86em;
+}
+
+.card ol li::marker {
+  font-variant-numeric: tabular-nums;
+}
+
 html,
 body {
   padding: 0;
