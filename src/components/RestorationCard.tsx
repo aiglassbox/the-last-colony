@@ -8,7 +8,14 @@ import type { TurnKind } from "@/lib/chat/turn";
 import type { CorpusRecord } from "@/lib/corpus/types";
 import type { Beat } from "@/lib/model/beats";
 import { toPlainText } from "@/lib/model/plain-text";
+import {
+  hasIngredientRows,
+  ingredientLabel,
+  parseIngredientRows,
+  parseRecipeBeat,
+} from "@/lib/model/recipe-beat";
 
+import { IngredientRows } from "./IngredientRows";
 import { ProvenanceBadge } from "./ProvenanceBadge";
 import { SourceDrawer } from "./SourceDrawer";
 
@@ -97,8 +104,11 @@ function shareTarget(
   if (!verdict || !footer) return null;
 
   const dish = titleCase(data.query ?? "") || firstLine(verdict);
-  const recipe = parseModernRecipe(data.beats.RESTORE_TODAY ?? "");
-  const now = recipe.ingredients.slice(0, 6);
+  const recipe = parseRecipeBeat(data.beats.RESTORE_TODAY ?? "");
+  // Name and quantity only. The reason field is the card's, not the image's:
+  // the column of short strings on a 1080×1350 has no room for it, and the raw
+  // "a :: b :: c" line went onto the image with its separators showing.
+  const now = parseIngredientRows(recipe.ingredients).slice(0, 6).map(ingredientLabel);
   const steps = recipe.steps.slice(0, 7);
 
   const params = new URLSearchParams({
@@ -668,62 +678,6 @@ function NutritionDelta({ record }: { record: CorpusRecord }) {
   );
 }
 
-/**
- * Structures a no-record "restore today" beat. The model writes an intro line,
- * then an INGREDIENTS block and a METHOD block; we parse those into the same
- * list + numbered-steps shape the ancient card renders from a record. Falls
- * back to plain prose if the model didn't use the sections.
- */
-function parseModernRecipe(text: string): {
-  intro: string;
-  ingredients: string[];
-  steps: string[];
-  outro: string;
-} {
-  let section: "intro" | "ing" | "steps" = "intro";
-  const intro: string[] = [];
-  const ingredients: string[] = [];
-  const steps: string[] = [];
-  for (const raw of text.split("\n")) {
-    const l = raw.trim();
-    if (!l) continue;
-    const head = l.toUpperCase().replace(/[^A-Z]+$/, "");
-    if (/^INGREDIENTS?$/.test(head)) {
-      section = "ing";
-      continue;
-    }
-    if (/^(METHOD|STEPS|DIRECTIONS)$/.test(head)) {
-      section = "steps";
-      continue;
-    }
-    if (section === "intro") intro.push(l);
-    else if (section === "ing") ingredients.push(l.replace(/^[-*•]\s*/, ""));
-    else steps.push(l);
-  }
-
-  // A sentence at the end that carries no step number is the line about what
-  // the result tastes like, not a step. Numbering it makes the reader look for
-  // something to do in it.
-  //
-  // Only when the steps are numbered at all: a model that numbered none of them
-  // wrote a plain list, and pulling its tail off would be reading a convention
-  // that is not there.
-  const numbered = steps.some((s) => /^\d+[.)]/.test(s));
-  const outro: string[] = [];
-  if (numbered) {
-    while (steps.length > 1 && !/^\d+[.)]/.test(steps[steps.length - 1])) {
-      outro.unshift(steps.pop()!);
-    }
-  }
-
-  return {
-    intro: intro.join(" "),
-    ingredients,
-    steps: steps.map((s) => s.replace(/^\d+[.)]\s*/, "")),
-    outro: outro.join(" "),
-  };
-}
-
 function ModernRecipe({ text, streaming }: { text?: string; streaming: boolean }) {
   if (!text) {
     return streaming ? (
@@ -732,7 +686,7 @@ function ModernRecipe({ text, streaming }: { text?: string; streaming: boolean }
       </p>
     ) : null;
   }
-  const { intro, ingredients, steps, outro } = parseModernRecipe(text);
+  const { intro, ingredients, steps, outro } = parseRecipeBeat(text);
   if (!ingredients.length && !steps.length) {
     return <Prose text={text} streaming={streaming} />;
   }
@@ -744,13 +698,22 @@ function ModernRecipe({ text, streaming }: { text?: string; streaming: boolean }
           <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
             Ingredients
           </div>
-          <ul style={{ margin: "0 0 0.9rem", paddingLeft: "1.1rem" }}>
-            {ingredients.map((i, k) => (
-              <li key={k} style={{ fontSize: "0.9rem", marginBottom: "0.22rem" }}>
-                {i}
-              </li>
-            ))}
-          </ul>
+          {/* The table only once the model has committed to the three-field
+              shape. A plain list stays a plain list: an older completion, a
+              model that ignored the format, and every line mid-stream before
+              its separators have arrived would otherwise render as a table of
+              one-cell rows that reflows as it fills. */}
+          {hasIngredientRows(ingredients) ? (
+            <IngredientRows rows={parseIngredientRows(ingredients)} />
+          ) : (
+            <ul style={{ margin: "0 0 0.9rem", paddingLeft: "1.1rem" }}>
+              {ingredients.map((i, k) => (
+                <li key={k} style={{ fontSize: "0.9rem", marginBottom: "0.22rem" }}>
+                  {i}
+                </li>
+              ))}
+            </ul>
+          )}
         </>
       )}
       {steps.length > 0 && (

@@ -333,10 +333,17 @@ export async function POST(request: NextRequest) {
               "record directly beneath your text, so a second list there is the same " +
               "recipe twice. Say why this version is worth cooking, not what is in it."
             : "\nFormat §RESTORE_TODAY§ as: one short opening line, then a line " +
-              "reading INGREDIENTS with each ingredient on its own line beginning " +
-              "with '- ' and a kirana quantity, then a line reading METHOD with the " +
-              "steps numbered 1., 2., 3., one per line. Plain text only, no other " +
-              "markdown.";
+              "reading INGREDIENTS with each ingredient on its own line as " +
+              "'ingredient :: kirana quantity :: why this one', then a line reading " +
+              "METHOD with the steps numbered 1., 2., 3., one per line. The card " +
+              "renders those three fields as a table, the same one it draws from a " +
+              "record. The third field is why that ingredient and not the modern " +
+              "default, as a clause of eight to twenty words: what it does in the pot " +
+              "and what the dish loses without it. A single word like 'flavour', " +
+              "'heat' or 'texture' names a category and teaches nothing, so it is not " +
+              "an answer here. Draw it from the record above and nothing else, and " +
+              "leave it empty rather than inventing a reason or padding a real one " +
+              "with history you were not given. Plain text only, no other markdown.";
 
           const iter = call(
             `${renderCorpusBlock(records)}\n\nThis is a RESTORATION turn. Emit the four ` +
@@ -423,9 +430,28 @@ export async function POST(request: NextRequest) {
             "answer than a card about a dish nobody can place.\n" +
             "For MODERN and RESTORE, format the §RESTORE_TODAY§ section as: one short " +
             "opening line, then a line reading INGREDIENTS with each ingredient on its " +
-            "own line beginning with '- ' and a kirana quantity, then a line reading " +
-            "METHOD with the steps numbered 1., 2., 3. Plain text only, no other " +
-            "markdown." +
+            "own line as 'ingredient :: kirana quantity :: why this one', then a line " +
+            "reading METHOD with the steps numbered 1., 2., 3. The card renders those " +
+            "three fields as a table. The third is why that ingredient and not the " +
+            "modern default: the component it puts back, what it does to the dish, or " +
+            "an axis <component_swaps> actually names. Write it as a clause of eight " +
+            "to twenty words, never a one-word label: 'flavour', 'heat', 'seasoning' " +
+            "and 'texture' are categories, and a column of them is a form nobody " +
+            "learns anything from. A preposition does not rescue one — 'for heat', " +
+            "'for its flavour', 'for its aroma' are the same empty cell with a word " +
+            "in front. Say which flavour, what it does to the other ingredients, or " +
+            "what it stands in for. Take the substance from that block and leave the " +
+            "cell empty where it records no reason. Most ingredients are not in that " +
+            "block at all, because nothing displaced them: for those, say what the " +
+            "ingredient does in the cooking (binds, sours, tempers, browns first, " +
+            "carries the fat), which describes the dish in front of you and needs no " +
+            "source. Never turn that into the ingredient's history or its century. " +
+            "Length must come from saying the recorded thing properly, " +
+            "never from a century, a region or an origin story you were not given. " +
+            "The room is also where a health claim gets reached for: this column " +
+            "describes the dish, never the reader's body — no digestion, gut, " +
+            "immunity, detox or energy, and no 'aids', 'helps' or 'good for'. Name " +
+            "the axis and compare instead. Plain text only, no other markdown." +
             directive +
             `\n\nUser said: ${label}`;
 

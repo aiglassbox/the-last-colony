@@ -1,0 +1,28 @@
+{
+  "id": "swap-vanaspati",
+  "modern_item": "vanaspati",
+  "aliases": [
+    "dalda",
+    "hydrogenated fat",
+    "partially hydrogenated vegetable oil",
+    "vegetable ghee",
+    "banaspati",
+    "डालडा",
+    "वनस्पति"
+  ],
+  "options": [
+    {
+      "swap": "Ghee, used in the smaller quantity the fat was originally used in",
+      "ratio": "1 cup vanaspati → 3/4 cup ghee. Ghee carries more flavour and browns sooner, so start lower and cook a little cooler.",
+      "taste_and_texture": "Ghee tastes of what it is, which vanaspati was designed not to. In laminated and short doughs the difference is structural rather than only a flavour one: vanaspati is solid at room temperature by design and holds layers that ghee at the same weight will not, so a mathri or a biscuit made this way comes out shorter and less flaky. That is a real trade and worth testing before cooking for guests.",
+      "nutritional_rationale": "Fat quality. Partial hydrogenation turns liquid unsaturated oils into a solid fat and produces trans-fatty acids in the process; ghee contains none. Comparative only, and nothing here is advice about anyone's diet."
+    },
+    {
+      "swap": "The named cold-pressed oil of the dish's own region",
+      "ratio": "1 cup vanaspati → 3/4 cup oil, added in stages. A batter or a gravy takes it directly; a dough that needs a solid fat does not.",
+      "taste_and_texture": "Mustard oil in the east and north, sesame in the south and west, groundnut across the Deccan: each was the fat the dish was built around, and each is assertive in a way vanaspati is not. This does not work where the recipe needs a fat that is solid at room temperature.",
+      "nutritional_rationale": "Fat quality again, on the same axis. Cold pressing keeps the seed's own vitamins and flavour compounds that refining removes, and carries none of the trans fat that partial hydrogenation creates."
+    }
+  ],
+  "where_it_went": "Cost. Desi ghee was expensive in British India and used sparingly, and hydrogenated vegetable oil arrived as a cheap substitute for it: Lever Brothers formed the Hindustan Vanaspati Manufacturing Company in 1931, producing at Sewri near Bombay, and the Dalda brand launched in 1937 and became the default cooking fat in millions of households."
+}

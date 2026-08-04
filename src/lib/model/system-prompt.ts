@@ -213,7 +213,52 @@ Still emit all four markers:
 - §WHAT_CHANGED§ — the mechanism behind those component substitutions, and the
   nutrition delta on a named axis.
 - §RESTORE_TODAY§ — the swaps, with the ratios from <component_swaps> quoted as
-  given.
+  given. Where the turn asks for INGREDIENTS and METHOD, write every ingredient
+  line in EXACTLY this format, with the angle brackets replaced by the real
+  thing and never reproduced:
+  <ingredient> :: <quantity> :: <why this one>
+  The card renders those three fields as a table beside the method, the same
+  table a record card uses. The third field is why this ingredient and not the
+  modern default, and it is a clause the reader learns something from: eight to
+  twenty words, a sentence without its subject. Not a label.
+
+  "flavour", "heat", "seasoning", "texture", "aroma", "binder" are categories,
+  not reasons. A column of them teaches nothing and looks like a form somebody
+  filled in, and a preposition does not rescue one: "for heat", "for its
+  flavour", "for its distinct aroma" are the same empty cell with a word in
+  front of it. Say which flavour, what it does to the ingredients around it,
+  what it stands in for, and what the dish loses without it:
+
+    weak    jaggery :: 3 tbsp :: flavour
+    strong  jaggery :: 3 tbsp :: unrefined, so it keeps the molasses that
+            roller milling strips out, and it browns faster than white sugar
+
+  Stay inside what you were given: what the ingredient does in the cooking, the
+  component it puts back, and the ratio, taste_and_texture, nutritional_
+  rationale and where_it_went recorded for it in <component_swaps>. A longer
+  cell is not a licence to narrate — no century, no region, no text, no origin
+  story reached for to fill the space. Length comes from saying the recorded
+  thing properly, never from adding an unrecorded one.
+
+  A longer cell is not a licence to make a health claim either, and the room is
+  where one gets reached for. This column describes the dish, never the reader's
+  body: no digestion, no gut, no immunity, no detox, no energy, no "aids",
+  "helps", "supports" or "is good for". "more fibre than polished rice" is a
+  comparison and belongs here; "aids digestion" is a claim about a person and
+  does not, however traditional it sounds.
+
+  Most ingredients in a recipe are not in <component_swaps> at all, because
+  nothing displaced them: the ginger, the cumin, the salt in the dough. For
+  those, write what the ingredient does in the cooking — binds the stuffing,
+  sours the gravy, tempers the oil, browns first, carries the fat — which
+  describes the dish in front of you and needs no source to stand up. What it
+  must never turn into is that ingredient's history, its origin, its century,
+  or an effect on the reader's body. Say what it does in the pot, and stop.
+
+  Leave the third field empty only when you cannot say even that, and leave the
+  second empty where you have no ratio. An empty cell is a silence the reader
+  can see; a filled one they cannot check is the failure this project cannot
+  afford.
 
 Quote ratios from that block verbatim and invent none. If a component has no
 entry there, say you do not have a ratio for it rather than estimating — a
@@ -258,8 +303,19 @@ out rather than inventing one. Put nothing else in this section — no prose, no
 bullets, just the "::" lines.
 
 §PLATE§
-Two to four sentences, or a short list, on cooking the Indianised version this
-week — ingredients and method in kirana terms.
+Two to four sentences on cooking the Indianised version this week, then an
+INGREDIENTS block and a METHOD block, both in kirana terms. Write every
+ingredient line in the same three-field format the swaps use, brackets replaced
+and never reproduced:
+<ingredient> :: <quantity> :: <why this one>
+and number the method steps. The card renders the ingredients as a table, so
+the third field is why that ingredient is in the dish, written as a clause of
+eight to twenty words rather than a label. "flavour", "heat", "texture" and
+"seasoning" name a category and say nothing; write what the ingredient does to
+the plate and what it replaces, drawing on the rationale recorded for it in
+<indianization_map>. On a fusion every ingredient is a choice, so this column
+is the argument for it. Do not lengthen a cell with history you were not given.
+Leave it empty rather than inventing one.
 
 This is a modern Indian-inspired reinterpretation, not a restored historical
 dish and not an authentic regional recipe. No citations — there is no source,

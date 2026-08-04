@@ -3,6 +3,12 @@
 import type { CSSProperties } from "react";
 
 import { toPlainText } from "@/lib/model/plain-text";
+import {
+  hasIngredientRows,
+  parseIngredientRows,
+  parseRecipeBeat,
+} from "@/lib/model/recipe-beat";
+import { IngredientRows } from "./IngredientRows";
 import { Waiting } from "./RestorationCard";
 import { Download } from "lucide-react";
 import { trackClient } from "@/lib/analytics";
@@ -83,7 +89,7 @@ export function IndianisationCard({ data }: { data: IndianizationData }) {
 
       {(beats.PLATE || (streaming && Boolean(beats.SWAPS))) && (
         <Section title="Make it today">
-          <Prose text={beats.PLATE} streaming={streaming} />
+          <Plate text={beats.PLATE} streaming={streaming} />
         </Section>
       )}
 
@@ -153,14 +159,18 @@ function shareTarget(beats: Partial<Record<string, string>>) {
     params.set("nowLabel", "Use");
   }
 
-  // PLATE is how it is cooked. Numbered lines if the model numbered them,
-  // otherwise its sentences, which is still the method.
+  // PLATE is how it is cooked. Its own steps where the model marked a METHOD
+  // block, otherwise its sentences, which is still the method. Parsed rather
+  // than split on newlines, because the beat now carries an INGREDIENTS block
+  // too and those rows are not steps: splitting the whole beat put "a :: b ::
+  // c" onto the image with its separators showing.
   const plate = (beats.PLATE ?? "").trim();
-  const steps = plate
-    .split("\n")
-    .map((l) => l.trim().replace(/^\d+[.)]\s*/, "").replace(/^[-*•]\s*/, ""))
-    .filter(Boolean);
-  const flat = steps.length > 1 ? steps : plate.split(/(?<=[.!?])\s+/).map((x) => x.trim());
+  const beat = parseRecipeBeat(plate);
+  const flat = beat.steps.length
+    ? beat.steps.map((s) => s.replace(/^[-*•]\s*/, ""))
+    // The prose half only. An INGREDIENTS block with no METHOD after it would
+    // otherwise reach the sentence splitter and land on the image as rows.
+    : (beat.intro || plate).split(/(?<=[.!?])\s+/).map((x) => x.trim());
   const usable = flat.filter((x) => x.length > 12).slice(0, 6);
   if (usable.length) params.set("steps", usable.join("|"));
 
@@ -213,6 +223,73 @@ const cell: CSSProperties = {
   fontSize: "0.9rem",
   verticalAlign: "top",
 };
+
+/**
+ * "Make it today" as a recipe rather than a paragraph.
+ *
+ * The swap table above already argues the case component by component; this
+ * beat is the part the reader acts on, and a paragraph of quantities and
+ * timings is unusable at the moment it is meant to be used. The ingredient
+ * table carries the same "why this one" column the swap table does, because on
+ * a fusion every ingredient is a choice and the reason is the whole point.
+ *
+ * Falls back to prose when the model wrote no sections, which is also every
+ * line mid-stream before the INGREDIENTS header has arrived.
+ */
+function Plate({ text, streaming }: { text?: string; streaming: boolean }) {
+  if (!text) {
+    return streaming ? (
+      <p style={{ margin: 0, color: "var(--ink-muted)" }}>
+        <Waiting />
+      </p>
+    ) : null;
+  }
+  const { intro, ingredients, steps, outro } = parseRecipeBeat(text);
+  if (!ingredients.length && !steps.length) {
+    return <Prose text={text} streaming={streaming} />;
+  }
+  return (
+    <div style={{ maxWidth: "62ch" }}>
+      {intro && <p style={{ margin: "0 0 0.8rem", lineHeight: 1.6 }}>{intro}</p>}
+      {ingredients.length > 0 && (
+        <>
+          <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
+            Ingredients
+          </div>
+          {hasIngredientRows(ingredients) ? (
+            <IngredientRows rows={parseIngredientRows(ingredients)} />
+          ) : (
+            <ul style={{ margin: "0 0 0.9rem", paddingLeft: "1.1rem" }}>
+              {ingredients.map((i, k) => (
+                <li key={k} style={{ fontSize: "0.9rem", marginBottom: "0.22rem" }}>
+                  {i}
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      )}
+      {steps.length > 0 && (
+        <>
+          <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
+            Method
+          </div>
+          <ol style={{ margin: 0, paddingLeft: "1.15rem" }}>
+            {steps.map((s, k) => (
+              <li key={k} style={{ fontSize: "0.92rem", marginBottom: "0.4rem" }}>
+                {s}
+              </li>
+            ))}
+          </ol>
+        </>
+      )}
+      {outro && (
+        <p style={{ margin: "0.8rem 0 0", lineHeight: 1.6, color: "var(--ink-soft)" }}>{outro}</p>
+      )}
+      {streaming && <span className="caret" aria-hidden />}
+    </div>
+  );
+}
 
 /**
  * The model emits one component per line as `foreign :: indian :: reason`, the
