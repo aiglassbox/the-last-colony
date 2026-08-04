@@ -16,6 +16,7 @@ import { COMMANDS, parseCommand } from "../src/lib/chat/commands";
 import { kindOf, parseResolved, RESOLUTION, type TurnKind } from "../src/lib/chat/turn";
 import { namesForeignDish } from "../src/lib/indianization/foreign-dishes";
 import { parseIngredientRows } from "../src/lib/model/recipe-beat";
+import { condenseRows } from "../src/lib/model/history";
 import { dropNarration, stripOpener } from "../src/lib/model/self-reference";
 import { parseSwapRows } from "../src/lib/model/swap-rows";
 import { checkRate, clientKey, RATE_LIMIT } from "../src/lib/rate-limit";
@@ -159,6 +160,48 @@ for (let i = 0; i < RATE_LIMIT.sharedMax + 5; i++) {
   if (checkRate(RATE_LIMIT.sharedKey).ok) shared++;
 }
 check("the shared pool allows its own budget, not one caller's", shared, RATE_LIMIT.sharedMax);
+
+// --- replayed history -----------------------------------------------------
+
+console.log("Replayed history");
+
+// A thread teaches the model more reliably than the prompt does. One terse
+// ingredient table early in a conversation propagated through every turn after
+// it: the same query behind one such table averaged 3.2 words in the reason
+// column against 5.1 on a clean thread, ten of twelve cells at three words or
+// fewer. The rows go back as names so the shape cannot be copied.
+check(
+  "an ingredient block collapses to names",
+  condenseRows("INGREDIENTS\nsattu :: 1 cup :: binds the filling\nash gourd :: 1 large :: replaces potato"),
+  "INGREDIENTS\n(already suggested: sattu, ash gourd)",
+);
+check(
+  "a two-field swap row collapses too",
+  condenseRows("maida :: bajra\ncream :: hung curd"),
+  "(already suggested: maida, cream)",
+);
+check(
+  "prose either side of a block is untouched",
+  condenseRows("Cook it closer.\nsattu :: 1 cup :: binds\nServe hot."),
+  "Cook it closer.\n(already suggested: sattu)\nServe hot.",
+);
+
+// Containing "::" was once the whole test, so an ordinary sentence carrying one
+// was collapsed into an ingredient name and its meaning thrown away. Only the
+// third field of a row may run to a clause, which is why a long second field is
+// the giveaway that a line is prose.
+check(
+  "prose containing :: survives",
+  condenseRows("The ratio is this :: one cup of maida becomes three quarters of a cup of millet flour, rested longer."),
+  "The ratio is this :: one cup of maida becomes three quarters of a cup of millet flour, rested longer.",
+);
+check(
+  "a sentence in the first field is prose, not a row",
+  condenseRows("I do not have that recorded. :: ask about the dal instead"),
+  "I do not have that recorded. :: ask about the dal instead",
+);
+check("four fields is not a row shape", condenseRows("a :: b :: c :: d"), "a :: b :: c :: d");
+check("plain prose is unchanged", condenseRows("Your idli is a rice cake."), "Your idli is a rice cake.");
 
 // --- card copy ------------------------------------------------------------
 
