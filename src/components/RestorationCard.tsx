@@ -203,6 +203,46 @@ export function RestorationCard({ data }: { data: CardData }) {
   // is on screen, because otherwise half the product cannot travel.
   const share = shareTarget(data, ancient);
 
+  /**
+   * Whether a beat has anything under its heading.
+   *
+   * A beat holds model prose, evidence rendered from the record, or both, and
+   * it is drawn whenever it holds either. A completion that skipped a marker —
+   * a dropped stream, a reply that ignored the format, an older thread saved
+   * before a beat existed — left a heading with nothing beneath it, which reads
+   * as the card having failed to load rather than as having nothing to say.
+   *
+   * Only once the stream is done. While it is running an empty beat is a beat
+   * whose text has not arrived yet, so it stays and shows its waiting dots:
+   * hiding it would mean every card assembling itself hole by hole as the
+   * markers land.
+   *
+   * That "only once the stream is done" is the whole trick, and it is why this
+   * needs no plan declared by the server. During the stream the card genuinely
+   * cannot tell "not written yet" from "not applicable" — but it does not have
+   * to, because it treats both the same and waits. After the stream those two
+   * cases collapse into one: nothing came, and nothing is coming.
+   */
+  const shows = (beat: Beat): boolean => {
+    if (data.streaming) return true;
+    if (data.beats[beat]) return true;
+    switch (beat) {
+      case "THEN":
+        return Boolean(ancient);
+      case "WHAT_CHANGED":
+        return Boolean(
+          (ancient && modern) ||
+            ancient?.substitution_story?.changed.length ||
+            (ancient?.substitution_story &&
+              Object.keys(ancient.substitution_story.nutrition_delta).length),
+        );
+      case "RESTORE_TODAY":
+        return Boolean(ancient?.restore_today || ancient?.make_today_notes);
+      default:
+        return true;
+    }
+  };
+
   return (
     <article className="card" style={{ marginTop: "1rem" }}>
       {/* Beat 1 — the gut-punch. Never collapsed behind a toggle header. */}
@@ -234,6 +274,7 @@ export function RestorationCard({ data }: { data: CardData }) {
         )}
       </div>
 
+      {shows("THEN") && (
       <Beat
         beat="THEN"
         kind={data.kind}
@@ -279,7 +320,9 @@ export function RestorationCard({ data }: { data: CardData }) {
           </>
         )}
       </Beat>
+      )}
 
+      {shows("WHAT_CHANGED") && (
       <Beat beat="WHAT_CHANGED" kind={data.kind} open={open.WHAT_CHANGED} onToggle={toggle}>
         <Prose text={data.beats.WHAT_CHANGED} streaming={data.streaming} />
         {ancient && modern ? (
@@ -293,7 +336,9 @@ export function RestorationCard({ data }: { data: CardData }) {
         )}
         {ancient?.substitution_story && <NutritionDelta record={ancient} />}
       </Beat>
+      )}
 
+      {shows("RESTORE_TODAY") && (
       <Beat beat="RESTORE_TODAY" kind={data.kind} open={open.RESTORE_TODAY} onToggle={toggle}>
         {ancient?.restore_today ? (
           <>
@@ -308,6 +353,7 @@ export function RestorationCard({ data }: { data: CardData }) {
         )}
         {ancient?.make_today_notes && <MakeTodayNotes notes={ancient.make_today_notes} />}
       </Beat>
+      )}
 
       {share && (
         <div

@@ -8,7 +8,7 @@ import {
   parseIngredientRows,
   parseRecipeBeat,
 } from "@/lib/model/recipe-beat";
-import { parseSwapRows } from "@/lib/model/swap-rows";
+import { parseSwapRows, type SwapRow } from "@/lib/model/swap-rows";
 import { IngredientRows } from "./IngredientRows";
 import { Waiting } from "./RestorationCard";
 import { Download } from "lucide-react";
@@ -35,6 +35,7 @@ export interface IndianizationData {
 export function IndianisationCard({ data }: { data: IndianizationData }) {
   const { beats, streaming } = data;
   const share = shareTarget(beats);
+  const swapRows = parseSwapRows(beats.SWAPS);
 
   return (
     <article className="card" style={{ marginTop: "1rem" }}>
@@ -85,13 +86,22 @@ export function IndianisationCard({ data }: { data: IndianizationData }) {
         </p>
       </div>
 
-      <Section title="The rebuild">
-        <Prose text={beats.REBUILD} streaming={streaming} />
-      </Section>
+      {(streaming || beats.REBUILD) && (
+        <Section title="The rebuild">
+          <Prose text={beats.REBUILD} streaming={streaming} />
+        </Section>
+      )}
 
-      {(beats.SWAPS || streaming) && (
+      {/* Gated on rows that actually parse, not on the beat being non-empty.
+          The prompt tells the model to leave a component out rather than invent
+          a swap for it, so a §SWAPS§ section containing only a line that does
+          not parse is the honest outcome — and it rendered as a heading with an
+          empty box under it, which reads as the card having broken. While the
+          stream runs the section stays regardless, because a row that has not
+          arrived is indistinguishable from one that never will. */}
+      {(streaming || swapRows.length > 0) && (
         <Section title="Swaps">
-          <SwapTable text={beats.SWAPS} streaming={streaming} />
+          <SwapTable rows={swapRows} streaming={streaming} />
         </Section>
       )}
 
@@ -298,9 +308,8 @@ function Plate({ text, streaming }: { text?: string; streaming: boolean }) {
  * restoration ingredient table uses, so a fusion is built from named parts
  * rather than a wall of prose.
  */
-function SwapTable({ text, streaming }: { text?: string; streaming: boolean }) {
-  const rows = parseSwapRows(text);
 
+function SwapTable({ rows, streaming }: { rows: SwapRow[]; streaming: boolean }) {
   if (!rows.length) {
     return streaming ? (
       <p style={{ margin: 0, color: "var(--ink-muted)" }}>

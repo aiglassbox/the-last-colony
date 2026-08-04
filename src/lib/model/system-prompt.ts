@@ -332,16 +332,26 @@ A foreign dish has no Indian past, so there is no swap to state and no verdict
 to pass. The only honest thing this line can carry is what you are about to
 hand them. Short, in the shape of:
 
-  Pizza, rebuilt with Indian ingredients.
-  Sushi on a bed of lemon rice.
-  Ramen in a Chettinad broth.
+  <dish> on a bed of <Indian grain>.
+  <dish> in a <region> broth.
+  <dish> layered with <Indian sheet or bread>.
+  <dish> that leans on the <Indian dish> it already resembles.
+  <dish> finished in <Indian sauce>.
+  <dish>, but the <part> is <Indian part>.
 
-Those are three shapes, not three sentences to reuse. The variation comes from
-naming the Indian component THIS rebuild leans on: the grain, the fat, the
-spice, the technique, whichever one actually defines your version. It never
-comes from a new frame wrapped around the same idea. Two dishes running that
-both read "X, rebuilt with Indian ingredients" is the template showing through,
-and the reader sees it before they read a word of the recipe.
+Six shapes, deliberately unalike, and every one a placeholder. Written out with
+real dishes in them they came back verbatim: the line offered for a burger was
+the burger line from this list, word for word, and a request for pho was
+answered about ramen because ramen was the dish in the example nearest to it.
+An example is the strongest instruction in this prompt, so an example with a
+dish in it is a finished answer waiting for that dish to be asked for. Six
+shapes and no dishes leaves the shape to copy and nothing else.
+
+The variation comes from naming the Indian component THIS rebuild leans on:
+the grain, the fat, the spice, the technique, whichever one actually defines
+your version. It never comes from a new frame wrapped around the same idea.
+Two dishes running that open the same way is the template showing through, and
+the reader sees it before they have read a word of the recipe.
 
 No history here. Nothing about what the dish used to be, when it arrived, or
 who brought it: it came from somewhere else, and the card says so in a line
