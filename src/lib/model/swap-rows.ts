@@ -10,6 +10,7 @@
  * behaviour rather than rendering, and model behaviour is worth asserting
  * without a browser: `check-routing` exercises it directly.
  */
+import { unbracket } from "@/lib/model/recipe-beat";
 
 export interface SwapRow {
   foreign: string;
@@ -41,8 +42,10 @@ export function parseSwapRows(text: string | undefined): SwapRow[] {
 
   for (const line of (text ?? "").split("\n")) {
     const parts = line.trim().split(/\s*::\s*/);
-    const foreign = (parts[0] ?? "").trim();
-    const indian = (parts[1] ?? "").trim();
+    // The same template habit the ingredient table has: the value substituted
+    // correctly, the angle brackets left on around it.
+    const foreign = unbracket(parts[0] ?? "");
+    const indian = unbracket(parts[1] ?? "");
     // A line that does not parse is dropped rather than shown malformed.
     if (!foreign || !indian) continue;
     // The prompt states the row format as "<foreign part> :: <indian swap>",
@@ -56,7 +59,7 @@ export function parseSwapRows(text: string | undefined): SwapRow[] {
 
     if (seen === undefined) {
       at.set(key, rows.length);
-      rows.push({ foreign, indian, why: (parts[2] ?? "").trim() });
+      rows.push({ foreign, indian, why: unbracket(parts[2] ?? "") });
       continue;
     }
 

@@ -41,6 +41,24 @@ const HEADER_ECHO = /^<?(ingredient|quantity|amount|why(\s+this(\s+one)?)?)>?$/i
 const BULLET = /^[-*•]\s*/;
 
 /**
+ * The template's angle brackets, kept around a real value.
+ *
+ * `HEADER_ECHO` above catches the format line copied through whole. This is the
+ * other half of the same habit and the one that reaches the reader: the model
+ * substitutes the ingredient correctly and leaves the brackets on, so a card
+ * meant to be cooked from lists `<fresh coriander> :: 2 tbsp, chopped`. Every
+ * row of a fusion card has come back that way. The prompt says to replace the
+ * brackets and never reproduce them; this is what makes that true.
+ *
+ * Only a matched pair wrapping the whole field is stripped, so a stray `>` in
+ * a quantity is left exactly as written.
+ */
+export function unbracket(field: string): string {
+  const trimmed = field.trim();
+  return /^<[^<>]+>$/.test(trimmed) ? trimmed.slice(1, -1).trim() : trimmed;
+}
+
+/**
  * A reason that opens on a word which cannot open a clause, where what follows
  * it has lost the thing it referred to: "easier to digest than pulao" becomes
  * "than pulao", and the comparison is gone with the claim.
@@ -98,12 +116,12 @@ export function parseIngredientRows(lines: string[]): IngredientRow[] {
     .map((l) => {
       const parts = l.split(/\s*::\s*/);
       return {
-        name: (parts[0] ?? "").trim(),
-        quantity: (parts[1] ?? "").trim(),
+        name: unbracket(parts[0] ?? ""),
+        quantity: unbracket(parts[1] ?? ""),
         // A reason the health pass has cut can come through as the punctuation
         // that used to join it to the rest, or as nothing at all. Either way the
         // cell is empty, and an empty cell is what should be drawn.
-        why: tidyReason(parts.slice(2).join(" · ")),
+        why: tidyReason(unbracket(parts.slice(2).join(" · "))),
       };
     })
     .filter((r) => r.name && !HEADER_ECHO.test(r.name))

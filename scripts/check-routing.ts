@@ -15,6 +15,7 @@
 import { COMMANDS, parseCommand } from "../src/lib/chat/commands";
 import { kindOf, parseResolved, RESOLUTION, type TurnKind } from "../src/lib/chat/turn";
 import { namesForeignDish } from "../src/lib/indianization/foreign-dishes";
+import { parseIngredientRows } from "../src/lib/model/recipe-beat";
 import { dropNarration, stripOpener } from "../src/lib/model/self-reference";
 import { parseSwapRows } from "../src/lib/model/swap-rows";
 import { checkRate, clientKey, RATE_LIMIT } from "../src/lib/rate-limit";
@@ -178,6 +179,24 @@ check(
   [{ foreign: "mozzarella", indian: "fresh paneer", why: "lower fat" }],
 );
 check("a line with no swap is dropped", parseSwapRows("just some prose"), []);
+
+// Seen on a live fusion card: every ingredient row came back wearing the
+// template's angle brackets, "<fresh coriander> :: 2 tbsp, chopped".
+check(
+  "the template's brackets come off a real value",
+  parseSwapRows("<mozzarella> :: <fresh paneer> :: <more protein>"),
+  [{ foreign: "mozzarella", indian: "fresh paneer", why: "more protein" }],
+);
+check(
+  "an unmatched bracket is left alone",
+  parseSwapRows("2 > 1 tbsp :: ghee :: richer")[0].foreign,
+  "2 > 1 tbsp",
+);
+check(
+  "brackets come off ingredient rows too",
+  parseIngredientRows(["<fresh coriander> :: 2 tbsp, chopped :: a final fresh note"]),
+  [{ name: "fresh coriander", quantity: "2 tbsp, chopped", why: "a final fresh note" }],
+);
 check(
   "the format line is not a row",
   parseSwapRows("<foreign part> :: <indian swap> :: <reason>"),
