@@ -17,7 +17,7 @@ import { kindOf, parseResolved, RESOLUTION, type TurnKind } from "../src/lib/cha
 import { namesForeignDish } from "../src/lib/indianization/foreign-dishes";
 import { dropNarration, stripOpener } from "../src/lib/model/self-reference";
 import { parseSwapRows } from "../src/lib/model/swap-rows";
-import { checkRate, RATE_LIMIT } from "../src/lib/rate-limit";
+import { checkRate, clientKey, RATE_LIMIT } from "../src/lib/rate-limit";
 
 let failures = 0;
 let checks = 0;
@@ -132,6 +132,32 @@ check(
   checkRate(key, Date.now() + RATE_LIMIT.windowMs + 1000).ok,
   true,
 );
+
+// Who the limiter thinks is calling. A deployment whose proxy does not forward
+// the client address puts every reader behind one key, and that key used to
+// carry one person's allowance: the thirteenth reader of the day met the
+// limiter and the campaign was down with nothing having gone wrong.
+const req = (headers: Record<string, string>) =>
+  new Request("http://x/api/chat", { method: "POST", headers });
+
+check("the leftmost forwarded address is the caller", clientKey(req({ "x-forwarded-for": "1.2.3.4, 10.0.0.1" })), "1.2.3.4");
+check("x-real-ip is used when there is no forwarded-for", clientKey(req({ "x-real-ip": "5.6.7.8" })), "5.6.7.8");
+// A header that is present but blank used to yield "" as the key, which is a
+// third shared pool nobody declared.
+check(
+  "a blank forwarded-for falls through rather than keying on empty",
+  clientKey(req({ "x-forwarded-for": "  ", "x-real-ip": "9.9.9.9" })),
+  "9.9.9.9",
+);
+check("an unidentifiable caller lands in the shared pool", clientKey(req({})), RATE_LIMIT.sharedKey);
+
+// The shared pool is a pool, not a person, and is sized accordingly.
+check("the shared pool is larger than one caller's budget", RATE_LIMIT.sharedMax > RATE_LIMIT.max, true);
+let shared = 0;
+for (let i = 0; i < RATE_LIMIT.sharedMax + 5; i++) {
+  if (checkRate(RATE_LIMIT.sharedKey).ok) shared++;
+}
+check("the shared pool allows its own budget, not one caller's", shared, RATE_LIMIT.sharedMax);
 
 // --- card copy ------------------------------------------------------------
 
