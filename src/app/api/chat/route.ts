@@ -66,6 +66,21 @@ const MAX_HISTORY_TURNS = 20;
 const INDIANISE_ONLY = /§\s*(REBUILD|SWAPS|PLATE)\s*§/i;
 
 /**
+ * How much of any one turn is read.
+ *
+ * The limiter bounds how many requests arrive and never how large they are, so
+ * twelve requests could still be half a million tokens: a forty-thousand
+ * character query was accepted and forwarded to the model in full. Twenty
+ * replayed turns multiply it.
+ *
+ * Truncated rather than refused. Somebody pasting a recipe in to ask about it
+ * should get an answer, not a 400, and the answerable part of an over-long
+ * message is at the front of it. Generous enough that no real question reaches
+ * it — a dish name is three words and a follow-up is a sentence.
+ */
+const MAX_TURN_CHARS = 2000;
+
+/**
  * The vocabulary ban, restated in the turn instruction.
  *
  * It is already in the output contract, and the contract lost. The brief above
@@ -119,8 +134,8 @@ export function condenseRows(text: string): string {
     run = [];
   };
   for (const line of text.split("\n")) {
-    if (line.includes("::")) {
-      const name = line.split(/\s*::\s*/)[0].replace(/^[-*•]\s*/, "").trim();
+    const name = rowName(line);
+    if (name !== null) {
       if (name) run.push(name);
       continue;
     }
@@ -129,6 +144,31 @@ export function condenseRows(text: string): string {
   }
   flush();
   return out.join("\n");
+}
+
+/**
+ * The first field of a line, if the line is a row at all. Null if it is prose.
+ *
+ * Containing "::" was the whole test, which meant an ordinary sentence that
+ * happened to carry one was collapsed into an ingredient name and its meaning
+ * thrown away. A row is a short line of two or three fields with no sentence
+ * inside it, so that is what is checked.
+ */
+function rowName(line: string): string | null {
+  const trimmed = line.trim().replace(/^[-*•]\s*/, "");
+  if (!trimmed.includes("::")) return null;
+  const parts = trimmed.split(/\s*::\s*/);
+  if (parts.length < 2 || parts.length > 3) return null;
+  const first = parts[0].trim();
+  // A field, not a clause. A row's first cell is an ingredient or a component.
+  if (!first || first.length > 60 || /[.!?]/.test(first)) return null;
+  // Nor is its second: a quantity, or the thing being swapped in. Only the
+  // third may run to a clause, which is why the check lands here — "the ratio
+  // you want is this :: one cup of maida becomes three quarters of a cup of
+  // millet flour" opens with a short enough phrase to pass for a name, and
+  // gives itself away by what follows the separator.
+  if (parts[1].trim().length > 60) return null;
+  return first;
 }
 
 export async function POST(request: NextRequest) {
@@ -150,7 +190,12 @@ export async function POST(request: NextRequest) {
   }
 
   const slug = (body.slug ?? "").trim();
-  const history = (body.messages ?? []).filter((m) => m.content?.trim());
+  const history = (Array.isArray(body.messages) ? body.messages : [])
+    .filter((m) => typeof m?.content === "string" && m.content.trim())
+    .map((m) => ({
+      role: m.role === "assistant" ? ("assistant" as const) : ("user" as const),
+      content: m.content.slice(0, MAX_TURN_CHARS),
+    }));
   const latest = [...history].reverse().find((m) => m.role === "user");
   const raw = (latest?.content ?? "").trim();
 

@@ -103,12 +103,20 @@ function warnUnidentified(): void {
   );
 }
 
-export function checkRate(key: string, now = Date.now()): RateVerdict {
-  if (windows.size > SWEEP_AT) sweep(now);
-
+/**
+ * `max` defaults to the model-spending budget, and is overridden by callers
+ * that are not spending it. Beacons are cheap and frequent, and must have both
+ * their own ceiling and their own key: a reader opening source drawers should
+ * never be able to exhaust the allowance that answers their next question.
+ */
+export function checkRate(
+  key: string,
+  now = Date.now(),
   // A pool of unknown callers is not one caller, and must not be held to one
   // caller's allowance.
-  const max = key === SHARED_KEY ? MAX_SHARED_WINDOW : MAX_PER_WINDOW;
+  max = key.endsWith(SHARED_KEY) ? MAX_SHARED_WINDOW : MAX_PER_WINDOW,
+): RateVerdict {
+  if (windows.size > SWEEP_AT) sweep(now);
 
   const existing = windows.get(key);
   if (!existing || now - existing.start >= WINDOW_MS) {
