@@ -58,6 +58,44 @@ function encodeEvent(obj: unknown): Uint8Array {
 /** Prior turns, replayed as plain text. Long threads are trimmed from the front. */
 const MAX_HISTORY_TURNS = 20;
 
+/**
+ * An earlier reply, with its ingredient and swap rows collapsed to names.
+ *
+ * History is replayed so the model knows what it already said and does not
+ * repeat itself. But a reply is replayed verbatim, and a table of
+ * `ingredient :: quantity :: reason` rows is a worked example sitting in the
+ * context window — so whatever the last table did, the next one does again.
+ * Measured on the same query against the same server: a clean thread averaged
+ * 5.1 words in the reason column, and the same request behind one terse table
+ * averaged 3.2, with ten of twelve cells at three words or fewer. The
+ * instruction is in the final user turn, after the history, and still loses to
+ * it. Formatting rules are stated once, in the prompt; a thread that also
+ * demonstrates a format is arguing with them.
+ *
+ * The names survive because that is the part continuity actually needs: the
+ * model has to know it already suggested sattu and ash gourd. What it does not
+ * need is the shape it wrote them in.
+ */
+export function condenseRows(text: string): string {
+  const out: string[] = [];
+  let run: string[] = [];
+  const flush = () => {
+    if (run.length) out.push(`(already suggested: ${run.join(", ")})`);
+    run = [];
+  };
+  for (const line of text.split("\n")) {
+    if (line.includes("::")) {
+      const name = line.split(/\s*::\s*/)[0].replace(/^[-*•]\s*/, "").trim();
+      if (name) run.push(name);
+      continue;
+    }
+    flush();
+    out.push(line);
+  }
+  flush();
+  return out.join("\n");
+}
+
 export async function POST(request: NextRequest) {
   // Ahead of the body read: a turn that will be refused should not spend the
   // work, and this endpoint is the one that spends model quota.
@@ -276,7 +314,10 @@ export async function POST(request: NextRequest) {
         const prior = history
           .slice(0, -1)
           .slice(-MAX_HISTORY_TURNS)
-          .map((m) => ({ role: m.role, content: m.content }));
+          .map((m) => ({
+            role: m.role,
+            content: m.role === "assistant" ? condenseRows(m.content) : m.content,
+          }));
 
         const call = (userContent: string) =>
           provider.streamText(
