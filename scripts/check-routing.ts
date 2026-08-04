@@ -200,6 +200,14 @@ check("hakka noodles is not on the list", namesForeignDish("hakka noodles"), nul
 check("a plain corpus dish is untouched", namesForeignDish("dosa"), null);
 check("a substring is not a match", namesForeignDish("pastry"), null);
 
+// A name here suppresses the corpus for the whole query, so an ingredient that
+// can stand in front of an Indian dish must never be on the list. Listing
+// "oats" took the upma record off the screen for "oats upma", which is an upma
+// with the grain swapped and exactly what that record is for.
+check("a swapped grain does not hide the dish", namesForeignDish("oats upma"), null);
+check("nor on idli", namesForeignDish("oats idli"), null);
+check("nor quinoa", namesForeignDish("quinoa khichdi"), null);
+
 // --- conversation openers -------------------------------------------------
 
 console.log("Openers");

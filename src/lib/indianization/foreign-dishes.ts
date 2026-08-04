@@ -39,8 +39,19 @@ export const FOREIGN_DISHES = [
   "shawarma", "doner", "gyro", "couscous", "pita", "tortilla", "burrata",
   "garlic bread", "spring roll", "sandwich", "panini", "gelato", "ice cream",
   // Packaged and cereal-aisle foreign staples
-  "cornflakes", "granola", "muesli", "oats", "quinoa",
+  "cornflakes", "granola", "muesli",
 ] as const;
+
+/**
+ * Not on the list, and the reason is the whole shape of this file: a name here
+ * suppresses the corpus for the entire query, so it has to be a dish and not an
+ * ingredient. "Oats" and "quinoa" are ingredients, and they are the two that
+ * turn up as a qualifier in front of an Indian dish. "Oats upma" is an upma
+ * with the grain swapped, and the upma record is exactly the right answer to
+ * it; listing the grain took that record off the screen. The test for anything
+ * added here is whether it could stand in front of a corpus dish as a
+ * qualifier. If it could, it is a component and belongs in `rules.json`.
+ */
 
 /**
  * Phrases first, so "ice cream" is recognised before "cream" could be, and so
