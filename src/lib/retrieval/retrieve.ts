@@ -48,6 +48,11 @@ export async function retrieveForDish(
   // put an ATTESTED badge and the Dhosaka source strip under an invented pizza.
   // Declining here sends it to the resolver, which renders the Indianisation
   // card instead, and that card carries no citation because there is none.
+  //
+  // Without candidates, deliberately. Everywhere else a miss offers its nearest
+  // neighbours so the model can promote one on MODE: RESTORE, and promoting one
+  // here is precisely the failure being closed: the record would come back onto
+  // a fusion card wearing its badge, by a longer route.
   if (namesForeignDish(query)) return EMPTY;
 
   const keyword = await repo.searchKeyword(query, MAX_INJECTED_RECORDS);

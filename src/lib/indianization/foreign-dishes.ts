@@ -24,20 +24,31 @@ export const FOREIGN_DISHES = [
   // Italian
   "pizza", "pasta", "spaghetti", "macaroni", "lasagna", "lasagne", "risotto",
   "ravioli", "penne", "carbonara", "tiramisu", "bruschetta", "focaccia",
+  "gnocchi", "calzone", "stromboli", "polenta", "minestrone", "panna cotta",
   // American
   "burger", "cheeseburger", "hamburger", "hot dog", "corn dog", "fries",
   "french fries", "nuggets", "mac and cheese", "meatloaf", "brownie",
   "cheesecake", "pancake", "waffle", "donut", "doughnut", "bagel", "muffin",
-  "cupcake", "milkshake", "sundae", "coleslaw", "caesar salad",
-  // Mexican
+  "cupcake", "milkshake", "sundae", "coleslaw", "caesar salad", "poutine",
+  "jambalaya", "gumbo", "chowder", "pretzel", "smores", "sloppy joe",
+  // Mexican and Latin American
   "taco", "burrito", "quesadilla", "fajita", "nachos", "enchilada", "guacamole",
+  "churro", "empanada", "arepa", "tamale", "pozole", "ceviche",
   // Japanese, Korean, south-east Asian
   "sushi", "maki", "sashimi", "ramen", "tempura", "teriyaki", "gyoza", "wonton",
-  "pho", "pad thai", "kimchi", "bibimbap", "miso soup",
+  "pho", "pad thai", "kimchi", "bibimbap", "miso soup", "udon", "soba", "katsu",
+  "onigiri", "mochi", "bulgogi", "banh mi", "laksa", "satay", "rendang",
+  "tom yum", "dim sum", "char siu",
   // European and west Asian
   "croissant", "baguette", "quiche", "crepe", "paella", "hummus", "falafel",
   "shawarma", "doner", "gyro", "couscous", "pita", "tortilla", "burrata",
   "garlic bread", "spring roll", "sandwich", "panini", "gelato", "ice cream",
+  "goulash", "pierogi", "schnitzel", "borscht", "stroganoff", "ratatouille",
+  "cassoulet", "bouillabaisse", "gazpacho", "moussaka", "souvlaki", "tzatziki",
+  "baklava", "shakshuka", "tagine", "eclair", "macaron", "creme brulee",
+  "gratin", "frittata", "waffles", "souffle",
+  // African
+  "jollof", "injera", "harira",
   // Packaged and cereal-aisle foreign staples
   "cornflakes", "granola", "muesli",
 ] as const;

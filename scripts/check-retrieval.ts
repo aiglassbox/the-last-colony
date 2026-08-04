@@ -11,6 +11,8 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { fileCorpus } from "../src/lib/corpus/load";
+import { namesForeignDish } from "../src/lib/indianization/foreign-dishes";
 import { retrieveForDish } from "../src/lib/retrieval/retrieve";
 
 interface Case {
@@ -92,6 +94,41 @@ async function main() {
       );
     }
     console.log();
+  }
+
+  // A name on the foreign-dish list vetoes the corpus for the whole query, so a
+  // name that collides with a record takes that record off the screen for good.
+  // Checked against the corpus itself rather than against a list of examples,
+  // because the failure arrives when someone adds a word, not when someone
+  // writes a test: "oats" was on the list for one commit and "oats upma" stopped
+  // reaching the upma record, which is exactly the answer to it.
+  const collisions: string[] = [];
+  for (const record of await fileCorpus.all()) {
+    for (const name of [
+      record.dish_name_modern,
+      record.dish_name_source,
+      ...(record.aliases ?? []),
+    ]) {
+      if (!name) continue;
+      const hit = namesForeignDish(name);
+      if (hit) collisions.push(`    "${name}" (${record.slug}) is flagged foreign as "${hit}"`);
+      // The qualifier case: a dish name is still reachable behind a swapped
+      // grain or a cooking style, and the record is what answers it.
+      for (const prefix of ["oats", "quinoa", "millet", "ragi", "leftover"]) {
+        const q = `${prefix} ${name}`;
+        const flagged = namesForeignDish(q);
+        if (flagged) collisions.push(`    "${q}" (${record.slug}) is flagged as "${flagged}"`);
+      }
+    }
+  }
+  if (collisions.length) {
+    console.error(`\n  FOREIGN-DISH COLLISIONS (${collisions.length}):`);
+    console.error(collisions.join("\n"));
+    console.error(
+      "\n✗ A foreign-dish name is hiding a corpus record. Only whole non-Indian\n" +
+        "  dishes belong on that list; an ingredient belongs in rules.json.\n",
+    );
+    process.exit(1);
   }
 
   if (wrongs.length > 0) {

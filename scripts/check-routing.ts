@@ -269,6 +269,25 @@ check(
   "It needs both. The earlier answer leaned on noodles.",
 );
 
+// A trigger word carrying a real sentence is not a concession, and the length
+// of its tail is what tells them apart. These are the sentences the cut must
+// not take.
+check(
+  "exactly, doing work",
+  stripOpener("Exactly the same ratio works for bajra."),
+  "Exactly the same ratio works for bajra.",
+);
+check(
+  "that is right, doing work",
+  stripOpener("That is right for a thick batter, thinner for a dosa."),
+  "That is right for a thick batter, thinner for a dosa.",
+);
+check(
+  "noted as a verb",
+  stripOpener("Noted in the record as a festival sweet, it uses more jaggery."),
+  "Noted in the record as a festival sweet, it uses more jaggery.",
+);
+
 // --- narration anywhere in the turn ---------------------------------------
 
 console.log("Narration");
@@ -319,6 +338,24 @@ check(
   "a decimal survives the sentence match",
   dropNarration("Use 1.5 tbsp ghee and 2.5 cups water."),
   "Use 1.5 tbsp ghee and 2.5 cups water.",
+);
+
+// Sentences that open on a word from the narration pattern while talking about
+// food. None of them describes the exchange, so none of them is cut.
+check(
+  "a first-person cooking statement stays",
+  dropNarration("I would soak the dal overnight for this one."),
+  "I would soak the dal overnight for this one.",
+);
+check(
+  "the record's own earlier reading stays",
+  dropNarration("The earlier reading of that verse gives cowpea, not urad."),
+  "The earlier reading of that verse gives cowpea, not urad.",
+);
+check(
+  "a question read back is not narration when it is the answer",
+  dropNarration("Your request for less heat is easy: drop the chilli to half."),
+  "Your request for less heat is easy: drop the chilli to half.",
 );
 check(
   "a word that only looks like one stays",
