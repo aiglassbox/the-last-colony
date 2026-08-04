@@ -8,6 +8,7 @@ import {
   parseIngredientRows,
   parseRecipeBeat,
 } from "@/lib/model/recipe-beat";
+import { parseSwapRows } from "@/lib/model/swap-rows";
 import { IngredientRows } from "./IngredientRows";
 import { Waiting } from "./RestorationCard";
 import { Download } from "lucide-react";
@@ -144,13 +145,7 @@ function shareTarget(beats: Partial<Record<string, string>>) {
   const verdict = (beats.VERDICT ?? "").trim();
   if (!verdict) return null;
 
-  const rows = (beats.SWAPS ?? "")
-    .split("\n")
-    .map((l) => l.trim())
-    .filter((l) => l.includes("::"))
-    .map((l) => l.split(/\s*::\s*/))
-    .filter((p) => p[0] && p[1] && !/^<?(foreign part|indian swap)>?$/i.test(p[0].trim()))
-    .slice(0, 5);
+  const rows = parseSwapRows(beats.SWAPS).slice(0, 5);
 
   const dish = verdict.split(/[.!?]/)[0].trim().slice(0, 60) || verdict.slice(0, 60);
   const params = new URLSearchParams({
@@ -160,8 +155,8 @@ function shareTarget(beats: Partial<Record<string, string>>) {
     kind: "Not an Indian dish",
   });
   if (rows.length) {
-    params.set("then", rows.map((r) => r[0]).join("|"));
-    params.set("now", rows.map((r) => r[1]).join("|"));
+    params.set("then", rows.map((r) => r.foreign).join("|"));
+    params.set("now", rows.map((r) => r.indian).join("|"));
     params.set("thenLabel", "Instead of");
     params.set("nowLabel", "Use");
   }
@@ -299,34 +294,12 @@ function Plate({ text, streaming }: { text?: string; streaming: boolean }) {
 }
 
 /**
- * The model emits one component per line as `foreign :: indian :: reason`, the
- * same discipline the swap table uses so a fusion is built from named parts
- * rather than a wall of prose. A line that does not parse is dropped rather than
- * shown malformed.
+ * One row per component, from `parseSwapRows` — the same discipline the
+ * restoration ingredient table uses, so a fusion is built from named parts
+ * rather than a wall of prose.
  */
 function SwapTable({ text, streaming }: { text?: string; streaming: boolean }) {
-  const seen = new Set<string>();
-  const rows = (text ?? "")
-    .split("\n")
-    .map((l) => l.trim())
-    .filter(Boolean)
-    .map((l) => {
-      const parts = l.split(/\s*::\s*/);
-      return { foreign: parts[0] ?? "", indian: parts[1] ?? "", why: parts[2] ?? "" };
-    })
-    .filter((r) => r.foreign && r.indian)
-    // The prompt states the row format as "<foreign part> :: <indian swap>",
-    // and the model has copied that line through as data, with or without the
-    // brackets. The table already renders those words as its header, so it
-    // arrived as a second header sitting in the body.
-    .filter((r) => !/^<?(foreign part|indian swap)>?$/i.test(r.foreign.trim()))
-    // The same swap has also come back twice in one table.
-    .filter((r) => {
-      const key = `${r.foreign} ${r.indian}`.toLowerCase();
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
+  const rows = parseSwapRows(text);
 
   if (!rows.length) {
     return streaming ? (

@@ -14,6 +14,9 @@
  */
 import { COMMANDS, parseCommand } from "../src/lib/chat/commands";
 import { kindOf, parseResolved, RESOLUTION, type TurnKind } from "../src/lib/chat/turn";
+import { namesForeignDish } from "../src/lib/indianization/foreign-dishes";
+import { dropNarration, stripOpener } from "../src/lib/model/self-reference";
+import { parseSwapRows } from "../src/lib/model/swap-rows";
 import { checkRate, RATE_LIMIT } from "../src/lib/rate-limit";
 
 let failures = 0;
@@ -138,6 +141,182 @@ console.log("Card copy");
 // and it has no business on a card about a dish that was never Indian.
 const FOREIGN_KINDS: TurnKind[] = ["foreign"];
 check("foreign is a kind the card knows", FOREIGN_KINDS.includes("foreign"), true);
+
+// --- indianisation swap rows ----------------------------------------------
+
+console.log("Swap rows");
+
+check(
+  "a well-formed line becomes a row",
+  parseSwapRows("mozzarella :: fresh paneer :: lower fat"),
+  [{ foreign: "mozzarella", indian: "fresh paneer", why: "lower fat" }],
+);
+check("a line with no swap is dropped", parseSwapRows("just some prose"), []);
+check(
+  "the format line is not a row",
+  parseSwapRows("<foreign part> :: <indian swap> :: <reason>"),
+  [],
+);
+
+// The fusion regression, as it actually arrived: asked for pasta and pizza, the
+// model answered each dish in turn and mapped both bases to the same flatbread,
+// down to a different connector in the two phrasings. One component, one row.
+const fusion = parseSwapRows(
+  [
+    "pizza base :: whole-wheat / millet (jowar, bajra, ragi) flatbread base :: whole grain",
+    "pasta :: whole-wheat or millet (jowar, bajra, ragi) flatbread base :: whole grain",
+    "mozzarella :: fresh low-fat paneer :: more protein",
+  ].join("\n"),
+);
+check("a shared component collapses to one row", fusion.length, 2);
+check("and names both foreign parts", fusion[0].foreign, "pizza base, pasta");
+check("distinct swaps are left alone", fusion[1].foreign, "mozzarella");
+check(
+  "the same part twice does not repeat itself",
+  parseSwapRows("pasta :: millet base :: whole grain\npasta :: millet base :: whole grain")[0]
+    .foreign,
+  "pasta",
+);
+
+// --- foreign dishes in a query --------------------------------------------
+
+console.log("Foreign dishes");
+
+// The reported failure: this matched the dosa record cleanly, so the turn
+// became a restoration and the card came up with an ATTESTED badge and the
+// Dhosaka source strip under an invented pizza.
+check("a fusion with a corpus dish is caught", namesForeignDish("dosa + pizza fusion"), "pizza");
+check("a bare foreign dish is caught", namesForeignDish("pizza"), "pizza");
+check("case and punctuation do not matter", namesForeignDish("Dosa + Pizza!"), "pizza");
+check("a plural is caught", namesForeignDish("idli tacos"), "taco");
+check("a phrase is caught", namesForeignDish("dosa ice cream"), "ice cream");
+check("the longest name wins", namesForeignDish("french fries"), "french fries");
+
+// The list names dishes, never components, because the component map is full
+// of words an Indian dish is legitimately made of.
+check("butter chicken is not foreign", namesForeignDish("butter chicken"), null);
+check("bread pakora is not foreign", namesForeignDish("bread pakora"), null);
+check("hakka noodles is not on the list", namesForeignDish("hakka noodles"), null);
+check("a plain corpus dish is untouched", namesForeignDish("dosa"), null);
+check("a substring is not a match", namesForeignDish("pastry"), null);
+
+// --- conversation openers -------------------------------------------------
+
+console.log("Openers");
+
+check(
+  "a bare concession goes",
+  stripOpener("You are right. It needs the pizza half back."),
+  "It needs the pizza half back.",
+);
+check("apostrophe form goes", stripOpener("You're right. Bake it."), "Bake it.");
+check("good catch goes", stripOpener("Good catch! Bake it."), "Bake it.");
+check("two of them go", stripOpener("You are right. Exactly. Bake it."), "Bake it.");
+check(
+  "a short tail goes with it",
+  stripOpener("You are right about that. Bake it."),
+  "Bake it.",
+);
+// The concession that is carrying the answer stays: cutting to the full stop
+// would take the sentence with it.
+check(
+  "a concession with the answer inside it stays",
+  stripOpener("You are right that the tamarind is doing the work here."),
+  "You are right that the tamarind is doing the work here.",
+);
+check(
+  "a reply that is only a concession stays",
+  stripOpener("You are right."),
+  "You are right.",
+);
+check("ordinary prose is untouched", stripOpener("Jaggery browns faster."), "Jaggery browns faster.");
+
+// The second move, which arrived once the first was closed off: the card read
+// back to the reader who is looking at it.
+check(
+  "self-narration goes",
+  stripOpener("The previous suggestion focused on the pasta component. Bake it."),
+  "Bake it.",
+);
+check(
+  "both moves in one breath go",
+  stripOpener("You are right. The previous answer leaned on noodles. Bake it."),
+  "Bake it.",
+);
+check(
+  "a sentence about the dish's own past stays",
+  stripOpener("The original dish used hand-pounded rice."),
+  "The original dish used hand-pounded rice.",
+);
+
+// The comma form keeps its sentence, because the answer is inside it.
+check(
+  "a conceding clause goes, its sentence stays",
+  stripOpener("You are right, it needs the pizza half back."),
+  "It needs the pizza half back.",
+);
+check(
+  "the opener pass leaves later sentences to dropNarration",
+  stripOpener("You are right, it needs both. The earlier answer leaned on noodles."),
+  "It needs both. The earlier answer leaned on noodles.",
+);
+
+// --- narration anywhere in the turn ---------------------------------------
+
+console.log("Narration");
+
+check(
+  "narration in second place goes",
+  dropNarration("It needs both. The earlier answer leaned on noodles."),
+  "It needs both. ",
+);
+check(
+  "the reader's own request read back goes",
+  dropNarration("Your last request was for a fusion of pizza and pasta. Press the dough thin."),
+  "Press the dough thin.",
+);
+check(
+  "what I said before goes",
+  dropNarration("Bake it uncovered. I suggested millet noodles earlier."),
+  "Bake it uncovered. ",
+);
+// The half that answers is bolted to the back of the narration, so the seam is
+// the pivot and not the full stop.
+check(
+  "a narration carrying the answer keeps the answer",
+  dropNarration(
+    "Your last request was for a fusion, so we should move to a layered bake.",
+  ),
+  "We should move to a layered bake.",
+);
+check(
+  "ordinary prose is untouched by the sentence pass",
+  dropNarration("Bake at 180C for 20 minutes. The crust browns last."),
+  "Bake at 180C for 20 minutes. The crust browns last.",
+);
+// The restoration voice says this in earnest, and it is not narration.
+check(
+  "the dish's own earlier form stays",
+  dropNarration("The original dish used hand-pounded rice. It cooks slower."),
+  "The original dish used hand-pounded rice. It cooks slower.",
+);
+check(
+  "a reply that is only narration stays rather than emptying",
+  dropNarration("The previous answer leaned on noodles."),
+  "The previous answer leaned on noodles.",
+);
+// A decimal is not a sentence end, but the pieces are rejoined verbatim so a
+// mis-cut costs nothing.
+check(
+  "a decimal survives the sentence match",
+  dropNarration("Use 1.5 tbsp ghee and 2.5 cups water."),
+  "Use 1.5 tbsp ghee and 2.5 cups water.",
+);
+check(
+  "a word that only looks like one stays",
+  stripOpener("Indeed millets need more water than rice does."),
+  "Indeed millets need more water than rice does.",
+);
 
 // --- report ---------------------------------------------------------------
 

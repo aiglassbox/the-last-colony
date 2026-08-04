@@ -52,10 +52,17 @@ export function renderIndianizationBlock(rules: IndianizationRule[] = INDIANIZAT
 
   return (
     "<indianization_map>\n" +
-    "These are the ONLY component substitutions you may use to Indianise a " +
-    "foreign dish. Decompose the dish into its parts, map each part to an option " +
-    "here, and rebuild from those. Do not invent an Indian equivalent that is not " +
-    "in this map; if a part has no entry, say so rather than guessing.\n" +
+    "Component substitutions for Indianising a foreign dish. Decompose the dish " +
+    "into its parts and use these where they fit: they are checked, and a part " +
+    "listed here should be swapped the way it says. Where a part is not listed, " +
+    "use your own knowledge of Indian cooking and name the swap you would " +
+    "actually make. Prefer a real, specific ingredient a kirana sells over a " +
+    "vague one.\n" +
+    "This licence is culinary and stops there. It does not extend to the dish's " +
+    "history: no century, no region of origin, no text, no account of what " +
+    "displaced what, and no citation of any kind. Those belong to a record, this " +
+    "card has none, and an unverifiable history under a confident card is the " +
+    "failure this project exists to avoid. Say what the swap does in the pot.\n" +
     `${body}\n` +
     "</indianization_map>"
   );

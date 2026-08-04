@@ -1,4 +1,5 @@
 import { fileCorpus } from "@/lib/corpus/load";
+import { namesForeignDish } from "@/lib/indianization/foreign-dishes";
 import type { CorpusRepository, RepoHit } from "@/lib/corpus/repository";
 import type { CorpusRecord, RetrievalResult } from "@/lib/corpus/types";
 
@@ -40,6 +41,14 @@ export async function retrieveForDish(
   { repo = fileCorpus, minScore = MIN_KEYWORD_SCORE }: RetrieveOptions = {},
 ): Promise<RetrievalResult> {
   if (!query.trim()) return EMPTY;
+
+  // A foreign dish in the query settles the turn before any scoring happens.
+  // "dosa pizza fusion" matches dosa cleanly, and that match is real, but it is
+  // not a restoration: the answer is a fusion, and returning the record would
+  // put an ATTESTED badge and the Dhosaka source strip under an invented pizza.
+  // Declining here sends it to the resolver, which renders the Indianisation
+  // card instead, and that card carries no citation because there is none.
+  if (namesForeignDish(query)) return EMPTY;
 
   const keyword = await repo.searchKeyword(query, MAX_INJECTED_RECORDS);
 

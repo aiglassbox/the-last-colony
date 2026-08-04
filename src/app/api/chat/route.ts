@@ -11,6 +11,7 @@ import { renderComponentSwaps, renderCorpusBlock, renderRecord } from "@/lib/mod
 import { auditProse, isClean } from "@/lib/model/guards";
 import { lastSentenceEnd, MAX_SENTENCE_HOLD, stripHealthClaims } from "@/lib/model/health";
 import { findLeak, LEAK_HOLD, LEAK_REFUSAL } from "@/lib/model/leak";
+import { dropNarration, stripOpener } from "@/lib/model/self-reference";
 import { danglingTail, styleProse } from "@/lib/model/punctuation";
 import { activeProvider, asQuotaError, MAX_TOKENS, RefusalError } from "@/lib/model/provider";
 import { SYSTEM_PROMPT } from "@/lib/model/system-prompt";
@@ -57,6 +58,12 @@ function encodeEvent(obj: unknown): Uint8Array {
 
 /** Prior turns, replayed as plain text. Long threads are trimmed from the front. */
 const MAX_HISTORY_TURNS = 20;
+
+/**
+ * Markers only an Indianisation card has. `VERDICT` is shared with a
+ * restoration and says nothing about which turn this is, so it is not here.
+ */
+const INDIANISE_ONLY = /§\s*(REBUILD|SWAPS|PLATE)\s*§/i;
 
 /**
  * The vocabulary ban, restated in the turn instruction.
@@ -249,6 +256,13 @@ export async function POST(request: NextRequest) {
         first: string | undefined,
         parser: StreamingParser | null,
         asProse: boolean,
+        /**
+         * Called when a restoration turn's completion turns out to be an
+         * Indianisation. Returns the parser to switch to; everything read so
+         * far is re-parsed through it and whatever was already on screen is
+         * redacted first.
+         */
+        onFrameRefused?: () => StreamingParser,
       ): Promise<string> {
         let full = "";
         let carry = "";
@@ -257,12 +271,23 @@ export async function POST(request: NextRequest) {
         // with the card still blank; text already on screen cannot be recalled.
         let pending = "";
         let released = false;
+        /** Whether anything the reader will keep has been emitted yet. */
+        let opened = false;
+        /** Whether the turn has already been re-declared as an Indianisation. */
+        let refused = false;
 
         const release = (text: string) => {
           if (!text) return;
           if (asProse) {
-            emitted += text.length;
-            emit({ type: "text", text });
+            // The concession the conversation rules ban, taken off the front of
+            // the turn. Only the front: `opened` stays false while everything
+            // released so far has been stripped away, so a reply that opens on
+            // two of them loses both, and never runs again after real text.
+            const out = opened ? text : stripOpener(text);
+            if (!out.trim() && !opened) return;
+            opened = true;
+            emitted += out.length;
+            emit({ type: "text", text: out });
           } else if (parser) {
             for (const d of parser.push(text)) {
               emitted += d.text.length;
@@ -274,6 +299,24 @@ export async function POST(request: NextRequest) {
         const push = (text: string) => {
           if (!text || leaked) return;
           full += text;
+
+          // The model was handed a record and told RESTORATION, and wrote an
+          // Indianisation anyway. It is right often enough that the frame is
+          // what gives way: a fusion under a provenance badge and a source
+          // strip is the one thing this project must not render, and the
+          // markers it wrote would otherwise reach the reader as literal text
+          // in the verdict headline. So the turn becomes what the completion
+          // actually is, and the record leaves the screen with the badge.
+          if (onFrameRefused && !refused && INDIANISE_ONLY.test(full)) {
+            refused = true;
+            parser = onFrameRefused();
+            if (emitted) emit({ type: "redact" });
+            emitted = 0;
+            released = true;
+            pending = "";
+            release(full);
+            return;
+          }
 
           if (!released) {
             pending += text;
@@ -306,6 +349,15 @@ export async function POST(request: NextRequest) {
         // only be judged against the whole sentence: the adjective is cut where
         // the sentence survives without it and the sentence is dropped where it
         // does not. Half a sentence cannot be told apart from either.
+        //
+        // A conversation turn gets one rewrite the card turns do not: a
+        // sentence describing the last answer is throat-clearing in prose, and
+        // on a card there is no last answer to describe.
+        const clean = (text: string) => {
+          const styled = stripHealthClaims(styleProse(text));
+          return asProse ? dropNarration(styled) : styled;
+        };
+
         const handle = (chunk: string) => {
           const merged = carry + chunk;
           const boundary = lastSentenceEnd(merged);
@@ -317,7 +369,7 @@ export async function POST(request: NextRequest) {
           // rather than held forever; only the punctuation rules apply to it.
           const cut = boundary || merged.length - danglingTail(merged);
           carry = merged.slice(cut);
-          push(stripHealthClaims(styleProse(merged.slice(0, cut))));
+          push(clean(merged.slice(0, cut)));
         };
         if (first) handle(first);
         for (;;) {
@@ -327,7 +379,7 @@ export async function POST(request: NextRequest) {
           if (value) handle(value);
         }
         // The stream is over, so whatever is left is a complete thought.
-        push(stripHealthClaims(styleProse(carry)));
+        push(clean(carry));
         // A reply shorter than the hold is the common case, not an edge one.
         flushPending();
         if (!asProse && parser)
@@ -420,7 +472,29 @@ export async function POST(request: NextRequest) {
           )[Symbol.asyncIterator]();
           auditRecords = records;
           proseTurn = false;
-          full = await pump(iter, undefined, new BeatParser(), false);
+          full = await pump(iter, undefined, new BeatParser(), false, () => {
+            // The record is withdrawn along with the badge and the source
+            // strip: nothing on this card is evidence for what the model went
+            // on to write, and the audit below must not treat it as such.
+            auditRecords = [];
+            console.warn(
+              `[frame-refused] ${JSON.stringify({
+                query: label,
+                slug: records[0].slug,
+                vendor: provider.vendor,
+                model: provider.model,
+              })}`,
+            );
+            track("turn_resolved", { query: label, resolved: "indianise", top_score: 0 });
+            emit({
+              type: "meta",
+              mode: "indianize" satisfies TurnMode,
+              kind: "foreign" satisfies TurnKind,
+              top_score: retrieval.top_score,
+              records: [],
+            });
+            return new MarkerParser(INDIANIZE_BEATS);
+          });
         } else {
           // ---- Corpus miss: the model decides the turn ----------------------
           const carried = (
@@ -457,14 +531,21 @@ export async function POST(request: NextRequest) {
             "- MODE: REPLY — the message is a follow-up you can answer from the dish " +
             "in <on_screen> or from the conversation so far (the turns above): an " +
             "alternative ingredient, a method question, a challenge, a request to go " +
-            "deeper. Then plain prose, no markers. When the message names no new dish " +
+            "deeper. Then plain prose, no markers. Answer with the change itself: the " +
+            "ingredient, the quantity, the step, the heat or the order of work that " +
+            "differs. Open on a verb the reader can act on, never on a modal, and put " +
+            "no placeholder where an ingredient belongs — a sentence about what could " +
+            "be done is not an answer. If you cannot name the concrete thing, say what " +
+            "you would need to know. When the message names no new dish " +
             "of its own, prefer REPLY over inventing a dish to restore. A message " +
             "that DOES name a dish is not a REPLY, even when the only record for it " +
             "is in <semantic_candidates>.\n" +
             "- MODE: INDIANISE — the user named a dish that is NOT Indian in origin " +
             "(pizza, pasta, sushi, ice cream, ramen, a burger, and the like); then the " +
             "four §VERDICT§ §REBUILD§ §SWAPS§ §PLATE§ markers from the INDIANISATION " +
-            "TURNS section, built from the <indianization_map>.\n" +
+            "TURNS section, built from the <indianization_map>. Two or more foreign " +
+            "dishes named together are one INDIANISE turn, not several: build the " +
+            "single hybrid they describe, as ONE CARD IS ONE DISH sets out.\n" +
             "- MODE: MODERN — the user named a MODERN Indian dish with no older version " +
             "behind it (biryani, butter chicken, pav bhaji, gobi manchurian, samosa, most " +
             "restaurant food, anything defined by potato, tomato, chilli or cauliflower). " +
