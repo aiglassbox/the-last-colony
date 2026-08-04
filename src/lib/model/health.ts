@@ -18,8 +18,50 @@
  * "This version will be ."
  */
 
-const CLAIM =
-  /\b(?:much |far |even |slightly |somewhat )?(?:more |less )?(?:healthier|healthy|nourishing|nutrient[- ]dense|wholesome|good for you|better for you)\b/gi;
+/**
+ * A verdict on the food. The original net, and the one the prompt warns about.
+ */
+const VERDICT_CLAIM =
+  String.raw`\b(?:much |far |even |slightly |somewhat )?(?:more |less )?(?:healthier|healthy|nourishing|nutrient[- ]dense|wholesome|good for you|better for you)\b`;
+
+/**
+ * A claim about the reader's body rather than about the dish.
+ *
+ * "Healthier" is the word the prompt names, so it is the word the model avoids;
+ * "aids digestion" says the same thing in a register that sounds like cooking
+ * knowledge and sailed straight through. It arrived on an ingredient table, in
+ * the cell that explains why a component is there — the one place on a
+ * recordless card with room for a sentence and nothing recorded to fill it.
+ *
+ * These are matched as whole phrases rather than keywords so the cut takes the
+ * claim and leaves the clause: "pungent flavour, aids digestion" should become
+ * "pungent flavour", not "pungent flavour, ".
+ *
+ * Antioxidants are deliberately absent. The swap records themselves say "keeps
+ * the seed's own vitamins, antioxidants and flavour compounds", and a model
+ * quoting its source faithfully must not be punished for it.
+ */
+const BODY_CLAIM = [
+  // aids digestion · helps with digestion · supports gut health
+  String.raw`\b(?:aids?|helps?|supports?|improves?|boosts?|promotes?|eases?|stimulates?|strengthens?|balances?)\s+(?:in\s+|with\s+|the\s+|your\s+)*(?:digestion|digestive\s+\w+|gut(?:\s+health)?|immunity|immune\s+\w+|metabolism|absorption)\b`,
+  // good for digestion · beneficial for the gut
+  String.raw`\b(?:good|great|beneficial)\s+for\s+(?:the\s+|your\s+)?(?:digestion|gut|immunity|stomach|health)\b`,
+  // claims that stand on their own, with no verb to hang from
+  String.raw`\b(?:gut[- ]friendly|digestive\s+(?:balance|health|aid)|immunity[- ]boosting|detox\w*|cleansing|medicinal|therapeutic|healing|anti[- ]inflammatory)\b`,
+  // The bare noun, which is how the claim actually arrives once the model has
+  // been told not to say "aids digestion": "for aroma and digestion" makes the
+  // same promise with the verb removed, and cleared a net built around verbs.
+  String.raw`\b(?:digestion|immunity|metabolism)\b`,
+  // easier to digest · easily digestible · light on the stomach
+  String.raw`\b(?:easy|easier|lighter)\s+to\s+digest\b`,
+  String.raw`\b(?:easily\s+)?digestible\b`,
+  String.raw`\blight\s+on\s+the\s+stomach\b`,
+].join("|");
+
+/** Both nets, as one source, so `guards.ts` audits exactly what this strips. */
+export const HEALTH_CLAIM_SOURCE = `${VERDICT_CLAIM}|${BODY_CLAIM}`;
+
+const CLAIM = new RegExp(HEALTH_CLAIM_SOURCE, "gi");
 
 /** A sentence whose predicate lost its complement, or that lost its point. */
 const STUMP = /\b(?:is|are|was|were|be|been|being|becomes?|became|feels?|seems?|tastes?|makes? it|renders? it)\s*[.,;:!?]/i;
@@ -32,6 +74,13 @@ function tidy(text: string): string {
       .replace(/[ \t]+([.,;!?])/g, "$1")
       // A lone colon closes up; the "::" of a swap row keeps its spacing.
       .replace(/[ \t]+:(?!:)/g, ":")
+      // A cut at the end of a line leaves the comma or the conjunction that
+      // used to join the claim to the clause before it. An ingredient row ends
+      // without punctuation, so "pungent flavour, " would ship the comma and
+      // the reader would look for the half that is missing. Colons are left
+      // alone: the last one on the line may be the "::" of the row itself.
+      .replace(/[ \t]*[,;][ \t]*(?=\n|$)/g, "")
+      .replace(/[ \t]+(?:and|or|but|with)[ \t]*(?=\n|$)/gi, "")
       .replace(/\ba\s+(?=[aeiou])/gi, "an ")
       .trim()
   );
@@ -96,10 +145,16 @@ export function stripHealthClaims(text: string): string {
     CLAIM.lastIndex = 0;
 
     const leading = /^\s*/.exec(raw)?.[0] ?? "";
+    // And the trailing run, for the same reason. `tidy` trims both ends, so a
+    // cut anywhere in a beat of ingredient rows ate the newline that ended the
+    // row and welded the next one onto it: "adds pungent aroma to the dough"
+    // and "lemon juice" arrived as one line. Harmless while every passage was
+    // prose separated by spaces, load-bearing once a beat became a list.
+    const trailing = /\s*$/.exec(raw)?.[0] ?? "";
     const cut = tidy(raw.replace(CLAIM, ""));
     if (survives(cut)) {
       if (firstKept < 0) firstKept = i;
-      kept.push(leading + cut);
+      kept.push(leading + cut + trailing);
     }
     // else: the sentence is dropped entirely, including its leading space.
   }

@@ -1,5 +1,7 @@
 import type { CorpusRecord } from "@/lib/corpus/types";
 
+import { HEALTH_CLAIM_SOURCE } from "./health";
+
 /**
  * Post-hoc checks on generated prose.
  *
@@ -17,8 +19,15 @@ const CERTAINTY_WORDS = /\b(attested|proven|confirmed|documented|verified)\b/gi;
 /** A chapter/verse/page shape the model was told never to type. */
 const CITATION_SHAPE =
   /\b(adhy[āa]ya|chapter|verse|v\.\s*\d|p{1,2}\.\s*\d|page\s+\d|folio)\b/gi;
-/** A verdict on the reader's health, where rule 4 allows only a named axis. */
-const HEALTH_WORDS = /\b(healthier|healthy|nourishing|nutrient[- ]dense|wholesome)\b/gi;
+/**
+ * A verdict on the reader's health, where rule 4 allows only a named axis.
+ *
+ * Shares its source with the stripper rather than keeping a second list. The
+ * two had drifted: `stripHealthClaims` and this audit both knew "healthier" and
+ * neither knew "aids digestion", so a claim that reached a card was not merely
+ * unstripped, it was unlogged as well. What the one removes, the other reports.
+ */
+const HEALTH_WORDS = new RegExp(HEALTH_CLAIM_SOURCE, "gi");
 /**
  * Attribution with nothing behind it. Harmless beside a record, because the
  * source strip renders the real one; on an empty card it is a citation the
