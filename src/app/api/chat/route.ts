@@ -59,6 +59,34 @@ function encodeEvent(obj: unknown): Uint8Array {
 const MAX_HISTORY_TURNS = 20;
 
 /**
+ * The vocabulary ban, restated in the turn instruction.
+ *
+ * It is already in the output contract, and the contract lost. The brief above
+ * it demonstrates the phrase in a worked example ("Palak paneer has no ancient
+ * original"), and a demonstration outranks a rule — the same lesson the
+ * replayed-history fix taught, arriving from the other direction. The brief is
+ * verbatim campaign copy and is not ours to edit, so the correction goes where
+ * it can win: the user turn, last thing before the model writes.
+ *
+ * Measured across four dishes, the three that took the resolve path had this
+ * in their turn and stayed clean, while the one that hit the corpus did not
+ * and opened on "Pav bhaji has no ancient original". Same contract, same
+ * model, different last instruction. So both paths now carry it, from one
+ * constant, because two copies of a rule is how the next drift starts.
+ */
+const PLAIN_WORDS =
+  "\nDo not write \"ancient original\", \"not a restoration\", \"the corpus\" or " +
+  "\"provenance\" anywhere in your prose. Those are our filing words, not the " +
+  "reader's, and the brief above uses them only to explain itself to you. Say it " +
+  "plainly instead: there is no older version of this dish, or we do not have " +
+  "this one written down. And do not open §VERDICT§ on the dish's age at all " +
+  "when the card states that itself, directly beneath your text: open on what is " +
+  "specific to THIS dish.\n" +
+  "The worked examples above use palak paneer. They show a shape, not a sentence " +
+  "to hand back. If the reader has named palak paneer, that is the one dish whose " +
+  "verdict you must write from scratch.";
+
+/**
  * An earlier reply, with its ingredient and swap rows collapsed to names.
  *
  * History is replayed so the model knows what it already said and does not
@@ -388,7 +416,7 @@ export async function POST(request: NextRequest) {
 
           const iter = call(
             `${renderCorpusBlock(records)}\n\nThis is a RESTORATION turn. Emit the four ` +
-              `§markers§.${shape}${directive}\n\nUser said: ${label}`,
+              `§markers§.${shape}${PLAIN_WORDS}${directive}\n\nUser said: ${label}`,
           )[Symbol.asyncIterator]();
           auditRecords = records;
           proseTurn = false;
@@ -437,11 +465,14 @@ export async function POST(request: NextRequest) {
             "(pizza, pasta, sushi, ice cream, ramen, a burger, and the like); then the " +
             "four §VERDICT§ §REBUILD§ §SWAPS§ §PLATE§ markers from the INDIANISATION " +
             "TURNS section, built from the <indianization_map>.\n" +
-            "- MODE: MODERN — the user named a MODERN Indian dish that has no ancient " +
-            "original (biryani, butter chicken, pav bhaji, gobi manchurian, samosa, most " +
+            "- MODE: MODERN — the user named a MODERN Indian dish with no older version " +
+            "behind it (biryani, butter chicken, pav bhaji, gobi manchurian, samosa, most " +
             "restaurant food, anything defined by potato, tomato, chilli or cauliflower). " +
             "Then the four §VERDICT§ §THEN§ §WHAT_CHANGED§ §RESTORE_TODAY§ markers: " +
-            "§VERDICT§ states plainly it is a modern dish, not ancient; §THEN§ names " +
+            "§VERDICT§ opens on what is specific to THIS dish rather than on its age, " +
+            "because the card states the age itself in a line beneath your text and a " +
+            "verdict that repeats it wastes the one line the reader is certain to " +
+            "read; §THEN§ names " +
             "which of its defining ingredients are Columbian-exchange arrivals and what " +
             "its components were before, drawn from where_it_went in <component_swaps> " +
             "and nothing else — do not narrate the dish's history from your own " +
@@ -493,6 +524,7 @@ export async function POST(request: NextRequest) {
             "describes the dish, never the reader's body — no digestion, gut, " +
             "immunity, detox or energy, and no 'aids', 'helps' or 'good for'. Name " +
             "the axis and compare instead. Plain text only, no other markdown." +
+            PLAIN_WORDS +
             directive +
             `\n\nUser said: ${label}`;
 

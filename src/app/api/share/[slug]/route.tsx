@@ -58,7 +58,7 @@ function headline(r: CorpusRecord): string {
   // rarely quotable — write `share_verdict` on any record that ships.
   const change = r.substitution_story?.changed[0];
   if (r.provenance_class === "MODERN_DISH") {
-    return `${r.dish_name_modern} has no ancient original.`;
+    return `${r.dish_name_modern} is younger than it tastes.`;
   }
   if (change) return `${change.from} became ${change.to}.`;
   return `${r.dish_name_modern} was not always ${r.dish_name_modern}.`;
@@ -118,7 +118,7 @@ function fromParams(params: URLSearchParams): CardCopy | null {
     thenLabel: clamp(params.get("thenLabel"), 18) || "Then",
     nowLabel: clamp(params.get("nowLabel"), 18) || "Now",
     steps: list("steps", 7),
-    footerTitle: clamp(params.get("note"), 48) || "No ancient original",
+    footerTitle: clamp(params.get("note"), 48) || "No older version",
     footerNote: clamp(params.get("kind"), 48) || "Not drawn from a text",
   };
 }

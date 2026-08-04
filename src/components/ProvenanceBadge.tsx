@@ -37,7 +37,7 @@ const COPY: Record<ProvenanceClass, { label: string; colour: string; explain: st
     label: "Modern dish",
     colour: "var(--modern)",
     explain:
-      "This dish has no ancient original, and we are not going to invent one. What can be restored are its components: the thickener, the fat, the flour, the sweetener.",
+      "There is no older version of this dish to go back to, and we are not going to invent one. What can be put back are its components: the thickener, the fat, the flour, the sweetener.",
   },
 };
 

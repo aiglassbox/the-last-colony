@@ -58,13 +58,19 @@ export function IndianisationCard({ data }: { data: IndianizationData }) {
               textTransform: "uppercase",
             }}
           >
-            Indian-inspired fusion · not a restoration
+            Our own recipe · not a historical one
           </span>
         </div>
-        {/* Said in words as well as on the chip, because the chip states what
-            the card is and this states why. The corpus is deliberately not
-            mentioned: whether we hold a record is irrelevant to a dish that was
-            never Indian, and raising it implies one could arrive later. */}
+        {/* Said in words as well as on the chip, because the chip is a label
+            and this is the sentence. Both avoid the words we file by: a reader
+            meeting "ancient original" or "restoration" for the first time has
+            to decode them before they can read the line, and they arrive in
+            the same shape on every card. "Ours" does the disclosing better
+            than "not a restoration" did, and needs no glossary.
+
+            The corpus is deliberately not mentioned: whether we hold a record
+            is irrelevant to a dish that was never Indian, and raising it
+            implies one could arrive later. */}
         <p
           style={{
             margin: "0.85rem 0 0",
@@ -72,23 +78,24 @@ export function IndianisationCard({ data }: { data: IndianizationData }) {
             color: "var(--ink-soft)",
           }}
         >
-          Not an Indian-origin dish, so there is no ancient original to restore. What
-          follows is a rebuild from Indian components, not a historical recipe.
+          This one did not come from India, so there is no older version to go back
+          to. What follows is ours: built out of Indian ingredients, not taken from
+          any text.
         </p>
       </div>
 
-      <Section title="Rebuilt with an Indian spirit">
+      <Section title="The rebuild">
         <Prose text={beats.REBUILD} streaming={streaming} />
       </Section>
 
       {(beats.SWAPS || streaming) && (
-        <Section title="Component swaps">
+        <Section title="Swaps">
           <SwapTable text={beats.SWAPS} streaming={streaming} />
         </Section>
       )}
 
       {(beats.PLATE || (streaming && Boolean(beats.SWAPS))) && (
-        <Section title="Make it today">
+        <Section title="Cook it">
           <Plate text={beats.PLATE} streaming={streaming} />
         </Section>
       )}

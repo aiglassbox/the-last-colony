@@ -24,7 +24,7 @@ export async function generateMetadata(props: PageProps<"/dish/[slug]">): Promis
   const title = `${record.dish_name_modern}: The Great Indian Food Restoration`;
   const description =
     record.provenance_class === "MODERN_DISH"
-      ? `${record.dish_name_modern} has no ancient original. Here is what can be restored anyway.`
+      ? `${record.dish_name_modern} is younger than it tastes. Here is what can be put back anyway.`
       : `What ${record.dish_name_modern} was before colonial-era crop policy and industrial milling rewrote it.`;
 
   return {

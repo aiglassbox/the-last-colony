@@ -51,27 +51,64 @@ export interface CardData {
  */
 const RECORDLESS_NOTE: Partial<Record<TurnKind, string>> = {
   modern:
-    "A modern dish, with no ancient original. What follows is its short history and " +
-    "a version built on older principles, not drawn from a specific text.",
+    "This one is younger than it tastes, so there is no older version to go back to. " +
+    "What follows is how it came about, and a version built on older principles " +
+    "rather than taken from a text.",
   gap:
-    "An Indian dish we hold no record for yet. Nothing below is drawn from a text, " +
-    "because there is no text here to draw from.",
+    "An Indian dish we have not written up yet. Nothing below is drawn from a text, " +
+    "because we do not hold one for it.",
   foreign:
-    "Not an Indian-origin dish, so there is nothing here to restore. Nothing below " +
-    "is drawn from a text, and none is implied.",
+    "This one did not come from India, so there is no older version to find. Nothing " +
+    "below is drawn from a text, and none is implied.",
 };
 
-const TITLES: Record<Beat, string> = {
-  VERDICT: "The verdict",
-  THEN: "Then",
-  WHAT_CHANGED: "What changed",
-  RESTORE_TODAY: "Restore it today",
+/**
+ * Beat headings, by what kind of turn this is.
+ *
+ * "Then" and "What changed" are the right words for a dish with a record
+ * behind it: there is a then, and something did change. On a dish with no
+ * record they are a question the card cannot answer, printed as though it had.
+ * A modern dish has no "then" — only its components do — and a heading that
+ * claims otherwise is the card asserting history the turn does not hold.
+ *
+ * The keys are untouched on purpose. They are the wire protocol: the marker the
+ * model writes, the field the parser fills, the shape stored in localStorage on
+ * readers' devices. Only the words on screen vary, so nothing downstream and
+ * nothing already saved has to know this exists.
+ *
+ * Short by design. These sit above the text as labels, not as sentences.
+ */
+const TITLES: Record<TurnKind, Record<Beat, string>> = {
+  record: {
+    VERDICT: "The verdict",
+    THEN: "Then",
+    WHAT_CHANGED: "What changed",
+    RESTORE_TODAY: "Cook it today",
+  },
+  modern: {
+    VERDICT: "The verdict",
+    THEN: "What's in it",
+    WHAT_CHANGED: "Where its parts came from",
+    RESTORE_TODAY: "Cook it closer",
+  },
+  gap: {
+    VERDICT: "The verdict",
+    THEN: "What we can say",
+    WHAT_CHANGED: "What likely changed",
+    RESTORE_TODAY: "Cook it closer",
+  },
+  foreign: {
+    VERDICT: "The verdict",
+    THEN: "What's in it",
+    WHAT_CHANGED: "Where its parts came from",
+    RESTORE_TODAY: "Cook it closer",
+  },
 };
 
 /** What the footer of a recordless card should say where a source would go. */
 const SHARE_FOOTER: Partial<Record<TurnKind, { note: string; kind: string }>> = {
-  modern: { note: "Component restoration", kind: "Modern dish, no ancient original" },
-  gap: { note: "Component restoration", kind: "No record held yet" },
+  modern: { note: "Component restoration", kind: "A modern dish, with no older version" },
+  gap: { note: "Component restoration", kind: "Not written up yet" },
   foreign: { note: "Indian reinterpretation", kind: "Not an Indian dish" },
 };
 
@@ -199,6 +236,7 @@ export function RestorationCard({ data }: { data: CardData }) {
 
       <Beat
         beat="THEN"
+        kind={data.kind}
         open={open.THEN}
         onToggle={toggle}
         badge={ancient?.dish_name_source ?? undefined}
@@ -206,9 +244,9 @@ export function RestorationCard({ data }: { data: CardData }) {
         <Prose text={data.beats.THEN} streaming={data.streaming} />
         {ancient?.provenance_class === "MODERN_DISH" && (
           <p style={{ margin: "0 0 0.2rem", color: "var(--ink-soft)", maxWidth: "62ch" }}>
-            No ancient original, and we are not going to invent one. Here is what is
-            actually in it — and which of those ingredients only reached India in the
-            last few centuries.
+            There is no older version of this, and we are not going to invent one.
+            Here is what is actually in it, and which of those ingredients only
+            reached India in the last few centuries.
           </p>
         )}
         {ancient && (
@@ -242,7 +280,7 @@ export function RestorationCard({ data }: { data: CardData }) {
         )}
       </Beat>
 
-      <Beat beat="WHAT_CHANGED" open={open.WHAT_CHANGED} onToggle={toggle}>
+      <Beat beat="WHAT_CHANGED" kind={data.kind} open={open.WHAT_CHANGED} onToggle={toggle}>
         <Prose text={data.beats.WHAT_CHANGED} streaming={data.streaming} />
         {ancient && modern ? (
           <ThenNow ancient={ancient} modern={modern} />
@@ -256,7 +294,7 @@ export function RestorationCard({ data }: { data: CardData }) {
         {ancient?.substitution_story && <NutritionDelta record={ancient} />}
       </Beat>
 
-      <Beat beat="RESTORE_TODAY" open={open.RESTORE_TODAY} onToggle={toggle}>
+      <Beat beat="RESTORE_TODAY" kind={data.kind} open={open.RESTORE_TODAY} onToggle={toggle}>
         {ancient?.restore_today ? (
           <>
             <Prose text={data.beats.RESTORE_TODAY} streaming={data.streaming} />
@@ -313,12 +351,14 @@ export function RestorationCard({ data }: { data: CardData }) {
 
 function Beat({
   beat,
+  kind,
   open,
   onToggle,
   badge,
   children,
 }: {
   beat: Beat;
+  kind: TurnKind;
   open: boolean;
   onToggle: (b: Beat) => void;
   badge?: string;
@@ -333,7 +373,7 @@ function Beat({
         onClick={() => onToggle(beat)}
       >
         <span className="mono" style={{ color: "var(--ink-muted)" }}>
-          {TITLES[beat]}
+          {TITLES[kind][beat]}
         </span>
         {badge && (
           <span className="display" style={{ fontSize: "0.95rem", color: "var(--orange)" }}>
