@@ -27,8 +27,11 @@ function Mask({
       className={className}
       style={{
         display: "inline-block",
-        width: size * ratio,
-        height: size,
+        // `size` is only the fallback. A stylesheet sizes the mark responsively
+        // by setting --mark-h on an ANCESTOR — declaring it inline here would
+        // put it on this same element, where it outranks the stylesheet.
+        height: `var(--mark-h, ${size}px)`,
+        aspectRatio: String(ratio),
         flex: "0 0 auto",
         background: "currentColor",
         WebkitMask: `url("${src}") center / contain no-repeat`,

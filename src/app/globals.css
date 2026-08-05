@@ -18,9 +18,10 @@
   Spacing follows an 8px grid: --s-1 through --s-10.
 */
 :root {
-  /* brand */
-  --red: #e2121b;
-  --red-deep: #b00e15;
+  /* brand — the CTA red. One value, so the send button, Shop Now, the New
+     Chat mark, Clear history and the accents inside a card all move together. */
+  --red: #8c1e22;
+  --red-deep: #6d151a;
   --maroon: #4a100d;
 
   /* Kept as aliases so nothing downstream had to be renamed when the palette
@@ -87,7 +88,7 @@
   --sh-2: 0 2px 6px rgba(0, 0, 0, 0.4), 0 10px 28px -12px rgba(0, 0, 0, 0.55);
   --sh-3: 0 8px 20px -6px rgba(0, 0, 0, 0.5), 0 24px 48px -20px rgba(0, 0, 0, 0.7);
   --sh-hero: 0 18px 48px -20px rgba(0, 0, 0, 0.55);
-  --sh-focus: 0 0 0 3px rgba(226, 18, 27, 0.3);
+  --sh-focus: 0 0 0 3px rgba(140, 30, 34, 0.45);
 
   color-scheme: dark;
 }
@@ -784,13 +785,17 @@ body {
 /* Bottom-right corner: the lockup and its button stack right-aligned, with the
    pack shot sitting in the corner underneath them and bleeding off the edge,
    as the comp has it. */
+/* Sized and spaced from the reference: at 1920 the lockup measures ~155px
+   wide, the button ~110x33, and the pack ~280px bleeding off the right edge.
+   All three scale with the viewport from those figures, and the three are
+   centred on one another rather than ragged. */
 .brand-shop {
   position: absolute;
   right: 0;
   bottom: 0;
   display: grid;
   justify-items: center;
-  gap: var(--s-2);
+  gap: 0;
   padding: 0 var(--s-5) 0 0;
   pointer-events: none;
 }
@@ -803,14 +808,22 @@ body {
 .brand-shop__lockup {
   display: block;
   line-height: 0;
+  margin-bottom: clamp(10px, 1.3vw, 25px);
   color: var(--display);
+}
+
+/* ~155px wide at 1920, which is 69px tall at the asset's 569:254. Declared on
+   the wrapper so it cascades into the mark, which carries its own inline
+   fallback. */
+.brand-shop__lockup {
+  --mark-h: clamp(46px, 3.6vw, 69px);
 }
 
 .shop-now {
   display: inline-grid;
   place-items: center;
-  min-height: 32px;
-  padding: 0 var(--s-4);
+  min-height: 33px;
+  padding: 0 var(--s-5);
   border-radius: 5px;
   background: var(--red);
   color: #fff;
@@ -819,7 +832,7 @@ body {
   letter-spacing: 0.01em;
   white-space: nowrap;
   text-decoration: none;
-  box-shadow: 0 6px 16px -10px rgba(226, 18, 27, 0.9);
+  box-shadow: 0 6px 16px -10px rgba(140, 30, 34, 0.9);
   transition:
     transform var(--dur) var(--ease),
     background var(--dur) var(--ease);
@@ -834,10 +847,11 @@ body {
    it has to reach the edges rather than float above them. */
 .brand-shop__pack {
   display: block;
-  width: clamp(170px, 17vw, 260px);
+  width: clamp(190px, 14.6vw, 280px);
   aspect-ratio: 1200 / 459;
   background: url("/brand/vitalife-products.png") bottom center / contain no-repeat;
-  margin: calc(var(--s-2) * -1) calc(var(--s-5) * -1) 0 0;
+  /* Sits directly under the button and bleeds off the right edge. */
+  margin: clamp(2px, 0.3vw, 6px) calc(var(--s-5) * -1) 0 0;
 }
 
 @media (min-width: 992px) {
@@ -972,7 +986,7 @@ body {
   background: var(--red);
   color: #fff;
   cursor: pointer;
-  box-shadow: 0 8px 18px -8px rgba(226, 18, 27, 0.85);
+  box-shadow: 0 8px 18px -8px rgba(140, 30, 34, 0.9);
   transition:
     transform var(--dur) var(--ease),
     background var(--dur) var(--ease),
@@ -1262,9 +1276,9 @@ body {
   max-width: min(85%, 46ch);
   padding: var(--s-3) var(--s-4);
   border-radius: 20px 20px 6px 20px;
-  background: linear-gradient(135deg, var(--orange) 0%, var(--orange-3) 100%);
+  background: var(--red);
   color: #fff;
-  box-shadow: 0 8px 20px -12px rgba(255, 106, 0, 0.9);
+  box-shadow: 0 8px 20px -12px rgba(0, 0, 0, 0.6);
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -1295,8 +1309,21 @@ body {
 
 /* ----------------------------------------------------------------- card -- */
 
+/* The answer card is cream, as the artboards draw it, and it re-declares the
+   ink tokens for its own subtree so everything inside reads dark-on-light.
+   This is also what makes the CTA red usable as an accent: #8c1e22 measures
+   about 1.4:1 on the maroon ground and about 8:1 here. */
 .card {
-  background: var(--surface);
+  --ink: #241310;
+  --ink-soft: #4a3330;
+  --ink-muted: #7d635c;
+  --display: #241310;
+  --line: rgba(74, 16, 13, 0.12);
+  --line-strong: rgba(74, 16, 13, 0.22);
+  --surface-2: rgba(74, 16, 13, 0.04);
+
+  background: var(--field);
+  color: var(--ink);
   border: 1px solid var(--line);
   border-radius: var(--r-card);
   box-shadow: var(--sh-2);

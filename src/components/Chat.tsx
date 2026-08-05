@@ -470,7 +470,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                   {/* The supplied lockup already reads "Powered by vitalife",
                       so there is no separate line of type above it. */}
                   <span className="brand-shop__lockup">
-                    <VitalifeMark size={46} />
+                    <VitalifeMark size={56} />
                   </span>
                   <a className="shop-now" href={SHOP_URL} target="_blank" rel="noopener noreferrer">
                     Shop Now
