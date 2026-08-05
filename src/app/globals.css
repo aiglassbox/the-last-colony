@@ -834,7 +834,8 @@ body {
 .brand-shop__pack {
   display: block;
   width: clamp(220px, 25vw, 400px);
-  height: auto;
+  aspect-ratio: 1200 / 459;
+  background: url("/brand/vitalife-products.png") bottom right / contain no-repeat;
   margin: calc(var(--s-3) * -1) calc(var(--s-6) * -1) 0 0;
 }
 
@@ -1561,16 +1562,13 @@ body {
     padding: 0 var(--s-4);
   }
 
-  /* The top bar already carries the brand, so the corner marks stand down. */
-  .brand-top {
-    display: none;
-  }
+  /* The corner marks and the whole Vitalife lockup stand down on a phone.
+     Wordmark, button and pack shot below a stacked hero read as clutter, and
+     the top bar already carries the brand. React skips the lockup once it
+     knows the width; this covers the server-rendered frame before that. */
+  .brand-top,
   .brand-shop {
-    gap: var(--s-3);
-    padding-top: var(--s-4);
-  }
-  .brand-shop__pack {
-    width: clamp(120px, 34vw, 170px);
+    display: none;
   }
   .footnote {
     margin-top: var(--s-5);

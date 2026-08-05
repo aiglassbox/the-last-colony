@@ -1,7 +1,6 @@
 "use client";
 
 import { Code2, FileText, ImageIcon, type LucideIcon, Menu, Pencil, SquarePen } from "lucide-react";
-import Image from "next/image";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import {
@@ -463,6 +462,10 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
 
                 <p className="footnote">{FOOTNOTE}</p>
 
+                {/* Not rendered on a phone at all, rather than hidden with
+                    CSS — a hidden next/image still downloads, and the pack
+                    shot is the heaviest asset on the page. */}
+                {!phone && (
                 <aside className="brand-shop" aria-label="Vitalife">
                   {/* The supplied lockup already reads "Powered by vitalife",
                       so there is no separate line of type above it. */}
@@ -472,19 +475,15 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                   <a className="shop-now" href={SHOP_URL} target="_blank" rel="noopener noreferrer">
                     Shop Now
                   </a>
-                  {/* Decorative: the wordmark above already names the brand.
-                      Fixed intrinsic size, so it reserves its space and cannot
-                      shift the corner as it loads. */}
-                  <Image
-                    className="brand-shop__pack"
-                    src="/brand/vitalife-products.png"
-                    width={1200}
-                    height={460}
-                    alt=""
-                    aria-hidden
-                    priority={false}
-                  />
+                  {/* Decorative, and painted as a CSS background rather than
+                      an <img>: a hidden or unmounted image is still fetched
+                      once it has been sent in the HTML, and the first render
+                      does not yet know the viewport width. A background on a
+                      display:none element is never requested, which is what
+                      keeps the heaviest asset off phones for real. */}
+                  <span className="brand-shop__pack" aria-hidden />
                 </aside>
+                )}
               </div>
             ) : (
               <>
