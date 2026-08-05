@@ -845,10 +845,16 @@ body {
 
 /* Bleeds off the bottom-right corner. The red sweep is part of the asset, so
    it has to reach the edges rather than float above them. */
+/* The supplied file carried a lot of transparent padding — the artwork sat in
+   the bottom-right corner of a 1200x459 frame, occupying 54% of its width. At
+   any box size the bottles therefore rendered at about half what they should,
+   which is why widening the element never fixed it. The asset is now cropped
+   to its opaque bounds (648x308), so the element IS the artwork and this width
+   is the width you see. */
 .brand-shop__pack {
   display: block;
-  width: clamp(190px, 14.6vw, 280px);
-  aspect-ratio: 1200 / 459;
+  width: clamp(200px, 16vw, 310px);
+  aspect-ratio: 648 / 308;
   background: url("/brand/vitalife-products.png") bottom center / contain no-repeat;
   /* Sits directly under the button and bleeds off the right edge. */
   margin: clamp(2px, 0.3vw, 6px) calc(var(--s-5) * -1) 0 0;
@@ -1578,22 +1584,21 @@ body {
     order: 2;
     margin: var(--s-6) auto 0;
   }
+  /* Out of the corner, but still the same stack: wordmark, then the button,
+     then the pack. A row here would reorder the three. */
   .brand-shop {
     position: static;
     order: 3;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: var(--s-4);
+    justify-items: center;
     padding: var(--s-5) 0 0;
   }
   /* No bleed off an edge it is no longer against — a negative margin here
      pushes the page wider than the viewport. */
+  /* No corner to bleed into here, so no negative margin — and the jars need
+     clear air under the button rather than touching it. */
   .brand-shop__pack {
-    width: clamp(150px, 26vw, 230px);
-    margin: 0;
+    width: clamp(180px, 26vw, 260px);
+    margin: var(--s-3) 0 0;
   }
 }
 
