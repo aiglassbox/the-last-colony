@@ -1,27 +1,18 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useEffect, useState } from "react";
-
+import { useEffect, useRef, useState } from "react";
 
 /**
- * Settings. Deliberately small — it shows only things that are real: the
- * theme, what the model layer is actually running, and how much corpus is
- * behind the answers. The provider line exists because "there is no prose" has
- * exactly two common causes, a missing key and a spent quota, and neither is
- * visible from the chat surface.
+ * Settings.
+ *
+ * A small popup with one thing in it. The model and corpus readouts that used
+ * to live here were diagnostics, not settings — they belong in /api/health,
+ * which still serves them.
+ *
+ * Clearing is two-step. It deletes every thread on the device and there is no
+ * undo, so the first press only arms it.
  */
-
-interface Health {
-  provider: { vendor: string; model: string } | null;
-  corpus: {
-    records: number;
-    ancient: number;
-    attested: number;
-    unverified: number;
-    swaps: number;
-  };
-}
 
 export function SettingsSheet({
   onClearConversations,
@@ -30,104 +21,73 @@ export function SettingsSheet({
   onClearConversations: () => void;
   onClose: () => void;
 }) {
-  const [health, setHealth] = useState<Health | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
-
-  useEffect(() => {
-    void fetch("/api/health")
-      .then((r) => r.json())
-      .then(setHealth)
-      .catch(() => setHealth(null));
-  }, []);
+  const closeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
+    closeRef.current?.focus();
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
   return (
     <>
       <div className="drawer-backdrop" onClick={onClose} aria-hidden />
-      <div className="drawer" role="dialog" aria-modal="true" aria-labelledby="settings-title">
-        <div className="mx-auto max-w-[680px] px-6 pb-12 pt-6">
-          <div className="mb-6 flex items-center gap-3">
-            <div>
-              <p className="mono m-0 text-[var(--ink-muted)]">Settings</p>
-              <h2 id="settings-title" className="display m-0 text-xl">
-                Preferences
-              </h2>
-            </div>
-            <button type="button" className="icon-btn ml-auto" onClick={onClose} aria-label="Close">
-              <X size={18} aria-hidden />
+      <div className="popup" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+        <div className="popup__head">
+          <h2 id="settings-title" className="popup__title">
+            Settings
+          </h2>
+          <button
+            ref={closeRef}
+            type="button"
+            className="icon-btn popup__close"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            <X size={18} aria-hidden />
+          </button>
+        </div>
+
+        <p className="popup__note">
+          Every thread is kept on this device only. Clearing removes all of them, and there
+          is no undo.
+        </p>
+
+        {confirmClear ? (
+          <div className="popup__actions">
+            <button
+              type="button"
+              className="popup__btn popup__btn--danger"
+              onClick={() => {
+                onClearConversations();
+                setConfirmClear(false);
+                onClose();
+              }}
+            >
+              Delete everything
+            </button>
+            <button
+              type="button"
+              className="popup__btn"
+              onClick={() => setConfirmClear(false)}
+            >
+              Cancel
             </button>
           </div>
-
-          <Row label="Model">
-            {health === null ? (
-              <span className="text-sm text-[var(--ink-muted)]">Checking…</span>
-            ) : health.provider ? (
-              <span className="text-sm">
-                {health.provider.vendor} · {health.provider.model}
-              </span>
-            ) : (
-              <span className="text-sm text-[var(--orange)]">
-                No key set — cards still render from the corpus
-              </span>
-            )}
-          </Row>
-
-          {health && (
-            <Row label="Corpus">
-              <span className="text-sm text-[var(--ink-soft)]">
-                {health.corpus.records} records · {health.corpus.attested} attested ·{" "}
-                {health.corpus.unverified} awaiting verification · {health.corpus.swaps} swaps
-              </span>
-            </Row>
-          )}
-
-          <Row label="Conversations">
-            {confirmClear ? (
-              <span className="flex items-center gap-2">
-                <button
-                  type="button"
-                  className="ghost-btn"
-                  style={{ color: "var(--orange)", borderColor: "var(--orange)" }}
-                  onClick={() => {
-                    onClearConversations();
-                    setConfirmClear(false);
-                    onClose();
-                  }}
-                >
-                  Delete all — confirm
-                </button>
-                <button type="button" className="ghost-btn" onClick={() => setConfirmClear(false)}>
-                  Cancel
-                </button>
-              </span>
-            ) : (
-              <button type="button" className="ghost-btn" onClick={() => setConfirmClear(true)}>
-                Clear history
-              </button>
-            )}
-          </Row>
-
-          <p className="mt-6 max-w-[60ch] text-sm leading-relaxed text-[var(--ink-muted)]">
-            Restorations are drawn from a sourced corpus. Where a citation has not been
-            checked against the printed edition, the card says so on its badge and in its
-            source drawer.
-          </p>
-        </div>
+        ) : (
+          <div className="popup__actions">
+            <button
+              type="button"
+              className="popup__btn popup__btn--danger"
+              onClick={() => setConfirmClear(true)}
+            >
+              Clear history
+            </button>
+          </div>
+        )}
       </div>
     </>
-  );
-}
-
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex flex-wrap items-center gap-3 border-b border-[var(--line)] py-4">
-      <span className="min-w-[140px] text-sm font-medium">{label}</span>
-      <span className="ml-auto">{children}</span>
-    </div>
   );
 }

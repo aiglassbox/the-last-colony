@@ -789,9 +789,9 @@ body {
   right: 0;
   bottom: 0;
   display: grid;
-  justify-items: end;
+  justify-items: center;
   gap: var(--s-2);
-  padding: 0 var(--s-6) 0 0;
+  padding: 0 var(--s-5) 0 0;
   pointer-events: none;
 }
 
@@ -809,13 +809,14 @@ body {
 .shop-now {
   display: inline-grid;
   place-items: center;
-  min-height: 40px;
-  padding: 0 var(--s-6);
-  border-radius: 6px;
+  min-height: 32px;
+  padding: 0 var(--s-4);
+  border-radius: 5px;
   background: var(--red);
   color: #fff;
-  font-size: 0.9375rem;
+  font-size: 0.8125rem;
   font-weight: 600;
+  letter-spacing: 0.01em;
   white-space: nowrap;
   text-decoration: none;
   box-shadow: 0 6px 16px -10px rgba(226, 18, 27, 0.9);
@@ -833,15 +834,15 @@ body {
    it has to reach the edges rather than float above them. */
 .brand-shop__pack {
   display: block;
-  width: clamp(220px, 25vw, 400px);
+  width: clamp(170px, 17vw, 260px);
   aspect-ratio: 1200 / 459;
-  background: url("/brand/vitalife-products.png") bottom right / contain no-repeat;
-  margin: calc(var(--s-3) * -1) calc(var(--s-6) * -1) 0 0;
+  background: url("/brand/vitalife-products.png") bottom center / contain no-repeat;
+  margin: calc(var(--s-2) * -1) calc(var(--s-5) * -1) 0 0;
 }
 
 @media (min-width: 992px) {
   .footnote {
-    margin-right: clamp(0px, 22vw, 330px);
+    margin-right: clamp(0px, 16vw, 240px);
   }
 }
 
@@ -853,7 +854,7 @@ body {
 .composer {
   position: relative;
   width: min(100%, 820px);
-  margin: clamp(28px, 5vw, 52px) auto 0;
+  margin: clamp(24px, 3vw, 40px) auto 0;
   padding: var(--s-4) var(--s-4) var(--s-3);
   border-radius: 26px;
   background: var(--field);
@@ -1363,6 +1364,97 @@ body {
 }
 
 /* -------------------------------------------------------------- overlays -- */
+
+/* --------------------------------------------------------------- popup -- */
+
+/* A small centred dialog, not a sheet — it holds one action. */
+.popup {
+  position: fixed;
+  z-index: 50;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(92vw, 380px);
+  padding: var(--s-5);
+  border-radius: 18px;
+  background: var(--field);
+  color: var(--field-ink);
+  box-shadow: var(--sh-3);
+  animation: pop-in 200ms var(--ease);
+}
+
+@keyframes pop-in {
+  from {
+    transform: translate(-50%, calc(-50% + 8px));
+    opacity: 0;
+  }
+}
+
+.popup__head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.popup__title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.popup__close {
+  margin-left: auto;
+  width: 34px;
+  height: 34px;
+  border-color: transparent;
+}
+
+.popup__note {
+  margin: var(--s-3) 0 var(--s-5);
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: color-mix(in srgb, var(--field-ink) 70%, transparent);
+}
+
+.popup__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.popup__btn {
+  flex: 1 1 auto;
+  min-height: 40px;
+  padding: 0 var(--s-4);
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--field-ink) 22%, transparent);
+  background: transparent;
+  color: var(--field-ink);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background var(--dur) var(--ease),
+    border-color var(--dur) var(--ease);
+}
+
+.popup__btn:hover {
+  background: color-mix(in srgb, var(--field-ink) 8%, transparent);
+}
+
+/* Clearing is irreversible, so it is coloured as such at both steps. */
+.popup__btn--danger {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.popup__btn--danger:hover {
+  background: var(--red);
+  color: #fff;
+}
 
 .drawer-backdrop {
   position: fixed;
