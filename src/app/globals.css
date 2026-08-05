@@ -754,17 +754,15 @@ body {
   line-height: 1.02;
   letter-spacing: 0.01em;
   text-transform: uppercase;
-  font-size: clamp(2rem, 1.1rem + 4.4vw, 4.25rem);
+  font-size: clamp(1.875rem, 1rem + 3.4vw, 3.5rem);
   text-wrap: balance;
 }
 
 /* The campaign paragraph, along the bottom. Deliberately small and quiet: it
    is the argument, not the instruction. */
 .footnote {
-  width: min(100%, 56rem);
+  width: min(100%, 42rem);
   margin: var(--s-7) auto 0;
-  /* Centred in the space left of the pack shot rather than in the canvas, so
-     the two can never collide as the viewport narrows. */
   padding: 0 var(--s-4);
   color: var(--ink-muted);
   font-size: clamp(0.6875rem, 0.64rem + 0.2vw, 0.8125rem);
@@ -860,9 +858,13 @@ body {
   margin: clamp(2px, 0.3vw, 6px) calc(var(--s-5) * -1) 0 0;
 }
 
-@media (min-width: 992px) {
-  .footnote {
-    margin-right: clamp(0px, 16vw, 240px);
+/* Between 992 and 1300px there is not enough width for a centred paragraph
+   and the corner lockup side by side. Rather than push the footnote off the
+   axis everything else shares, the hero column reserves the corner's height so
+   the paragraph clears it vertically instead. */
+@media (min-width: 992px) and (max-width: 1299px) {
+  .hero-wrap {
+    padding-bottom: 215px;
   }
 }
 
@@ -873,10 +875,10 @@ body {
    cream on the maroon, which is what marks it as the thing you touch. */
 .composer {
   position: relative;
-  width: min(100%, 820px);
-  margin: clamp(24px, 3vw, 40px) auto 0;
-  padding: var(--s-4) var(--s-4) var(--s-3);
-  border-radius: 26px;
+  width: min(100%, 720px);
+  margin: clamp(20px, 2.4vw, 34px) auto 0;
+  padding: var(--s-3) var(--s-4) var(--s-2);
+  border-radius: 22px;
   background: var(--field);
   border: 1px solid transparent;
   box-shadow: var(--sh-2);
@@ -905,10 +907,10 @@ body {
   background: transparent;
   color: var(--field-ink);
   font: inherit;
-  font-size: 1.0625rem;
+  font-size: 1rem;
   line-height: 1.5;
   padding: 0 var(--s-2);
-  max-height: 240px;
+  max-height: 220px;
   /* A textarea paints a scrollbar track inside the rounded box, which reads as
      a stray tab. The field still scrolls at max-height; only the chrome goes. */
   scrollbar-width: none;
@@ -935,8 +937,8 @@ body {
 .icon-btn {
   display: inline-grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
   border-radius: var(--r-pill);
   border: 1px solid color-mix(in srgb, var(--field-ink) 22%, transparent);
   background: transparent;
@@ -984,8 +986,8 @@ body {
 .send-btn {
   display: inline-grid;
   place-items: center;
-  width: 46px;
-  height: 46px;
+  width: 42px;
+  height: 42px;
   flex: 0 0 auto;
   border: 0;
   border-radius: var(--r-pill);
@@ -1031,14 +1033,14 @@ body {
   display: inline-flex;
   align-items: center;
   gap: var(--s-2);
-  min-height: 42px;
-  padding: 0 var(--s-5);
+  min-height: 38px;
+  padding: 0 var(--s-4);
   border-radius: var(--r-pill);
   border: 1.5px solid currentColor;
   background: transparent;
   color: var(--display);
   font: inherit;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
