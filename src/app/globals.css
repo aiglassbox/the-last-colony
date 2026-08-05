@@ -515,6 +515,37 @@ body {
   margin: 0 0 var(--s-2);
 }
 
+/* The heading row, as a control. Sized to the text rather than the rail so
+   the click target does not stretch across empty space. */
+.side-group__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  padding: var(--s-1) var(--s-2);
+  margin: calc(var(--s-1) * -1) calc(var(--s-2) * -1);
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--dur) var(--ease);
+}
+
+.side-group__toggle:hover {
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+}
+
+.side-group__chevron {
+  transition: transform var(--dur) var(--ease);
+}
+
+/* Pointing down while open, and round to the closed side when folded. */
+.side-group__toggle[aria-expanded="false"] .side-group__chevron {
+  transform: rotate(-90deg);
+}
+
 /* The primary action, and the only filled control in the rail. */
 .new-chat {
   display: flex;

@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDown, PanelLeft, PanelLeftOpen, Settings, SquarePen, Trash2, X } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { Conversation } from "@/lib/chat/store";
 
@@ -51,6 +51,7 @@ export function Sidebar({
   overlay = false,
 }: SidebarProps) {
   const ref = useRef<HTMLElement>(null);
+  const [recentsOpen, setRecentsOpen] = useState(true);
 
   // While floating, Escape puts it away — the same expectation any overlay sets.
   useEffect(() => {
@@ -121,17 +122,30 @@ export function Sidebar({
         </button>
 
         <nav className="side-group side-group--recent" aria-label="Recent conversations">
+          {/* The heading is the control: the chevron the comp draws next to
+              "Recents" folds the list away. A real <button> inside the <h2>
+              keeps the heading in the document outline while making the whole
+              row clickable and announceable as expandable. */}
           <h2 className="side-group__label">
-            Recents
-            <ChevronDown size={15} aria-hidden />
+            <button
+              type="button"
+              className="side-group__toggle"
+              onClick={() => setRecentsOpen((open) => !open)}
+              aria-expanded={recentsOpen}
+              aria-controls="recents-list"
+            >
+              Recents
+              <ChevronDown size={15} className="side-group__chevron" aria-hidden />
+            </button>
           </h2>
-          {/* Unlabelled history rows are meaningless at 76px, so the list is
-              dropped from the icon rail — the clock above still reaches it. */}
+          {/* Unlabelled rows are meaningless at 76px, so the list is dropped
+              from the icon rail entirely. */}
           {!collapsed &&
+            recentsOpen &&
             (recent.length === 0 ? (
               <p className="side-empty">Nothing yet. Name a dish to begin.</p>
             ) : (
-              <ul className="side-list">
+              <ul className="side-list" id="recents-list">
                 {recent.map((c) => (
                   <li key={c.id} className="side-row">
                     <button
