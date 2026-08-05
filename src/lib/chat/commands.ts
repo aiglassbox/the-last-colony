@@ -22,12 +22,18 @@ export interface SlashCommand {
   hint: string;
   /** Appended to the turn instruction. Narrows the answer; never widens it. */
   instruction: string;
+  /**
+   * Shown as a pill on the opening screen. The comp offers three; the fourth
+   * stays typeable, and still carries its directive when used.
+   */
+  promoted: boolean;
 }
 
 export const COMMANDS: SlashCommand[] = [
   {
     slug: "recipe-card",
     label: "Generate Recipe Card",
+    promoted: true,
     hint: "…and the dish to lay out as a card",
     instruction:
       "The reader asked for a recipe card. Make RESTORE_TODAY complete enough to " +
@@ -37,7 +43,8 @@ export const COMMANDS: SlashCommand[] = [
   },
   {
     slug: "pre-raj",
-    label: "Pre-Raj Version",
+    label: "Then vs Now",
+    promoted: true,
     hint: "…and the dish to take back before 1858",
     instruction:
       "The reader asked specifically what this dish was before the colonial " +
@@ -47,6 +54,7 @@ export const COMMANDS: SlashCommand[] = [
   {
     slug: "healthier-swap",
     label: "Healthier Swap",
+    promoted: true,
     hint: "…and the ingredient or dish to swap",
     instruction:
       "The reader asked for a substitution. Every swap must come from the swap " +
@@ -57,6 +65,7 @@ export const COMMANDS: SlashCommand[] = [
   {
     slug: "oil-match",
     label: "Oil Match",
+    promoted: false,
     hint: "…and the dish to match a cooking fat to",
     instruction:
       "The reader asked which cooking fat suits this dish. Answer from the fat " +
@@ -64,6 +73,9 @@ export const COMMANDS: SlashCommand[] = [
       "records one. No health claims.",
   },
 ];
+
+/** The three the opening screen offers. */
+export const PROMOTED_COMMANDS = COMMANDS.filter((c) => c.promoted);
 
 const BY_SLUG = new Map(COMMANDS.map((c) => [c.slug, c]));
 

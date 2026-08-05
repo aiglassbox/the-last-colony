@@ -10,34 +10,46 @@
   Spacing follows an 8px grid: --s-1 through --s-10.
 */
 :root {
-  /* brand */
-  --orange: #ff6a00;
-  --orange-2: #ff8c3a;
-  --orange-3: #ff9d55;
-  --orange-4: #ffa25b;
+  /* brand — Vitalife red, and the deeper tone it sits on in the dark theme */
+  --red: #e2121b;
+  --red-deep: #b00e15;
+  --maroon: #4a100d;
 
-  /* The hero ramp, split out so the AA variant can override it alone. */
-  --hero-1: #ff6a00;
-  --hero-2: #ff7d1f;
-  --hero-3: #ff9245;
-  --hero-4: #ffa25b;
+  /* Kept as aliases so nothing downstream had to be renamed when the palette
+     changed. Everything that said "orange" now means "brand red". */
+  --orange: var(--red);
+  --orange-2: var(--red);
+  --orange-3: var(--red-deep);
+  --orange-4: var(--red-deep);
 
   /* surfaces */
-  --canvas: #ffffff; /* behind the stage, same as the sidebar */
-  --stage: #f7f4f2; /* the big rounded container */
-  --surface: #ffffff; /* cards, pills, composer */
-  --surface-2: #faf7f5;
+  --canvas: #fffbf8; /* the page */
+  --stage: transparent; /* the design has no inner card; the page is the stage */
+  --rail: #fdede3; /* the peach sidebar tint */
+  --surface: #fff6ef; /* cards */
+  --surface-2: #fdf1e8;
 
-  /* ink — #6e6e6e rather than the specified #777777, which measures 4.09:1 on
-     the stage and misses AA for body text. The 5-unit darkening is not
-     perceptible next to the reference and takes it to 4.6:1. */
-  --ink: #1f1f1f;
-  --ink-soft: #555555;
-  --ink-muted: #6e6e6e;
+  /* The composer and pills stay cream in BOTH themes — in the dark comp they
+     are the only light objects on the maroon, which is what makes them read
+     as the things you touch. */
+  --field: #fce9db;
+  --field-ink: #2a1512;
+  --field-muted: #8a6f66;
+
+  /* The headline colour: red on cream, cream on maroon. */
+  --display: var(--red);
+
+  /* ink */
+  --ink: #1a1a1a;
+  --ink-soft: #4a4a4a;
+  --ink-muted: #7a6c64;
 
   /* lines */
-  --line: rgba(31, 31, 31, 0.08);
-  --line-strong: rgba(31, 31, 31, 0.14);
+  --line: rgba(74, 16, 13, 0.1);
+  --line-strong: rgba(74, 16, 13, 0.18);
+
+  /* The stone relief sits behind the dark theme only. */
+  --relief-opacity: 0;
 
   /* provenance badges */
   --attested: #1f7a4d;
@@ -72,34 +84,39 @@
   --sh-1: 0 1px 2px rgba(31, 31, 31, 0.04), 0 2px 8px rgba(31, 31, 31, 0.04);
   --sh-2: 0 2px 6px rgba(31, 31, 31, 0.05), 0 10px 28px -12px rgba(31, 31, 31, 0.14);
   --sh-3: 0 8px 20px -6px rgba(31, 31, 31, 0.1), 0 24px 48px -20px rgba(31, 31, 31, 0.18);
-  --sh-hero: 0 18px 48px -20px rgba(255, 106, 0, 0.55), 0 6px 18px -8px rgba(255, 106, 0, 0.3);
-  --sh-focus: 0 0 0 3px rgba(255, 106, 0, 0.28);
+  --sh-hero: 0 18px 48px -20px rgba(226, 18, 27, 0.3);
+  --sh-focus: 0 0 0 3px rgba(226, 18, 27, 0.28);
 
   color-scheme: light;
 }
 
+/* The dark theme is the maroon comp: deep red ground, the stone relief behind
+   it, and cream for everything you read or touch. */
 :root[data-theme="dark"] {
-  --canvas: #131211;
-  --stage: #1a1817;
-  --surface: #221f1d;
-  --surface-2: #2a2624;
+  --canvas: #4a100d;
+  --rail: #5e1512;
+  --surface: rgba(255, 240, 226, 0.07);
+  --surface-2: rgba(255, 240, 226, 0.1);
 
-  --ink: #f4f1ee;
-  --ink-soft: #c2bbb4;
-  --ink-muted: #948c85;
+  --display: #f7e7d2;
+  --ink: #f6e9da;
+  --ink-soft: #e2cdb9;
+  --ink-muted: #bfa08f;
 
-  --line: rgba(244, 241, 238, 0.1);
-  --line-strong: rgba(244, 241, 238, 0.18);
+  --line: rgba(247, 231, 210, 0.16);
+  --line-strong: rgba(247, 231, 210, 0.26);
 
-  --attested: #5fbf8f;
-  --reconstructed: #e0a15c;
-  --inferred: #a99f8e;
-  --modern: #8fa4dc;
+  --attested: #7fd3a5;
+  --reconstructed: #f0bd7c;
+  --inferred: #c9bda9;
+  --modern: #a8bbe8;
 
   --sh-1: 0 1px 2px rgba(0, 0, 0, 0.4);
   --sh-2: 0 2px 6px rgba(0, 0, 0, 0.45), 0 10px 28px -12px rgba(0, 0, 0, 0.6);
   --sh-3: 0 8px 20px -6px rgba(0, 0, 0, 0.5), 0 24px 48px -20px rgba(0, 0, 0, 0.7);
-  --sh-hero: 0 18px 48px -20px rgba(255, 106, 0, 0.45), 0 6px 18px -8px rgba(0, 0, 0, 0.5);
+  --sh-hero: 0 18px 48px -20px rgba(0, 0, 0, 0.55);
+
+  --relief-opacity: 1;
 
   color-scheme: dark;
 }
@@ -107,37 +124,23 @@
 /* No-JS fallback. An explicit data-theme always wins. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    --canvas: #131211;
-    --stage: #1a1817;
-    --surface: #221f1d;
-    --surface-2: #2a2624;
-    --ink: #f4f1ee;
-    --ink-soft: #c2bbb4;
-    --ink-muted: #948c85;
-    --line: rgba(244, 241, 238, 0.1);
-    --line-strong: rgba(244, 241, 238, 0.18);
-    --attested: #5fbf8f;
-    --reconstructed: #e0a15c;
-    --inferred: #a99f8e;
-    --modern: #8fa4dc;
+    --canvas: #4a100d;
+    --rail: #5e1512;
+    --surface: rgba(255, 240, 226, 0.07);
+    --surface-2: rgba(255, 240, 226, 0.1);
+    --display: #f7e7d2;
+    --ink: #f6e9da;
+    --ink-soft: #e2cdb9;
+    --ink-muted: #bfa08f;
+    --line: rgba(247, 231, 210, 0.16);
+    --line-strong: rgba(247, 231, 210, 0.26);
+    --attested: #7fd3a5;
+    --reconstructed: #f0bd7c;
+    --inferred: #c9bda9;
+    --modern: #a8bbe8;
+    --relief-opacity: 1;
     color-scheme: dark;
   }
-}
-
-/* Opt-in WCAG AA hero. Deepens the ramp until white clears 4.5:1 for the
-   subtitle and 3.0:1 for the heading, at the cost of matching the reference's
-   lighter orange. Set data-contrast="aa" on <html>. */
-:root[data-contrast="aa"] {
-  --hero-1: #b03f00;
-  --hero-2: #b84400;
-  --hero-3: #c24700;
-  --hero-4: #c85000;
-}
-
-:root[data-contrast="aa"] .hero {
-  background:
-    radial-gradient(52% 78% at 8% 48%, rgba(255, 172, 96, 0.35) 0%, transparent 62%),
-    linear-gradient(115deg, var(--hero-1) 0%, var(--hero-2) 38%, var(--hero-3) 68%, var(--hero-4) 100%);
 }
 
 * {
@@ -205,10 +208,38 @@ body {
 /* ---------------------------------------------------------------- shell -- */
 
 .app {
+  position: relative;
   display: flex;
   height: 100dvh;
   overflow: hidden;
   background: var(--canvas);
+}
+
+/* The stone relief. A layer rather than a background-image on .app so it can
+   fade between themes, and so the maroon reads through it at a fixed strength
+   instead of the image dictating the colour. */
+.app::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  /* The photograph, tinted with the ground colour in the same paint pass. A
+     blend mode against the maroon washed the carving out; layering a
+     translucent maroon over it keeps the relief legible and the hue exact. */
+  background:
+    linear-gradient(rgba(74, 16, 13, 0.84), rgba(74, 16, 13, 0.84)),
+    url("/brand/stone-relief.jpg") center / cover no-repeat;
+  opacity: var(--relief-opacity);
+  transition: opacity var(--dur) var(--ease);
+}
+
+/* Everything else rides above the relief. z-index alone, with no position —
+   `.app` is a flex container, so z-index already applies to its children, and
+   forcing `position: relative` here would drag the absolutely-positioned skip
+   link back into the flex row as a visible column. */
+.app > * {
+  z-index: 1;
 }
 
 .sidebar {
@@ -216,8 +247,10 @@ body {
   flex: 0 0 288px;
   display: flex;
   flex-direction: column;
-  background: var(--canvas);
-  border-right: 1px solid var(--line);
+  background: var(--rail);
+  /* A dotted seam rather than a rule — it is what the comp draws, and it keeps
+     the rail feeling like a torn page edge rather than a panel. */
+  border-right: 2px dashed var(--line);
   padding: var(--s-5) var(--s-4) var(--s-4);
   /* Width is the only thing that animates; the contents cross-fade with it so
      the labels do not reflow visibly on the way in or out. */
@@ -253,14 +286,8 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-.sidebar__name {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 1.05rem;
-  line-height: 1.2;
+.sidebar__brand {
+  color: var(--display);
 }
 
 .sidebar__toggle {
@@ -361,11 +388,12 @@ body {
 }
 
 .topbar__brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex: 1 1 auto;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  color: var(--display);
   padding: 0;
   border: 0;
   background: none;
@@ -383,7 +411,10 @@ body {
 
 /* The icon rail. Labels are clipped rather than removed, so the accessible
    name of every control survives the collapse. */
-.sidebar--collapsed {
+/* Doubled class on purpose: the responsive `.sidebar` rules further down the
+   file have equal specificity and would otherwise win on source order, leaving
+   the icon rail at full width. */
+.sidebar.sidebar--collapsed {
   width: 76px;
   flex-basis: 76px;
   padding-left: var(--s-2);
@@ -421,11 +452,23 @@ body {
   overflow-x: hidden;
 }
 
-.sidebar--collapsed .side-item {
+.sidebar--collapsed .side-item,
+.sidebar--collapsed .new-chat {
   justify-content: center;
   padding: 0;
   width: 48px;
-  margin: 0 auto;
+  margin: 0 auto var(--s-2);
+}
+
+.sidebar--collapsed .side-item--history {
+  border-bottom: 0;
+  padding-bottom: 0;
+  margin-bottom: var(--s-3);
+}
+
+.sidebar--collapsed .side-group--recent,
+.sidebar--collapsed .side-group--others {
+  border-top: 0;
 }
 
 /* The dark-mode row keeps its state visible without the switch: the icon
@@ -458,11 +501,61 @@ body {
 }
 
 .side-group__label {
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--ink-muted);
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink);
   padding: 0 var(--s-3);
-  margin-bottom: var(--s-2);
+  margin: 0 0 var(--s-2);
+}
+
+/* The primary action, and the only filled control in the rail. */
+.new-chat {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  min-height: 48px;
+  margin-bottom: var(--s-3);
+  padding: 0 var(--s-4);
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  background: var(--field);
+  color: var(--field-ink);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
+}
+
+.new-chat:hover {
+  background: color-mix(in srgb, var(--red) 12%, var(--field));
+}
+
+.new-chat:active {
+  transform: scale(0.99);
+}
+
+.new-chat__icon {
+  flex: 0 0 auto;
+  color: var(--red);
+}
+
+/* Under the divider that follows New Chat in the comp. */
+.side-item--history {
+  margin-bottom: var(--s-5);
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  padding-bottom: var(--s-3);
+  padding-left: var(--s-4);
+  min-height: 40px;
 }
 
 .side-item {
@@ -486,25 +579,25 @@ body {
 }
 
 .side-item:hover {
-  background: color-mix(in srgb, var(--orange) 8%, transparent);
+  background: color-mix(in srgb, var(--red) 9%, transparent);
   color: var(--ink);
 }
 
 .side-item[aria-current="page"],
-.side-item[data-active="true"] {
-  background: linear-gradient(135deg, var(--orange) 0%, var(--orange-3) 100%);
-  color: #fff;
-  box-shadow: 0 6px 16px -8px rgba(255, 106, 0, 0.8);
+.side-item[data-active] {
+  background: color-mix(in srgb, var(--red) 12%, transparent);
+  color: var(--display);
+  font-weight: 600;
 }
 
 .side-item[aria-current="page"] .side-item__icon,
-.side-item[data-active="true"] .side-item__icon {
-  color: #fff;
+.side-item[data-active] .side-item__icon {
+  color: var(--display);
 }
 
 .side-item__icon {
   flex: 0 0 auto;
-  color: var(--ink-muted);
+  color: var(--ink-soft);
 }
 
 .side-item__text {
@@ -527,7 +620,7 @@ body {
 }
 
 .switch[data-on="true"] {
-  background: linear-gradient(135deg, var(--orange) 0%, var(--orange-3) 100%);
+  background: var(--red);
 }
 
 .switch__knob {
@@ -548,11 +641,13 @@ body {
 
 /* --------------------------------------------------------------- canvas -- */
 
+/* The comp has no inner card: the rail's dotted seam is the only division on
+   the page, and the content sits directly on the ground. */
 .canvas {
   flex: 1 1 auto;
   min-width: 0;
   display: flex;
-  padding: var(--s-4);
+  padding: 0;
 }
 
 .stage {
@@ -561,30 +656,21 @@ body {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  border-radius: var(--r-stage);
-  background: var(--stage);
+  background: transparent;
   overflow: hidden;
 }
 
-/* Soft orange glow bloom in the corners. Decorative, so it is aria-hidden and
-   painted behind content rather than as a background-image on .stage — that
-   keeps it from tiling oddly when the stage scrolls. */
+/* A single warm bloom behind the headline, so the flat ground is not entirely
+   inert. Decorative, and far weaker than the card it replaced. */
 .stage__glow {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background:
-    radial-gradient(38% 42% at 20% 76%, rgba(255, 146, 74, 0.42) 0%, transparent 68%),
-    radial-gradient(34% 30% at 2% 28%, rgba(255, 168, 106, 0.3) 0%, transparent 70%),
-    radial-gradient(42% 36% at 100% 4%, rgba(255, 186, 138, 0.3) 0%, transparent 70%),
-    radial-gradient(60% 50% at 88% 96%, rgba(255, 196, 152, 0.22) 0%, transparent 72%);
+  background: radial-gradient(60% 45% at 50% 38%, rgba(226, 18, 27, 0.05) 0%, transparent 70%);
 }
 
 :root[data-theme="dark"] .stage__glow {
-  background:
-    radial-gradient(46% 38% at 6% 34%, rgba(255, 122, 40, 0.16) 0%, transparent 70%),
-    radial-gradient(50% 42% at 34% 84%, rgba(255, 138, 56, 0.12) 0%, transparent 72%),
-    radial-gradient(40% 34% at 96% 6%, rgba(255, 160, 100, 0.1) 0%, transparent 70%);
+  background: radial-gradient(65% 50% at 50% 34%, rgba(255, 190, 150, 0.08) 0%, transparent 72%);
 }
 
 .stage__body {
@@ -598,65 +684,128 @@ body {
 /* ----------------------------------------------------------------- hero -- */
 
 .hero-wrap {
+  position: relative;
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--s-5);
-  padding: var(--s-6) var(--s-5);
+  padding: var(--s-8) var(--s-5) clamp(150px, 17vw, 230px);
   overflow-y: auto;
 }
 
+/* No card in this design — the page itself is the ground, so the hero is a
+   centred column of headline, bar and pills. */
 .hero {
-  width: min(100%, 860px);
-  border-radius: var(--r-card);
-  padding: clamp(28px, 4vw, 56px);
-  /* The bright hotspot sits left-of-centre, as in the reference, so the card
-     reads as lit from that side rather than as a flat gradient sweep.
-
-     ACCESSIBILITY NOTE: white on this gradient measures 2.0–2.9:1, below the
-     WCAG AA thresholds (4.5:1 body, 3.0:1 large). The reference's palette
-     cannot reach AA — doing so needs roughly #C24700, which is visibly darker.
-     Fidelity is the default because it was the stated primary goal; set
-     data-contrast="aa" on <html> to switch to the compliant ramp below. */
-  background:
-    radial-gradient(52% 78% at 8% 48%, rgba(255, 209, 106, 0.9) 0%, rgba(255, 168, 60, 0) 62%),
-    linear-gradient(115deg, var(--hero-1) 0%, var(--hero-2) 38%, var(--hero-3) 68%, var(--hero-4) 100%);
-  box-shadow: var(--sh-hero);
+  width: min(100%, 900px);
   text-align: center;
 }
 
 .hero__title {
-  margin: 0;
-  color: #fff;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.12;
-  font-size: clamp(1.625rem, 1.1rem + 2.4vw, 2.875rem);
+  margin: 0 auto;
+  max-width: 16ch;
+  color: var(--display);
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  font-size: clamp(2rem, 1.1rem + 4.4vw, 4.25rem);
   text-wrap: balance;
 }
 
-.hero__subtitle {
-  margin: var(--s-3) auto 0;
-  max-width: 600px;
-  color: rgba(255, 255, 255, 0.95);
-  font-size: clamp(0.9375rem, 0.88rem + 0.25vw, 1.0625rem);
-  line-height: 1.5;
-  text-wrap: balance;
+/* The campaign paragraph, along the bottom. Deliberately small and quiet: it
+   is the argument, not the instruction. */
+.footnote {
+  /* Narrow enough to clear the pack shot in the bottom-right corner. */
+  width: min(100%, 54rem);
+  margin: var(--s-7) auto 0;
+  padding-inline: var(--s-4);
+  color: var(--ink-muted);
+  font-size: clamp(0.6875rem, 0.64rem + 0.2vw, 0.8125rem);
+  line-height: 1.6;
+  text-align: center;
+}
+
+/* --------------------------------------------------- brand furniture ----- */
+
+.brand-top {
+  position: absolute;
+  top: var(--s-5);
+  right: var(--s-6);
+  color: var(--ink);
+  opacity: 0.9;
+}
+
+.brand-shop {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 0 var(--s-6) var(--s-5) 0;
+  pointer-events: none;
+}
+
+/* The pack shot is the only full-colour asset on the page, so it anchors the
+   corner; everything above it is type. */
+.brand-shop__lockup,
+.shop-now {
+  pointer-events: auto;
+}
+
+.brand-shop__lockup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  color: var(--display);
+}
+
+.shop-now {
+  display: inline-grid;
+  place-items: center;
+  min-height: 38px;
+  padding: 0 var(--s-5);
+  border-radius: 6px;
+  background: var(--red);
+  color: #fff;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+  box-shadow: 0 6px 16px -10px rgba(226, 18, 27, 0.9);
+  transition:
+    transform var(--dur) var(--ease),
+    background var(--dur) var(--ease);
+}
+
+.shop-now:hover {
+  background: var(--red-deep);
+  transform: translateY(-1px);
+}
+
+.brand-shop__pack {
+  display: block;
+  width: clamp(180px, 22vw, 330px);
+  height: auto;
+  margin-top: calc(var(--s-2) * -1);
 }
 
 /* ------------------------------------------------------------- composer -- */
 
+/* One slim line. The mic and the send button are laid over the field rather
+   than beside it, which is what lets the bar keep a single row at every width
+   without the textarea losing its own growth. */
 .composer {
   position: relative;
-  margin-top: var(--s-5);
-  border-radius: var(--r-input);
-  background: var(--surface);
-  border: 2px solid rgba(255, 255, 255, 0.65);
-  box-shadow:
-    inset 0 2px 10px rgba(31, 31, 31, 0.05),
-    0 10px 30px -18px rgba(31, 31, 31, 0.4);
+  width: min(100%, 780px);
+  margin: clamp(28px, 5vw, 56px) auto 0;
+  border-radius: var(--r-pill);
+  background: var(--field);
+  border: 1px solid transparent;
+  box-shadow: var(--sh-2);
   transition:
     border-color var(--dur) var(--ease),
     box-shadow var(--dur) var(--ease);
@@ -664,24 +813,13 @@ body {
 }
 
 .composer:focus-within {
-  border-color: rgba(255, 255, 255, 0.95);
-  box-shadow:
-    inset 0 2px 10px rgba(31, 31, 31, 0.05),
-    0 0 0 4px rgba(255, 255, 255, 0.35);
+  border-color: var(--red);
+  box-shadow: var(--sh-2), var(--sh-focus);
 }
 
-/* In the thread the composer sits on the stage, not on the hero, so it needs
-   its own border rather than the white-on-orange treatment. */
 .composer--flat {
   margin-top: 0;
-  border-color: var(--line-strong);
-}
-
-.composer--flat:focus-within {
-  border-color: var(--orange);
-  box-shadow:
-    inset 0 2px 10px rgba(31, 31, 31, 0.04),
-    var(--sh-focus);
+  width: 100%;
 }
 
 .composer__field {
@@ -691,88 +829,117 @@ body {
   outline: none;
   resize: none;
   background: transparent;
-  color: var(--ink);
+  color: var(--field-ink);
   font: inherit;
-  padding: var(--s-5) var(--s-5) var(--s-2);
-  max-height: 320px;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  /* Room for the mic on the left and the send button on the right. */
+  padding: 20px 78px 20px 60px;
+  max-height: 220px;
 }
 
 .composer__field::placeholder {
-  color: var(--ink-muted);
+  color: var(--field-muted);
+}
+
+/* A textarea paints a scrollbar track inside the bar's rounded end, which
+   reads as a stray cream tab beside the send button. The field still scrolls
+   once it hits max-height; only the chrome is hidden. */
+.composer__field {
+  scrollbar-width: none;
+}
+
+.composer__field::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .composer__bar {
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--s-3);
-  padding: var(--s-2) var(--s-3) var(--s-3);
+  padding: 0 3px 0 14px;
+  pointer-events: none;
+}
+
+.composer__bar > * {
+  pointer-events: auto;
 }
 
 .icon-btn {
   display: inline-grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--r-pill);
-  border: 1px solid var(--line);
-  background: var(--surface);
-  color: var(--ink-soft);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--field-ink);
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   transition:
     transform var(--dur) var(--ease),
-    box-shadow var(--dur) var(--ease),
     background var(--dur) var(--ease),
     color var(--dur) var(--ease);
 }
 
 .icon-btn:hover {
-  transform: translateY(-1px) scale(1.02);
-  box-shadow: var(--sh-1);
-  color: var(--ink);
+  background: color-mix(in srgb, var(--red) 10%, transparent);
+  color: var(--red);
 }
 
 .icon-btn:active {
-  transform: translateY(0) scale(0.98);
+  transform: scale(0.95);
 }
 
 .icon-btn--recording {
-  background: color-mix(in srgb, var(--orange) 14%, var(--surface));
-  color: var(--orange);
-  border-color: color-mix(in srgb, var(--orange) 40%, transparent);
+  background: color-mix(in srgb, var(--red) 16%, transparent);
+  color: var(--red);
+}
+
+/* The rail and the drawer sit on their own tint, not on the cream field, so
+   their icon buttons take the page ink instead. */
+.sidebar .icon-btn,
+.topbar .icon-btn {
+  color: var(--ink-soft);
+}
+
+.sidebar .icon-btn:hover,
+.topbar .icon-btn:hover {
+  color: var(--red);
 }
 
 .send-btn {
   display: inline-grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: 54px;
+  height: 54px;
   flex: 0 0 auto;
   border: 0;
   border-radius: var(--r-pill);
-  background: linear-gradient(135deg, var(--orange) 0%, var(--orange-3) 100%);
+  background: var(--red);
   color: #fff;
   cursor: pointer;
-  box-shadow: 0 6px 16px -8px rgba(255, 106, 0, 0.9);
+  box-shadow: 0 8px 18px -8px rgba(226, 18, 27, 0.85);
   transition:
     transform var(--dur) var(--ease),
-    box-shadow var(--dur) var(--ease),
+    background var(--dur) var(--ease),
     opacity var(--dur) var(--ease);
 }
 
 .send-btn:hover:not(:disabled) {
-  transform: translateY(-1px) scale(1.02);
-  box-shadow: 0 10px 22px -10px rgba(255, 106, 0, 0.95);
+  background: var(--red-deep);
+  transform: scale(1.04);
 }
 
 .send-btn:active:not(:disabled) {
-  transform: translateY(0) scale(0.97);
+  transform: scale(0.96);
 }
 
-/* Still clearly inert, but close enough to the reference's solid orange that
-   the composer does not look broken before you type. */
 .send-btn:disabled {
-  opacity: 0.62;
+  opacity: 0.55;
   cursor: not-allowed;
   box-shadow: none;
 }
@@ -785,50 +952,50 @@ body {
   align-items: center;
   justify-content: center;
   gap: var(--s-3);
-  width: min(100%, 860px);
+  margin-top: var(--s-4);
 }
 
+/* Outlined, not filled — on the comp they read as options offered, with the
+   send button the only solid thing on the page. */
 .pill {
   display: inline-flex;
   align-items: center;
   gap: var(--s-2);
-  min-height: 44px;
-  padding: 0 var(--s-4);
+  min-height: 42px;
+  padding: 0 var(--s-5);
   border-radius: var(--r-pill);
-  border: 1px solid var(--line);
-  background: var(--surface);
-  color: var(--ink);
+  border: 1.5px solid currentColor;
+  background: transparent;
+  color: var(--display);
   font: inherit;
   font-size: 0.9375rem;
+  font-weight: 500;
   cursor: pointer;
-  box-shadow: var(--sh-1);
+  -webkit-tap-highlight-color: transparent;
   transition:
     transform var(--dur) var(--ease),
-    box-shadow var(--dur) var(--ease),
-    border-color var(--dur) var(--ease);
+    background var(--dur) var(--ease),
+    color var(--dur) var(--ease);
 }
 
 .pill:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: var(--sh-2);
-  border-color: color-mix(in srgb, var(--orange) 35%, transparent);
+  transform: translateY(-2px);
+  background: color-mix(in srgb, currentColor 12%, transparent);
 }
 
 .pill:active {
   transform: translateY(0) scale(0.99);
-  box-shadow: var(--sh-1);
 }
 
 /* The command this pill writes is currently in the composer. It is a state,
    not a destination — nothing has run yet. */
 .pill[data-active] {
-  border-color: var(--orange);
-  background: color-mix(in srgb, var(--orange) 10%, var(--surface));
-  color: var(--orange);
+  background: var(--red);
+  border-color: var(--red);
+  color: #fff;
 }
 
 .pill__icon {
-  color: var(--orange);
   flex: 0 0 auto;
 }
 
@@ -1124,9 +1291,12 @@ body {
   text-transform: uppercase;
 }
 
+/* The licensed display face. Used only for the headline and the card verdict —
+   it has no lowercase refinement for long reading. */
 .display {
-  font-weight: 650;
-  letter-spacing: -0.015em;
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 400;
+  letter-spacing: 0.005em;
 }
 
 .verdict {
@@ -1224,6 +1394,32 @@ body {
   .hero-wrap {
     padding: var(--s-6) var(--s-4) var(--s-5);
   }
+  /* The pack shot would sit on top of the pills at this width, so the corner
+     lockup becomes a row along the bottom instead of a stack. */
+  .hero-wrap {
+    padding-bottom: var(--s-6);
+  }
+  .brand-shop {
+    position: static;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: var(--s-4);
+    padding: var(--s-5) 0 0;
+    order: 3;
+  }
+  .brand-shop__pack {
+    width: clamp(140px, 26vw, 220px);
+    margin-top: 0;
+  }
+  .footnote {
+    order: 2;
+    margin-top: var(--s-6);
+  }
+  .hero-wrap {
+    justify-content: center;
+  }
 }
 
 /* ---------------------------------------------------------------- phone -- */
@@ -1294,21 +1490,51 @@ body {
     padding: var(--s-5) var(--s-4) var(--s-6);
   }
 
-  /* A wrapping row of pills staggers into four ragged lines at this width.
-     Stacked full-width rows read as a list of offers instead of debris. */
+  /* A wrapping row of pills staggers into ragged lines at this width. Stacked
+     full-width rows read as a list of offers instead of debris. */
   .actions {
     flex-direction: column;
     align-items: stretch;
-    gap: 6px;
-    margin-bottom: var(--s-2);
+    gap: 8px;
+    margin-top: var(--s-5);
   }
   .pill {
     width: 100%;
-    justify-content: flex-start;
+    justify-content: center;
     min-height: 46px;
-    border-radius: 16px;
     font-size: 0.9375rem;
     padding: 0 var(--s-4);
+  }
+
+  /* The top bar already carries the brand, so the corner marks stand down. */
+  .brand-top {
+    display: none;
+  }
+  .brand-shop {
+    gap: var(--s-3);
+    padding-top: var(--s-4);
+  }
+  .brand-shop__pack {
+    width: clamp(120px, 34vw, 170px);
+  }
+  .footnote {
+    margin-top: var(--s-5);
+    text-align: center;
+  }
+  .composer__field {
+    font-size: 1rem;
+    padding: 15px 66px 15px 52px;
+  }
+  .send-btn {
+    width: 42px;
+    height: 42px;
+  }
+  .icon-btn {
+    width: 36px;
+    height: 36px;
+  }
+  .composer__bar {
+    padding: 0 5px 0 9px;
   }
 }
 

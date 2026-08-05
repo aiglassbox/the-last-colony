@@ -50,8 +50,11 @@ export interface ComposerProps {
   onStop: () => void;
   busy: boolean;
   placeholder: string;
-  /** `hero` sits on the orange card; `flat` sits on the stage in a thread. */
-  variant?: "hero" | "flat";
+  /**
+   * `bar`  — the opening screen: one slim line, mic inside left, send right.
+   * `flat` — the same bar under a thread.
+   */
+  variant?: "bar" | "flat";
   /** Resting height in px. The reference hero input is tall. */
   minHeight?: number;
   inputRef?: React.RefObject<HTMLTextAreaElement | null>;
@@ -64,8 +67,8 @@ export function Composer({
   onStop,
   busy,
   placeholder,
-  variant = "hero",
-  minHeight = 132,
+  variant = "bar",
+  minHeight = 28,
   inputRef,
 }: ComposerProps) {
   const internalRef = useRef<HTMLTextAreaElement>(null);
@@ -123,7 +126,7 @@ export function Composer({
   };
 
   return (
-    <div className={variant === "flat" ? "composer composer--flat" : "composer"}>
+    <div className={variant === "flat" ? "composer composer--flat" : "composer composer--bar"}>
       <label htmlFor="prompt" className="sr-only">
         Name a dish
       </label>

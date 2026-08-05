@@ -1,12 +1,13 @@
 "use client";
 
 import { Code2, FileText, ImageIcon, type LucideIcon, Menu, Pencil, SquarePen } from "lucide-react";
+import Image from "next/image";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import {
   applyCommand,
-  COMMANDS,
   parseCommand,
+  PROMOTED_COMMANDS,
   type SlashCommand,
 } from "@/lib/chat/commands";
 import {
@@ -41,6 +42,7 @@ import {
 
 import { Composer } from "./Composer";
 import { History } from "./History";
+import { GokulMark, Logo, VitalifeMark } from "./Logo";
 import { Message } from "./Message";
 import { SettingsSheet } from "./SettingsSheet";
 import { Sidebar, type SidebarView } from "./Sidebar";
@@ -54,9 +56,19 @@ import { Sidebar, type SidebarView } from "./Sidebar";
  * stage, and a hero that becomes a thread once a conversation starts.
  */
 
-const HEADING = "What are you cooking today?";
-const SUBHEADING =
-  "Enter a modern dish to unearth its original, pre-1858 recipe and see what British cash-crop policies erased from our diet.";
+const HEADING = "What dish are you restoring today?";
+/**
+ * The campaign paragraph. It sits along the bottom of the page rather than
+ * under the headline — it is the argument, read once, not the instruction.
+ */
+const FOOTNOTE =
+  "For centuries, Indian thalis were built on native, nutrient-dense grains. Then colonial rule arrived, and our harvest became their profit while our health took the loss. The Great Indian Food Restoration is the answer to that loot. Name any Indian dish and our AI shows you its original ingredients, how they were stripped away, and how to bring back its authentic, nutrient-rich version. It's time to take back what was yours.";
+
+/**
+ * Where "Shop Now" goes. Set NEXT_PUBLIC_SHOP_URL to the real storefront —
+ * the fallback is inert on purpose rather than a guessed address.
+ */
+const SHOP_URL = process.env.NEXT_PUBLIC_SHOP_URL || "#";
 
 interface StreamEvent {
   type: "meta" | "delta" | "text" | "done" | "error";
@@ -356,7 +368,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
   // directly above the pinned composer on a phone.
   const quickActions = (
     <div className="actions" role="group" aria-label="Prompt starters">
-      {COMMANDS.map((command) => {
+      {PROMOTED_COMMANDS.map((command) => {
         const Icon = COMMAND_ICONS[command.slug];
         return (
           <button
@@ -421,8 +433,13 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
           >
             <Menu size={20} aria-hidden />
           </button>
-          <button type="button" className="topbar__brand" onClick={goToChat}>
-            Kranti Cookbook
+          <button
+            type="button"
+            className="topbar__brand"
+            onClick={goToChat}
+            aria-label="Asli Rasoi — go to chat"
+          >
+            <Logo size={34} />
           </button>
           <button
             type="button"
@@ -448,45 +465,18 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                 onDelete={deleteConversation}
                 onNew={startNew}
               />
-            ) : isEmpty && phone ? (
-              /* The phone opening screen: headline in the free space, actions
-                 and composer anchored to the bottom where the thumb is. The
-                 composer leaves the orange card here — a 150px input inside a
-                 full-bleed gradient block is most of a small screen. */
-              <>
-                <div className="hero-wrap hero-wrap--phone">
-                  <section className="hero" aria-labelledby="hero-title">
-                    <h1 id="hero-title" className="hero__title">
-                      {HEADING}
-                    </h1>
-                    <p className="hero__subtitle">{SUBHEADING}</p>
-                  </section>
-                </div>
-
-                <div className="thread__foot">
-                  <div className="thread__foot-inner">
-                    {quickActions}
-                    <Composer
-                      value={input}
-                      onChange={setInput}
-                      onSubmit={submit}
-                      onStop={() => abortRef.current?.abort()}
-                      busy={busy}
-                      placeholder={activeCommand?.hint ?? "Name a dish…"}
-                      variant="flat"
-                      minHeight={64}
-                      inputRef={promptRef}
-                    />
-                  </div>
-                </div>
-              </>
             ) : isEmpty ? (
+              /* One opening screen at every width. The composer is a slim bar
+                 rather than a panel, so the centred arrangement that the comp
+                 draws for desktop still fits a 360px phone — no second
+                 layout to keep in step. */
               <div className="hero-wrap">
+                {!phone && <GokulMark size={30} className="brand-top" />}
+
                 <section className="hero" aria-labelledby="hero-title">
-                  <h1 id="hero-title" className="hero__title">
+                  <h1 id="hero-title" className="hero__title display">
                     {HEADING}
                   </h1>
-                  <p className="hero__subtitle">{SUBHEADING}</p>
 
                   <Composer
                     value={input}
@@ -494,13 +484,38 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                     onSubmit={submit}
                     onStop={() => abortRef.current?.abort()}
                     busy={busy}
-                    placeholder={activeCommand?.hint ?? "Type a dish to travel back in time…"}
+                    placeholder={activeCommand?.hint ?? "Ask about any dish…"}
+                    variant="bar"
                     inputRef={promptRef}
-                    minHeight={150}
                   />
+
+                  {quickActions}
                 </section>
 
-                {quickActions}
+                <p className="footnote">{FOOTNOTE}</p>
+
+                <aside className="brand-shop" aria-label="Vitalife">
+                  {/* The supplied lockup already reads "Powered by vitalife",
+                      so there is no separate line of type above it. */}
+                  <span className="brand-shop__lockup">
+                    <VitalifeMark size={phone ? 40 : 58} />
+                  </span>
+                  <a className="shop-now" href={SHOP_URL} target="_blank" rel="noopener noreferrer">
+                    Shop Now
+                  </a>
+                  {/* Decorative: the wordmark above already names the brand.
+                      Fixed intrinsic size, so it reserves its space and cannot
+                      shift the corner as it loads. */}
+                  <Image
+                    className="brand-shop__pack"
+                    src="/brand/vitalife-products.png"
+                    width={1200}
+                    height={460}
+                    alt=""
+                    aria-hidden
+                    priority={false}
+                  />
+                </aside>
               </div>
             ) : (
               <>
@@ -522,7 +537,6 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                       busy={busy}
                       placeholder={activeCommand?.hint ?? "Ask a follow-up…"}
                       variant="flat"
-                      minHeight={72}
                       inputRef={promptRef}
                     />
                     <p className="mt-2 text-center text-[0.7rem] text-[var(--ink-muted)]">

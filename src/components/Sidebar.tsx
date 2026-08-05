@@ -1,13 +1,13 @@
 "use client";
 
 import {
+  ChevronDown,
   History,
-  MessageCircle,
   Moon,
   PanelLeft,
   PanelLeftOpen,
-  Plus,
   Settings,
+  SquarePen,
   Trash2,
   X,
 } from "lucide-react";
@@ -28,8 +28,8 @@ import { Logo } from "./Logo";
  *   overlay    — below 992px an expanded rail would crush the conversation, so
  *                it floats above the stage with a backdrop instead of pushing.
  *
- * There is no hamburger anywhere: the rail is always on screen, and the toggle
- * that collapses it is the same control that brings it back.
+ * There is no hamburger on desktop: the rail is always on screen, and the
+ * toggle that collapses it is the same control that brings it back.
  */
 
 export type SidebarView = "chat" | "history";
@@ -45,7 +45,7 @@ export interface SidebarProps {
   onOpenSettings: () => void;
   theme: Theme;
   onToggleTheme: () => void;
-  /** The wordmark doubles as the way back to the chat. */
+  /** The seal doubles as the way back to the chat. */
   onGoToChat: () => void;
   collapsed: boolean;
   onToggleCollapsed: () => void;
@@ -85,26 +85,19 @@ export function Sidebar({
 
   const recent = conversations.filter((c) => c.messages.length > 0).slice(0, RECENT_LIMIT);
 
-  const className = [
-    "sidebar",
-    collapsed ? "sidebar--collapsed" : "",
-    overlay ? "sidebar--overlay" : "",
-  ]
+  const className = ["sidebar", collapsed ? "sidebar--collapsed" : "", overlay ? "sidebar--overlay" : ""]
     .filter(Boolean)
     .join(" ");
 
   return (
     <aside ref={ref} className={className} aria-label="Sidebar">
       <div className="sidebar__head">
-        {/* The mark and the wordmark are one control, as they are on every
-            product where the logo is the way home. The text is the accessible
-            name and survives the collapse, so the icon-only rail is still
-            labelled. */}
-        <button type="button" className="sidebar__brand" onClick={onGoToChat} title="Kranti Cookbook">
-          <Logo size={collapsed ? 30 : 34} />
-          <span className="sidebar__name display">Kranti Cookbook</span>
+        {/* The seal is the way home, as the logo is on every product. Its
+            accessible name comes from the mark, so it survives the collapse. */}
+        <button type="button" className="sidebar__brand" onClick={onGoToChat} title="Asli Rasoi">
+          <Logo size={collapsed ? 34 : 46} />
         </button>
-        {/* Floating over the stage, this control dismisses rather than
+        {/* Floating over the page, this control dismisses rather than
             collapses — so it reads as a close, not a resize. */}
         <button
           type="button"
@@ -117,44 +110,38 @@ export function Sidebar({
           {overlay ? (
             <X size={19} aria-hidden />
           ) : collapsed ? (
-            <PanelLeftOpen size={18} aria-hidden />
+            <PanelLeftOpen size={19} aria-hidden />
           ) : (
-            <PanelLeft size={18} aria-hidden />
+            <PanelLeft size={19} aria-hidden />
           )}
         </button>
       </div>
 
       <div className="sidebar__scroll">
-        <nav className="side-group" aria-label="Features">
-          <h2 className="side-group__label">Features</h2>
-          <ul className="side-list">
-            <li>
-              <SideItem
-                label="Chat"
-                icon={<MessageCircle size={18} className="side-item__icon" aria-hidden />}
-                active={view === "chat"}
-                collapsed={collapsed}
-                onClick={() => onViewChange("chat")}
-                current
-              />
-            </li>
-            <li>
-              <SideItem
-                label="History"
-                icon={<History size={18} className="side-item__icon" aria-hidden />}
-                active={view === "history"}
-                collapsed={collapsed}
-                onClick={() => onViewChange("history")}
-                current
-              />
-            </li>
-          </ul>
-        </nav>
+        <button type="button" className="new-chat" onClick={onNewConversation}>
+          <SquarePen size={19} className="new-chat__icon" aria-hidden />
+          <span className="side-item__text">New Chat</span>
+        </button>
+
+        <button
+          type="button"
+          className="side-item side-item--history"
+          data-active={view === "history" || undefined}
+          aria-current={view === "history" ? "page" : undefined}
+          onClick={() => onViewChange("history")}
+          title={collapsed ? "History" : undefined}
+        >
+          <History size={19} className="side-item__icon" aria-hidden />
+          <span className="side-item__text">History</span>
+        </button>
 
         <nav className="side-group side-group--recent" aria-label="Recent conversations">
-          <h2 className="side-group__label">Recent</h2>
+          <h2 className="side-group__label">
+            Recents
+            <ChevronDown size={15} aria-hidden />
+          </h2>
           {/* Unlabelled history rows are meaningless at 76px, so the list is
-              dropped from the icon rail — creating a new one is not. */}
+              dropped from the icon rail — the clock above still reaches it. */}
           {!collapsed &&
             (recent.length === 0 ? (
               <p className="side-empty">Nothing yet. Name a dish to begin.</p>
@@ -162,12 +149,14 @@ export function Sidebar({
               <ul className="side-list">
                 {recent.map((c) => (
                   <li key={c.id} className="side-row">
-                    <SideItem
-                      label={c.title}
-                      active={c.id === currentId && view === "chat"}
-                      collapsed={false}
+                    <button
+                      type="button"
+                      className="side-item"
+                      data-active={(c.id === currentId && view === "chat") || undefined}
                       onClick={() => onSelectConversation(c.id)}
-                    />
+                    >
+                      <span className="side-item__text">{c.title}</span>
+                    </button>
                     <button
                       type="button"
                       className="icon-btn side-row__delete"
@@ -180,13 +169,6 @@ export function Sidebar({
                 ))}
               </ul>
             ))}
-          <SideItem
-            label="New restoration"
-            icon={<Plus size={18} className="side-item__icon" aria-hidden />}
-            collapsed={collapsed}
-            onClick={onNewConversation}
-            accent
-          />
         </nav>
       </div>
 
@@ -194,12 +176,15 @@ export function Sidebar({
         <h2 className="side-group__label">Others</h2>
         <ul className="side-list">
           <li>
-            <SideItem
-              label="Setting"
-              icon={<Settings size={18} className="side-item__icon" aria-hidden />}
-              collapsed={collapsed}
+            <button
+              type="button"
+              className="side-item"
               onClick={onOpenSettings}
-            />
+              title={collapsed ? "Settings" : undefined}
+            >
+              <Settings size={19} className="side-item__icon" aria-hidden />
+              <span className="side-item__text">Settings</span>
+            </button>
           </li>
           <li>
             <button
@@ -211,7 +196,7 @@ export function Sidebar({
               aria-label="Dark Mode"
               title="Dark Mode"
             >
-              <Moon size={18} className="side-item__icon" aria-hidden />
+              <Moon size={19} className="side-item__icon" aria-hidden />
               <span className="side-item__text">Dark Mode</span>
               <span aria-hidden className="switch" data-on={theme === "dark"}>
                 <span className="switch__knob" />
@@ -221,41 +206,5 @@ export function Sidebar({
         </ul>
       </div>
     </aside>
-  );
-}
-
-function SideItem({
-  label,
-  icon,
-  active,
-  collapsed,
-  onClick,
-  accent,
-  current,
-}: {
-  label: string;
-  icon?: React.ReactNode;
-  active?: boolean;
-  collapsed: boolean;
-  onClick: () => void;
-  accent?: boolean;
-  current?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      className="side-item"
-      data-active={active ? "true" : undefined}
-      aria-current={current && active ? "page" : undefined}
-      onClick={onClick}
-      /* The label is still rendered and still read out when collapsed — it is
-         only clipped visually — so `title` adds a pointer hint without being
-         the sole source of the accessible name. */
-      title={collapsed ? label : undefined}
-      style={accent ? { color: "var(--orange)" } : undefined}
-    >
-      {icon}
-      <span className="side-item__text">{label}</span>
-    </button>
   );
 }
