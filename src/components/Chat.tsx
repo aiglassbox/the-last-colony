@@ -347,6 +347,34 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
     });
   };
 
+  /**
+   * The Vitalife corner.
+   *
+   * On a desktop it is a sibling of the hero column, not a child of it: the
+   * hero scrolls, and an absolutely-positioned child of a scrolling box
+   * scrolls with the content — so on a short window it slid up out of the
+   * corner instead of staying pinned to it. Anchored to the stage, which is
+   * exactly the viewport, it stays put.
+   */
+  const brandShop = (
+    <aside className="brand-shop" aria-label="Vitalife">
+      {/* The supplied lockup already reads "Powered by vitalife", so there is
+          no separate line of type above it. */}
+      <span className="brand-shop__lockup">
+        <VitalifeMark size={56} />
+      </span>
+      <a className="shop-now" href={SHOP_URL} target="_blank" rel="noopener noreferrer">
+        Shop Now
+      </a>
+      {/* Decorative, and painted as a CSS background rather than an <img>: a
+          hidden or unmounted image is still fetched once it has been sent in
+          the HTML, and the first render does not yet know the viewport width.
+          A background on a display:none element is never requested, which is
+          what keeps the heaviest asset off phones for real. */}
+      <span className="brand-shop__pack" aria-hidden />
+    </aside>
+  );
+
   // One definition, two placements: beneath the hero on a desktop, stacked
   // directly above the pinned composer on a phone.
   const quickActions = (
@@ -432,6 +460,10 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
         <div className="stage">
           <div className="stage__glow" aria-hidden />
 
+          {/* Pinned to the stage, so the corner holds it however the hero
+              column scrolls. Empty screen only — a card should own the page. */}
+          {isEmpty && !compact && brandShop}
+
           <div className="stage__body">
             {isEmpty ? (
               /* One opening screen at every width. The composer is a slim bar
@@ -462,28 +494,9 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
 
                 <p className="footnote">{FOOTNOTE}</p>
 
-                {/* Not rendered on a phone at all, rather than hidden with
-                    CSS — a hidden next/image still downloads, and the pack
-                    shot is the heaviest asset on the page. */}
-                {!phone && (
-                <aside className="brand-shop" aria-label="Vitalife">
-                  {/* The supplied lockup already reads "Powered by vitalife",
-                      so there is no separate line of type above it. */}
-                  <span className="brand-shop__lockup">
-                    <VitalifeMark size={56} />
-                  </span>
-                  <a className="shop-now" href={SHOP_URL} target="_blank" rel="noopener noreferrer">
-                    Shop Now
-                  </a>
-                  {/* Decorative, and painted as a CSS background rather than
-                      an <img>: a hidden or unmounted image is still fetched
-                      once it has been sent in the HTML, and the first render
-                      does not yet know the viewport width. A background on a
-                      display:none element is never requested, which is what
-                      keeps the heaviest asset off phones for real. */}
-                  <span className="brand-shop__pack" aria-hidden />
-                </aside>
-                )}
+                {/* Below 992px there is no corner to hold it, so it rides in
+                    the flow at the end of the column. */}
+                {compact && !phone && brandShop}
               </div>
             ) : (
               <>
