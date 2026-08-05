@@ -2,8 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Poppins } from "next/font/google";
 import localFont from "next/font/local";
 
-import { THEME_INIT_SCRIPT } from "@/lib/theme";
-
 import "./globals.css";
 
 /**
@@ -43,24 +41,13 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fffbf8" },
-    { media: "(prefers-color-scheme: dark)", color: "#4a100d" },
-  ],
+  themeColor: "#4a100d",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // One theme, so there is no pre-paint script and no `data-theme` to write.
   return (
-    // suppressHydrationWarning because the script below writes `data-theme`
-    // onto <html> before React hydrates, which is the point of it.
-    <html
-      lang="en"
-      className={`${poppins.variable} ${saltyAges.variable}`}
-      suppressHydrationWarning
-    >
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
-      </head>
+    <html lang="en" className={`${poppins.variable} ${saltyAges.variable}`}>
       <body>{children}</body>
     </html>
   );

@@ -1,20 +1,9 @@
 "use client";
 
-import {
-  ChevronDown,
-  History,
-  Moon,
-  PanelLeft,
-  PanelLeftOpen,
-  Settings,
-  SquarePen,
-  Trash2,
-  X,
-} from "lucide-react";
+import { ChevronDown, PanelLeft, PanelLeftOpen, Settings, SquarePen, Trash2, X } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 import type { Conversation } from "@/lib/chat/store";
-import type { Theme } from "@/lib/theme";
 
 import { Logo } from "./Logo";
 
@@ -32,19 +21,13 @@ import { Logo } from "./Logo";
  * toggle that collapses it is the same control that brings it back.
  */
 
-export type SidebarView = "chat" | "history";
-
 export interface SidebarProps {
-  view: SidebarView;
-  onViewChange: (view: SidebarView) => void;
   conversations: Conversation[];
   currentId: string;
   onSelectConversation: (id: string) => void;
   onDeleteConversation: (id: string) => void;
   onNewConversation: () => void;
   onOpenSettings: () => void;
-  theme: Theme;
-  onToggleTheme: () => void;
   /** The seal doubles as the way back to the chat. */
   onGoToChat: () => void;
   collapsed: boolean;
@@ -56,16 +39,12 @@ export interface SidebarProps {
 const RECENT_LIMIT = 8;
 
 export function Sidebar({
-  view,
-  onViewChange,
   conversations,
   currentId,
   onSelectConversation,
   onDeleteConversation,
   onNewConversation,
   onOpenSettings,
-  theme,
-  onToggleTheme,
   onGoToChat,
   collapsed,
   onToggleCollapsed,
@@ -92,47 +71,53 @@ export function Sidebar({
   return (
     <aside ref={ref} className={className} aria-label="Sidebar">
       <div className="sidebar__head">
-        {/* The seal is the way home, as the logo is on every product. Its
-            accessible name comes from the mark, so it survives the collapse. */}
-        <button type="button" className="sidebar__brand" onClick={onGoToChat} title="Asli Rasoi">
-          <Logo size={collapsed ? 34 : 46} />
-        </button>
-        {/* Floating over the page, this control dismisses rather than
-            collapses — so it reads as a close, not a resize. */}
-        <button
-          type="button"
-          className="icon-btn sidebar__toggle"
-          onClick={onToggleCollapsed}
-          aria-expanded={!collapsed}
-          aria-label={overlay ? "Close menu" : collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          title={overlay ? "Close menu" : collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {overlay ? (
-            <X size={19} aria-hidden />
-          ) : collapsed ? (
-            <PanelLeftOpen size={19} aria-hidden />
-          ) : (
-            <PanelLeft size={19} aria-hidden />
-          )}
-        </button>
+        {collapsed && !overlay ? (
+          /* Collapsed, the rail shows only the seal. Pointing at it swaps the
+             mark for the expand icon in the same square, so the one thing on
+             screen is also the control — no second button competing with it. */
+          <button
+            type="button"
+            className="rail-open"
+            onClick={onToggleCollapsed}
+            aria-expanded={false}
+            aria-label="Expand sidebar"
+            title="Expand sidebar"
+          >
+            <span className="rail-open__mark">
+              <Logo size={38} />
+            </span>
+            <span className="rail-open__icon" aria-hidden>
+              <PanelLeftOpen size={22} />
+            </span>
+          </button>
+        ) : (
+          <>
+            <button
+              type="button"
+              className="sidebar__brand"
+              onClick={onGoToChat}
+              title="Asli Rasoi"
+            >
+              <Logo size={46} />
+            </button>
+            <button
+              type="button"
+              className="icon-btn sidebar__toggle"
+              onClick={onToggleCollapsed}
+              aria-expanded
+              aria-label={overlay ? "Close menu" : "Collapse sidebar"}
+              title={overlay ? "Close menu" : "Collapse sidebar"}
+            >
+              {overlay ? <X size={19} aria-hidden /> : <PanelLeft size={19} aria-hidden />}
+            </button>
+          </>
+        )}
       </div>
 
       <div className="sidebar__scroll">
         <button type="button" className="new-chat" onClick={onNewConversation}>
           <SquarePen size={19} className="new-chat__icon" aria-hidden />
           <span className="side-item__text">New Chat</span>
-        </button>
-
-        <button
-          type="button"
-          className="side-item side-item--history"
-          data-active={view === "history" || undefined}
-          aria-current={view === "history" ? "page" : undefined}
-          onClick={() => onViewChange("history")}
-          title={collapsed ? "History" : undefined}
-        >
-          <History size={19} className="side-item__icon" aria-hidden />
-          <span className="side-item__text">History</span>
         </button>
 
         <nav className="side-group side-group--recent" aria-label="Recent conversations">
@@ -152,7 +137,7 @@ export function Sidebar({
                     <button
                       type="button"
                       className="side-item"
-                      data-active={(c.id === currentId && view === "chat") || undefined}
+                      data-active={c.id === currentId || undefined}
                       onClick={() => onSelectConversation(c.id)}
                     >
                       <span className="side-item__text">{c.title}</span>
@@ -184,23 +169,6 @@ export function Sidebar({
             >
               <Settings size={19} className="side-item__icon" aria-hidden />
               <span className="side-item__text">Settings</span>
-            </button>
-          </li>
-          <li>
-            <button
-              type="button"
-              className="side-item"
-              onClick={onToggleTheme}
-              role="switch"
-              aria-checked={theme === "dark"}
-              aria-label="Dark Mode"
-              title="Dark Mode"
-            >
-              <Moon size={19} className="side-item__icon" aria-hidden />
-              <span className="side-item__text">Dark Mode</span>
-              <span aria-hidden className="switch" data-on={theme === "dark"}>
-                <span className="switch__knob" />
-              </span>
             </button>
           </li>
         </ul>

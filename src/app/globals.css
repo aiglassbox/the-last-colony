@@ -9,8 +9,16 @@
 
   Spacing follows an 8px grid: --s-1 through --s-10.
 */
+/*
+  Asli Rasoi — design tokens.
+
+  One theme. The comp is red-on-maroon throughout, so there is no light set and
+  no toggle: `--display`, `--ink` and the rest have a single value each.
+
+  Spacing follows an 8px grid: --s-1 through --s-10.
+*/
 :root {
-  /* brand — Vitalife red, and the deeper tone it sits on in the dark theme */
+  /* brand */
   --red: #e2121b;
   --red-deep: #b00e15;
   --maroon: #4a100d;
@@ -22,47 +30,41 @@
   --orange-3: var(--red-deep);
   --orange-4: var(--red-deep);
 
-  /* surfaces */
-  --canvas: #fffbf8; /* the page */
-  --stage: transparent; /* the design has no inner card; the page is the stage */
-  --rail: #fdede3; /* the peach sidebar tint */
-  --surface: #fff6ef; /* cards */
-  --surface-2: #fdf1e8;
+  /* surfaces — the ground is the supplied background image, so the canvas is
+     only what shows through where the image does not reach. */
+  --canvas: #4a100d;
+  --stage: transparent;
+  --rail: rgba(60, 12, 10, 0.82);
+  --surface: rgba(255, 240, 226, 0.07);
+  --surface-2: rgba(255, 240, 226, 0.1);
 
-  /* The composer and pills stay cream in BOTH themes — in the dark comp they
-     are the only light objects on the maroon, which is what makes them read
-     as the things you touch. */
-  --field: #fce9db;
+  /* The composer and pills are the only cream objects on the maroon, which is
+     what makes them read as the things you touch. */
+  --field: #f7ead9;
   --field-ink: #2a1512;
   --field-muted: #8a6f66;
 
-  /* The headline colour: red on cream, cream on maroon. */
-  --display: var(--red);
+  /* type */
+  --display: #f7e7d2;
+  --ink: #f6e9da;
+  --ink-soft: #e2cdb9;
+  --ink-muted: #c2a493;
 
-  /* ink */
-  --ink: #1a1a1a;
-  --ink-soft: #4a4a4a;
-  --ink-muted: #7a6c64;
-
-  /* lines */
-  --line: rgba(74, 16, 13, 0.1);
-  --line-strong: rgba(74, 16, 13, 0.18);
-
-  /* The stone relief sits behind the dark theme only. */
-  --relief-opacity: 0;
+  --line: rgba(247, 231, 210, 0.16);
+  --line-strong: rgba(247, 231, 210, 0.26);
 
   /* provenance badges */
-  --attested: #1f7a4d;
-  --reconstructed: #b8651a;
-  --inferred: #6b6152;
-  --modern: #4a5b8c;
+  --attested: #7fd3a5;
+  --reconstructed: #f0bd7c;
+  --inferred: #c9bda9;
+  --modern: #a8bbe8;
 
   /* radii */
   --r-card: 30px;
   --r-stage: 32px;
-  --r-input: 24px;
+  --r-input: 26px;
   --r-pill: 999px;
-  --r-side: 18px;
+  --r-side: 14px;
 
   /* spacing — 8px grid */
   --s-1: 4px;
@@ -80,67 +82,14 @@
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --dur: 220ms;
 
-  /* shadows — soft, never harsh */
-  --sh-1: 0 1px 2px rgba(31, 31, 31, 0.04), 0 2px 8px rgba(31, 31, 31, 0.04);
-  --sh-2: 0 2px 6px rgba(31, 31, 31, 0.05), 0 10px 28px -12px rgba(31, 31, 31, 0.14);
-  --sh-3: 0 8px 20px -6px rgba(31, 31, 31, 0.1), 0 24px 48px -20px rgba(31, 31, 31, 0.18);
-  --sh-hero: 0 18px 48px -20px rgba(226, 18, 27, 0.3);
-  --sh-focus: 0 0 0 3px rgba(226, 18, 27, 0.28);
-
-  color-scheme: light;
-}
-
-/* The dark theme is the maroon comp: deep red ground, the stone relief behind
-   it, and cream for everything you read or touch. */
-:root[data-theme="dark"] {
-  --canvas: #4a100d;
-  --rail: #5e1512;
-  --surface: rgba(255, 240, 226, 0.07);
-  --surface-2: rgba(255, 240, 226, 0.1);
-
-  --display: #f7e7d2;
-  --ink: #f6e9da;
-  --ink-soft: #e2cdb9;
-  --ink-muted: #bfa08f;
-
-  --line: rgba(247, 231, 210, 0.16);
-  --line-strong: rgba(247, 231, 210, 0.26);
-
-  --attested: #7fd3a5;
-  --reconstructed: #f0bd7c;
-  --inferred: #c9bda9;
-  --modern: #a8bbe8;
-
-  --sh-1: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --sh-2: 0 2px 6px rgba(0, 0, 0, 0.45), 0 10px 28px -12px rgba(0, 0, 0, 0.6);
+  /* shadows */
+  --sh-1: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --sh-2: 0 2px 6px rgba(0, 0, 0, 0.4), 0 10px 28px -12px rgba(0, 0, 0, 0.55);
   --sh-3: 0 8px 20px -6px rgba(0, 0, 0, 0.5), 0 24px 48px -20px rgba(0, 0, 0, 0.7);
   --sh-hero: 0 18px 48px -20px rgba(0, 0, 0, 0.55);
-
-  --relief-opacity: 1;
+  --sh-focus: 0 0 0 3px rgba(226, 18, 27, 0.3);
 
   color-scheme: dark;
-}
-
-/* No-JS fallback. An explicit data-theme always wins. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    --canvas: #4a100d;
-    --rail: #5e1512;
-    --surface: rgba(255, 240, 226, 0.07);
-    --surface-2: rgba(255, 240, 226, 0.1);
-    --display: #f7e7d2;
-    --ink: #f6e9da;
-    --ink-soft: #e2cdb9;
-    --ink-muted: #bfa08f;
-    --line: rgba(247, 231, 210, 0.16);
-    --line-strong: rgba(247, 231, 210, 0.26);
-    --attested: #7fd3a5;
-    --reconstructed: #f0bd7c;
-    --inferred: #c9bda9;
-    --modern: #a8bbe8;
-    --relief-opacity: 1;
-    color-scheme: dark;
-  }
 }
 
 * {
@@ -224,14 +173,10 @@ body {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  /* The photograph, tinted with the ground colour in the same paint pass. A
-     blend mode against the maroon washed the carving out; layering a
-     translucent maroon over it keeps the relief legible and the hue exact. */
-  background:
-    linear-gradient(rgba(74, 16, 13, 0.84), rgba(74, 16, 13, 0.84)),
-    url("/brand/stone-relief.jpg") center / cover no-repeat;
-  opacity: var(--relief-opacity);
-  transition: opacity var(--dur) var(--ease);
+  /* The supplied file is already toned to the brand maroon, so it is painted
+     straight — no tint pass, no blend mode, no opacity. Anything layered over
+     it only buries the carving. */
+  background: url("/brand/stone-relief.jpg") center / cover no-repeat;
 }
 
 /* Everything else rides above the relief. z-index alone, with no position —
@@ -247,9 +192,10 @@ body {
   flex: 0 0 288px;
   display: flex;
   flex-direction: column;
+  /* A wash over the background image rather than an opaque panel, so the
+     carving continues behind the rail as it does in the comp. */
   background: var(--rail);
-  /* A dotted seam rather than a rule — it is what the comp draws, and it keeps
-     the rail feeling like a torn page edge rather than a panel. */
+  backdrop-filter: blur(2px);
   border-right: 2px dashed var(--line);
   padding: var(--s-5) var(--s-4) var(--s-4);
   /* Width is the only thing that animates; the contents cross-fade with it so
@@ -430,6 +376,64 @@ body {
 .sidebar--collapsed .sidebar__brand {
   flex: 0 0 auto;
   justify-content: center;
+}
+
+/* Collapsed, the seal and the expand icon share one square and cross-fade on
+   hover or keyboard focus. Both layers are always rendered and only their
+   opacity changes, so the button never resizes and the swap cannot reflow. */
+.rail-open {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--display);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--dur) var(--ease);
+}
+
+.rail-open:hover {
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+}
+
+.rail-open__mark,
+.rail-open__icon {
+  grid-area: 1 / 1;
+  display: grid;
+  place-items: center;
+  line-height: 0;
+  transition: opacity var(--dur) var(--ease);
+}
+
+.rail-open__icon {
+  opacity: 0;
+}
+
+.rail-open:hover .rail-open__mark,
+.rail-open:focus-visible .rail-open__mark {
+  opacity: 0;
+}
+
+.rail-open:hover .rail-open__icon,
+.rail-open:focus-visible .rail-open__icon {
+  opacity: 1;
+}
+
+/* Touch has no hover, so the swap would strand the control. There, both stay
+   put and the seal itself is the tap target. */
+@media (hover: none) {
+  .rail-open__icon {
+    opacity: 0;
+  }
+  .rail-open:hover .rail-open__mark {
+    opacity: 1;
+  }
 }
 
 .sidebar--collapsed .sidebar__name,
@@ -686,12 +690,21 @@ body {
 .hero-wrap {
   position: relative;
   flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--s-8) var(--s-5) clamp(150px, 17vw, 230px);
+  display: grid;
+  grid-template-rows: 1fr auto 1fr;
+  justify-items: center;
+  padding: var(--s-6) var(--s-5) var(--s-5);
   overflow-y: auto;
+}
+
+.hero-wrap > .hero {
+  grid-row: 2;
+  align-self: center;
+}
+
+.hero-wrap > .footnote {
+  grid-row: 3;
+  align-self: end;
 }
 
 /* No card in this design — the page itself is the ground, so the hero is a
@@ -716,10 +729,11 @@ body {
 /* The campaign paragraph, along the bottom. Deliberately small and quiet: it
    is the argument, not the instruction. */
 .footnote {
-  /* Narrow enough to clear the pack shot in the bottom-right corner. */
-  width: min(100%, 54rem);
+  width: min(100%, 56rem);
   margin: var(--s-7) auto 0;
-  padding-inline: var(--s-4);
+  /* Centred in the space left of the pack shot rather than in the canvas, so
+     the two can never collide as the viewport narrows. */
+  padding: 0 var(--s-4);
   color: var(--ink-muted);
   font-size: clamp(0.6875rem, 0.64rem + 0.2vw, 0.8125rem);
   line-height: 1.6;
@@ -736,38 +750,36 @@ body {
   opacity: 0.9;
 }
 
+/* Bottom-right corner: the lockup and its button stack right-aligned, with the
+   pack shot sitting in the corner underneath them and bleeding off the edge,
+   as the comp has it. */
 .brand-shop {
   position: absolute;
   right: 0;
   bottom: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  display: grid;
+  justify-items: end;
   gap: var(--s-2);
-  padding: 0 var(--s-6) var(--s-5) 0;
+  padding: 0 var(--s-6) 0 0;
   pointer-events: none;
 }
 
-/* The pack shot is the only full-colour asset on the page, so it anchors the
-   corner; everything above it is type. */
 .brand-shop__lockup,
 .shop-now {
   pointer-events: auto;
 }
 
 .brand-shop__lockup {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  line-height: 1;
+  display: block;
+  line-height: 0;
   color: var(--display);
 }
 
 .shop-now {
   display: inline-grid;
   place-items: center;
-  min-height: 38px;
-  padding: 0 var(--s-5);
+  min-height: 40px;
+  padding: 0 var(--s-6);
   border-radius: 6px;
   background: var(--red);
   color: #fff;
@@ -786,23 +798,32 @@ body {
   transform: translateY(-1px);
 }
 
+/* Bleeds off the bottom-right corner. The red sweep is part of the asset, so
+   it has to reach the edges rather than float above them. */
 .brand-shop__pack {
   display: block;
-  width: clamp(180px, 22vw, 330px);
+  width: clamp(220px, 25vw, 400px);
   height: auto;
-  margin-top: calc(var(--s-2) * -1);
+  margin: calc(var(--s-3) * -1) calc(var(--s-6) * -1) 0 0;
+}
+
+@media (min-width: 992px) {
+  .footnote {
+    margin-right: clamp(0px, 22vw, 330px);
+  }
 }
 
 /* ------------------------------------------------------------- composer -- */
 
-/* One slim line. The mic and the send button are laid over the field rather
-   than beside it, which is what lets the bar keep a single row at every width
-   without the textarea losing its own growth. */
+/* Two rows, as the comp draws it: the line you type on, and a control row
+   under it with the mic at the left and send at the right. The whole box is
+   cream on the maroon, which is what marks it as the thing you touch. */
 .composer {
   position: relative;
-  width: min(100%, 780px);
-  margin: clamp(28px, 5vw, 56px) auto 0;
-  border-radius: var(--r-pill);
+  width: min(100%, 820px);
+  margin: clamp(28px, 5vw, 52px) auto 0;
+  padding: var(--s-4) var(--s-4) var(--s-3);
+  border-radius: 26px;
   background: var(--field);
   border: 1px solid transparent;
   box-shadow: var(--sh-2);
@@ -813,7 +834,7 @@ body {
 }
 
 .composer:focus-within {
-  border-color: var(--red);
+  border-color: color-mix(in srgb, var(--red) 45%, transparent);
   box-shadow: var(--sh-2), var(--sh-focus);
 }
 
@@ -833,19 +854,10 @@ body {
   font: inherit;
   font-size: 1.0625rem;
   line-height: 1.5;
-  /* Room for the mic on the left and the send button on the right. */
-  padding: 20px 78px 20px 60px;
-  max-height: 220px;
-}
-
-.composer__field::placeholder {
-  color: var(--field-muted);
-}
-
-/* A textarea paints a scrollbar track inside the bar's rounded end, which
-   reads as a stray cream tab beside the send button. The field still scrolls
-   once it hits max-height; only the chrome is hidden. */
-.composer__field {
+  padding: 0 var(--s-2);
+  max-height: 240px;
+  /* A textarea paints a scrollbar track inside the rounded box, which reads as
+     a stray tab. The field still scrolls at max-height; only the chrome goes. */
   scrollbar-width: none;
 }
 
@@ -854,27 +866,26 @@ body {
   height: 0;
 }
 
+.composer__field::placeholder {
+  color: var(--field-muted);
+}
+
 .composer__bar {
-  position: absolute;
-  inset: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 3px 0 14px;
-  pointer-events: none;
+  gap: var(--s-3);
+  margin-top: var(--s-2);
 }
 
-.composer__bar > * {
-  pointer-events: auto;
-}
-
+/* Outlined circle, as in the comp — it is a mode, not a primary action. */
 .icon-btn {
   display: inline-grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   border-radius: var(--r-pill);
-  border: 1px solid transparent;
+  border: 1px solid color-mix(in srgb, var(--field-ink) 22%, transparent);
   background: transparent;
   color: var(--field-ink);
   cursor: pointer;
@@ -882,11 +893,13 @@ body {
   transition:
     transform var(--dur) var(--ease),
     background var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
     color var(--dur) var(--ease);
 }
 
 .icon-btn:hover {
   background: color-mix(in srgb, var(--red) 10%, transparent);
+  border-color: var(--red);
   color: var(--red);
 }
 
@@ -896,26 +909,30 @@ body {
 
 .icon-btn--recording {
   background: color-mix(in srgb, var(--red) 16%, transparent);
+  border-color: var(--red);
   color: var(--red);
 }
 
-/* The rail and the drawer sit on their own tint, not on the cream field, so
-   their icon buttons take the page ink instead. */
+/* The rail and the top bar sit on the maroon, not on the cream box, so their
+   icon buttons take the page ink and carry no outline. */
 .sidebar .icon-btn,
 .topbar .icon-btn {
+  border-color: transparent;
   color: var(--ink-soft);
 }
 
 .sidebar .icon-btn:hover,
 .topbar .icon-btn:hover {
-  color: var(--red);
+  border-color: transparent;
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+  color: var(--ink);
 }
 
 .send-btn {
   display: inline-grid;
   place-items: center;
-  width: 54px;
-  height: 54px;
+  width: 46px;
+  height: 46px;
   flex: 0 0 auto;
   border: 0;
   border-radius: var(--r-pill);
@@ -939,7 +956,7 @@ body {
 }
 
 .send-btn:disabled {
-  opacity: 0.55;
+  opacity: 0.9;
   cursor: not-allowed;
   box-shadow: none;
 }
@@ -1389,36 +1406,43 @@ body {
 }
 
 @media (max-width: 991px) {
-  /* The rail stays on screen as the icon variant; expanding it floats it over
-     the stage rather than squeezing the conversation. */
+  /* The rail stays on screen as the icon variant; expanding it floats over the
+     page rather than squeezing the conversation.
+
+     The corner lockup comes out of the corner here, so the hero column drops
+     back to plain flex — left as a grid it would auto-place the lockup into
+     the first row, above the headline. */
   .hero-wrap {
-    padding: var(--s-6) var(--s-4) var(--s-5);
-  }
-  /* The pack shot would sit on top of the pills at this width, so the corner
-     lockup becomes a row along the bottom instead of a stack. */
-  .hero-wrap {
-    padding-bottom: var(--s-6);
-  }
-  .brand-shop {
-    position: static;
-    flex-direction: row;
+    display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    flex-wrap: wrap;
-    gap: var(--s-4);
-    padding: var(--s-5) 0 0;
-    order: 3;
+    padding: var(--s-6) var(--s-4) var(--s-5);
   }
-  .brand-shop__pack {
-    width: clamp(140px, 26vw, 220px);
-    margin-top: 0;
+  .hero-wrap > .hero,
+  .hero-wrap > .footnote {
+    align-self: auto;
   }
   .footnote {
     order: 2;
-    margin-top: var(--s-6);
+    margin: var(--s-6) auto 0;
   }
-  .hero-wrap {
+  .brand-shop {
+    position: static;
+    order: 3;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
     justify-content: center;
+    gap: var(--s-4);
+    padding: var(--s-5) 0 0;
+  }
+  /* No bleed off an edge it is no longer against — a negative margin here
+     pushes the page wider than the viewport. */
+  .brand-shop__pack {
+    width: clamp(150px, 26vw, 230px);
+    margin: 0;
   }
 }
 
@@ -1521,20 +1545,29 @@ body {
     margin-top: var(--s-5);
     text-align: center;
   }
+  /* The composer is a two-row box, not the single-line bar this block used to
+     override — no side room to reserve for the controls. */
+  .composer {
+    padding: var(--s-3) var(--s-3) var(--s-2);
+    border-radius: 22px;
+  }
   .composer__field {
     font-size: 1rem;
-    padding: 15px 66px 15px 52px;
+    padding: 0 var(--s-1);
   }
   .send-btn {
     width: 42px;
     height: 42px;
   }
   .icon-btn {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
   }
-  .composer__bar {
-    padding: 0 5px 0 9px;
+
+  /* Taller than the viewport on a phone, so the column starts at the top —
+     centred, the headline would be clipped above the scroll origin. */
+  .hero-wrap {
+    justify-content: flex-start;
   }
 }
 

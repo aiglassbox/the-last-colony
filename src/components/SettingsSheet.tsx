@@ -3,7 +3,6 @@
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import type { Theme } from "@/lib/theme";
 
 /**
  * Settings. Deliberately small — it shows only things that are real: the
@@ -25,13 +24,9 @@ interface Health {
 }
 
 export function SettingsSheet({
-  theme,
-  onToggleTheme,
   onClearConversations,
   onClose,
 }: {
-  theme: Theme;
-  onToggleTheme: () => void;
   onClearConversations: () => void;
   onClose: () => void;
 }) {
@@ -67,18 +62,6 @@ export function SettingsSheet({
               <X size={18} aria-hidden />
             </button>
           </div>
-
-          <Row label="Appearance">
-            <button
-              type="button"
-              className="ghost-btn"
-              onClick={onToggleTheme}
-              role="switch"
-              aria-checked={theme === "dark"}
-            >
-              {theme === "dark" ? "Dark" : "Light"} mode
-            </button>
-          </Row>
 
           <Row label="Model">
             {health === null ? (

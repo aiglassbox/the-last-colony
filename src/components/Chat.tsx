@@ -33,19 +33,11 @@ import {
   subscribe as railSubscribe,
   toggleCollapsed as toggleRail,
 } from "@/lib/sidebar-store";
-import {
-  getServerSnapshot as themeServerSnapshot,
-  getSnapshot as themeSnapshot,
-  subscribe as themeSubscribe,
-  toggleTheme,
-} from "@/lib/theme";
-
 import { Composer } from "./Composer";
-import { History } from "./History";
 import { GokulMark, Logo, VitalifeMark } from "./Logo";
 import { Message } from "./Message";
 import { SettingsSheet } from "./SettingsSheet";
-import { Sidebar, type SidebarView } from "./Sidebar";
+import { Sidebar } from "./Sidebar";
 
 /**
  * The application shell.
@@ -103,12 +95,10 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
     getSnapshot,
     getServerSnapshot,
   );
-  const theme = useSyncExternalStore(themeSubscribe, themeSnapshot, themeServerSnapshot);
   const railCollapsed = useSyncExternalStore(railSubscribe, railSnapshot, railServerSnapshot);
 
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
-  const [view, setView] = useState<SidebarView>("chat");
   const [compact, setCompact] = useState(false);
   const [phone, setPhone] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -173,7 +163,6 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
 
       stick.current = true;
       setBusy(true);
-      setView("chat");
 
       const userMsg: ChatMessage = { id: newId(), role: "user", text: trimmed || (slug ?? "") };
       const replyId = newId();
@@ -322,7 +311,6 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
     abortRef.current?.abort();
     startConversation();
     dismissOverlay();
-    setView("chat");
     setInput("");
   };
 
@@ -330,7 +318,6 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
     abortRef.current?.abort();
     selectConversation(id);
     dismissOverlay();
-    setView("chat");
   };
 
   // Deleting the last conversation leaves a fresh empty one behind, which is
@@ -338,14 +325,12 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
   const clearAll = () => {
     abortRef.current?.abort();
     for (const c of [...conversations]) deleteConversation(c.id);
-    setView("chat");
   };
 
   // Expanded on a narrow viewport: the rail floats, so it needs a backdrop.
   const overlay = compact && !railCollapsed;
 
   const goToChat = () => {
-    setView("chat");
     dismissOverlay();
   };
 
@@ -353,7 +338,6 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
   // does not run anything. The turn only leaves when the reader sends it.
   const pickCommand = (command: SlashCommand) => {
     setInput((current) => applyCommand(current, command));
-    setView("chat");
     // After the paint, so the caret lands past the command the reader just
     // inserted rather than at whatever index it held before.
     requestAnimationFrame(() => {
@@ -394,11 +378,6 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
       </a>
 
       <Sidebar
-        view={view}
-        onViewChange={(v: SidebarView) => {
-          setView(v);
-          dismissOverlay();
-        }}
         conversations={conversations}
         currentId={currentId}
         onSelectConversation={openConversation}
@@ -408,8 +387,6 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
           setSettingsOpen(true);
           dismissOverlay();
         }}
-        theme={theme}
-        onToggleTheme={toggleTheme}
         onGoToChat={goToChat}
         collapsed={railCollapsed}
         onToggleCollapsed={toggleRail}
@@ -457,15 +434,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
           <div className="stage__glow" aria-hidden />
 
           <div className="stage__body">
-            {view === "history" ? (
-              <History
-                conversations={conversations}
-                currentId={currentId}
-                onSelect={openConversation}
-                onDelete={deleteConversation}
-                onNew={startNew}
-              />
-            ) : isEmpty ? (
+            {isEmpty ? (
               /* One opening screen at every width. The composer is a slim bar
                  rather than a panel, so the centred arrangement that the comp
                  draws for desktop still fits a 360px phone — no second
@@ -552,8 +521,6 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
 
       {settingsOpen && (
         <SettingsSheet
-          theme={theme}
-          onToggleTheme={toggleTheme}
           onClearConversations={clearAll}
           onClose={() => setSettingsOpen(false)}
         />

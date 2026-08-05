@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUp, Mic, Square } from "lucide-react";
+import { Mic, Send, Square } from "lucide-react";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 /**
@@ -68,7 +68,7 @@ export function Composer({
   busy,
   placeholder,
   variant = "bar",
-  minHeight = 28,
+  minHeight = 52,
   inputRef,
 }: ComposerProps) {
   const internalRef = useRef<HTMLTextAreaElement>(null);
@@ -169,7 +169,7 @@ export function Composer({
             disabled={!value.trim()}
             aria-label="Send"
           >
-            <ArrowUp size={19} aria-hidden />
+            <Send size={19} aria-hidden />
           </button>
         )}
       </div>
