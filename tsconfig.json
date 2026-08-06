@@ -15,7 +15,8 @@
     "incremental": true,
     "plugins": [{ "name": "next" }],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@pipeline/*": ["./pipeline/*"]
     }
   },
   "include": [
@@ -26,5 +27,9 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  // `pipeline/` is a second npm package in this repo with its own tsconfig
+  // (NodeNext resolution, explicit .js import specifiers). Compiling it under
+  // the app's bundler resolution reports errors that are not real. It is
+  // typechecked by its own `npx tsc --noEmit` from inside pipeline/.
+  "exclude": ["node_modules", "pipeline"]
 }

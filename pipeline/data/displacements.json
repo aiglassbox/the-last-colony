@@ -1,0 +1,206 @@
+{
+  "note": "What displaced what, and on whose authority. Each entry documents one ingredient-level substitution that happened across the Indian plate, so a recipe's WHAT CHANGED beat can be derived from its ingredients rather than written per dish. Every claim carries a source; nothing here is asserted from general knowledge. `confidence` is honest about how well the specific claim is evidenced, and `direction` names which way the nutrition axis actually moved — including when it moved for the better, because forcing every change into a decline narrative would be untrue and the project does not need it to be. Matching is by `matches` against a recipe's ingredient names. Eight entries. Four candidates were investigated and deliberately NOT written, because the evidence did not support a displacement story: packaged milk (Operation Flood expanded supply rather than degrading it), fresh buttermilk and curd (no evidence found), whole spices to packaged masala (commercially real, nutritionally unevidenced), and asafoetida (compounding hing with flour is long-standing, not a modern change). Absence of an entry is a finding, not an omission.",
+  "displacements": [
+    {
+      "id": "disp-ghee-vanaspati",
+      "traditional": "ghee (clarified butter)",
+      "matches": [
+        "ghee",
+        "clarified butter"
+      ],
+      "replaced_by": "vanaspati, partially hydrogenated vegetable fat",
+      "when": "1930s onward",
+      "driver": "cost. Desi ghee was expensive in British India and used sparingly; a Dutch firm brought hydrogenated vegetable oil in as a cheap substitute, and Lever Brothers formed the Hindustan Vanaspati Manufacturing Company in 1931, producing at Sewri near Bombay. The Dalda brand launched in 1937 and became the default cooking fat in millions of households.",
+      "nutrition_axis": "fat_quality",
+      "direction": "down",
+      "comparison": "Partial hydrogenation converts liquid unsaturated oils to a solid fat and produces trans-fatty acids. Ghee contains none.",
+      "source": {
+        "text": "Dalda — Hindustan Vanaspati Manufacturing Company, Lever Brothers",
+        "url": "https://en.wikipedia.org/wiki/Dalda"
+      },
+      "confidence": "high",
+      "verification_status": "sourced-unverified"
+    },
+    {
+      "id": "disp-gur-refined-sugar",
+      "traditional": "gur / khandsari, unrefined and partially refined cane sugar",
+      "matches": [
+        "sugar",
+        "jaggery",
+        "gur",
+        "khand"
+      ],
+      "replaced_by": "mill-refined white sugar",
+      "when": "late nineteenth century onward",
+      "driver": "colonial industrial and export imperatives. Refined sugar granulates and keeps, which suited mills and shipping in a way gur did not, so large mills displaced small khandsari and gur units. A cultural preference for white and refined foods, imported with colonial aesthetics, gave refined sugar a prestige gur never recovered. As late as the early 1930s roughly two-thirds of Indian cane still went to gur and khandsari.",
+      "nutrition_axis": "glycaemic_load",
+      "direction": "up",
+      "comparison": "Gur retains cane molasses and its trace minerals; mill-refined sugar is close to pure sucrose. Comparative only — this is a statement about the two sweeteners, not about anyone's diet.",
+      "source": {
+        "text": "Withstanding Globalization in Northern India: Farmers Make Sugar for Local Consumption",
+        "url": "https://link.springer.com/chapter/10.1007/978-3-031-22813-1_4"
+      },
+      "confidence": "high on the displacement, medium on precise dating — sources agree on the pattern and vary on when it tipped",
+      "verification_status": "sourced-unverified"
+    },
+    {
+      "id": "disp-rock-salt-iodised",
+      "traditional": "rock salt (sendha namak)",
+      "matches": [
+        "rock salt",
+        "sendha"
+      ],
+      "replaced_by": "iodised free-flowing salt",
+      "when": "1962 in goitre-endemic districts; nationwide policy from 1983-86",
+      "driver": "public health, not commerce. India recognised all states as goitre-prone in 1983 and announced universal salt iodisation in 1986; the programme was renamed the National Iodine Deficiency Disorders Control Programme in 1992, with mandatory fortification of salt for human consumption. Tata Salt, the first branded iodised salt, launched in 1983.",
+      "nutrition_axis": "iodine",
+      "direction": "up",
+      "comparison": "Iodised salt carries added iodine that rock salt does not. This substitution corrected a widespread deficiency and is a public-health success.",
+      "caution": "Do not frame this as a loss. Iodine deficiency causes real and preventable harm, and this change was deliberate and beneficial. It belongs in the corpus because it is a documented change to what is in the kitchen, not because something was taken away. A card that implies otherwise would be both wrong and irresponsible.",
+      "source": {
+        "text": "Towards universal salt iodisation in India: achievements, challenges and future actions",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6860305/"
+      },
+      "confidence": "high",
+      "verification_status": "sourced-unverified"
+    },
+    {
+      "id": "disp-handpounded-polished-rice",
+      "traditional": "hand-pounded rice",
+      "matches": [
+        "rice"
+      ],
+      "replaced_by": "mechanically milled and polished white rice",
+      "when": "late nineteenth century onward",
+      "driver": "steam-driven milling machines made polishing possible at scale from the late 1800s. Polishing strips the bran and germ; the beriberi outbreaks of that period tracked the spread of the mills. India promoted parboiling from the late 1940s as a public-health countermeasure, which drives thiamine into the endosperm before milling so it survives polishing.",
+      "nutrition_axis": "fibre",
+      "direction": "down",
+      "comparison": "Milling brown rice to white removes the bran and germ, and roughly 80% of the thiamine with them.",
+      "source": {
+        "text": "Rice in human nutrition — grain structure and composition, FAO",
+        "url": "https://www.fao.org/4/t0567e/t0567e08.htm"
+      },
+      "confidence": "high",
+      "verification_status": "sourced-unverified"
+    },
+    {
+      "id": "disp-chakki-roller-maida",
+      "traditional": "stone-ground whole wheat flour (chakki atta)",
+      "matches": [
+        "wheat flour",
+        "atta",
+        "maida",
+        "refined wheat"
+      ],
+      "replaced_by": "roller-milled flour, and maida in particular",
+      "when": "British-era commercial roller mills from the nineteenth century; accelerated by Green Revolution wheat from the 1960s",
+      "driver": "shelf life and scale. Wheat germ oil turns rancid within weeks, so removing bran and germ lets flour keep for six to twelve months and lets one mill process thousands of tonnes a day. Village chakkis ground grain fresh, same day, for the families who brought it.",
+      "nutrition_axis": "fibre",
+      "direction": "down",
+      "comparison": "Roller milling separates bran and germ from the endosperm; 23-25% of the wheat leaves as bran, largely to cattle feed. Most B vitamins, nearly all vitamin E, most minerals and most fibre go with it.",
+      "source": {
+        "text": "Mini Flour Mill — roller flour milling and product recovery, DC-MSME, Government of India",
+        "url": "https://dcmsme.gov.in/FOOD%20PRODUCTS/Mini%20Flour%20Mill.pdf"
+      },
+      "confidence": "high",
+      "verification_status": "sourced-unverified"
+    },
+    {
+      "id": "disp-millets-wheat-rice",
+      "traditional": "millets and other coarse grains (jowar, bajra, ragi, barley)",
+      "matches": [
+        "millet",
+        "barley",
+        "jowar",
+        "bajra",
+        "ragi",
+        "sorghum"
+      ],
+      "replaced_by": "wheat and polished rice",
+      "when": "1960s onward",
+      "driver": "Green Revolution policy. High-yielding wheat and rice were subsidised, given minimum support prices, procured and distributed; millets were not. Sorghum area fell from 15.57 to 5.82 million hectares and pearl millet from 9.02 to 7.89. Millets were only added to the public distribution system in 2013.",
+      "nutrition_axis": "iron",
+      "direction": "down",
+      "comparison": "Per-person availability of millets and pulses fell as production concentrated on wheat and rice. A comparison of what reached the plate, not a claim about any individual diet.",
+      "source": {
+        "text": "The impact of the Green Revolution on indigenous crops of India, Journal of Ethnic Foods",
+        "url": "https://link.springer.com/article/10.1186/s42779-019-0011-9"
+      },
+      "confidence": "high",
+      "verification_status": "sourced-unverified"
+    },
+    {
+      "id": "disp-ghani-refined-oil",
+      "traditional": "kachi ghani, cold-pressed oil from a wooden or stone press",
+      "matches": [
+        "sesame oil",
+        "gingelly",
+        "mustard oil",
+        "oil"
+      ],
+      "replaced_by": "solvent-extracted, refined, bleached and deodorised seed oil",
+      "when": "twentieth century industrialisation of oilseed processing",
+      "driver": "yield. A wooden ghani presses seeds slowly at low temperature and recovers roughly 25-35% of the oil; industrial solvent extraction using hexane and heat recovers 40-50%, then refines, bleaches and deodorises it.",
+      "nutrition_axis": "fat_quality",
+      "direction": "down",
+      "comparison": "Cold pressing keeps the seed's own vitamins, antioxidants and flavour compounds; refining removes them. FSSAI recognises kachi ghani and cold-pressed as a distinct category of edible oil.",
+      "source": {
+        "text": "How to read an edible oil label in India — FSSAI categories and processing methods",
+        "url": "https://standardcoldpressedoil.com/blog/how-to-read-edible-oil-label-india/"
+      },
+      "confidence": "high on the process difference, medium on dating — the shift was gradual and no source fixes a year",
+      "verification_status": "sourced-unverified"
+    },
+    {
+      "id": "disp-pulses-cereals",
+      "traditional": "pulses as a daily staple (moong, urad, chana, masoor)",
+      "matches": [
+        "gram",
+        "dal",
+        "lentil",
+        "moong",
+        "urad",
+        "chana",
+        "masoor",
+        "pulse"
+      ],
+      "replaced_by": "a larger share of wheat and rice on the plate",
+      "when": "1960s onward",
+      "driver": "the same Green Revolution procurement that favoured wheat and rice. Pulse production did not receive the equivalent support, and per-person availability fell.",
+      "nutrition_axis": "protein",
+      "direction": "down",
+      "comparison": "Wheat and rice displaced pulses in consumption. This is a statement about national availability per person, not about what anyone ate.",
+      "source": {
+        "text": "The impact of the Green Revolution on indigenous crops of India, Journal of Ethnic Foods",
+        "url": "https://link.springer.com/article/10.1186/s42779-019-0011-9"
+      },
+      "confidence": "medium — well evidenced that pulse availability fell, less precise on attributing it solely to procurement policy",
+      "verification_status": "sourced-unverified"
+    },
+    {
+      "id": "disp-solid-fuel-lpg",
+      "traditional": "charcoal, firewood and the open chulha",
+      "matches": [
+        "charcoal",
+        "firewood",
+        "wood fire",
+        "tandoor",
+        "leaves (for wrapping)",
+        "embers"
+      ],
+      "replaced_by": "LPG and gas stoves",
+      "when": "accelerating from 2016",
+      "driver": "deliberate policy. The Pradhan Mantri Ujjwala Yojana launched in 2016 to replace solid biomass, firewood, charcoal, dung cakes, with LPG, and had provided over 103 million connections by March 2024. LPG coverage rose from 62% of households in 2016 to near-universal availability by 2021, though roughly 40% of the population still cooks at least partly on solid fuel.",
+      "nutrition_axis": "fat_quality",
+      "direction": "unchanged",
+      "comparison": "This changes how a dish is cooked rather than what is in it. Charcoal and ember roasting impart smoke that a gas flame does not; the ingredients are unaffected.",
+      "caution": "Do not frame this as a loss. Smoke from solid-fuel cooking is a major cause of respiratory disease and the transition was a public-health intervention that worked. The honest point is that a dish specified for embers or a tandoor is rarely cooked that way now, not that something was taken away.",
+      "source": {
+        "text": "Household energy transition in rural India in the wake of Pradhan Mantri Ujjwala Yojana, Discover Sustainability",
+        "url": "https://link.springer.com/article/10.1007/s43621-025-02241-2"
+      },
+      "confidence": "high on the transition and its dating; this is a cooking-method change rather than an ingredient substitution, and the entry says so",
+      "verification_status": "sourced-unverified"
+    }
+  ]
+}

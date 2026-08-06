@@ -3,8 +3,10 @@
 import { useState } from "react";
 
 import type { ChatMessage } from "@/lib/chat/store";
+import { kindOf } from "@/lib/chat/turn";
 import { toPlainText } from "@/lib/model/plain-text";
 
+import { IndianisationCard } from "./IndianisationCard";
 import { RestorationCard } from "./RestorationCard";
 
 /**
@@ -30,10 +32,15 @@ export function Message({ message }: { message: ChatMessage }) {
         <RestorationCard
           data={{
             records: message.records ?? [],
-            empty: Boolean(message.empty),
+            query: message.query,
+            kind: kindOf(message),
             beats: message.beats ?? {},
             streaming: Boolean(message.streaming),
           }}
+        />
+      ) : message.mode === "indianize" ? (
+        <IndianisationCard
+          data={{ beats: message.beats ?? {}, streaming: Boolean(message.streaming) }}
         />
       ) : (
         <ProseTurn message={message} />

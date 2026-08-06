@@ -89,7 +89,7 @@ export function SettingsSheet({
               </span>
             ) : (
               <span className="text-sm text-[var(--orange)]">
-                No key set — cards still render from the corpus
+                No key set, so cards still render from the corpus
               </span>
             )}
           </Row>
@@ -116,7 +116,7 @@ export function SettingsSheet({
                     onClose();
                   }}
                 >
-                  Delete all — confirm
+                  Delete all, confirm
                 </button>
                 <button type="button" className="ghost-btn" onClick={() => setConfirmClear(false)}>
                   Cancel

@@ -8,7 +8,7 @@
     "palak panir",
     "पालक पनीर"
   ],
-  "share_verdict": "Palak paneer has no ancient original. Its parts do.",
+  "share_verdict": "Palak paneer is younger than you think. Its parts are not.",
   "tier": "modern",
   "source": {
     "text": "Modern restaurant and household practice",
@@ -41,7 +41,7 @@
       "sanskrit": null,
       "quantity_source": null,
       "quantity_modern": "2",
-      "function": "acid and body. A Columbian-exchange arrival — no tomato in India before the 16th century"
+      "function": "acid and body. A Columbian-exchange arrival, no tomato in India before the 16th century"
     },
     {
       "name": "cream",
@@ -70,7 +70,7 @@
     "method": 0.9
   },
   "contested_points": [
-    "Paneer's antiquity in India is debated — some readings find acid-set cheese early, others argue it arrives much later. Either way, this dish is not old.",
+    "Paneer's antiquity in India is debated, some readings find acid-set cheese early, others argue it arrives much later. Either way, this dish is not old.",
     "Tomato and chilli both post-date the classical texts by centuries."
   ],
   "modern_counterpart_id": null,
@@ -92,8 +92,8 @@
   "restore_today": {
     "ingredients": [
       "500 g spinach",
-      "3/4 cup thick curd, hung 30 minutes — in place of cream",
-      "1/3 cup soaked kabuli chana, ground to a paste — in place of cream or cornflour as the thickener",
+      "3/4 cup thick curd, hung 30 minutes, in place of cream",
+      "1/3 cup soaked kabuli chana, ground to a paste, in place of cream or cornflour as the thickener",
       "250 g paneer, or the chana paste alone if you want to go further",
       "2 tbsp cold-pressed mustard or sesame oil",
       "Ginger, black pepper, rock salt"

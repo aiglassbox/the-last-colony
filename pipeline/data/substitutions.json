@@ -1,0 +1,961 @@
+[
+  {
+    "id": "sub-cream-001",
+    "replace": "heavy / full-fat cream",
+    "with": "cashew paste, or ash-gourd / bottle-gourd paste, or hung curd",
+    "triggers": [
+      "cream",
+      "fresh cream",
+      "heavy cream",
+      "full-fat cream",
+      "malai",
+      "double cream"
+    ],
+    "rationale": "Achieves the same silky richness with far less saturated fat. Ash gourd is described in the texts as nourishing and cooling.",
+    "ayurvedic_basis": "Kushmanda (ash gourd): nourishing, cold, alleviates pitta.",
+    "source": {
+      "text": "Kshemakutuhalam",
+      "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598698.html"
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-sugar-002",
+    "replace": "refined white sugar",
+    "with": "jaggery (guda) or unheated honey",
+    "triggers": [
+      "sugar",
+      "caster sugar",
+      "white sugar",
+      "granulated sugar"
+    ],
+    "rationale": "Unrefined sweeteners retain minerals and were the standard sweeteners in historical Indian cooking.",
+    "ayurvedic_basis": "Guda (jaggery) is used throughout classical dietetics; honey should not be heated.",
+    "source": {
+      "text": "General Ayurvedic dietetics",
+      "url": null
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-maida-003",
+    "replace": "refined white flour (maida)",
+    "with": "whole wheat (godhuma) or millets (bajra, ragi, jowar)",
+    "triggers": [
+      "maida",
+      "all purpose flour",
+      "all-purpose flour",
+      "refined flour",
+      "plain flour"
+    ],
+    "rationale": "Whole grains add fibre and were the grains actually used; the Manasollasa flatbreads use whole wheat.",
+    "ayurvedic_basis": "Godhuma (wheat) is the base of Mandaka, Polika and Purika in the Manasollasa.",
+    "source": {
+      "text": "Manasollasa",
+      "url": "https://www.wisdomlib.org/hinduism/essay/manasollasa-study-of-arts-and-sciences/d/doc1474614.html"
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "sourced-unverified"
+  },
+  {
+    "id": "sub-deepfry-004",
+    "replace": "deep-frying",
+    "with": "steaming (svinna / putapaka) or roasting on a low fire",
+    "triggers": [
+      "deep fry",
+      "deep-fry",
+      "deep fried",
+      "deep-fried",
+      "fry until golden",
+      "fry till golden",
+      "fry in hot oil"
+    ],
+    "rationale": "The texts repeatedly steam, bake or roast vegetables rather than deep-fry them, cutting fat.",
+    "ayurvedic_basis": "Putapaka (baking in leaves) and svinna (steaming) appear across the Kshemakutuhalam vegetable methods.",
+    "source": {
+      "text": "Kshemakutuhalam",
+      "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598698.html"
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "sourced-unverified"
+  },
+  {
+    "id": "sub-tablesalt-005",
+    "replace": "refined table salt",
+    "with": "rock salt (saindhava)",
+    "triggers": [
+      "table salt",
+      "iodized salt",
+      "iodised salt"
+    ],
+    "rationale": "Rock salt is the salt named in nearly every historical recipe and is considered the most balanced in Ayurveda.",
+    "ayurvedic_basis": "Saindhava lavana is the preferred salt in classical dietetics.",
+    "source": {
+      "text": "Kshemakutuhalam / Manasollasa",
+      "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598702.html"
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "sourced-unverified"
+  },
+  {
+    "id": "sub-cornflour-006",
+    "replace": "cornflour / processed thickener",
+    "with": "roasted rice powder or gram flour (besan)",
+    "triggers": [
+      "cornflour",
+      "corn flour",
+      "corn starch",
+      "cornstarch"
+    ],
+    "rationale": "Traditional thickeners used in the texts, e.g. roasted rice powder with coconut, or gram flour in flower-vegetable gravies.",
+    "ayurvedic_basis": "Roasted rice powder thickens the Kshemakutuhalam brinjal-with-coconut dish; gram flour thickens the hibiscus preparation.",
+    "source": {
+      "text": "Kshemakutuhalam",
+      "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598700.html"
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "sourced-unverified"
+  },
+  {
+    "id": "sub-creamgravy-007",
+    "replace": "cream-based restaurant gravy",
+    "with": "buttermilk (takra) simmered with gram flour and spices",
+    "triggers": [
+      "white sauce",
+      "restaurant gravy",
+      "makhani gravy",
+      "cashew cream gravy"
+    ],
+    "rationale": "A light, tangy gravy base used historically instead of cream, as in the hibiscus and fish preparations.",
+    "ayurvedic_basis": "Takra (buttermilk) is prized as light and digestive; used as the cooking medium across many recipes.",
+    "source": {
+      "text": "Kshemakutuhalam",
+      "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598696.html"
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "sourced-unverified"
+  },
+  {
+    "id": "sub-souring-008",
+    "replace": "artificial souring / excess tomato",
+    "with": "tamarind or kokum (vriksamla) and sour buttermilk",
+    "triggers": [
+      "tomato",
+      "tomato puree",
+      "tomato ketchup",
+      "vinegar"
+    ],
+    "rationale": "Historical souring agents; tomato is a post-Columbian introduction and absent from ancient texts.",
+    "ayurvedic_basis": "Vriksamla (Malabar tamarind / kokum) is the souring agent in the Manasollasa fish recipe.",
+    "source": {
+      "text": "Manasollasa",
+      "url": "https://en.wikipedia.org/wiki/Manasollasa"
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "sourced-unverified"
+  },
+  {
+    "id": "sub-potato-009",
+    "replace": "potato (heavy, post-Columbian)",
+    "with": "elephant-foot yam (surana) or colocasia / other traditional tubers",
+    "triggers": [
+      "potato",
+      "potatoes",
+      "aloo"
+    ],
+    "rationale": "Traditional starchy tubers used before the potato reached India; documented with cooking methods.",
+    "ayurvedic_basis": "Surana stimulates digestion, is light; cures piles and cough.",
+    "source": {
+      "text": "Kshemakutuhalam",
+      "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598702.html"
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "sourced-unverified"
+  },
+  {
+    "id": "sub-chili-010",
+    "replace": "excess red chilli",
+    "with": "black pepper (maricha) and long pepper (pippali)",
+    "triggers": [
+      "red chilli",
+      "red chili",
+      "chilli powder",
+      "chili powder",
+      "green chilli",
+      "green chili"
+    ],
+    "rationale": "Chilli is post-Columbian; the pungent heat in ancient recipes came from pepper. Gentler on the stomach for many.",
+    "ayurvedic_basis": "Maricha (black pepper) is the near-universal pungent spice across the texts.",
+    "source": {
+      "text": "Kshemakutuhalam / Manasollasa",
+      "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598698.html"
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "sourced-unverified"
+  },
+  {
+    "id": "sub-whiterice-011",
+    "replace": "polished white rice",
+    "with": "hand-pounded or red / brown rice",
+    "triggers": [
+      "white rice",
+      "polished rice",
+      "basmati rice"
+    ],
+    "rationale": "Less-processed rice keeps more fibre and nutrients; closer to historically milled rice.",
+    "ayurvedic_basis": "Rice (tandula/odana) is central to the diet; minimal processing preferred.",
+    "source": {
+      "text": "Manasollasa",
+      "url": "https://www.wisdomlib.org/hinduism/essay/manasollasa-study-of-arts-and-sciences/d/doc1474614.html"
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-refinedoil-012",
+    "replace": "refined / hydrogenated oil",
+    "with": "cold-pressed sesame oil (tila taila), mustard oil, or ghee in moderation",
+    "triggers": [
+      "refined oil",
+      "vegetable oil",
+      "vanaspati",
+      "hydrogenated",
+      "sunflower oil"
+    ],
+    "rationale": "The fats actually used in the texts; sesame and mustard oils and modest ghee, not industrial oils.",
+    "ayurvedic_basis": "Tila taila (sesame oil) and ghrita (ghee) are the standard cooking fats in the classical recipes.",
+    "source": {
+      "text": "Kshemakutuhalam",
+      "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598702.html"
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "sourced-unverified"
+  },
+  {
+    "id": "sub-condensedmilk-013",
+    "replace": "condensed / evaporated milk",
+    "with": "slow-reduced low-fat milk (rabri-style) sweetened lightly with jaggery",
+    "triggers": [
+      "condensed milk",
+      "milkmaid",
+      "evaporated milk"
+    ],
+    "rationale": "Reduced milk gives the same richness in sweets without the concentrated refined sugar of tinned condensed milk.",
+    "ayurvedic_basis": "Milk reductions (kshira-paka) are the classical base for sweets like payasa.",
+    "source": {
+      "text": "Manasollasa",
+      "url": "https://www.wisdomlib.org/hinduism/essay/manasollasa-study-of-arts-and-sciences/d/doc1474614.html"
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-khoya-014",
+    "replace": "khoya / mawa (heavy reduced milk solids)",
+    "with": "thickened low-fat milk or fresh paneer",
+    "triggers": [
+      "khoya",
+      "mawa",
+      "khoa"
+    ],
+    "rationale": "Lighter dairy keeps the body of the sweet with less fat.",
+    "ayurvedic_basis": "Fresh curdled and reduced milk are traditional; lighter than full-fat khoya.",
+    "source": {
+      "text": "General Ayurvedic dietetics",
+      "url": null
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-processedcheese-015",
+    "replace": "processed cheese",
+    "with": "fresh low-fat paneer or hung curd",
+    "triggers": [
+      "processed cheese",
+      "cheese slice",
+      "cheese spread",
+      "cheese cube"
+    ],
+    "rationale": "Fresh paneer or hung curd gives the dairy note without emulsifiers or excess salt.",
+    "ayurvedic_basis": "Fresh curdled milk (paneer-type) is the traditional soft cheese.",
+    "source": {
+      "text": "General Ayurvedic dietetics",
+      "url": null
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-bakingsoda-016",
+    "replace": "baking soda / eno (chemical leavening)",
+    "with": "natural fermentation with curd or a ground urad-dal batter",
+    "triggers": [
+      "baking soda",
+      "eno",
+      "baking powder",
+      "fruit salt"
+    ],
+    "rationale": "Traditional fluffiness came from fermentation, not chemical leaveners.",
+    "ayurvedic_basis": "Fermented urad-dal/rice batter (iddarika) is the historical leavening method in the Manasollasa.",
+    "source": {
+      "text": "Manasollasa",
+      "url": "https://www.wisdomlib.org/hinduism/essay/manasollasa-study-of-arts-and-sciences/d/doc1474614.html"
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "sourced-unverified"
+  },
+  {
+    "id": "sub-foodcolour-017",
+    "replace": "artificial food colour",
+    "with": "natural colour: turmeric (yellow), saffron (orange), beetroot (red), spinach (green)",
+    "triggers": [
+      "food colour",
+      "food color",
+      "red colour",
+      "yellow colour",
+      "orange colour",
+      "edible colour"
+    ],
+    "rationale": "Natural pigments colour the dish without synthetic dyes.",
+    "ayurvedic_basis": "Turmeric and saffron are traditional colouring-and-medicinal spices.",
+    "source": {
+      "text": "General traditional practice",
+      "url": null
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-whitebread-018",
+    "replace": "white bread / pav (refined-flour bread)",
+    "with": "whole-wheat or millet flatbread / bun",
+    "triggers": [
+      "white bread",
+      "pav",
+      "bread slice",
+      "dinner roll"
+    ],
+    "rationale": "Whole-grain breads add fibre; white bread is a modern refined-flour product.",
+    "ayurvedic_basis": "Whole wheat (godhuma) is the historical bread grain (Mandaka, Polika).",
+    "source": {
+      "text": "Manasollasa",
+      "url": "https://www.wisdomlib.org/hinduism/essay/manasollasa-study-of-arts-and-sciences/d/doc1474614.html"
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "sourced-unverified"
+  },
+  {
+    "id": "sub-mayonnaise-019",
+    "replace": "mayonnaise",
+    "with": "hung-curd dressing with roasted cumin and black salt",
+    "triggers": [
+      "mayonnaise",
+      "mayo"
+    ],
+    "rationale": "Hung curd gives a creamy dressing without the egg-and-oil fat load.",
+    "ayurvedic_basis": "Curd-based dressings (raita) are the traditional cool, creamy accompaniment.",
+    "source": {
+      "text": "General Ayurvedic dietetics",
+      "url": null
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-refinedpasta-020",
+    "replace": "refined-flour pasta / noodles",
+    "with": "whole-wheat or millet pasta, or sevai (whole-grain vermicelli)",
+    "triggers": [
+      "pasta",
+      "macaroni",
+      "spaghetti",
+      "penne",
+      "noodles"
+    ],
+    "rationale": "Whole-grain versions add fibre and a lower glycaemic load.",
+    "ayurvedic_basis": "Whole grains and millets are the traditional cereal staples.",
+    "source": {
+      "text": "General traditional practice",
+      "url": null
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-msg-021",
+    "replace": "MSG / stock cubes",
+    "with": "roasted onion-tomato base, asafoetida and amchur for savoury depth",
+    "triggers": [
+      "msg",
+      "ajinomoto",
+      "monosodium glutamate",
+      "stock cube",
+      "bouillon"
+    ],
+    "rationale": "Builds umami from whole ingredients instead of an additive.",
+    "ayurvedic_basis": "Asafoetida (hing) and roasted aromatics are the traditional flavour boosters.",
+    "source": {
+      "text": "General traditional practice",
+      "url": null
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-artificialsweetener-022",
+    "replace": "artificial sweetener",
+    "with": "a small amount of jaggery, honey or date paste",
+    "triggers": [
+      "aspartame",
+      "sucralose",
+      "artificial sweetener",
+      "saccharin"
+    ],
+    "rationale": "Whole-food sweeteners in moderation instead of synthetic ones.",
+    "ayurvedic_basis": "Jaggery and honey are the classical sweeteners.",
+    "source": {
+      "text": "General Ayurvedic dietetics",
+      "url": null
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-margarine-023",
+    "replace": "margarine / hydrogenated spread",
+    "with": "ghee in moderation or cold-pressed oil",
+    "triggers": [
+      "margarine"
+    ],
+    "rationale": "Avoids trans-fat-prone hydrogenated spreads.",
+    "ayurvedic_basis": "Ghee (ghrita) is the valued traditional fat, used sparingly.",
+    "source": {
+      "text": "General Ayurvedic dietetics",
+      "url": null
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-icingsugar-024",
+    "replace": "icing sugar / frosting",
+    "with": "jaggery or date syrup; hung-curd (shrikhand-style) topping",
+    "triggers": [
+      "icing sugar",
+      "powdered sugar",
+      "confectioners sugar",
+      "frosting"
+    ],
+    "rationale": "Unrefined sweetness and a curd-based topping instead of refined-sugar frosting.",
+    "ayurvedic_basis": "Hung curd (shrikhand) and jaggery are traditional sweet finishes.",
+    "source": {
+      "text": "General Ayurvedic dietetics",
+      "url": null
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-processedmeat-025",
+    "replace": "processed / cured meat",
+    "with": "fresh lean protein (chicken, fish) or legumes and paneer",
+    "triggers": [
+      "sausage",
+      "bacon",
+      "salami",
+      "ham",
+      "hot dog",
+      "pepperoni",
+      "cured meat"
+    ],
+    "rationale": "Fresh protein avoids the salt, nitrates and saturated fat of cured meats.",
+    "ayurvedic_basis": "Freshly cooked meats and legumes are used in the texts; nothing cured/preserved.",
+    "source": {
+      "text": "General traditional practice",
+      "url": null
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-packagedjuice-026",
+    "replace": "packaged fruit juice / squash",
+    "with": "whole fresh fruit, or nimbu pani sweetened with jaggery",
+    "triggers": [
+      "packaged juice",
+      "fruit squash",
+      "juice concentrate",
+      "tetra pack juice",
+      "fruit drink"
+    ],
+    "rationale": "Whole fruit keeps the fibre and skips added sugar and preservatives.",
+    "ayurvedic_basis": "Fresh fruit and lightly sweetened waters are the traditional refreshments.",
+    "source": {
+      "text": "General traditional practice",
+      "url": null
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-chocolate-027",
+    "replace": "milk chocolate / chocolate syrup",
+    "with": "dark cacao with jaggery, or a nut-and-date paste",
+    "triggers": [
+      "milk chocolate",
+      "chocolate syrup",
+      "chocolate sauce",
+      "choco chips"
+    ],
+    "rationale": "Less sugar and milk solids; more actual cacao.",
+    "ayurvedic_basis": "Nut-and-date sweets are the traditional rich-sweet analogue.",
+    "source": {
+      "text": "General traditional practice",
+      "url": null
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-instantmix-028",
+    "replace": "instant / ready-made mix",
+    "with": "freshly ground spices and freshly made batters",
+    "triggers": [
+      "instant mix",
+      "ready mix",
+      "gravy mix",
+      "cake mix",
+      "premix"
+    ],
+    "rationale": "Fresh preparation avoids preservatives, excess salt and refined fillers.",
+    "ayurvedic_basis": "Stone-ground fresh spice blends are the historical norm.",
+    "source": {
+      "text": "General traditional practice",
+      "url": null
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-palmoil-029",
+    "replace": "palm / hydrogenated oil",
+    "with": "cold-pressed groundnut, sesame or mustard oil",
+    "triggers": [
+      "palm oil",
+      "palmolein",
+      "hydrogenated oil"
+    ],
+    "rationale": "Traditional cold-pressed oils in place of industrial palm/hydrogenated fats.",
+    "ayurvedic_basis": "Sesame (tila) and mustard oils are the classical cooking oils.",
+    "source": {
+      "text": "Kshemakutuhalam",
+      "url": "https://www.wisdomlib.org/hinduism/essay/kshemakutuhala-by-kshemasharma-critical-study/d/doc1598702.html"
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "sourced-unverified"
+  },
+  {
+    "id": "sub-coconutcream-030",
+    "replace": "thick coconut cream",
+    "with": "light coconut milk or a coconut-buttermilk blend",
+    "triggers": [
+      "coconut cream",
+      "thick coconut milk",
+      "coconut milk powder"
+    ],
+    "rationale": "Lighter coconut base keeps the flavour with less saturated fat.",
+    "ayurvedic_basis": "Coconut is used moderately in coastal cooking.",
+    "source": {
+      "text": "General traditional practice",
+      "url": null
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-cornsyrup-031",
+    "replace": "corn / glucose syrup",
+    "with": "jaggery syrup or date syrup",
+    "triggers": [
+      "corn syrup",
+      "glucose syrup",
+      "liquid glucose",
+      "golden syrup"
+    ],
+    "rationale": "Whole-food syrups replace refined glucose.",
+    "ayurvedic_basis": "Jaggery is the classical liquid sweetener base.",
+    "source": {
+      "text": "General Ayurvedic dietetics",
+      "url": null
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-gelatin-032",
+    "replace": "gelatin",
+    "with": "agar-agar (china grass)",
+    "triggers": [
+      "gelatin",
+      "gelatine"
+    ],
+    "rationale": "A plant setting agent replaces animal gelatin.",
+    "ayurvedic_basis": "China grass (agar) is the traditional vegetarian setting agent for sweets.",
+    "source": {
+      "text": "General traditional practice",
+      "url": null
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-custard-033",
+    "replace": "custard powder",
+    "with": "thickened milk with cardamom and saffron",
+    "triggers": [
+      "custard powder"
+    ],
+    "rationale": "Real reduced milk and spices instead of coloured cornflour powder.",
+    "ayurvedic_basis": "Spiced milk reductions are the classical dessert base.",
+    "source": {
+      "text": "General traditional practice",
+      "url": null
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-flavouredoats-034",
+    "replace": "sugary flavoured instant oats",
+    "with": "plain rolled oats or millets with fresh fruit",
+    "triggers": [
+      "flavoured oats",
+      "sugary oats",
+      "instant oats sachet"
+    ],
+    "rationale": "Skips the added sugar and flavourings of instant sachets.",
+    "ayurvedic_basis": "Whole grains with fruit are the traditional light meal.",
+    "source": {
+      "text": "General traditional practice",
+      "url": null
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-soysauce-035",
+    "replace": "soy sauce (high sodium)",
+    "with": "use sparingly; build savour with roasted aromatics, amchur and tamarind",
+    "triggers": [
+      "soy sauce",
+      "dark soy",
+      "light soy"
+    ],
+    "rationale": "Cuts sodium and additives while keeping umami depth.",
+    "ayurvedic_basis": "Roasted aromatics and sour agents give savour traditionally.",
+    "source": {
+      "text": "General traditional practice",
+      "url": null
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-vinegar-036",
+    "replace": "white / synthetic vinegar",
+    "with": "lemon juice, kokum or tamarind",
+    "triggers": [
+      "white vinegar",
+      "synthetic vinegar",
+      "acetic acid"
+    ],
+    "rationale": "Natural souring agents in place of synthetic vinegar.",
+    "ayurvedic_basis": "Kokum, tamarind and lemon are the classical souring agents.",
+    "source": {
+      "text": "General Ayurvedic dietetics",
+      "url": null
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-ketchup-037",
+    "replace": "sugary ketchup / bottled sauces",
+    "with": "fresh tomato-tamarind or date chutney",
+    "triggers": [
+      "ketchup",
+      "tomato sauce",
+      "chilli sauce",
+      "bottled sauce"
+    ],
+    "rationale": "Fresh chutney avoids the added sugar and preservatives of bottled sauces.",
+    "ayurvedic_basis": "Fresh ground chutneys are the traditional condiment.",
+    "source": {
+      "text": "General traditional practice",
+      "url": null
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-flavouredyogurt-038",
+    "replace": "sweetened flavoured yogurt",
+    "with": "plain curd with fresh fruit and a little jaggery",
+    "triggers": [
+      "flavoured yogurt",
+      "fruit yogurt",
+      "sweetened yogurt"
+    ],
+    "rationale": "Plain curd with fruit skips the added sugar of flavoured pots.",
+    "ayurvedic_basis": "Fresh curd (dadhi) is a classical staple.",
+    "source": {
+      "text": "General Ayurvedic dietetics",
+      "url": null
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-fullfatmilk-039",
+    "replace": "excess full-fat milk",
+    "with": "toned / low-fat milk",
+    "triggers": [
+      "full fat milk",
+      "full-cream milk",
+      "whole milk"
+    ],
+    "rationale": "Lower-fat milk where the recipe doesn't need the extra cream.",
+    "ayurvedic_basis": "Milk is valued; the fat content is adjusted to the person.",
+    "source": {
+      "text": "General Ayurvedic dietetics",
+      "url": null
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-biscuits-040",
+    "replace": "refined biscuits / cookies",
+    "with": "whole-grain jaggery cookies or roasted snacks",
+    "triggers": [
+      "biscuit",
+      "cookies",
+      "cracker"
+    ],
+    "rationale": "Whole grains and jaggery instead of maida and refined sugar.",
+    "ayurvedic_basis": "Roasted grain-and-jaggery snacks are the traditional teatime food.",
+    "source": {
+      "text": "General traditional practice",
+      "url": null
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-packagedchips-041",
+    "replace": "packaged fried chips / namkeen",
+    "with": "roasted makhana, chana or nuts",
+    "triggers": [
+      "potato chips",
+      "packaged chips",
+      "fried namkeen",
+      "wafers"
+    ],
+    "rationale": "Roasted snacks give crunch without deep-frying or preservatives.",
+    "ayurvedic_basis": "Roasted grains and fox-nuts are traditional dry snacks.",
+    "source": {
+      "text": "General traditional practice",
+      "url": null
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-breadcrumbs-042",
+    "replace": "refined breadcrumbs / panko",
+    "with": "semolina, besan or crushed poha coating",
+    "triggers": [
+      "breadcrumbs",
+      "panko",
+      "bread crumb"
+    ],
+    "rationale": "Whole-grain coatings replace refined breadcrumbs.",
+    "ayurvedic_basis": "Semolina and gram flour are traditional coatings.",
+    "source": {
+      "text": "General traditional practice",
+      "url": null
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-energydrink-043",
+    "replace": "energy / caffeinated soft drinks",
+    "with": "coconut water, buttermilk or a herbal kadha",
+    "triggers": [
+      "energy drink",
+      "caffeinated drink"
+    ],
+    "rationale": "Natural hydrating drinks instead of caffeine-and-sugar loads.",
+    "ayurvedic_basis": "Buttermilk and coconut water are classical restoratives.",
+    "source": {
+      "text": "General Ayurvedic dietetics",
+      "url": null
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  },
+  {
+    "id": "sub-whippedtopping-044",
+    "replace": "non-dairy whipped topping",
+    "with": "chilled hung curd or a little fresh malai",
+    "triggers": [
+      "whipped topping",
+      "non-dairy cream",
+      "whipping cream"
+    ],
+    "rationale": "Real dairy in small amounts instead of hydrogenated toppings.",
+    "ayurvedic_basis": "Fresh cream (malai) used sparingly is traditional.",
+    "source": {
+      "text": "General Ayurvedic dietetics",
+      "url": null
+    },
+    "applies_to_tiers": [
+      2,
+      3
+    ],
+    "verification_status": "traditional-principle"
+  }
+]

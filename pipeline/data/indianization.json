@@ -1,0 +1,1142 @@
+[
+  {
+    "id": "ind-base-refined-carb",
+    "role": "base",
+    "foreign": [
+      "pizza base",
+      "pizza crust",
+      "pasta",
+      "spaghetti",
+      "macaroni",
+      "noodles",
+      "white bread",
+      "bread",
+      "burger bun",
+      "bun",
+      "tortilla",
+      "wrap",
+      "maida base"
+    ],
+    "indian_healthy": [
+      "whole-wheat / millet (jowar, bajra, ragi) flatbread base",
+      "besan cheela",
+      "moong-dal or rice-urad uttapam base",
+      "millet noodles"
+    ],
+    "technique_swap": "refined flour + oven/deep-fry → whole grain cooked on a tawa or steamed",
+    "rationale": "Swaps refined-flour carbs for whole-grain and millet bases that keep the dish's form but add fibre.",
+    "derived_from": [
+      "sub-maida-003",
+      "sub-deepfry-004"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-base-white-rice",
+    "role": "base",
+    "foreign": [
+      "white rice",
+      "sticky rice",
+      "risotto rice",
+      "fried rice base"
+    ],
+    "indian_healthy": [
+      "hand-pounded / brown / red rice",
+      "millet pulao (foxtail, little millet)"
+    ],
+    "technique_swap": null,
+    "rationale": "Less-processed grains for the rice component.",
+    "derived_from": [
+      "sub-whiterice-011"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-dairy-cheese",
+    "role": "dairy",
+    "foreign": [
+      "mozzarella",
+      "cheddar",
+      "parmesan",
+      "cheese",
+      "cream cheese",
+      "processed cheese"
+    ],
+    "indian_healthy": [
+      "fresh low-fat paneer",
+      "hung curd (chakka)",
+      "grated khoya (sparingly)"
+    ],
+    "technique_swap": null,
+    "rationale": "Paneer and hung curd give the melty/creamy dairy note with less saturated fat and no processing.",
+    "derived_from": [
+      "sub-cream-001"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-dairy-cream-dessert",
+    "role": "dairy",
+    "foreign": [
+      "whipped cream",
+      "heavy cream",
+      "double cream",
+      "ice cream base",
+      "condensed milk"
+    ],
+    "indian_healthy": [
+      "thickened low-fat milk (rabri-style, lightly sweetened)",
+      "hung curd (shrikhand-style)",
+      "cashew paste"
+    ],
+    "technique_swap": null,
+    "rationale": "Traditional milk reductions and hung curd replace heavy cream in sweets.",
+    "derived_from": [
+      "sub-cream-001",
+      "sub-sugar-002"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-sauce-white",
+    "role": "sauce",
+    "foreign": [
+      "white sauce",
+      "bechamel",
+      "alfredo",
+      "cheese sauce",
+      "cream sauce"
+    ],
+    "indian_healthy": [
+      "cashew-buttermilk (takra) gravy",
+      "besan-thickened buttermilk sauce",
+      "hung-curd sauce"
+    ],
+    "technique_swap": "roux + cream → besan/cashew simmered in buttermilk",
+    "rationale": "A light, tangy white gravy without the butter-flour-cream load.",
+    "derived_from": [
+      "sub-creamgravy-007",
+      "sub-cream-001",
+      "sub-cornflour-006"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-sauce-tomato",
+    "role": "sauce",
+    "foreign": [
+      "pizza sauce",
+      "pasta sauce",
+      "tomato sauce",
+      "marinara",
+      "ketchup",
+      "arrabbiata"
+    ],
+    "indian_healthy": [
+      "bhuna onion-tomato masala",
+      "tomato base cut with tamarind/kokum and tempered spices"
+    ],
+    "technique_swap": null,
+    "rationale": "Turns a flat tomato sauce into a spiced Indian masala base; balances acidity traditionally.",
+    "derived_from": [
+      "sub-souring-008"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-dressing-mayo",
+    "role": "sauce",
+    "foreign": [
+      "mayonnaise",
+      "mayo",
+      "ranch",
+      "sour cream dip",
+      "aioli"
+    ],
+    "indian_healthy": [
+      "hung-curd dressing with roasted cumin and mint",
+      "raita-style dressing"
+    ],
+    "technique_swap": null,
+    "rationale": "Hung curd gives the cool, creamy dressing role without egg-oil emulsion fat.",
+    "derived_from": [
+      "sub-cream-001"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-fat-butter-oil",
+    "role": "fat",
+    "foreign": [
+      "butter",
+      "margarine",
+      "olive oil",
+      "refined oil",
+      "vegetable oil"
+    ],
+    "indian_healthy": [
+      "ghee in moderation",
+      "cold-pressed sesame (til) oil",
+      "mustard oil"
+    ],
+    "technique_swap": null,
+    "rationale": "The cooking fats actually used in traditional Indian kitchens, used sparingly.",
+    "derived_from": [
+      "sub-refinedoil-012"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-sweetener",
+    "role": "sweetener",
+    "foreign": [
+      "refined sugar",
+      "sugar",
+      "corn syrup",
+      "chocolate syrup",
+      "caramel"
+    ],
+    "indian_healthy": [
+      "jaggery (guda)",
+      "unheated honey",
+      "date paste"
+    ],
+    "technique_swap": null,
+    "rationale": "Unrefined sweeteners with minerals, as used historically.",
+    "derived_from": [
+      "sub-sugar-002"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-protein-red-meat",
+    "role": "protein",
+    "foreign": [
+      "beef",
+      "pork",
+      "bacon",
+      "ham",
+      "sausage",
+      "salami",
+      "pepperoni"
+    ],
+    "indian_healthy": [
+      "paneer",
+      "soya chunks",
+      "rajma / chana / other legumes",
+      "mushroom",
+      "chicken (where preferred)"
+    ],
+    "technique_swap": "cured/processed meat → fresh protein, grilled or tawa-cooked",
+    "rationale": "Replaces processed/red meats with fresh plant and lighter proteins common in Indian cooking.",
+    "derived_from": [],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-thickener",
+    "role": "thickener",
+    "foreign": [
+      "cornflour",
+      "cornstarch",
+      "flour roux",
+      "egg binder"
+    ],
+    "indian_healthy": [
+      "besan (gram flour)",
+      "roasted rice powder",
+      "boiled yam / lentil mash"
+    ],
+    "technique_swap": null,
+    "rationale": "Traditional thickeners used in the historical texts.",
+    "derived_from": [
+      "sub-cornflour-006"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-technique-deepfry",
+    "role": "technique",
+    "foreign": [
+      "deep-fried",
+      "deep fried",
+      "battered and fried",
+      "breaded",
+      "crumb fried"
+    ],
+    "indian_healthy": [
+      "tawa-roasted",
+      "appe-pan (paniyaram) cooked",
+      "steamed (idli / muthia style)",
+      "baked"
+    ],
+    "technique_swap": "deep-fry → shallow tawa / appe-pan / steam",
+    "rationale": "Achieves crispness or shape with a fraction of the oil.",
+    "derived_from": [
+      "sub-deepfry-004"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-flavor-herbs",
+    "role": "flavor",
+    "foreign": [
+      "oregano",
+      "basil",
+      "italian seasoning",
+      "mixed herbs",
+      "thyme"
+    ],
+    "indian_healthy": [
+      "keep the herb, layer an Indian tempering: cumin, curry leaf, ajwain, coriander",
+      "a light garam-masala accent"
+    ],
+    "technique_swap": null,
+    "rationale": "Keeps the dish recognisable while giving it an Indian aromatic profile.",
+    "derived_from": [],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-flavor-umami",
+    "role": "flavor",
+    "foreign": [
+      "soy sauce",
+      "msg",
+      "cheese powder",
+      "stock cube",
+      "bouillon"
+    ],
+    "indian_healthy": [
+      "roasted onion-tomato base",
+      "asafoetida (hing)",
+      "amchur / kokum for tang",
+      "toasted spice for depth"
+    ],
+    "technique_swap": null,
+    "rationale": "Builds savoury depth from whole ingredients instead of processed umami.",
+    "derived_from": [
+      "sub-souring-008"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-breakfast-cereal",
+    "role": "base",
+    "foreign": [
+      "cornflakes",
+      "cereal",
+      "muesli",
+      "packaged oats",
+      "granola"
+    ],
+    "indian_healthy": [
+      "poha (flattened rice)",
+      "millet upma",
+      "ragi malt porridge",
+      "besan or moong chilla"
+    ],
+    "technique_swap": null,
+    "rationale": "Whole-grain Indian breakfasts replace sugary packaged cereals.",
+    "derived_from": [
+      "sub-sugar-002"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-soup-cream",
+    "role": "sauce",
+    "foreign": [
+      "cream soup",
+      "cream of tomato soup",
+      "chowder",
+      "bisque"
+    ],
+    "indian_healthy": [
+      "dal shorba",
+      "rasam-style clear soup",
+      "vegetable shorba"
+    ],
+    "technique_swap": "cream/roux base → lentil or spiced clear broth",
+    "rationale": "Lentil and spiced broths give a satisfying soup without cream and flour.",
+    "derived_from": [
+      "sub-creamgravy-007"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-dessert-cake",
+    "role": "base",
+    "foreign": [
+      "cake",
+      "sponge cake",
+      "pastry",
+      "muffin",
+      "cupcake"
+    ],
+    "indian_healthy": [
+      "sooji (rava) or ragi based sweet",
+      "besan-based sweet (halwa / ladoo)",
+      "steamed milk sweet (sandesh-style)"
+    ],
+    "technique_swap": "baked refined-flour sponge → semolina/besan sweet, steamed or roasted",
+    "rationale": "Traditional grain-and-milk sweets replace refined-flour sugar cakes.",
+    "derived_from": [
+      "sub-maida-003",
+      "sub-sugar-002"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-fried-snack",
+    "role": "technique",
+    "foreign": [
+      "chips",
+      "fries",
+      "nuggets",
+      "fritters",
+      "crisps"
+    ],
+    "indian_healthy": [
+      "roasted makhana (fox nut)",
+      "baked or air-fried version",
+      "tawa-roasted snack"
+    ],
+    "technique_swap": "deep-fry → roast / bake / air-fry",
+    "rationale": "Roasted makhana and baked snacks give crunch with little oil.",
+    "derived_from": [
+      "sub-deepfry-004"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-salad-dressing",
+    "role": "sauce",
+    "foreign": [
+      "caesar dressing",
+      "creamy dressing",
+      "cheese dressing",
+      "thousand island",
+      "ranch"
+    ],
+    "indian_healthy": [
+      "hung-curd and mint dressing",
+      "lemon-cumin-black-salt dressing (chaat style)"
+    ],
+    "technique_swap": null,
+    "rationale": "Curd and citrus dressings replace creamy, cheesy ones.",
+    "derived_from": [
+      "sub-cream-001"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-sweet-drink",
+    "role": "sweetener",
+    "foreign": [
+      "cola",
+      "soda",
+      "soft drink",
+      "sugary drink",
+      "energy drink"
+    ],
+    "indian_healthy": [
+      "masala chaas (spiced buttermilk)",
+      "nimbu pani sweetened with jaggery",
+      "aam panna",
+      "kokum sharbat"
+    ],
+    "technique_swap": null,
+    "rationale": "Traditional cooling drinks replace sugary carbonated ones.",
+    "derived_from": [
+      "sub-sugar-002"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-instant-noodles",
+    "role": "base",
+    "foreign": [
+      "instant noodles",
+      "ramen",
+      "maggi",
+      "cup noodles"
+    ],
+    "indian_healthy": [
+      "whole-wheat or millet sevai (vermicelli) upma",
+      "millet noodles loaded with vegetables"
+    ],
+    "technique_swap": "refined maida noodles + seasoning sachet → whole-grain sevai with fresh tempering",
+    "rationale": "Whole-grain vermicelli with real tempering replaces refined instant noodles.",
+    "derived_from": [
+      "sub-maida-003"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-cheese-dip",
+    "role": "sauce",
+    "foreign": [
+      "cheese dip",
+      "queso",
+      "nacho cheese",
+      "cheese sauce dip"
+    ],
+    "indian_healthy": [
+      "besan-buttermilk sauce",
+      "spiced paneer or hung-curd dip"
+    ],
+    "technique_swap": null,
+    "rationale": "Besan-buttermilk and paneer dips replace processed cheese sauces.",
+    "derived_from": [
+      "sub-cream-001",
+      "sub-creamgravy-007"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-noodle-stirfry",
+    "role": "base",
+    "foreign": [
+      "hakka noodles",
+      "chow mein",
+      "stir fry noodles",
+      "schezwan noodles"
+    ],
+    "indian_healthy": [
+      "whole-wheat or millet noodles, vegetable-loaded",
+      "sevai stir-fry with light Indian-Chinese tempering"
+    ],
+    "technique_swap": "refined noodles + heavy oil/soy → whole-grain noodles, less oil, more vegetables",
+    "rationale": "Keeps the Indo-Chinese dish but on a whole-grain base with far more vegetables.",
+    "derived_from": [
+      "sub-refinedpasta-020",
+      "sub-deepfry-004"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-fried-rice",
+    "role": "base",
+    "foreign": [
+      "fried rice",
+      "egg fried rice",
+      "schezwan rice"
+    ],
+    "indian_healthy": [
+      "millet or brown-rice pulao, vegetable-loaded",
+      "vegetable tahiri (light)"
+    ],
+    "technique_swap": "white rice + heavy oil → whole-grain, minimal oil",
+    "rationale": "A whole-grain, vegetable-rich rice dish in place of oily fried rice.",
+    "derived_from": [
+      "sub-whiterice-011",
+      "sub-refinedoil-012"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-dumpling",
+    "role": "base",
+    "foreign": [
+      "dumpling",
+      "momo",
+      "gyoza",
+      "wonton"
+    ],
+    "indian_healthy": [
+      "steamed whole-wheat or ragi momo with vegetable/paneer filling",
+      "steamed modak-style parcel"
+    ],
+    "technique_swap": "refined wrapper, sometimes fried → whole-grain wrapper, steamed",
+    "rationale": "Steamed whole-grain parcels replace refined, sometimes-fried dumplings.",
+    "derived_from": [
+      "sub-maida-003",
+      "sub-deepfry-004"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-taco-wrap",
+    "role": "base",
+    "foreign": [
+      "taco",
+      "burrito",
+      "tortilla wrap",
+      "quesadilla",
+      "fajita"
+    ],
+    "indian_healthy": [
+      "whole-wheat or millet roti wrap with rajma / chana / paneer filling",
+      "jowar roti frankie"
+    ],
+    "technique_swap": null,
+    "rationale": "A whole-grain roti wrap with legume-paneer filling stands in for the tortilla.",
+    "derived_from": [
+      "sub-maida-003"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-sandwich",
+    "role": "base",
+    "foreign": [
+      "sandwich",
+      "sub",
+      "panini",
+      "club sandwich"
+    ],
+    "indian_healthy": [
+      "grilled whole-wheat or millet-bread sandwich with chutney, paneer and vegetables",
+      "hung-curd spread instead of mayo"
+    ],
+    "technique_swap": null,
+    "rationale": "Whole-grain bread, chutney and hung curd replace white bread and mayo.",
+    "derived_from": [
+      "sub-whitebread-018",
+      "sub-mayonnaise-019"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-milkshake",
+    "role": "sweetener",
+    "foreign": [
+      "milkshake",
+      "thickshake",
+      "ice-cream smoothie"
+    ],
+    "indian_healthy": [
+      "fruit lassi (curd-based)",
+      "thin milk with fruit and a little jaggery"
+    ],
+    "technique_swap": null,
+    "rationale": "A curd-and-fruit lassi replaces the ice-cream-and-sugar shake.",
+    "derived_from": [
+      "sub-sugar-002",
+      "sub-cream-001"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-icecream",
+    "role": "dairy",
+    "foreign": [
+      "ice cream",
+      "gelato",
+      "frozen dessert"
+    ],
+    "indian_healthy": [
+      "kulfi from reduced low-fat milk, lightly sweetened",
+      "frozen fruit-shrikhand (hung curd)"
+    ],
+    "technique_swap": null,
+    "rationale": "Reduced-milk kulfi or frozen hung curd instead of cream-and-sugar ice cream.",
+    "derived_from": [
+      "sub-cream-001",
+      "sub-sugar-002"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-pancake-waffle",
+    "role": "base",
+    "foreign": [
+      "pancake",
+      "waffle",
+      "crepe"
+    ],
+    "indian_healthy": [
+      "besan or moong chilla",
+      "ragi / oats dosa",
+      "rava (semolina) cheela"
+    ],
+    "technique_swap": "refined-flour batter + syrup → whole-grain/lentil batter, tawa-cooked",
+    "rationale": "Savoury or lightly sweet lentil/whole-grain crepes replace refined pancakes.",
+    "derived_from": [
+      "sub-maida-003",
+      "sub-sugar-002"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-cutlet",
+    "role": "technique",
+    "foreign": [
+      "cutlet",
+      "patty",
+      "croquette",
+      "breaded fried"
+    ],
+    "indian_healthy": [
+      "tawa-cooked vegetable / lentil tikki",
+      "baked shami-style patty"
+    ],
+    "technique_swap": "breaded and deep-fried → shallow tawa-cooked or baked",
+    "rationale": "Tawa or baked tikkis give the crisp patty with a fraction of the oil.",
+    "derived_from": [
+      "sub-deepfry-004"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-mac-cheese",
+    "role": "sauce",
+    "foreign": [
+      "mac and cheese",
+      "macaroni cheese",
+      "cheesy pasta"
+    ],
+    "indian_healthy": [
+      "millet pasta in a besan-buttermilk-turmeric sauce with paneer"
+    ],
+    "technique_swap": "cheese-cream sauce → besan-buttermilk sauce",
+    "rationale": "A besan-buttermilk sauce with paneer replaces the cheese-cream base.",
+    "derived_from": [
+      "sub-refinedpasta-020",
+      "sub-processedcheese-015",
+      "sub-creamgravy-007"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-cheesecake",
+    "role": "dairy",
+    "foreign": [
+      "cheesecake",
+      "cream cheese dessert"
+    ],
+    "indian_healthy": [
+      "hung-curd (shrikhand-style) set dessert, jaggery-sweetened",
+      "chhena/sandesh-style sweet"
+    ],
+    "technique_swap": null,
+    "rationale": "Hung curd and fresh chhena replace cream cheese and refined sugar.",
+    "derived_from": [
+      "sub-processedcheese-015",
+      "sub-sugar-002",
+      "sub-cream-001"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-energy-bar",
+    "role": "sweetener",
+    "foreign": [
+      "energy bar",
+      "granola bar",
+      "protein bar"
+    ],
+    "indian_healthy": [
+      "dry-fruit and jaggery ladoo",
+      "roasted chana-jaggery chikki",
+      "seed-and-nut chikki"
+    ],
+    "technique_swap": null,
+    "rationale": "Traditional jaggery-nut sweets are the original energy bars, without refined syrup.",
+    "derived_from": [
+      "sub-sugar-002"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-bagel-donut",
+    "role": "base",
+    "foreign": [
+      "bagel",
+      "donut",
+      "doughnut"
+    ],
+    "indian_healthy": [
+      "whole-wheat baked bun",
+      "steamed or baked whole-grain ring"
+    ],
+    "technique_swap": "refined flour + fried → whole grain, baked",
+    "rationale": "Whole-grain baked rings replace refined, often-fried ones.",
+    "derived_from": [
+      "sub-maida-003",
+      "sub-deepfry-004"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-croissant-pastry",
+    "role": "base",
+    "foreign": [
+      "croissant",
+      "puff pastry",
+      "danish",
+      "puff"
+    ],
+    "indian_healthy": [
+      "whole-wheat baked khari (light)",
+      "whole-grain flaky flatbread"
+    ],
+    "technique_swap": "butter-laminated refined pastry → whole grain, less fat",
+    "rationale": "Whole-grain flaky breads with less butter replace laminated pastry.",
+    "derived_from": [
+      "sub-maida-003",
+      "sub-cream-001"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-couscous",
+    "role": "base",
+    "foreign": [
+      "couscous",
+      "quinoa salad"
+    ],
+    "indian_healthy": [
+      "millet (foxtail / barnyard) salad",
+      "dalia (broken wheat) salad"
+    ],
+    "technique_swap": null,
+    "rationale": "Native millets and broken wheat stand in for couscous.",
+    "derived_from": [
+      "sub-whiterice-011"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-garlic-bread",
+    "role": "base",
+    "foreign": [
+      "garlic bread"
+    ],
+    "indian_healthy": [
+      "whole-wheat garlic thepla / roti",
+      "millet garlic flatbread"
+    ],
+    "technique_swap": null,
+    "rationale": "Whole-grain garlic flatbreads replace white garlic bread.",
+    "derived_from": [
+      "sub-whitebread-018"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-nachos",
+    "role": "technique",
+    "foreign": [
+      "nachos",
+      "tortilla chips"
+    ],
+    "indian_healthy": [
+      "baked jowar / rice papad chips",
+      "roasted whole-grain crisps"
+    ],
+    "technique_swap": "fried → baked / roasted",
+    "rationale": "Baked papad-style crisps replace fried tortilla chips.",
+    "derived_from": [
+      "sub-deepfry-004",
+      "sub-maida-003"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-spring-roll",
+    "role": "base",
+    "foreign": [
+      "spring roll",
+      "egg roll"
+    ],
+    "indian_healthy": [
+      "baked or steamed vegetable roll in a whole-wheat wrapper",
+      "stuffed whole-grain frankie"
+    ],
+    "technique_swap": "fried refined wrapper → baked / steamed whole grain",
+    "rationale": "Baked whole-grain rolls replace fried spring rolls.",
+    "derived_from": [
+      "sub-maida-003",
+      "sub-deepfry-004"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-tempura",
+    "role": "technique",
+    "foreign": [
+      "tempura",
+      "batter fried"
+    ],
+    "indian_healthy": [
+      "besan pakora cooked in an appe-pan",
+      "tawa or air-fried fritter"
+    ],
+    "technique_swap": "deep-fry → appe-pan / air-fry",
+    "rationale": "Appe-pan or air-fried fritters give the crisp with little oil.",
+    "derived_from": [
+      "sub-deepfry-004"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-falafel",
+    "role": "technique",
+    "foreign": [
+      "falafel"
+    ],
+    "indian_healthy": [
+      "baked or appe-pan chana tikki",
+      "steamed-then-seared lentil patty"
+    ],
+    "technique_swap": "deep-fry → bake / appe-pan",
+    "rationale": "A baked chickpea tikki mirrors falafel without deep-frying.",
+    "derived_from": [
+      "sub-deepfry-004"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-hummus",
+    "role": "fat",
+    "foreign": [
+      "hummus"
+    ],
+    "indian_healthy": [
+      "chana-sesame dip with less oil",
+      "sattu (roasted gram) dip"
+    ],
+    "technique_swap": null,
+    "rationale": "A lighter chickpea-sesame or sattu dip stands in for oily hummus.",
+    "derived_from": [
+      "sub-refinedoil-012"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-pita",
+    "role": "base",
+    "foreign": [
+      "pita",
+      "pita bread",
+      "flatbread pocket"
+    ],
+    "indian_healthy": [
+      "whole-wheat or millet roti / khakhra pocket"
+    ],
+    "technique_swap": null,
+    "rationale": "A whole-grain roti pocket replaces refined pita.",
+    "derived_from": [
+      "sub-maida-003"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-risotto",
+    "role": "base",
+    "foreign": [
+      "risotto"
+    ],
+    "indian_healthy": [
+      "millet or brown-rice khichdi-style, light on cheese and butter"
+    ],
+    "technique_swap": "cheese/butter rice → whole grain with buttermilk finish",
+    "rationale": "A whole-grain khichdi-style dish replaces cheesy risotto.",
+    "derived_from": [
+      "sub-whiterice-011",
+      "sub-creamgravy-007"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-lasagna",
+    "role": "sauce",
+    "foreign": [
+      "lasagna",
+      "baked pasta"
+    ],
+    "indian_healthy": [
+      "millet-pasta layered with paneer and besan-buttermilk sauce"
+    ],
+    "technique_swap": "cheese-cream bake → besan-buttermilk + paneer",
+    "rationale": "Besan-buttermilk sauce and paneer replace the cheese-cream layers.",
+    "derived_from": [
+      "sub-refinedpasta-020",
+      "sub-processedcheese-015",
+      "sub-creamgravy-007"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-pie-quiche",
+    "role": "base",
+    "foreign": [
+      "pie",
+      "quiche",
+      "tart"
+    ],
+    "indian_healthy": [
+      "whole-wheat baked vegetable tart with a hung-curd custard"
+    ],
+    "technique_swap": "refined crust + cream custard → whole grain + hung curd",
+    "rationale": "Whole-grain crust and hung-curd custard replace refined pastry and cream.",
+    "derived_from": [
+      "sub-maida-003",
+      "sub-cream-001"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-hotdog",
+    "role": "base",
+    "foreign": [
+      "hot dog",
+      "corn dog"
+    ],
+    "indian_healthy": [
+      "whole-wheat roll with a spiced soya or paneer sausage"
+    ],
+    "technique_swap": null,
+    "rationale": "Whole-grain roll and fresh spiced protein replace white bun and cured sausage.",
+    "derived_from": [
+      "sub-whitebread-018",
+      "sub-processedmeat-025"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-shawarma",
+    "role": "base",
+    "foreign": [
+      "shawarma",
+      "doner",
+      "gyro"
+    ],
+    "indian_healthy": [
+      "whole-wheat roti roll with grilled chicken or paneer and a hung-curd garlic sauce"
+    ],
+    "technique_swap": null,
+    "rationale": "A whole-grain roti roll with grilled protein and hung-curd sauce replaces the pita-and-mayo wrap.",
+    "derived_from": [
+      "sub-whitebread-018",
+      "sub-mayonnaise-019"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-sushi",
+    "role": "base",
+    "foreign": [
+      "sushi",
+      "maki roll"
+    ],
+    "indian_healthy": [
+      "brown or red-rice rolls with spiced vegetables"
+    ],
+    "technique_swap": "white sushi rice → whole-grain rice",
+    "rationale": "Whole-grain rice rolls stand in for white sushi rice.",
+    "derived_from": [
+      "sub-whiterice-011"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-stirfry-sauce",
+    "role": "sauce",
+    "foreign": [
+      "teriyaki",
+      "hoisin",
+      "stir fry sauce",
+      "manchurian sauce"
+    ],
+    "indian_healthy": [
+      "tamarind-jaggery-spice glaze",
+      "tomato-kokum spiced sauce"
+    ],
+    "technique_swap": null,
+    "rationale": "A tamarind-jaggery glaze replaces sugary, high-sodium stir-fry sauces.",
+    "derived_from": [
+      "sub-sugar-002",
+      "sub-souring-008"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-rice-bowl",
+    "role": "base",
+    "foreign": [
+      "rice bowl",
+      "poke bowl",
+      "buddha bowl"
+    ],
+    "indian_healthy": [
+      "millet or brown-rice bowl with sprouts, vegetables and a curd dressing"
+    ],
+    "technique_swap": null,
+    "rationale": "A whole-grain, sprout-and-veg bowl replaces the white-rice bowl.",
+    "derived_from": [
+      "sub-whiterice-011"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-smoothie-bowl",
+    "role": "sweetener",
+    "foreign": [
+      "smoothie bowl",
+      "acai bowl"
+    ],
+    "indian_healthy": [
+      "a fruit-lassi (curd) bowl with nuts and seeds"
+    ],
+    "technique_swap": null,
+    "rationale": "A curd-and-fruit lassi bowl replaces sugary blended bowls.",
+    "derived_from": [
+      "sub-sugar-002"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-mashed-potato",
+    "role": "base",
+    "foreign": [
+      "mashed potato",
+      "potato gratin",
+      "potato mash"
+    ],
+    "indian_healthy": [
+      "mashed yam, bottle-gourd or sweet potato"
+    ],
+    "technique_swap": null,
+    "rationale": "Lighter native tubers replace the starchy potato mash.",
+    "derived_from": [
+      "sub-potato-009"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-coleslaw",
+    "role": "sauce",
+    "foreign": [
+      "coleslaw",
+      "creamy salad"
+    ],
+    "indian_healthy": [
+      "kachumber / vegetable salad with a lemon-curd dressing"
+    ],
+    "technique_swap": null,
+    "rationale": "A curd-and-lemon dressed salad replaces mayo-based coleslaw.",
+    "derived_from": [
+      "sub-mayonnaise-019"
+    ],
+    "verification_status": "curated"
+  },
+  {
+    "id": "ind-ramen-broth",
+    "role": "base",
+    "foreign": [
+      "ramen",
+      "miso soup",
+      "noodle soup"
+    ],
+    "indian_healthy": [
+      "millet noodles in a spiced vegetable or dal broth"
+    ],
+    "technique_swap": "refined noodles → whole-grain noodles in a spiced broth",
+    "rationale": "Whole-grain noodles in a spiced lentil broth replace refined ramen.",
+    "derived_from": [
+      "sub-refinedpasta-020"
+    ],
+    "verification_status": "curated"
+  }
+]

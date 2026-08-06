@@ -144,6 +144,29 @@
   box-sizing: border-box;
 }
 
+/* Tailwind's preflight strips list markers from every ol and ul, which is the
+   right default for navigation and wrong for a recipe. A method without its
+   step numbers is a wall of sentences, and the reader cannot tell where one
+   instruction ends and the next begins — which is exactly what a person
+   cooking from a phone needs to see. Restored inside the card only, so the
+   rail and the history list keep the reset. */
+.card ol {
+  list-style: decimal outside;
+}
+
+.card ul {
+  list-style: disc outside;
+}
+
+.card li::marker {
+  color: var(--ink-muted);
+  font-size: 0.86em;
+}
+
+.card ol li::marker {
+  font-variant-numeric: tabular-nums;
+}
+
 html,
 body {
   padding: 0;
@@ -684,6 +707,58 @@ body {
     var(--sh-focus);
 }
 
+/* The shortcut in force, shown in the box rather than typed into it. Sits above
+   the field so the caret starts where the reader's own words go. */
+.composer__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  padding: var(--s-4) var(--s-5) 0;
+}
+
+.command-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.28rem 0.4rem 0.28rem 0.7rem;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--orange) 14%, transparent);
+  border: 1px solid color-mix(in oklab, var(--orange) 38%, transparent);
+  color: var(--orange);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.command-chip__x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.05rem;
+  height: 1.05rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.7;
+  transition:
+    opacity var(--dur) var(--ease),
+    background var(--dur) var(--ease);
+}
+
+.command-chip__x:hover,
+.command-chip__x:focus-visible {
+  opacity: 1;
+  background: color-mix(in oklab, var(--orange) 22%, transparent);
+}
+
+/* With a chip above it the field has its own top padding already. */
+.composer__chips + .composer__field {
+  padding-top: var(--s-3);
+}
+
 .composer__field {
   display: block;
   width: 100%;
@@ -1009,6 +1084,12 @@ body {
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+  /* Content scrolls beneath the composer, so the last 40px fades out rather
+     than being sliced off at a hard edge. The fade masks the content itself:
+     painting a band of --stage over it instead left a pale seam wherever the
+     glow behind was orange and the flat colour was not. */
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 40px), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 40px), transparent);
 }
 
 .thread__inner {
@@ -1021,19 +1102,6 @@ body {
   position: relative;
   flex: 0 0 auto;
   padding: 0 var(--s-5) var(--s-5);
-}
-
-/* Content scrolls beneath the composer, so it fades out rather than being
-   sliced off at a hard edge. */
-.thread__foot::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 100%;
-  height: 40px;
-  pointer-events: none;
-  background: linear-gradient(to top, var(--stage), transparent);
 }
 
 .thread__foot-inner {
@@ -1186,6 +1254,53 @@ body {
   from {
     transform: translateX(-16px);
     opacity: 0;
+  }
+}
+
+/* Shown where a beat has no text yet.
+   The caret is a typing cue and needs something to trail; on an empty line it
+   is a lone blinking block, which reads as a rendering fault rather than as
+   work in progress. Three settling dots say the same thing and say it calmly. */
+.thinking {
+  display: inline-flex;
+  gap: 0.28em;
+  align-items: center;
+  height: 1.05em;
+}
+
+.thinking span {
+  width: 0.34em;
+  height: 0.34em;
+  border-radius: 999px;
+  background: var(--orange);
+  opacity: 0.35;
+  animation: settle 1.25s ease-in-out infinite;
+}
+
+.thinking span:nth-child(2) {
+  animation-delay: 0.16s;
+}
+.thinking span:nth-child(3) {
+  animation-delay: 0.32s;
+}
+
+@keyframes settle {
+  0%,
+  70%,
+  100% {
+    opacity: 0.28;
+    transform: translateY(0);
+  }
+  35% {
+    opacity: 1;
+    transform: translateY(-0.18em);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .thinking span {
+    animation: none;
+    opacity: 0.5;
   }
 }
 

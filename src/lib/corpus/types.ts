@@ -38,6 +38,22 @@ export interface Source {
   locus: string | null;
   edition: string | null;
   page: number | null;
+  /**
+   * A free-text reference to where the record came from, and a link to it.
+   *
+   * Distinct from `locus`, and the distinction is the whole point. A locus is a
+   * checked chapter-and-verse an editor has opened the printed edition to
+   * confirm, and an unverified record must not show one. A citation is simply
+   * where this record was drawn from — it makes no claim to have been verified,
+   * so it can and should be shown even while `locus` is withheld.
+   *
+   * Every record in the retrieval index carries both, and dropping them left a
+   * card naming a text with no way for a reader to go and look.
+   *
+   * Optional because the 31 hand-authored records predate them.
+   */
+  citation?: string | null;
+  url?: string | null;
 }
 
 export interface Ingredient {
@@ -78,6 +94,26 @@ export interface RestoreToday {
   time_min: number;
 }
 
+/**
+ * How to cook a record's own method in a modern kitchen.
+ *
+ * Distinct from `restore_today`, which is a complete tested recipe with amounts
+ * and a time, hand-written per dish. This is the weaker but derivable thing:
+ * the historical method translated — which ingredient to keep in its
+ * traditional form, and how to do a technique that needs equipment nobody has.
+ *
+ * Assembled from `displacements.json` and `techniques.json`, so every line
+ * traces to a table. Carries no quantities on purpose: ten records state real
+ * proportions and the rest say "to cook", and filling that gap with invented
+ * numbers would be writing recipes and presenting them as history.
+ */
+export interface MakeTodayNotes {
+  /** Ingredients worth keeping traditional, and the modern default to avoid. */
+  keep: Array<{ keep: string; not: string }>;
+  /** Archaic technique, and how to do it now. */
+  techniques: Array<{ archaic: string; modern: string; keep?: string }>;
+}
+
 export type VitalifeRelevance = "none" | "low" | "medium" | "high";
 
 export interface CorpusRecord {
@@ -115,6 +151,8 @@ export interface CorpusRecord {
   modern_counterpart_id: string | null;
   substitution_story: SubstitutionStory | null;
   restore_today: RestoreToday | null;
+  /** Derived, not authored. Optional because the 31 curated records have a real one. */
+  make_today_notes?: MakeTodayNotes | null;
   region: string | null;
   season: string | null;
   vitalife_relevance: VitalifeRelevance;
@@ -150,4 +188,19 @@ export interface RetrievalResult {
   matched_on: "alias" | "name" | "vector" | null;
   /** True when nothing cleared the threshold. The product says so out loud. */
   empty: boolean;
+  /**
+   * Semantic matches that are **not** an answer.
+   *
+   * Vector search always returns its nearest neighbours, and nearest is not the
+   * same as right: "butter chicken" reaches a twelfth-century chicken dish and
+   * "asdfgh" reaches watermelon. Treating those as hits declared an ancestor
+   * before anything had judged whether the dish even has one.
+   *
+   * So they arrive here instead, and the turn stays a miss. The model is asked
+   * what kind of dish this is — modern, foreign, or genuinely old — and only a
+   * RESTORE verdict promotes a candidate to a record. That ordering is the
+   * whole point: the model already answers this correctly for butter chicken
+   * and pizza, it was simply never consulted.
+   */
+  candidates?: CorpusRecord[];
 }

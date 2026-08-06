@@ -18,8 +18,16 @@ export interface SlashCommand {
   /** Without the leading slash. */
   slug: string;
   label: string;
+  /** Label for the thread title, where the dish is already the subject. */
+  short: string;
   /** Composer placeholder once the command is in the box. */
   hint: string;
+  /**
+   * Sent as prose when the command arrives with no dish behind it. The command
+   * alone is not a turn to answer, and the answer must not be a card — see the
+   * empty-query branch in the chat route.
+   */
+  ask: string;
   /** Appended to the turn instruction. Narrows the answer; never widens it. */
   instruction: string;
 }
@@ -28,7 +36,9 @@ export const COMMANDS: SlashCommand[] = [
   {
     slug: "recipe-card",
     label: "Generate Recipe Card",
+    short: "Recipe Card",
     hint: "…and the dish to lay out as a card",
+    ask: "Name a dish after the command and I will lay it out as a recipe card.",
     instruction:
       "The reader asked for a recipe card. Make RESTORE_TODAY complete enough to " +
       "cook from unaided — quantities, order and timing — using only what the " +
@@ -38,7 +48,9 @@ export const COMMANDS: SlashCommand[] = [
   {
     slug: "pre-raj",
     label: "Pre-Raj Version",
+    short: "Pre-Raj",
     hint: "…and the dish to take back before 1858",
+    ask: "Name a dish after the command and I will take it back before 1858.",
     instruction:
       "The reader asked specifically what this dish was before the colonial " +
       "period. Spend THEN and WHAT_CHANGED on that: what the older version was " +
@@ -47,7 +59,9 @@ export const COMMANDS: SlashCommand[] = [
   {
     slug: "healthier-swap",
     label: "Healthier Swap",
+    short: "Swap",
     hint: "…and the ingredient or dish to swap",
+    ask: "Name the ingredient or dish you want swapped, after the command.",
     instruction:
       "The reader asked for a substitution. Every swap must come from the swap " +
       "table above, quoted at the ratio it records. Do not offer nutritional or " +
@@ -57,7 +71,9 @@ export const COMMANDS: SlashCommand[] = [
   {
     slug: "oil-match",
     label: "Oil Match",
+    short: "Oil Match",
     hint: "…and the dish to match a cooking fat to",
+    ask: "Name a dish after the command and I will match a cooking fat to it.",
     instruction:
       "The reader asked which cooking fat suits this dish. Answer from the fat " +
       "the record names and from the swap table, and say plainly when neither " +

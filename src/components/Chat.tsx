@@ -3,12 +3,7 @@
 import { Code2, FileText, ImageIcon, type LucideIcon, Menu, Pencil, SquarePen } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
-import {
-  applyCommand,
-  COMMANDS,
-  parseCommand,
-  type SlashCommand,
-} from "@/lib/chat/commands";
+import { COMMANDS, parseCommand, type SlashCommand } from "@/lib/chat/commands";
 import {
   deleteConversation,
   deriveTitle,
@@ -23,8 +18,9 @@ import {
   subscribe,
   type ChatMessage,
 } from "@/lib/chat/store";
+import type { TurnKind, TurnMode } from "@/lib/chat/turn";
+import { PROSE, Typewriter } from "@/lib/chat/typewriter";
 import type { CorpusRecord } from "@/lib/corpus/types";
-import type { Beat } from "@/lib/model/beats";
 import {
   getServerSnapshot as railServerSnapshot,
   getSnapshot as railSnapshot,
@@ -59,11 +55,11 @@ const SUBHEADING =
   "Enter a modern dish to unearth its original, pre-1858 recipe and see what British cash-crop policies erased from our diet.";
 
 interface StreamEvent {
-  type: "meta" | "delta" | "text" | "done" | "error";
-  mode?: "restoration" | "conversation";
+  type: "meta" | "delta" | "text" | "done" | "error" | "redact";
+  mode?: TurnMode;
+  kind?: TurnKind | null;
   records?: CorpusRecord[];
-  empty?: boolean;
-  beat?: Beat;
+  beat?: string;
   text?: string;
   message?: string;
 }
@@ -113,7 +109,16 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
 
   // Read back out of the input rather than held as separate state, so typing
   // or deleting the slash by hand stays in step with the pills.
-  const activeCommand = parseCommand(input).command;
+  /**
+   * The shortcut in force.
+   *
+   * It used to live inside the input as the literal "/pre-raj ", which made it
+   * something the reader could half-delete, and made the box read as a command
+   * line rather than a question. It is state now, and the composer shows it as
+   * a chip. The wire format is unchanged: it is put back in front of the text
+   * on send, so the server still parses one string.
+   */
+  const [activeCommand, setActiveCommand] = useState<SlashCommand | null>(null);
 
   // ---- viewport -----------------------------------------------------------
 
@@ -135,16 +140,62 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
 
   // ---- scrolling ----------------------------------------------------------
 
+  /**
+   * Set while the follow animation is moving the thread itself.
+   *
+   * Without it the animation's own scroll fires this handler, sees it has not
+   * caught up yet, concludes the reader scrolled away and stops following.
+   */
+  const selfScrolling = useRef(false);
+
   const onScroll = () => {
     const el = threadRef.current;
-    if (!el) return;
+    if (!el || selfScrolling.current) return;
     stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
   };
 
+  /**
+   * Follow the text rather than jump past it.
+   *
+   * `scrollTop = scrollHeight` lands on the bottom of the card, which during a
+   * restoration turn is the collapsed beat headers and the share buttons, not
+   * the sentence being written. Every token then re-jumped there, so the reader
+   * was held below the writing for the whole turn.
+   *
+   * Easing toward the target instead means the view drifts down at roughly the
+   * speed the words arrive, and the line being written stays where the eye
+   * already is. Anyone who scrolls up keeps their place: `stick` is false and
+   * this does nothing until they come back down.
+   */
+  const follow = useRef<number | null>(null);
   useEffect(() => {
-    if (!stick.current) return;
-    const el = threadRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
+    if (!stick.current || follow.current !== null) return;
+    const step = () => {
+      const el = threadRef.current;
+      if (!el || !stick.current) {
+        follow.current = null;
+        return;
+      }
+      const target = el.scrollHeight - el.clientHeight;
+      const gap = target - el.scrollTop;
+      if (gap < 1) {
+        follow.current = null;
+        return;
+      }
+      // A long way behind is a new turn, not streaming: close it quickly.
+      selfScrolling.current = true;
+      el.scrollTop += gap > 600 ? gap : Math.max(1, gap * 0.18);
+      // The scroll event lands after this frame, so the flag clears after it.
+      requestAnimationFrame(() => {
+        selfScrolling.current = false;
+      });
+      follow.current = requestAnimationFrame(step);
+    };
+    follow.current = requestAnimationFrame(step);
+    return () => {
+      if (follow.current !== null) cancelAnimationFrame(follow.current);
+      follow.current = null;
+    };
   }, [conversations]);
 
   // ---- sending ------------------------------------------------------------
@@ -165,13 +216,18 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
 
       const userMsg: ChatMessage = { id: newId(), role: "user", text: trimmed || (slug ?? "") };
       const replyId = newId();
+      // No mode until `meta` says which one. Seeding "restoration" painted an
+      // empty card for one round-trip on every turn, including the prose ones
+      // that never wanted a card at all.
       const reply: ChatMessage = {
         id: replyId,
         role: "assistant",
         text: "",
-        mode: "restoration",
         beats: {},
         streaming: true,
+        // Minus any slash command: "/pre-raj biryani" is a request about
+        // biryani, and biryani is what belongs on the share card.
+        query: parseCommand(trimmed).rest || slug || trimmed,
       };
 
       const priorMessages = base.messages;
@@ -185,6 +241,18 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
 
       const controller = new AbortController();
       abortRef.current = controller;
+
+      // The wire order is the reveal order, so one queue covers every beat.
+      const typer = new Typewriter((key, text) => {
+        if (key === PROSE) {
+          patchMessage(conversationId, replyId, (m) => ({ ...m, text: m.text + text }));
+          return;
+        }
+        patchMessage(conversationId, replyId, (m) => ({
+          ...m,
+          beats: { ...m.beats, [key]: (m.beats?.[key] ?? "") + text },
+        }));
+      });
 
       try {
         const res = await fetch("/api/chat", {
@@ -232,32 +300,40 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
               patchMessage(conversationId, replyId, (m) => ({
                 ...m,
                 mode: evt.mode ?? "restoration",
+                kind: evt.kind ?? undefined,
                 records,
-                empty: Boolean(evt.empty),
               }));
-              if (records.length) {
-                patchConversation(conversationId, (c) => ({
-                  ...c,
-                  activeRecordIds: records.map((r) => r.id),
-                }));
-              }
+              // Assigned unconditionally, including when empty. Guarding this on
+              // `records.length` left the previous dish active through any turn
+              // that carried none — ask for kheer, then pizza, then "what oil?",
+              // and the follow-up was answered about kheer. The server echoes the
+              // carried records back on a reply turn, so clearing here is only
+              // ever clearing something that genuinely left the screen.
+              patchConversation(conversationId, (c) => ({
+                ...c,
+                activeRecordIds: records.map((r) => r.id),
+              }));
             } else if (evt.type === "delta" && evt.beat) {
-              const beat = evt.beat;
-              patchMessage(conversationId, replyId, (m) => ({
-                ...m,
-                beats: { ...m.beats, [beat]: (m.beats?.[beat] ?? "") + (evt.text ?? "") },
-              }));
+              typer.push(evt.beat, evt.text ?? "");
             } else if (evt.type === "text") {
-              patchMessage(conversationId, replyId, (m) => ({
-                ...m,
-                text: m.text + (evt.text ?? ""),
-              }));
+              typer.push(PROSE, evt.text ?? "");
+            } else if (evt.type === "redact") {
+              // The server caught the completion reproducing the prompt after
+              // some of it had already been sent. Drop what was rendered, and
+              // the queue with it, before the refusal arrives.
+              typer.cancel();
+              patchMessage(conversationId, replyId, (m) => ({ ...m, text: "", beats: {} }));
             } else if (evt.type === "error") {
               patchMessage(conversationId, replyId, (m) => ({ ...m, error: evt.message }));
             }
           }
         }
+
+        // The wire is done; the caret is not. Hold the turn open until the
+        // queue has emptied, or the card would snap to its full text.
+        await typer.finish();
       } catch (err) {
+        typer.cancel();
         if ((err as Error).name !== "AbortError") {
           patchMessage(conversationId, replyId, (m) => ({
             ...m,
@@ -274,7 +350,11 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
               ? [m.beats?.VERDICT, m.beats?.THEN, m.beats?.WHAT_CHANGED, m.beats?.RESTORE_TODAY]
                   .filter(Boolean)
                   .join("\n\n")
-              : m.text,
+              : m.mode === "indianize"
+                ? [m.beats?.VERDICT, m.beats?.REBUILD, m.beats?.SWAPS, m.beats?.PLATE]
+                    .filter(Boolean)
+                    .join("\n\n")
+                : m.text,
         }));
         flush();
         setBusy(false);
@@ -295,8 +375,16 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
   // ---- actions ------------------------------------------------------------
 
   const submit = () => {
-    const text = input;
+    const dish = input.trim();
+    // A shortcut on its own is not a question. "/pre-raj" names how to answer,
+    // not what to answer about, and sending it used to produce a card asking
+    // for the dish the reader had already been asked for.
+    if (activeCommand && !dish) return;
+
+    // The chip is presentation; the wire has always been one string.
+    const text = activeCommand ? `/${activeCommand.slug} ${dish}` : input;
     setInput("");
+    setActiveCommand(null);
     void send(text);
   };
 
@@ -312,6 +400,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
     dismissOverlay();
     setView("chat");
     setInput("");
+    setActiveCommand(null);
   };
 
   const openConversation = (id: string) => {
@@ -340,7 +429,8 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
   // A pill writes its command into the composer and hands the caret back — it
   // does not run anything. The turn only leaves when the reader sends it.
   const pickCommand = (command: SlashCommand) => {
-    setInput((current) => applyCommand(current, command));
+    // Tapping the pill that is already lit turns it off.
+    setActiveCommand((current) => (current?.slug === command.slug ? null : command));
     setView("chat");
     // After the paint, so the caret lands past the command the reader just
     // inserted rather than at whatever index it held before.
@@ -470,9 +560,11 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                       value={input}
                       onChange={setInput}
                       onSubmit={submit}
+                      command={activeCommand}
+                      onClearCommand={() => setActiveCommand(null)}
                       onStop={() => abortRef.current?.abort()}
                       busy={busy}
-                      placeholder={activeCommand?.hint ?? "Name a dish…"}
+                      placeholder={activeCommand ? "Type your query…" : "Name a dish…"}
                       variant="flat"
                       minHeight={64}
                       inputRef={promptRef}
@@ -492,9 +584,11 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                     value={input}
                     onChange={setInput}
                     onSubmit={submit}
+                    command={activeCommand}
+                    onClearCommand={() => setActiveCommand(null)}
                     onStop={() => abortRef.current?.abort()}
                     busy={busy}
-                    placeholder={activeCommand?.hint ?? "Type a dish to travel back in time…"}
+                    placeholder={activeCommand ? "Type your query…" : "Type a dish to travel back in time…"}
                     inputRef={promptRef}
                     minHeight={150}
                   />
@@ -518,9 +612,11 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                       value={input}
                       onChange={setInput}
                       onSubmit={submit}
+                      command={activeCommand}
+                      onClearCommand={() => setActiveCommand(null)}
                       onStop={() => abortRef.current?.abort()}
                       busy={busy}
-                      placeholder={activeCommand?.hint ?? "Ask a follow-up…"}
+                      placeholder={activeCommand ? "Type your query…" : "Ask a follow-up…"}
                       variant="flat"
                       minHeight={72}
                       inputRef={promptRef}

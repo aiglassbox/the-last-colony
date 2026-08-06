@@ -88,6 +88,9 @@ function anthropicProvider(): ModelProvider {
         system: system(req.system),
         messages: req.messages.map((m) => ({ role: m.role, content: m.content })),
       });
+      // Same check the streaming path makes. Without it a declined completion
+      // returned as empty text and read as a model that had nothing to say.
+      if (message.stop_reason === "refusal") throw new RefusalError();
       return message.content
         .filter((b) => b.type === "text")
         .map((b) => (b as { text: string }).text)

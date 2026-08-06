@@ -1,0 +1,33 @@
+{
+  "name": "ancient-indian-recipe-chatbot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "search": "tsx scripts/search.ts",
+    "index:setup": "tsx scripts/setup-index.ts",
+    "sync": "tsx scripts/sync.ts",
+    "sync:dry": "tsx scripts/sync.ts --dry-run",
+    "normalize:tier2": "tsx scripts/normalize-tier2.ts",
+    "rerank:check": "tsx scripts/check-rerank.ts",
+    "eval": "tsx scripts/eval-embeddings.ts",
+    "eval:verbose": "tsx scripts/eval-embeddings.ts --verbose",
+    "eval:rerank": "tsx scripts/eval-embeddings.ts --rerank",
+    "gold:review": "tsx scripts/gold-review.ts",
+    "gold:audit": "tsx scripts/gold-audit.ts",
+    "gold:audit:write": "tsx scripts/gold-audit.ts --write",
+    "gold:apply": "tsx scripts/gold-apply.ts",
+    "gold:apply:dry": "tsx scripts/gold-apply.ts --dry-run",
+    "make-today": "tsx scripts/make-today-sheet.ts"
+  },
+  "dependencies": {
+    "@google/genai": "^1.0.0",
+    "@pinecone-database/pinecone": "^6.0.0",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

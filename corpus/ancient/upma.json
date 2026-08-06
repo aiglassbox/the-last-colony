@@ -30,7 +30,7 @@
       "sanskrit": "arisi",
       "quantity_source": null,
       "quantity_modern": "1 cup",
-      "function": "the base grain. Soaked, air-dried and ground coarse on a sil-batta into a fibre-rich rice rava — wheat semolina was practically absent from South Indian kitchens"
+      "function": "the base grain. Soaked, air-dried and ground coarse on a sil-batta into a fibre-rich rice rava, wheat semolina was practically absent from South Indian kitchens"
     },
     {
       "name": "millets or cracked wheat, regionally",
@@ -73,7 +73,7 @@
     "Dry-roast the grain until it smells nutty.",
     "Temper mustard, urad dal, chana dal and curry leaf in sesame oil or ghee; add ginger and cracked pepper.",
     "Pour in hot water and rain the grain in, stirring.",
-    "Cover and cook until the grain is soft but still grainy — it was never meant to be fluffy."
+    "Cover and cook until the grain is soft but still grainy, it was never meant to be fluffy."
   ],
   "provenance_class": "RECONSTRUCTED",
   "confidence": {
@@ -83,7 +83,7 @@
   },
   "contested_points": [
     "Upma itself predates British rule; what the colonial period changed was the grain it was made from, not the existence of the dish.",
-    "There was no single pre-colonial upma — broken rice, coarse rice, millets and cracked wheat all appear, depending on the region."
+    "There was no single pre-colonial upma, broken rice, coarse rice, millets and cracked wheat all appear, depending on the region."
   ],
   "modern_counterpart_id": "modern-upma-001",
   "substitution_story": {
@@ -92,7 +92,7 @@
         "from": "broken rice, millets or cracked wheat, ground at home",
         "to": "industrially milled wheat semolina (rava)",
         "period": "1942 onward, accelerating post-1945",
-        "driver": "the Japanese occupation of Burma in 1942 cut India's main external rice supply, and the colonial administration placed strict controls on domestic rice distribution while exporting stockpiles to feed Allied troops. Semolina — the cracked endosperm left over from milling wheat into maida at northern roller mills — was pushed into the South Indian market as \"Bombay Rava\", with state-subsidised cooking demonstrations and flyers claiming it was more nutritious than rice"
+        "driver": "the Japanese occupation of Burma in 1942 cut India's main external rice supply, and the colonial administration placed strict controls on domestic rice distribution while exporting stockpiles to feed Allied troops. Semolina, the cracked endosperm left over from milling wheat into maida at northern roller mills, was pushed into the South Indian market as \"Bombay Rava\", with state-subsidised cooking demonstrations and flyers claiming it was more nutritious than rice"
       },
       {
         "from": "black pepper and ginger",
@@ -137,7 +137,7 @@
   "vitalife_relevance": "high",
   "verification": {
     "status": "editor_verified",
-    "checked_by": "Vitalife editorial extraction — “Recipes: Before British”",
+    "checked_by": "Vitalife editorial extraction, “Recipes: Before British”",
     "checked_on": "2026-07-30",
     "note": "Transcribed from the editorial extraction, which cites regional culinary archives, Dravidian lexicography, British Raj military logistics and Famine Inquiry Commission records, and MTR's corporate archives. No single verse is claimed, so this is RECONSTRUCTED rather than ATTESTED."
   }

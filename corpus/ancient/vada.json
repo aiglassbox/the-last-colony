@@ -58,7 +58,7 @@
       "sanskrit": "taila",
       "quantity_source": null,
       "quantity_modern": "for deep frying",
-      "function": "the frying medium — a regional, cold-pressed, single-source fat, and the flavour of the dish as much as the batter is"
+      "function": "the frying medium, a regional, cold-pressed, single-source fat, and the flavour of the dish as much as the batter is"
     }
   ],
   "method_reconstructed": [
@@ -75,14 +75,14 @@
     "method": 0.6
   },
   "contested_points": [
-    "Vaṭaka names a family of pulse cakes — fried, steamed, and sun-dried keeping-cakes — not exclusively the fried doughnut shape.",
+    "Vaṭaka names a family of pulse cakes, fried, steamed, and sun-dried keeping-cakes, not exclusively the fried doughnut shape.",
     "Which pulse is intended varies between descriptions; urad is the most common reading but not the only one."
   ],
   "modern_counterpart_id": "modern-vada-001",
   "substitution_story": {
     "changed": [
       {
-        "from": "regional cold-pressed oil — sesame in the south-east, coconut in the south-west, mustard in the east",
+        "from": "regional cold-pressed oil, sesame in the south-east, coconut in the south-west, mustard in the east",
         "to": "refined, deodorised, blended seed oil",
         "period": "mid-to-late 20th century",
         "driver": "solvent extraction and refining produced a cheap neutral oil with a long shelf life and a high smoke point; the regional oils became specialty items"
@@ -110,12 +110,12 @@
       "Cold-pressed sesame or coconut oil for frying"
     ],
     "steps": [
-      "Grind the dal thick — a tablespoon of water at a time, no more. Stop when it is fluffy and pale.",
+      "Grind the dal thick, a tablespoon of water at a time, no more. Stop when it is fluffy and pale.",
       "Beat it with your hand or a whisk for three minutes. Drop a bit into water: if it floats, it is ready.",
       "Fold in pepper, ginger, asafoetida and salt.",
       "Wet your palm, flatten a ball, make a hole, slide it into oil at about 170°C.",
       "Fry until the bubbling slows and the colour is deep gold.",
-      "The frying medium is not neutral here. A cold-pressed sesame or coconut oil is half of what this tastes like — this is a dish where the fat is an ingredient, not a utility."
+      "The frying medium is not neutral here. A cold-pressed sesame or coconut oil is half of what this tastes like, this is a dish where the fat is an ingredient, not a utility."
     ],
     "time_min": 50
   },

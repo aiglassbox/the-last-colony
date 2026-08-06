@@ -7,6 +7,32 @@ import { fold } from "@/lib/retrieval/normalize";
 import type { CorpusRepository } from "./repository";
 import type { CorpusRecord, SwapRecord } from "./types";
 import { CorpusValidationError, validateCorpusSet, validateRecord, validateSwap } from "./validate";
+import { toCorpusRecord } from "./vector";
+
+/**
+ * Looks a single indexed record up by id.
+ *
+ * Separate from `searchVectors` because a permalink is a primary-key lookup, not
+ * a search: `/dish/[slug]` must never resolve to "the nearest thing", which is
+ * the same reason the chat route 404s an unknown slug rather than asking the
+ * model about it.
+ */
+async function fetchIndexedRecord(slug: string): Promise<CorpusRecord | null> {
+  try {
+    const [{ namespaced, NAMESPACES }, { recipeFromMetadata }] = await Promise.all([
+      import("@pipeline/lib/pinecone"),
+      import("@pipeline/lib/recipe-text"),
+    ]);
+    const { records } = await namespaced(NAMESPACES.tier1Ancient).fetch([slug]);
+    const metadata = records?.[slug]?.metadata;
+    if (!metadata?.record) return null;
+    return toCorpusRecord(recipeFromMetadata(metadata));
+  } catch {
+    // A permalink that cannot be resolved is a 404, which is what the caller
+    // already does with null. Never a guess.
+    return null;
+  }
+}
 
 /**
  * File-backed corpus. Reads and validates every record once, at first use, and
@@ -109,7 +135,12 @@ export const fileCorpus: CorpusRepository = {
     return loadCorpus().byId.get(id) ?? null;
   },
   async bySlug(slug) {
-    return loadCorpus().bySlug.get(slug) ?? null;
+    const local = loadCorpus().bySlug.get(slug);
+    if (local) return local;
+    // A card built from the index carries an index slug, and its Permalink and
+    // Share links point back here. Without this fallback those links 404 on
+    // exactly the dishes the index just made findable.
+    return fetchIndexedRecord(slug);
   },
   async searchKeyword(query, limit) {
     const { index, byId } = loadCorpus();
@@ -124,11 +155,61 @@ export const fileCorpus: CorpusRepository = {
       }))
       .filter((h) => Boolean(h.record));
   },
-  async searchVectors() {
-    // Not wired up. Returning nothing is the correct behaviour for a fallback
-    // that does not exist yet: retrieval reports empty and the product says so,
-    // rather than quietly substituting a nearest neighbour.
-    return [];
+  async searchVectors(query, limit) {
+    // ON by default since the ordering fix. Set VECTOR_FALLBACK=off to disable.
+    //
+    // The history is worth keeping, because the fix was not the obvious one.
+    //
+    // Wiring this to the 199-record index works: "snake gourd" finds Snake
+    // Gourd in Ghee, and "something for bleeding disorders" finds three records
+    // whose ayurvedic text names raktapitta — a property query BM25 over dish
+    // names could never answer.
+    //
+    // It used to break rule 3, "retrieval declines rather than guesses". Wiring
+    // the index straight in gave 114/132 on the harness: eighteen wrong
+    // ancestors, including a twelfth-century chicken dish for butter chicken,
+    // pre-colonial vegetable rice for pizza, and a watermelon recipe for
+    // "asdfgh".
+    //
+    // The instinct was to raise a threshold. No threshold exists: "asdfgh"
+    // scored 0.57 and "jalebi" 0.72, and jalebi was correct. Three rerankers
+    // and cosine all overlap the same way.
+    //
+    // It was an ordering bug. Vector search returned a *hit*, so an ancestor was
+    // declared before anything asked whether the dish has one — while the model
+    // three lines later already classified butter chicken as modern and pizza as
+    // foreign, correctly, every time. It was simply never consulted.
+    //
+    // Now these arrive as `candidates` on a result that is still empty, the
+    // model judges the dish, and only a RESTORE verdict promotes one to a
+    // record. Harness: 132/132. It also restored a guardrail retrieval had been
+    // bypassing — "something for bleeding disorders" now reaches rule 4 and is
+    // declined as a medical question instead of rendering an ayurvedic card.
+    if (process.env.VECTOR_FALLBACK === "off") return [];
+
+    // Failure returns empty rather than throwing. An index outage should cost
+    // the wider net, not the whole turn — a corpus hit still answers, and a miss
+    // still declines honestly, which is what the product did before this existed.
+    try {
+      const { retrieve } = await import("@pipeline/lib/retrieval");
+      const hits = await retrieve(query, { topK: limit });
+      return hits.map((hit) => ({
+        record: toCorpusRecord(hit.recipe),
+        score: hit.denseScore,
+        // Vector recall is not name matching: it cannot claim to have explained
+        // the query or matched its head noun, and saying otherwise would let a
+        // semantic near-miss through the ambiguity gate that exists to stop
+        // exactly that.
+        explains_query: false,
+        head_phrase: false,
+      }));
+    } catch (error) {
+      console.warn(
+        `[vector-search] index unavailable, keyword-only: ` +
+          `${error instanceof Error ? error.message : error}`,
+      );
+      return [];
+    }
   },
   async swaps() {
     return loadCorpus().swaps;

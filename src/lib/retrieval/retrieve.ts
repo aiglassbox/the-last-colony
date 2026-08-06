@@ -1,4 +1,5 @@
 import { fileCorpus } from "@/lib/corpus/load";
+import { namesForeignDish } from "@/lib/indianization/foreign-dishes";
 import type { CorpusRepository, RepoHit } from "@/lib/corpus/repository";
 import type { CorpusRecord, RetrievalResult } from "@/lib/corpus/types";
 
@@ -41,14 +42,41 @@ export async function retrieveForDish(
 ): Promise<RetrievalResult> {
   if (!query.trim()) return EMPTY;
 
+  // A foreign dish in the query settles the turn before any scoring happens.
+  // "dosa pizza fusion" matches dosa cleanly, and that match is real, but it is
+  // not a restoration: the answer is a fusion, and returning the record would
+  // put an ATTESTED badge and the Dhosaka source strip under an invented pizza.
+  // Declining here sends it to the resolver, which renders the Indianisation
+  // card instead, and that card carries no citation because there is none.
+  //
+  // Without candidates, deliberately. Everywhere else a miss offers its nearest
+  // neighbours so the model can promote one on MODE: RESTORE, and promoting one
+  // here is precisely the failure being closed: the record would come back onto
+  // a fusion card wearing its badge, by a longer route.
+  if (namesForeignDish(query)) return EMPTY;
+
   const keyword = await repo.searchKeyword(query, MAX_INJECTED_RECORDS);
 
   if (!keyword.length || keyword[0].score < minScore) {
-    // Vectors are the fallback, not the default. When they are wired up they
-    // inherit the same threshold discipline: below it, we return empty.
+    // Vectors are the fallback, and deliberately not a decision.
+    //
+    // They used to return a hit, which meant a nearest neighbour became "the
+    // ancestor" with nothing having asked whether the dish has one. Eighteen
+    // queries in the harness went wrong that way: butter chicken reached a
+    // twelfth-century chicken dish, pizza reached pre-colonial vegetable rice,
+    // asdfgh reached watermelon. No score separated them from the good matches
+    // — "asdfgh" scored 0.57 and "jalebi" 0.72, and jalebi was correct.
+    //
+    // So the turn stays a miss and the neighbours ride along as candidates.
+    // What decides is the model, which classifies the dish as modern, foreign
+    // or genuinely old before any record is shown — and already gets butter
+    // chicken and pizza right. This is an ordering fix, not a scoring one.
     const vector = await repo.searchVectors(query, MAX_INJECTED_RECORDS);
-    if (!vector.length) return { ...EMPTY, top_score: keyword[0]?.score ?? 0 };
-    return withCounterparts(vector, "vector", repo);
+    return {
+      ...EMPTY,
+      top_score: keyword[0]?.score ?? 0,
+      candidates: vector.length ? vector.map((h) => h.record) : undefined,
+    };
   }
 
   if (isAmbiguous(keyword)) {

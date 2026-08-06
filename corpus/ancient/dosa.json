@@ -30,7 +30,7 @@
       "sanskrit": "caṇaka",
       "quantity_source": null,
       "quantity_modern": "2 cups, soaked and ground",
-      "function": "the batter. Urad or cowpea are given as alternatives — but not rice, which does not appear at all"
+      "function": "the batter. Urad or cowpea are given as alternatives, but not rice, which does not appear at all"
     },
     {
       "name": "asafoetida water",
@@ -74,14 +74,14 @@
   },
   "contested_points": [
     "Fermentation is not stated in the passage. The dense, unfermented reading is an inference from what the text does and does not say.",
-    "The nearest thing to this on a modern menu is not the dosa but the besan chilla or the adai — both of which are pulse batters with no rice.",
+    "The nearest thing to this on a modern menu is not the dosa but the besan chilla or the adai, both of which are pulse batters with no rice.",
     "The thin, crisp, potato-filled masala dosa is a 20th-century restaurant dish; potato is a Columbian-exchange arrival."
   ],
   "modern_counterpart_id": "modern-dosa-001",
   "substitution_story": {
     "changed": [
       {
-        "from": "a pulse batter — chickpea, black gram or cowpea — with no rice",
+        "from": "a pulse batter, chickpea, black gram or cowpea, with no rice",
         "to": "roughly 75% polished rice with urad as the minority partner",
         "period": "late colonial through post-Independence",
         "driver": "polished rice was cheaper and more available than pulses, whose acreage had fallen as land moved toward export and cash crops"
@@ -108,11 +108,11 @@
       "Cold-pressed sesame or groundnut oil for the griddle"
     ],
     "steps": [
-      "Grind the soaked chana dal with enough water to make a pouring batter. No fermentation needed — this one is cooked fresh.",
+      "Grind the soaked chana dal with enough water to make a pouring batter. No fermentation needed, this one is cooked fresh.",
       "Stir in the asafoetida water, grated ginger and salt.",
       "Spread on a hot, well-oiled tawa. It will not lace or go crisp the way a rice batter does.",
       "Cook until the underside releases, then fold.",
-      "Dense, savoury, and tasting of gram and asafoetida. Closer to an adai than to the dosa you know — which is the point.",
+      "Dense, savoury, and tasting of gram and asafoetida. Closer to an adai than to the dosa you know, which is the point.",
       "The griddle oil is doing real work here; a cold-pressed one is the last thing you taste."
     ],
     "time_min": 30
@@ -122,7 +122,7 @@
   "vitalife_relevance": "medium",
   "verification": {
     "status": "editor_verified",
-    "checked_by": "Vitalife editorial extraction — “Recipes: Before British”",
+    "checked_by": "Vitalife editorial extraction, “Recipes: Before British”",
     "checked_on": "2026-07-30",
     "note": "Passage located and rendered in the editorial extraction, dated 1129 CE. Devanagari not yet transcribed into this record."
   }

@@ -30,7 +30,7 @@
       "sanskrit": "godhūma",
       "quantity_source": null,
       "quantity_modern": "2 cups",
-      "function": "the whole grain — bran, germ and endosperm, because there was no way to separate them at scale"
+      "function": "the whole grain, bran, germ and endosperm, because there was no way to separate them at scale"
     },
     {
       "name": "water",
@@ -61,7 +61,7 @@
     "method": 0.7
   },
   "contested_points": [
-    "Several flatbreads are named in the medieval literature — rotikā, maṇḍaka, pūrikā and others — and mapping each onto a modern bread is not clean.",
+    "Several flatbreads are named in the medieval literature, rotikā, maṇḍaka, pūrikā and others, and mapping each onto a modern bread is not clean.",
     "Wheat was a regional staple, not a national one. In much of the south and east the everyday flatbread was millet or rice, not wheat."
   ],
   "modern_counterpart_id": "modern-roti-001",
@@ -92,7 +92,7 @@
       "2 cups whole wheat, or the coarsest chakki atta your kirana stocks",
       "3/4 cup warm water",
       "Ghee or a cold-pressed oil",
-      "Salt, optional — the old versions largely did without"
+      "Salt, optional, the old versions largely did without"
     ],
     "steps": [
       "If you can get whole wheat berries, have them ground at a chakki and use the flour within a fortnight. That single change is most of the difference.",

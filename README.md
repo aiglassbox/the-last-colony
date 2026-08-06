@@ -7,13 +7,57 @@ can cook tonight.
 
 ```bash
 npm install
-cp .env.example .env   # add ANTHROPIC_API_KEY
+cp .env.example .env   # add GEMINI_API_KEY or ANTHROPIC_API_KEY
 npm run check          # validate the corpus, then prove retrieval
 npm run dev
 ```
 
 `npm run check` runs before anything else on purpose. The corpus is the
 product; the chatbot is the interface.
+
+## Two packages in this repo
+
+The app is at the root. **`pipeline/` is a second, independent npm package** —
+the retrieval engine that embeds a 199-recipe corpus into Pinecone and searches
+it. Separate dependencies, separate `.env`, separate install:
+
+```bash
+cd pipeline
+npm install
+cp .env.example .env   # PINECONE_API_KEY, GEMINI_API_KEY, and a reranker key
+npm run rerank:check   # confirm reranking is live, not silently degraded
+npm run search -- "something that helps with digestion"
+npm run eval           # measure retrieval quality
+```
+
+`npm run search` is the quickest way to see what the index actually holds. It
+prints both scores: the dense score found the record, the rerank score ordered
+it. When they disagree, the reranker is earning its place.
+
+Neither package imports the other **yet**. The app still keyword-searches its
+own 31-record corpus in `corpus/`, while 199 recipes sit indexed next door.
+Connecting them is the open piece of work.
+
+`pipeline/ARCHITECTURE.md` is the file to read first: what the invariants are,
+how two-stage retrieval works, and every number that has actually been measured
+rather than assumed.
+
+### If you are picking this up
+
+The Pinecone index is already populated — **199 vectors in `tier1-ancient`**, so
+no sync is needed unless `data/recipes.json` changes. You need the keys, not the
+data.
+
+`rerank:check` before anything else. Reranking is worth 88% → 97% Recall@1, and
+when its vendor is unreachable the code keeps working on dense results alone.
+That failure is invisible from the product and has already gone unnoticed twice:
+once when Pinecone's 500-a-month cap ran out, once when Jina throttled and 43
+queries degraded silently mid-evaluation.
+
+Reranker options and their ceilings are documented in `pipeline/.env.example`.
+DeepInfra is wired and is the only one without a monthly cap, but its account
+needs a balance — an unfunded key returns 402 and drops you to dense-only, which
+is why `RERANK_PROVIDER` is currently pinned.
 
 ---
 
@@ -31,7 +75,7 @@ src/lib/retrieval/ normalisation, BM25, the threshold and ambiguity gates
 src/lib/model/     system prompt, corpus block, streaming beat parser
 src/lib/chat/      conversation state as an external store, localStorage-backed
 src/app/           chat surface, /dish/[slug], API routes, 1080×1350 share card
-tests/             105 hand-checked retrieval queries
+tests/             132 hand-checked retrieval queries
 ```
 
 ### Two kinds of turn
@@ -172,7 +216,7 @@ fibre, glycaemic load — because "healthier" on its own is not a claim this
 project makes, and some entries say outright that they win on flavour and
 nothing else.
 
-`tests/retrieval-queries.json` holds 105 hand-checked queries covering Hinglish
+`tests/retrieval-queries.json` holds 132 hand-checked queries covering Hinglish
 spellings, Devanagari and Tamil, and the traps above. The harness fails the
 build on any **wrong** answer and on more misses than `ALLOWED_MISSES` (zero).
 

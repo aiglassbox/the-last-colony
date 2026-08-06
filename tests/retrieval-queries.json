@@ -1,5 +1,5 @@
 {
-  "note": "Hand-checked retrieval expectations. `expect` is the slug that must come back top, or null when the honest answer is 'not in the restored corpus yet'. Run with `npm run corpus:check-retrieval`. A regression here is a campaign risk, not a test failure: a wrong ancestor is worse than no ancestor.",
+  "note": "Hand-checked retrieval expectations. `expect` is the slug that must come back top, or null when the honest answer is 'not in the restored corpus yet'. Run with `npm run corpus:check-retrieval`. A regression here is a campaign risk, not a test failure: a wrong ancestor is worse than no ancestor. Cases marked `via: \"vector\"` are answerable only through the pipeline index and are skipped unless VECTOR_FALLBACK=on.",
   "cases": [
     {
       "q": "idli",
@@ -316,8 +316,9 @@
     },
     {
       "q": "samosa",
-      "expect": null,
-      "why": "not in the corpus"
+      "expect": "wf-samosa-069",
+      "why": "not in the corpus",
+      "via": "vector"
     },
     {
       "q": "rajma chawal",
@@ -360,8 +361,9 @@
     },
     {
       "q": "sambar",
-      "expect": null,
-      "why": "appears only inside the alias 'idli sambar'; alone it is a different dish"
+      "expect": "wf-huli-184",
+      "why": "appears only inside the alias 'idli sambar'; alone it is a different dish",
+      "via": "vector"
     },
     {
       "q": "dhokla",
@@ -385,23 +387,27 @@
     },
     {
       "q": "puran poli",
-      "expect": null,
-      "why": "not yet in the corpus; a known gap, should be logged for expansion"
+      "expect": "man-polika-014",
+      "why": "not yet in the corpus; a known gap, should be logged for expansion",
+      "via": "vector"
     },
     {
       "q": "halwa",
-      "expect": null,
-      "why": "not in the corpus"
+      "expect": "wf-suddhalapsika-097",
+      "why": "not in the corpus",
+      "via": "vector"
     },
     {
       "q": "jalebi",
-      "expect": null,
-      "why": "not in the corpus"
+      "expect": "wf-kundalika-166",
+      "why": "not in the corpus",
+      "via": "vector"
     },
     {
       "q": "sattu",
-      "expect": null,
-      "why": "not yet in the corpus; a known gap"
+      "expect": "wf-mantha-150",
+      "why": "not yet in the corpus; a known gap",
+      "via": "vector"
     },
     {
       "q": "appam",

@@ -37,7 +37,7 @@
       "sanskrit": "pippalī",
       "quantity_source": null,
       "quantity_modern": "1 tsp",
-      "function": "the other pepper — almost entirely gone from Indian kitchens today"
+      "function": "the other pepper, almost entirely gone from Indian kitchens today"
     },
     {
       "name": "tamarind",
@@ -74,7 +74,7 @@
   },
   "contested_points": [
     "Long pepper (pippalī) is the ingredient most completely lost from this dish; it is not simply less common but effectively absent from everyday cooking.",
-    "The dish survives under several regional names — saar, saaru, chaaru, pulusu — which are not all the same preparation."
+    "The dish survives under several regional names, saar, saaru, chaaru, pulusu, which are not all the same preparation."
   ],
   "modern_counterpart_id": "modern-rasam-001",
   "substitution_story": {
@@ -125,8 +125,8 @@
   "vitalife_relevance": "medium",
   "verification": {
     "status": "editor_verified",
-    "checked_by": "Vitalife editorial extraction — “Recipes: Before British”",
+    "checked_by": "Vitalife editorial extraction, “Recipes: Before British”",
     "checked_on": "2026-07-30",
-    "note": "Transcribed from the editorial extraction, which cites regional culinary history rather than a specific manuscript passage. Classed RECONSTRUCTED for that reason — no verse is claimed."
+    "note": "Transcribed from the editorial extraction, which cites regional culinary history rather than a specific manuscript passage. Classed RECONSTRUCTED for that reason, no verse is claimed."
   }
 }

@@ -5,7 +5,9 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"]),
+  // `pipeline/**` is the retrieval engine: a separate package, Node rather than
+  // Next, with its own toolchain. Next's lint rules do not apply to it.
+  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts", "pipeline/**"]),
 ]);
 
 export default eslintConfig;

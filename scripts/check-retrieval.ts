@@ -11,19 +11,33 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { fileCorpus } from "../src/lib/corpus/load";
+import { namesForeignDish } from "../src/lib/indianization/foreign-dishes";
 import { retrieveForDish } from "../src/lib/retrieval/retrieve";
 
 interface Case {
   q: string;
   expect: string | null;
   why?: string;
+  /**
+   * `vector` marks a case only the pipeline index can answer. Six queries —
+   * samosa, jalebi, puran poli, sambar, halwa, sattu — have genuine records
+   * among the 199 and none among the 31, so they expected `null` purely
+   * because the test predates the index. They are real expectations, not
+   * optional ones, and skipping them when the fallback is off is the honest
+   * reading: the answer exists, this configuration just cannot reach it.
+   */
+  via?: "vector";
 }
 
 const ALLOWED_MISSES = 0;
+const VECTOR_ON = process.env.VECTOR_FALLBACK !== "off";
 
 async function main() {
   const path = join(process.cwd(), "tests", "retrieval-queries.json");
-  const { cases } = JSON.parse(readFileSync(path, "utf8")) as { cases: Case[] };
+  const all = (JSON.parse(readFileSync(path, "utf8")) as { cases: Case[] }).cases;
+  const skipped = VECTOR_ON ? [] : all.filter((c) => c.via === "vector");
+  const cases = VECTOR_ON ? all : all.filter((c) => c.via !== "vector");
 
   const misses: Array<{ c: Case; got: string | null; score: number }> = [];
   const wrongs: Array<{ c: Case; got: string | null; score: number }> = [];
@@ -31,7 +45,18 @@ async function main() {
 
   for (const c of cases) {
     const result = await retrieveForDish(c.q);
-    const got = result.empty ? null : result.records[0].slug;
+    // A `via: vector` case is no longer answered by retrieval alone. Semantic
+    // neighbours arrive as candidates and the model decides whether any is
+    // genuinely an older form, so the assertion is that retrieval *surfaced*
+    // the record — not that it declared it. Declaring it was the bug.
+    const got =
+      c.via === "vector"
+        ? ((result.candidates ?? []).find((r) => r.slug === c.expect)?.slug ??
+          (result.candidates ?? [])[0]?.slug ??
+          null)
+        : result.empty
+          ? null
+          : result.records[0].slug;
 
     if (got === c.expect) {
       pass++;
@@ -43,6 +68,12 @@ async function main() {
   }
 
   console.log(`\n${pass}/${cases.length} hand-checked queries pass\n`);
+  if (skipped.length) {
+    console.log(
+      `  (${skipped.length} skipped — answerable only via the index, which is off: ` +
+        `${skipped.map((c) => `"${c.q}"`).join(", ")}.\n   Run with VECTOR_FALLBACK=on to include them.)\n`,
+    );
+  }
 
   if (misses.length) {
     console.log(`  MISS (${misses.length}) — expected a dish, retrieval declined:`);
@@ -63,6 +94,41 @@ async function main() {
       );
     }
     console.log();
+  }
+
+  // A name on the foreign-dish list vetoes the corpus for the whole query, so a
+  // name that collides with a record takes that record off the screen for good.
+  // Checked against the corpus itself rather than against a list of examples,
+  // because the failure arrives when someone adds a word, not when someone
+  // writes a test: "oats" was on the list for one commit and "oats upma" stopped
+  // reaching the upma record, which is exactly the answer to it.
+  const collisions: string[] = [];
+  for (const record of await fileCorpus.all()) {
+    for (const name of [
+      record.dish_name_modern,
+      record.dish_name_source,
+      ...(record.aliases ?? []),
+    ]) {
+      if (!name) continue;
+      const hit = namesForeignDish(name);
+      if (hit) collisions.push(`    "${name}" (${record.slug}) is flagged foreign as "${hit}"`);
+      // The qualifier case: a dish name is still reachable behind a swapped
+      // grain or a cooking style, and the record is what answers it.
+      for (const prefix of ["oats", "quinoa", "millet", "ragi", "leftover"]) {
+        const q = `${prefix} ${name}`;
+        const flagged = namesForeignDish(q);
+        if (flagged) collisions.push(`    "${q}" (${record.slug}) is flagged as "${flagged}"`);
+      }
+    }
+  }
+  if (collisions.length) {
+    console.error(`\n  FOREIGN-DISH COLLISIONS (${collisions.length}):`);
+    console.error(collisions.join("\n"));
+    console.error(
+      "\n✗ A foreign-dish name is hiding a corpus record. Only whole non-Indian\n" +
+        "  dishes belong on that list; an ingredient belongs in rules.json.\n",
+    );
+    process.exit(1);
   }
 
   if (wrongs.length > 0) {
