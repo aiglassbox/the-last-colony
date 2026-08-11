@@ -39,7 +39,7 @@
   --surface: rgba(243, 221, 178, 0.08);
   --surface-2: rgba(243, 221, 178, 0.12);
 
-  --field: #f3ddb2;
+  --field: var(--beige);
   --field-ink: #55110b;
   --field-muted: #9a6a4e;
 
@@ -689,24 +689,31 @@ body {
   left, solid send at the right. On the painted ground it is the one bright
   object, which is what marks it as the thing you touch.
 */
+/*
+  Same plate as every other control: the notched profile, sliced at 13px so the
+  corner arcs hold whatever height the field grows to.
+
+  No box-shadow — a shadow is cast from the border box, which is a rectangle,
+  so it would print square corners behind a notched shape. The focus state is a
+  drop-shadow filter instead, which follows the alpha silhouette.
+*/
 .composer {
   position: relative;
   width: min(100%, 660px);
   margin: clamp(20px, 3.5vh, 40px) auto 0;
-  padding: var(--s-3) var(--s-4) var(--s-2);
-  border-radius: 22px;
-  background: var(--field);
-  border: 1px solid transparent;
-  box-shadow: var(--sh-2);
+  padding: var(--s-2) var(--s-3) 0;
+  border: 13px solid transparent;
+  border-image: url("/brand/btn-fill-cream.svg") 13 fill stretch;
+  background: transparent;
   text-align: left;
-  transition:
-    border-color var(--dur) var(--ease),
-    box-shadow var(--dur) var(--ease);
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.4));
+  transition: filter var(--dur) var(--ease);
 }
 
 .composer:focus-within {
-  border-color: color-mix(in srgb, var(--red) 45%, transparent);
-  box-shadow: var(--sh-2), var(--sh-focus);
+  filter:
+    drop-shadow(0 10px 24px rgba(0, 0, 0, 0.4))
+    drop-shadow(0 0 3px rgba(140, 30, 34, 0.9));
 }
 
 .composer--flat {
