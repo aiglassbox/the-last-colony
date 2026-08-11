@@ -44,6 +44,17 @@ const VERDICT_CLAIM =
 const BODY_CLAIM = [
   // aids digestion · helps with digestion · supports gut health
   String.raw`\b(?:aids?|helps?|supports?|improves?|boosts?|promotes?|eases?|stimulates?|strengthens?|balances?)\s+(?:in\s+|with\s+|the\s+|your\s+)*(?:digestion|digestive\s+\w+|gut(?:\s+health)?|immunity|immune\s+\w+|metabolism|absorption)\b`,
+  // The same claim by the other noun. "Improves mineral availability from the
+  // grain" reached a card because the net knew "absorption" and the swap record
+  // said "availability" — one word apart, and the record was the model's source,
+  // so it arrived quoted rather than invented. That record has been rewritten;
+  // this is here for the next one, whoever writes it.
+  //
+  // Qualified deliberately. Bare "availability" is not a claim about a body: a
+  // swap record says a substitution is "for availability, not for nutrition"
+  // and means whether the shop has it, which an unqualified net would cut.
+  String.raw`\bbioavailab\w+\b`,
+  String.raw`\b(?:mineral|minerals|nutrient|nutrients|iron|calcium|vitamin)\s+availability\b`,
   // good for digestion · beneficial for the gut
   String.raw`\b(?:good|great|beneficial)\s+for\s+(?:the\s+|your\s+)?(?:digestion|gut|immunity|stomach|health)\b`,
   // claims that stand on their own, with no verb to hang from
@@ -55,7 +66,18 @@ const BODY_CLAIM = [
   // easier to digest · easily digestible · light on the stomach
   String.raw`\b(?:easy|easier|lighter)\s+to\s+digest\b`,
   String.raw`\b(?:easily\s+)?digestible\b`,
-  String.raw`\blight\s+on\s+the\s+stomach\b`,
+  String.raw`\blight(?:er)?\s+on\s+the\s+stomach\b`,
+  // "and it sits lighter", which is the same promise with the stomach left
+  // implied. It is also the homely register the voice rules ask for, which is
+  // exactly why it slips past: the brief's own example of plain speech instead
+  // of "aids digestion" is a sentence about the stomach feeling light, and it
+  // is a claim about a person either way.
+  //
+  // The clause is swallowed whole, joining comma and pronoun included. Cutting
+  // only the verb phrase left "the fibre and protein are higher than a typical
+  // pizza, and it." on a live card, which reads worse than the claim did.
+  String.raw`,?\s*(?:and\s+|but\s+)?(?:it|this|they|the\s+dish)\s+(?:sits?|feels?|goes\s+down)\s+(?:a\s+bit\s+|much\s+|far\s+|slightly\s+)?lighter\b`,
+  String.raw`\b(?:sits?|feels?)\s+lighter\s+(?:in|on)\s+(?:the|your)\s+(?:stomach|belly|gut)\b`,
 ].join("|");
 
 /** Both nets, as one source, so `guards.ts` audits exactly what this strips. */
@@ -65,6 +87,17 @@ const CLAIM = new RegExp(HEALTH_CLAIM_SOURCE, "gi");
 
 /** A sentence whose predicate lost its complement, or that lost its point. */
 const STUMP = /\b(?:is|are|was|were|be|been|being|becomes?|became|feels?|seems?|tastes?|makes? it|renders? it)\s*[.,;:!?]/i;
+
+/**
+ * The same wound one word further along: the claim was the complement, and the
+ * comparison it hung off is still there. "A bowl of this is lighter on the
+ * stomach than pulao" cuts to "A bowl of this is than pulao", which clears
+ * `STUMP` because the verb is followed by a word rather than a full stop.
+ *
+ * Matched on `than` alone, which never legitimately follows these verbs. A
+ * wider net over prepositions would take "the dough is to be rested" with it.
+ */
+const STRANDED_COMPARISON = /\b(?:is|are|was|were|be|been|being|feels?|seems?|tastes?|sits?)\s+than\b/i;
 
 /** Whitespace and punctuation left behind by a cut. */
 function tidy(text: string): string {
@@ -89,6 +122,7 @@ function tidy(text: string): string {
 /** True when a sentence still reads as a sentence. */
 function survives(sentence: string): boolean {
   if (STUMP.test(sentence)) return false;
+  if (STRANDED_COMPARISON.test(sentence)) return false;
   // "a version" is fine; "a ." is not.
   if (/\b(?:a|an|the|more|less)\s*[.,;:!?]/i.test(sentence)) return false;
   return sentence.replace(/[^A-Za-z]/g, "").length >= 12;

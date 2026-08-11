@@ -31,6 +31,27 @@ export function stripEmDashes(text: string): string {
 }
 
 /**
+ * The en dash, which is the same tell wearing a narrower glyph.
+ *
+ * Banning the em dash moved the habit rather than ending it: a swap reply came
+ * back with "the region your dish comes from – mustard for the east", which is
+ * an em dash aside in all but codepoint. The prompt names one character, so the
+ * model reached for the other.
+ *
+ * Only a spaced one is touched. Tight en dashes are ranges, and this project is
+ * full of them: "8–12 hours", "28–32°C", "6–8 hours warm" are quoted out of the
+ * swap records verbatim, and turning one into a comma would corrupt a ratio the
+ * reader is meant to cook from. Spacing is what separates the two uses, and the
+ * model spaces its asides because that is how an aside is written.
+ */
+export function stripEnDashes(text: string): string {
+  return text.replace(/(?:[ \t]+–[ \t]*|[ \t]*–[ \t]+)/g, (match, offset: number, full: string) => {
+    const next = full.charAt(offset + match.length);
+    return !next || /[\s.,;:!?)\]]/.test(next) ? "" : ", ";
+  });
+}
+
+/**
  * Markdown removal.
  *
  * The card styles its own text, so a literal `*` reaches the reader as
@@ -63,17 +84,21 @@ export function stripMarkdown(text: string): string {
 
 /** Every rewrite, in the order they have to run. */
 export function styleProse(text: string): string {
-  return stripMarkdown(stripEmDashes(text));
+  return stripMarkdown(stripEnDashes(stripEmDashes(text)));
 }
 
 /**
  * The trailing run a rewrite could still be part of, which a streaming caller
  * has to hold back so it always sees the character that follows.
  *
- * Covers the dash, and the markers that only mean something at a line start:
+ * Covers both dashes, and the markers that only mean something at a line start:
  * holding them back keeps `\n*` followed by `   Cauliflower` from losing its
  * bullet when the chunk splits between the two.
+ *
+ * The en dash is held for a second reason. Whether it is an aside or a range
+ * turns on the spacing either side of it, so a chunk ending on "8–" must wait
+ * for what follows before the rewrite can tell a ratio from a tell.
  */
 export function danglingTail(text: string): number {
-  return /[ \t—*+#_]+$/.exec(text)?.[0].length ?? 0;
+  return /[ \t—–*+#_]+$/.exec(text)?.[0].length ?? 0;
 }

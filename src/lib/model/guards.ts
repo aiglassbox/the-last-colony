@@ -1,6 +1,8 @@
 import type { CorpusRecord } from "@/lib/corpus/types";
 
 import { HEALTH_CLAIM_SOURCE } from "./health";
+import { labTerms } from "./jargon";
+import { PROVENANCE_CLASS_SOURCE } from "./provenance";
 
 /**
  * Post-hoc checks on generated prose.
@@ -13,7 +15,13 @@ import { HEALTH_CLAIM_SOURCE } from "./health";
  * campaign and it should never be discovered from a screenshot on X.
  */
 
-const CLASS_WORDS = /\b(attested|reconstructed|inferred)\b/gi;
+/**
+ * Shares its source with the stripper, on the same principle the health net
+ * follows: what the one removes, the other reports. Before that, this audit was
+ * the only thing standing between a typed class and the reader — it logged
+ * `["ATTESTED"]` on a live upma card and the word shipped regardless.
+ */
+const CLASS_WORDS = new RegExp(PROVENANCE_CLASS_SOURCE, "gi");
 /** Words that assert certainty a not-yet-verified record cannot support. */
 const CERTAINTY_WORDS = /\b(attested|proven|confirmed|documented|verified)\b/gi;
 /** A chapter/verse/page shape the model was told never to type. */
@@ -42,6 +50,12 @@ export interface ProseAudit {
   citationShapes: string[];
   healthClaims: string[];
   sourcelessAttributions: string[];
+  /**
+   * Lab vocabulary with no safe plain equivalent, so `plainWords` leaves it
+   * standing rather than paraphrasing the claim out from under it. Reported
+   * here so the register drift is visible instead of silent.
+   */
+  labTerms: string[];
 }
 
 export function auditProse(text: string, records: CorpusRecord[]): ProseAudit {
@@ -59,6 +73,7 @@ export function auditProse(text: string, records: CorpusRecord[]): ProseAudit {
     sourcelessAttributions: records.length
       ? []
       : [...new Set(text.match(SOURCELESS_ATTRIBUTION) ?? [])],
+    labTerms: labTerms(text),
   };
 }
 

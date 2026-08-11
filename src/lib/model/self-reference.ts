@@ -83,6 +83,65 @@ const SELF_NARRATION = new RegExp(
 const PIVOT = /,?\s+\b(?:so|but|and so|which is why|therefore|because|instead)\b\s+(?=\S)/i;
 
 /**
+ * The book introducing itself as a person.
+ *
+ * KrantiCookBook is the cookbook, not somebody who cooks: no age, no gender, no
+ * family role. The prompt says so at the top of the voice section, and the
+ * failure it guards against is specific and well known in this product's
+ * register — the warm Indian-food voice slides into a maternal one almost by
+ * gravity, and "like a mother, I would tell you to let it rest" is the shape it
+ * arrives in.
+ *
+ * Only SELF-reference. The reader's own grandmother is theirs to raise and the
+ * cookbook is free to talk about her, so nothing here matches a third person:
+ * "the way your daadi made it" is warmth and stays. What goes is the sentence
+ * where the speaker claims the role.
+ *
+ * The whole sentence goes rather than the phrase. Cutting "like a mother" from
+ * the front leaves an instruction that reads fine, but cutting "I am the voice
+ * of every grandmother" leaves nothing, and the two cannot be told apart by a
+ * rule short enough to trust. A sentence that exists to say who is speaking is
+ * not carrying a recipe.
+ */
+const PERSON = String.raw`(?:mother|mothers|maa|amma|ammi|mummy|grandmother|grandmothers|grandma|daadi|dadi|nani|aunt|aunty|aunties|chachi|bua|didi|elder|elders|woman|women|man|men|lady|wife|housewife|homemaker|cook|chef|historian|grandparent|parent|nani\s+maa)`;
+
+const SELF_AS_PERSON = new RegExp(
+  "(?:" +
+    // "I am your grandmother." · "I'm a food historian." · "I am like a mother."
+    String.raw`\bi\s*(?:'m|\s+am|\s+was)\s+(?:not\s+)?(?:like\s+)?(?:a|an|the|your|every|any|some)?\s*(?:\w+\s+){0,2}?${PERSON}\b` +
+    // "like a mother, I would..." · "as your daadi would say, ..."
+    String.raw`|\b(?:like|as)\s+(?:a|an|the|your|every)\s+(?:\w+\s+){0,2}?${PERSON}\b[^.!?\n]*\bi\b` +
+    // "speaking as a grandmother" · "the voice of every mother"
+    String.raw`|\bspeaking\s+as\s+(?:a|an|the|your)\s+(?:\w+\s+){0,2}?${PERSON}\b` +
+    String.raw`|\b(?:i\s+am|i'm)\s+the\s+voice\s+of\b` +
+    ")",
+  "i",
+);
+
+/**
+ * Drop every sentence in which the book claims to be a person.
+ *
+ * Same shape as `dropNarration`: pieces are matched and rejoined verbatim, and
+ * a cut that would empty the turn is abandoned, because a reply that only
+ * introduces its speaker is a bad answer and no reply is worse.
+ */
+export function dropSelfAsPerson(text: string): string {
+  const pieces = text.match(/[^.!?]+(?:[.!?]+["')\]]*)?\s*/g);
+  if (!pieces) return text;
+
+  let cut = false;
+  const kept = pieces.map((piece) => {
+    if (!SELF_AS_PERSON.test(piece)) return piece;
+    cut = true;
+    return "";
+  });
+
+  if (!cut) return text;
+  const out = kept.join("");
+  return out.trim() ? out : text;
+}
+
+/**
  * Drop the leading throat-clearing, unless it is the whole reply.
  *
  * A turn that is nothing but "You are right." is left alone: it is a bad

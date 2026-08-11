@@ -2,6 +2,10 @@ import type { CorpusRecord } from "@/lib/corpus/types";
 
 import { auditProse, isClean } from "./guards";
 import { stripHealthClaims } from "./health";
+import { restoreIndianWords } from "./indian-words";
+import { plainWords } from "./jargon";
+import { stripProvenanceClaims } from "./provenance";
+import { dropSelfAsPerson } from "./self-reference";
 import { findLeak, LEAK_REFUSAL } from "./leak";
 import { styleProse } from "./punctuation";
 
@@ -38,7 +42,11 @@ export function sanitiseCompletion(
   // Whole sentences by construction, which is what the health pass needs: it
   // judges a claim against the sentence around it and drops the sentence when
   // cutting the claim would leave a stump.
-  const clean = stripHealthClaims(styleProse(text));
+  const clean = dropSelfAsPerson(
+    restoreIndianWords(
+      plainWords(stripProvenanceClaims(stripHealthClaims(styleProse(text)))),
+    ),
+  );
 
   const audit = auditProse(clean, records);
   if (!isClean(audit)) {

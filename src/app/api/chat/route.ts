@@ -11,8 +11,11 @@ import { renderComponentSwaps, renderCorpusBlock, renderRecord } from "@/lib/mod
 import { condenseRows } from "@/lib/model/history";
 import { auditProse, isClean } from "@/lib/model/guards";
 import { lastSentenceEnd, MAX_SENTENCE_HOLD, stripHealthClaims } from "@/lib/model/health";
+import { restoreIndianWords } from "@/lib/model/indian-words";
+import { plainWords } from "@/lib/model/jargon";
+import { stripProvenanceClaims } from "@/lib/model/provenance";
 import { findLeak, LEAK_HOLD, LEAK_REFUSAL } from "@/lib/model/leak";
-import { dropNarration, stripOpener } from "@/lib/model/self-reference";
+import { dropNarration, dropSelfAsPerson, stripOpener } from "@/lib/model/self-reference";
 import { danglingTail, styleProse } from "@/lib/model/punctuation";
 import { activeProvider, asQuotaError, MAX_TOKENS, RefusalError } from "@/lib/model/provider";
 import { SYSTEM_PROMPT } from "@/lib/model/system-prompt";
@@ -337,7 +340,11 @@ export async function POST(request: NextRequest) {
         // sentence describing the last answer is throat-clearing in prose, and
         // on a card there is no last answer to describe.
         const clean = (text: string) => {
-          const styled = stripHealthClaims(styleProse(text));
+          const styled = dropSelfAsPerson(
+            restoreIndianWords(
+              plainWords(stripProvenanceClaims(stripHealthClaims(styleProse(text)))),
+            ),
+          );
           return asProse ? dropNarration(styled) : styled;
         };
 
@@ -529,6 +536,22 @@ export async function POST(request: NextRequest) {
             "TURNS section, built from the <indianization_map>. Two or more foreign " +
             "dishes named together are one INDIANISE turn, not several: build the " +
             "single hybrid they describe, as ONE CARD IS ONE DISH sets out.\n" +
+            "  At least one dish named must be foreign. The word 'fusion' does not " +
+            "make a turn INDIANISE, and neither does 'mix', 'combo', 'hybrid' or " +
+            "'mashup': what makes it INDIANISE is that something on the plate came " +
+            "from outside India. A fusion of two INDIAN dishes (dosa and idli, " +
+            "khichdi and pulao, dhokla and handvo) has no foreign part to swap out, " +
+            "so the §SWAPS§ table would have nothing true to put in its first column " +
+            "and the card would tell the reader an Indian dish is not Indian.\n" +
+            "  Answer it anyway, as REPLY. This is not a refusal and must never read " +
+            "as one: two Indian dishes put together is an ordinary thing to want for " +
+            "dinner, and you know how both are made. Give them the dish in prose — " +
+            "what the batter or dough does, the one step where the two methods meet, " +
+            "and what to watch. Do not tell the reader which of our modes their " +
+            "question did or did not qualify for, do not name a tool, and do not " +
+            "explain that something is for foreign dishes. They asked about food. " +
+            "Use RESTORE instead where one of the two clearly anchors the answer and " +
+            "the older form of it is the real story.\n" +
             "- MODE: MODERN — the user named a MODERN Indian dish with no older version " +
             "behind it (biryani, butter chicken, pav bhaji, gobi manchurian, samosa, most " +
             "restaurant food, anything defined by potato, tomato, chilli or cauliflower). " +

@@ -72,7 +72,17 @@ export function IndianisationCard({ data }: { data: IndianizationData }) {
 
             The corpus is deliberately not mentioned: whether we hold a record
             is irrelevant to a dish that was never Indian, and raising it
-            implies one could arrive later. */}
+            implies one could arrive later.
+
+            It used to open "this one did not come from India", which is the
+            reason this card usually exists but is not something the card can
+            know. The mode is the model's own call, and it took "dosa + idli
+            fusion" for one — so a card built from two south Indian dishes told
+            the reader they were not Indian, in the first line under the
+            verdict. The route now says a fusion needs a foreign half, and this
+            line no longer asserts the half either way: what is true of every
+            card that reaches here, whatever the model decided upstream, is that
+            the recipe below is ours and came out of no text. */}
         <p
           style={{
             margin: "0.85rem 0 0",
@@ -80,9 +90,8 @@ export function IndianisationCard({ data }: { data: IndianizationData }) {
             color: "var(--ink-soft)",
           }}
         >
-          This one did not come from India, so there is no older version to go back
-          to. What follows is ours: built out of Indian ingredients, not taken from
-          any text.
+          What follows is ours: a dish built out of Indian ingredients, worked out
+          here rather than taken from any text.
         </p>
       </div>
 
