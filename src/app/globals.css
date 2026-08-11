@@ -178,7 +178,7 @@ body {
   position: absolute;
   /* Bled past the edges so that, once blurred, the softened rim falls outside
      the viewport instead of showing as a pale border. */
-  inset: -60px;
+  inset: -24px;
   z-index: 0;
   pointer-events: none;
   background: url("/brand/phad-wide.jpg") center bottom / cover no-repeat;
@@ -188,12 +188,13 @@ body {
 }
 
 /*
-  Reading a restoration, the painting steps back: blurred and dimmed so the
-  cream card carries the page. It is the artwork that moves, not the card —
-  a scrim over the top would flatten the illustration's colour as well.
+  Reading a restoration, the painting steps back a little: enough softening for
+  the card to sit clearly in front of it, not so much that the illustration
+  turns to fog. It is the artwork that moves, not the card — a scrim over the
+  top would flatten the colour as well as the detail.
 */
 .app--reading::before {
-  filter: blur(16px) brightness(0.62) saturate(0.85);
+  filter: blur(6px) brightness(0.82) saturate(0.95);
 }
 
 /* z-index alone, with no position — `.app` is a flex container, so z-index
