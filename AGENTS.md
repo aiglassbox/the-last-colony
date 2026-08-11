@@ -1,20 +1,25 @@
 # Working in this repo
 
-## The only remote is ours
+## Two remotes, and only two
 
-`origin` is `github.com/Anjali-Kore/recipe_project`. That is the only repository
-anything here may push to.
+`origin` is `github.com/Anjali-Kore/recipe_project`. That is where ordinary work
+goes, and unless a task says otherwise it is the one you want.
 
-This codebase began as a copy of `aiglassbox/the-last-colony`, someone else's
-project. It was read once, at the start, and the link has been removed. **Do not
-add it back as a remote, do not fetch from it, and never push anything anywhere
-near it.** There is no upstream to sync with and no pull request to open: the
-shared history was squashed into this repo's base commit, so the two have no
-common ancestor and could not merge even if asked.
+`github.com/aiglassbox/the-last-colony` is the other. This codebase began as a
+copy of it, and the owner of this clone has confirmed write access, so it is an
+allowed target — but never an implicit one. A push reaches it only when the
+command names it, and a task that would send anything there is worth confirming
+before you run it. Nothing goes to its `main`: `backend/version-1` is the branch
+this repo's work lands on.
 
-If a task seems to need upstream code, stop and ask. A `pre-push` hook in this
-clone rejects any push to a host other than ours, but the hook is local — the
-rule is the instruction, not the hook.
+Every other host and path is refused. The `pre-push` hook enforces exactly that
+and no more, and it is local — a fresh clone will not have it, so the rule is
+the instruction and the hook is only the reminder.
+
+The two repositories **do** share history. Their common ancestor is `1550841`,
+so ordinary merges work in both directions and no `--allow-unrelated-histories`
+is needed. An earlier version of this file said the histories had been squashed
+apart; that was wrong, and a merge is the normal way to move work between them.
 
 ## Two packages, one repo
 
