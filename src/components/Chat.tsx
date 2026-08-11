@@ -460,7 +460,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                       (phone ? "What would you reclaim?" : "What recipe would you like to reclaim today?")
                     }
                     variant="bar"
-                    minHeight={24}
+                    minHeight={26}
                     inputRef={promptRef}
                   />
 
