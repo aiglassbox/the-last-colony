@@ -366,7 +366,9 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
   );
 
   return (
-    <div className="app">
+    /* Once a thread is open the painted ground blurs back, so the card reads
+       against something quiet rather than against cooking pots. */
+    <div className={isEmpty ? "app" : "app app--reading"}>
       <a href="#main" className="skip-link">
         Skip to content
       </a>
