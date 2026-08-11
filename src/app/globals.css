@@ -64,9 +64,6 @@
   --r-pill: 999px;
   --r-side: 6px;
 
-  /* the page frame */
-  --frame: 10px;
-
   /* spacing — 8px grid */
   --s-1: 4px;
   --s-2: 8px;
@@ -172,7 +169,6 @@ body {
   height: 100dvh;
   overflow: hidden;
   background: var(--ground);
-  border: var(--frame) solid var(--cream-2);
 }
 
 /* The painting. Bottom-anchored so the cooks stand on the lower edge at every
@@ -824,26 +820,27 @@ body {
   min-height: 40px;
   padding: 0 var(--s-3);
   border: 13px solid transparent;
-  border-image: url("/brand/btn-outline-cream.svg") 13 stretch;
+  border-image: url("/brand/btn-fill-cream.svg") 13 fill stretch;
   background: transparent;
-  color: var(--cream);
+  color: var(--on-cream);
   font: inherit;
   font-size: 0.8125rem;
   font-weight: 500;
   letter-spacing: 0.06em;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: opacity var(--dur) var(--ease);
+  transition: filter var(--dur) var(--ease);
 }
 
 .pill:hover {
-  opacity: 0.75;
+  filter: brightness(1.06);
 }
 
-/* Selected, it fills — the same profile, the other way round. */
+/* Selected, it inverts to the brand red — a filled default needs a second
+   fill to read as chosen, not a lighter tint of itself. */
 .pill[data-active] {
-  border-image: url("/brand/btn-fill-cream.svg") 13 fill stretch;
-  color: var(--on-cream);
+  border-image: url("/brand/btn-fill-red.svg") 13 fill stretch;
+  color: var(--cream);
 }
 
 .pill__icon {
@@ -1358,12 +1355,7 @@ body {
 /* ---------------------------------------------------------------- phone -- */
 
 @media (max-width: 767px) {
-  /* The frame narrows so it does not eat a small screen, and the painting
-     switches to the tall crop drawn for portrait. */
-  :root {
-    --frame: 6px;
-  }
-
+  /* The painting switches to the tall crop drawn for portrait. */
   .app {
     flex-direction: column;
   }
