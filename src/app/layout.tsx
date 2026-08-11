@@ -8,9 +8,12 @@ import "./globals.css";
  * Two faces.
  *
  * New Spirit carries the headline — the supplied display face, a contemporary
- * high-contrast serif. It is licensed and not on Google Fonts, so it is
- * bundled locally; the file arrived named .ttf but is OpenType/CFF, and is
- * renamed so the loader declares the right format.
+ * high-contrast serif. It is licensed and not on Google Fonts, so both weights
+ * are bundled locally; the files arrived named .ttf but are OpenType/CFF, and
+ * are renamed so the loader declares the right format.
+ *
+ * Regular is the headline weight. Medium stays registered at 500 for the card
+ * verdict, which is set small enough to want the extra weight.
  *
  * Poppins carries everything you operate: it is the sans in the comps, and its
  * evenness is what keeps the illustrated ground legible.
@@ -23,7 +26,10 @@ const poppins = Poppins({
 });
 
 const newSpirit = localFont({
-  src: "./fonts/new-spirit-medium.otf",
+  src: [
+    { path: "./fonts/new-spirit-regular.otf", weight: "400", style: "normal" },
+    { path: "./fonts/new-spirit-medium.otf", weight: "500", style: "normal" },
+  ],
   variable: "--font-display",
   display: "swap",
   fallback: ["Iowan Old Style", "Georgia", "serif"],

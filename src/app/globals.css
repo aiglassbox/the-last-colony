@@ -663,7 +663,7 @@ body {
   max-width: 15.5em;
   color: var(--cream);
   font-family: var(--font-display), "Iowan Old Style", Georgia, serif;
-  font-weight: 600;
+  font-weight: 400;
   line-height: 1.1;
   letter-spacing: 0.02em;
   text-transform: uppercase;
