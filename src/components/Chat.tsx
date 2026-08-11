@@ -1,6 +1,6 @@
 "use client";
 
-import { Code2, FileText, ImageIcon, type LucideIcon, Menu, Pencil, SquarePen } from "lucide-react";
+import { Code2, FileText, ImageIcon, type LucideIcon, Menu, Pencil } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import {
@@ -43,23 +43,18 @@ import { Sidebar } from "./Sidebar";
  *
  * Presentation only — the turn-mode routing, retrieval gates, streaming
  * protocol and corpus guarantees all sit below this file and are untouched by
- * the visual layer. What changed here is the frame: a docked rail, a rounded
- * stage, and a hero that becomes a thread once a conversation starts.
+ * the visual layer. What changed here is the frame: a Phad-painted plate under
+ * a cream rule, a narrow rail, and a hero that becomes a thread once a
+ * conversation starts.
  */
 
-const HEADING = "What dish are you restoring today?";
-/**
- * The campaign paragraph. It sits along the bottom of the page rather than
- * under the headline — it is the argument, read once, not the instruction.
- */
-const FOOTNOTE =
-  "For centuries, Indian thalis were built on native, nutrient-dense grains. Then colonial rule arrived, and our harvest became their profit while our health took the loss. The Great Indian Food Restoration is the answer to that loot. Name any Indian dish and our AI shows you its original ingredients, how they were stripped away, and how to bring back its authentic, nutrient-rich version. It's time to take back what was yours.";
+const HEADING = "It’s time to decolonise our kitchens";
 
 /**
- * Where "Shop Now" goes. Set NEXT_PUBLIC_SHOP_URL to the real storefront —
- * the fallback is inert on purpose rather than a guessed address.
+ * Where "About us" goes. Set NEXT_PUBLIC_ABOUT_URL to the real page — the
+ * fallback is inert on purpose rather than a guessed address.
  */
-const SHOP_URL = process.env.NEXT_PUBLIC_SHOP_URL || "#";
+const ABOUT_URL = process.env.NEXT_PUBLIC_ABOUT_URL || "#";
 
 interface StreamEvent {
   type: "meta" | "delta" | "text" | "done" | "error";
@@ -347,34 +342,6 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
     });
   };
 
-  /**
-   * The Vitalife corner.
-   *
-   * On a desktop it is a sibling of the hero column, not a child of it: the
-   * hero scrolls, and an absolutely-positioned child of a scrolling box
-   * scrolls with the content — so on a short window it slid up out of the
-   * corner instead of staying pinned to it. Anchored to the stage, which is
-   * exactly the viewport, it stays put.
-   */
-  const brandShop = (
-    <aside className="brand-shop" aria-label="Vitalife">
-      {/* The supplied lockup already reads "Powered by vitalife", so there is
-          no separate line of type above it. */}
-      <span className="brand-shop__lockup">
-        <VitalifeMark size={56} />
-      </span>
-      <a className="shop-now" href={SHOP_URL} target="_blank" rel="noopener noreferrer">
-        Shop Now
-      </a>
-      {/* Decorative, and painted as a CSS background rather than an <img>: a
-          hidden or unmounted image is still fetched once it has been sent in
-          the HTML, and the first render does not yet know the viewport width.
-          A background on a display:none element is never requested, which is
-          what keeps the heaviest asset off phones for real. */}
-      <span className="brand-shop__pack" aria-hidden />
-    </aside>
-  );
-
   // One definition, two placements: beneath the hero on a desktop, stacked
   // directly above the pinned composer on a phone.
   const quickActions = (
@@ -441,28 +408,34 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
             type="button"
             className="topbar__brand"
             onClick={goToChat}
-            aria-label="Asli Rasoi — go to chat"
+            aria-label="The Kranti Cookbook — go to chat"
           >
-            <Logo size={34} />
+            <Logo size={30} />
           </button>
-          <button
-            type="button"
-            className="topbar__btn"
-            onClick={startNew}
-            aria-label="New restoration"
-          >
-            <SquarePen size={19} aria-hidden />
-          </button>
+          <a className="ticket topbar__about" href={ABOUT_URL}>
+            About us
+          </a>
         </header>
       )}
 
       <main id="main" className="canvas">
         <div className="stage">
-          <div className="stage__glow" aria-hidden />
-
-          {/* Pinned to the stage, so the corner holds it however the hero
-              column scrolls. Empty screen only — a card should own the page. */}
-          {isEmpty && !compact && brandShop}
+          {!phone && (
+            <header className="masthead">
+              <span className="masthead__left">
+                <GokulMark size={20} />
+              </span>
+              <span className="masthead__centre">
+                <VitalifeMark size={26} />
+                <span className="masthead__presents">Presents</span>
+              </span>
+              <span className="masthead__right">
+                <a className="ticket" href={ABOUT_URL}>
+                  About us
+                </a>
+              </span>
+            </header>
+          )}
 
           <div className="stage__body">
             {isEmpty ? (
@@ -471,10 +444,8 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                  draws for desktop still fits a 360px phone — no second
                  layout to keep in step. */
               <div className="hero-wrap">
-                {!phone && <GokulMark size={30} className="brand-top" />}
-
                 <section className="hero" aria-labelledby="hero-title">
-                  <h1 id="hero-title" className="hero__title display">
+                  <h1 id="hero-title" className="hero__title">
                     {HEADING}
                   </h1>
 
@@ -484,19 +455,17 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                     onSubmit={submit}
                     onStop={() => abortRef.current?.abort()}
                     busy={busy}
-                    placeholder={activeCommand?.hint ?? "Ask about any dish…"}
+                    placeholder={
+                      activeCommand?.hint ??
+                      (phone ? "What would you reclaim?" : "What recipe would you like to reclaim today?")
+                    }
                     variant="bar"
+                    minHeight={24}
                     inputRef={promptRef}
                   />
 
                   {quickActions}
                 </section>
-
-                <p className="footnote">{FOOTNOTE}</p>
-
-                {/* Below 992px there is no corner to hold it, so it rides in
-                    the flow at the end of the column. */}
-                {compact && !phone && brandShop}
               </div>
             ) : (
               <>

@@ -1,58 +1,54 @@
 @import "tailwindcss";
 
 /*
-  Kranti Cookbook — design tokens.
+  The Kranti Cookbook — design tokens.
 
-  Everything is driven from here so the shell, the cards and the drawers stay
-  in one visual language, and so light/dark is a single attribute flip on
-  <html> rather than two sets of hardcoded classes.
-
-  Spacing follows an 8px grid: --s-1 through --s-10.
-*/
-/*
-  Asli Rasoi — design tokens.
-
-  One theme. The comp is red-on-maroon throughout, so there is no light set and
-  no toggle: `--display`, `--ink` and the rest have a single value each.
+  One theme: a Phad-painted ground in the brand maroon, cream ink, and a cream
+  rule framing the whole page like the border of a scroll. Nothing here is a
+  gradient or a shadow-heavy "app" surface — the depth comes from the painting,
+  so the interface stays flat and quiet on top of it.
 
   Spacing follows an 8px grid: --s-1 through --s-10.
 */
 :root {
-  /* brand — the CTA red. One value, so the send button, Shop Now, the New
-     Chat mark, Clear history and the accents inside a card all move together. */
+  /* the painted ground, sampled from the artwork so CSS and image agree */
+  --ground: #771908;
+  --ground-2: #661404;
+  --ground-wash: rgba(60, 10, 3, 0.55);
+
+  /* cream and gold — the ink of the painting */
+  --cream: #f3ddb2;
+  --cream-2: #e7cb98;
+  --cream-dim: rgba(243, 221, 178, 0.62);
+  --gold: #c99a3e;
+
+  /* on a cream surface */
+  --on-cream: #6f1710;
+  --on-cream-soft: #8d4030;
+
+  /* kept as aliases so the card and drawer rules did not need renaming */
   --red: #8c1e22;
   --red-deep: #6d151a;
-  --maroon: #4a100d;
+  --orange: var(--cream);
+  --orange-3: var(--gold);
 
-  /* Kept as aliases so nothing downstream had to be renamed when the palette
-     changed. Everything that said "orange" now means "brand red". */
-  --orange: var(--red);
-  --orange-2: var(--red);
-  --orange-3: var(--red-deep);
-  --orange-4: var(--red-deep);
-
-  /* surfaces — the ground is the supplied background image, so the canvas is
-     only what shows through where the image does not reach. */
-  --canvas: #4a100d;
+  --canvas: var(--ground);
   --stage: transparent;
-  --rail: rgba(60, 12, 10, 0.82);
-  --surface: rgba(255, 240, 226, 0.07);
-  --surface-2: rgba(255, 240, 226, 0.1);
+  --rail: transparent;
+  --surface: rgba(243, 221, 178, 0.08);
+  --surface-2: rgba(243, 221, 178, 0.12);
 
-  /* The composer and pills are the only cream objects on the maroon, which is
-     what makes them read as the things you touch. */
-  --field: #f7ead9;
-  --field-ink: #2a1512;
-  --field-muted: #8a6f66;
+  --field: #f3ddb2;
+  --field-ink: #55110b;
+  --field-muted: #9a6a4e;
 
-  /* type */
-  --display: #f7e7d2;
-  --ink: #f6e9da;
-  --ink-soft: #e2cdb9;
-  --ink-muted: #c2a493;
+  --display: var(--cream);
+  --ink: var(--cream);
+  --ink-soft: var(--cream-dim);
+  --ink-muted: rgba(243, 221, 178, 0.5);
 
-  --line: rgba(247, 231, 210, 0.16);
-  --line-strong: rgba(247, 231, 210, 0.26);
+  --line: rgba(243, 221, 178, 0.28);
+  --line-strong: rgba(243, 221, 178, 0.5);
 
   /* provenance badges */
   --attested: #7fd3a5;
@@ -60,12 +56,15 @@
   --inferred: #c9bda9;
   --modern: #a8bbe8;
 
-  /* radii */
-  --r-card: 30px;
-  --r-stage: 32px;
-  --r-input: 26px;
+  /* radii — the design has almost none; corners are cut, not rounded */
+  --r-card: 6px;
+  --r-stage: 0px;
+  --r-input: 4px;
   --r-pill: 999px;
-  --r-side: 14px;
+  --r-side: 6px;
+
+  /* the page frame */
+  --frame: 10px;
 
   /* spacing — 8px grid */
   --s-1: 4px;
@@ -79,16 +78,14 @@
   --s-9: 64px;
   --s-10: 80px;
 
-  /* motion */
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --dur: 220ms;
+  --dur: 240ms;
 
-  /* shadows */
-  --sh-1: 0 1px 2px rgba(0, 0, 0, 0.35);
-  --sh-2: 0 2px 6px rgba(0, 0, 0, 0.4), 0 10px 28px -12px rgba(0, 0, 0, 0.55);
-  --sh-3: 0 8px 20px -6px rgba(0, 0, 0, 0.5), 0 24px 48px -20px rgba(0, 0, 0, 0.7);
-  --sh-hero: 0 18px 48px -20px rgba(0, 0, 0, 0.55);
-  --sh-focus: 0 0 0 3px rgba(140, 30, 34, 0.45);
+  --sh-1: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --sh-2: 0 2px 6px rgba(0, 0, 0, 0.32), 0 12px 30px -14px rgba(0, 0, 0, 0.5);
+  --sh-3: 0 10px 24px -8px rgba(0, 0, 0, 0.45), 0 30px 60px -24px rgba(0, 0, 0, 0.6);
+  --sh-hero: none;
+  --sh-focus: 0 0 0 3px rgba(243, 221, 178, 0.35);
 
   color-scheme: dark;
 }
@@ -105,7 +102,7 @@ body {
 }
 
 html {
-  background: var(--canvas);
+  background: var(--ground);
 }
 
 body {
@@ -115,7 +112,6 @@ body {
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  letter-spacing: -0.006em;
 }
 
 .sr-only {
@@ -130,16 +126,15 @@ body {
   border: 0;
 }
 
-/* Visible only to screen readers, until focused. */
 .skip-link {
   position: absolute;
   left: var(--s-4);
   top: -100px;
   z-index: 100;
   padding: var(--s-3) var(--s-4);
-  border-radius: var(--r-side);
-  background: var(--orange);
-  color: #fff;
+  border-radius: 4px;
+  background: var(--cream);
+  color: var(--on-cream);
   font-weight: 600;
   transition: top var(--dur) var(--ease);
 }
@@ -148,99 +143,109 @@ body {
   top: var(--s-4);
 }
 
-/* One focus treatment everywhere, so keyboard use is never ambiguous. */
 :where(a, button, input, textarea, [tabindex]):focus-visible {
-  outline: 2px solid var(--orange);
+  outline: 2px solid var(--cream);
   outline-offset: 2px;
-  border-radius: 6px;
+  border-radius: 3px;
+}
+
+/* The display face. Old-style serif, wide-tracked caps — the page reads as a
+   printed plate rather than a dashboard. */
+.display {
+  font-family: var(--font-display), "Iowan Old Style", Georgia, serif;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 /* ---------------------------------------------------------------- shell -- */
 
+/*
+  The page is a framed plate: a cream rule around the whole viewport, the Phad
+  painting bled to the edges inside it, and everything else drawn on top. The
+  frame is a border on .app rather than an inset box so nothing can scroll out
+  from under it.
+*/
 .app {
   position: relative;
   display: flex;
   height: 100dvh;
   overflow: hidden;
-  background: var(--canvas);
+  background: var(--ground);
+  border: var(--frame) solid var(--cream-2);
 }
 
-/* The stone relief. A layer rather than a background-image on .app so it can
-   fade between themes, and so the maroon reads through it at a fixed strength
-   instead of the image dictating the colour. */
+/* The painting. Bottom-anchored so the cooks stand on the lower edge at every
+   height, with the flat ground above them carrying the type. */
 .app::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  /* The supplied file is already toned to the brand maroon, so it is painted
-     straight — no tint pass, no blend mode, no opacity. Anything layered over
-     it only buries the carving. */
-  background: url("/brand/stone-relief.jpg") center / cover no-repeat;
+  background: url("/brand/phad-wide.jpg") center bottom / cover no-repeat;
 }
 
-/* Everything else rides above the relief. z-index alone, with no position —
-   `.app` is a flex container, so z-index already applies to its children, and
-   forcing `position: relative` here would drag the absolutely-positioned skip
-   link back into the flex row as a visible column. */
+/* z-index alone, with no position — `.app` is a flex container, so z-index
+   already applies to its children, and forcing `position: relative` here would
+   drag the absolutely-positioned skip link into the flex row as a column. */
 .app > * {
   z-index: 1;
 }
 
+/* ----------------------------------------------------------------- rail -- */
+
+/* A narrow strip, not a panel: the painting continues behind it and a single
+   cream rule separates it from the page. */
 .sidebar {
-  width: 288px;
-  flex: 0 0 288px;
+  width: 72px;
+  flex: 0 0 72px;
   display: flex;
   flex-direction: column;
-  /* A wash over the background image rather than an opaque panel, so the
-     carving continues behind the rail as it does in the comp. */
-  background: var(--rail);
-  backdrop-filter: blur(2px);
-  border-right: 2px dashed var(--line);
-  padding: var(--s-5) var(--s-4) var(--s-4);
-  /* Width is the only thing that animates; the contents cross-fade with it so
-     the labels do not reflow visibly on the way in or out. */
+  align-items: center;
+  gap: var(--s-2);
+  background: transparent;
+  border-right: 1px solid var(--line);
+  padding: var(--s-4) var(--s-2) var(--s-4);
   transition:
     width var(--dur) var(--ease),
     flex-basis var(--dur) var(--ease),
-    padding var(--dur) var(--ease);
+    background var(--dur) var(--ease);
+}
+
+/* Expanded, it needs to be readable over the painting, so it takes a wash. */
+.sidebar:not(.sidebar--collapsed) {
+  width: 264px;
+  flex-basis: 264px;
+  align-items: stretch;
+  padding: var(--s-4) var(--s-4) var(--s-4);
+  background: var(--ground-wash);
+  backdrop-filter: blur(3px);
 }
 
 .sidebar__head {
   display: flex;
   align-items: center;
   gap: var(--s-3);
-  min-height: 44px;
+  min-height: 40px;
 }
 
 .sidebar__brand {
   display: flex;
   align-items: center;
-  gap: var(--s-3);
   flex: 1 1 auto;
   min-width: 0;
   padding: 0;
   border: 0;
   background: none;
-  color: inherit;
+  color: var(--cream);
   font: inherit;
-  text-align: left;
   cursor: pointer;
-  /* The wordmark is a control but should not read as one — no hover fill, no
-     tap flash. The keyboard focus ring is deliberately left in place; it only
-     appears on :focus-visible, so it never fires on a click. */
   -webkit-tap-highlight-color: transparent;
 }
 
-.sidebar__brand {
-  color: var(--display);
-}
-
 .sidebar__toggle {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  width: 34px;
+  height: 34px;
   flex: 0 0 auto;
 }
 
@@ -248,7 +253,8 @@ body {
   flex: 1 1 auto;
   overflow-y: auto;
   min-height: 0;
-  margin-top: var(--s-6);
+  width: 100%;
+  margin-top: var(--s-5);
 }
 
 .side-list {
@@ -257,7 +263,7 @@ body {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: var(--s-1);
+  gap: 2px;
 }
 
 .side-row {
@@ -271,11 +277,9 @@ body {
   min-width: 0;
 }
 
-/* Revealed on hover or keyboard focus — a delete button on every row at rest
-   makes the list read as a toolbar rather than a history. */
 .side-row__delete {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border: 0;
   flex: 0 0 auto;
   opacity: 0;
@@ -289,118 +293,204 @@ body {
 
 .side-empty {
   margin: 0;
-  padding: 0 var(--s-4);
-  font-size: 0.875rem;
+  padding: 0 var(--s-3);
+  font-size: 0.8125rem;
   color: var(--ink-muted);
+}
+
+.side-group {
+  margin-bottom: var(--s-5);
+}
+
+.side-group__label {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  margin: 0 0 var(--s-2);
+  padding: 0 var(--s-3);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.side-group__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  padding: var(--s-1) var(--s-2);
+  margin: calc(var(--s-1) * -1) calc(var(--s-2) * -1);
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--dur) var(--ease);
+}
+
+.side-group__toggle:hover {
+  color: var(--cream);
+}
+
+.side-group__chevron {
+  transition: transform var(--dur) var(--ease);
+}
+
+.side-group__toggle[aria-expanded="false"] .side-group__chevron {
+  transform: rotate(-90deg);
 }
 
 .side-group--others {
   flex: 0 0 auto;
+  width: 100%;
   margin-bottom: 0;
   padding-top: var(--s-3);
   border-top: 1px solid var(--line);
 }
 
-/* --------------------------------------------------------------- topbar -- */
-
-/* Phone only. Menu on the left, brand in the middle, new thread on the right —
-   the arrangement every mobile chat client has converged on, because it is the
-   one that keeps the canvas full-width. */
-.topbar {
+.side-item {
   display: flex;
   align-items: center;
-  gap: var(--s-2);
-  flex: 0 0 auto;
-  padding: max(var(--s-2), env(safe-area-inset-top)) var(--s-2) 0;
-  background: var(--canvas);
-}
-
-.topbar__btn {
-  display: inline-grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  flex: 0 0 auto;
+  gap: var(--s-3);
+  width: 100%;
+  min-height: 40px;
+  padding: 0 var(--s-3);
   border: 0;
-  border-radius: var(--r-pill);
-  background: none;
+  border-radius: 4px;
+  background: transparent;
   color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.9375rem;
+  text-align: left;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  transition:
+    background var(--dur) var(--ease),
+    color var(--dur) var(--ease);
+}
+
+.side-item:hover {
+  background: rgba(243, 221, 178, 0.1);
+  color: var(--cream);
+}
+
+.side-item[aria-current="page"],
+.side-item[data-active] {
+  background: rgba(243, 221, 178, 0.16);
+  color: var(--cream);
+}
+
+.side-item__icon {
+  flex: 0 0 auto;
+  color: inherit;
+}
+
+.side-item__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* New Chat: a cut-cornered outline, matching the search field. */
+.new-chat {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  min-height: 44px;
+  margin-bottom: var(--s-4);
+  padding: 0 var(--s-4);
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--cream);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
   transition: background var(--dur) var(--ease);
 }
 
-.topbar__btn:active {
-  background: color-mix(in srgb, var(--orange) 12%, transparent);
+.new-chat:hover {
+  background: rgba(243, 221, 178, 0.12);
 }
 
-.topbar__brand {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 1 1 auto;
-  min-width: 0;
-  color: var(--display);
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--ink);
-  font: inherit;
-  font-size: 1.0625rem;
-  font-weight: 650;
-  letter-spacing: -0.015em;
-  text-align: center;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* ------------------------------------------------- sidebar, collapsed ---- */
-
-/* The icon rail. Labels are clipped rather than removed, so the accessible
-   name of every control survives the collapse. */
-/* Doubled class on purpose: the responsive `.sidebar` rules further down the
-   file have equal specificity and would otherwise win on source order, leaving
-   the icon rail at full width. */
-.sidebar.sidebar--collapsed {
-  width: 76px;
-  flex-basis: 76px;
-  padding-left: var(--s-2);
-  padding-right: var(--s-2);
-  align-items: center;
-}
-
-.sidebar--collapsed .sidebar__head {
-  flex-direction: column;
-  gap: var(--s-2);
-}
-
-.sidebar--collapsed .sidebar__brand {
+.new-chat__icon {
   flex: 0 0 auto;
-  justify-content: center;
+  color: var(--cream);
 }
 
-/* Collapsed, the seal and the expand icon share one square and cross-fade on
-   hover or keyboard focus. Both layers are always rendered and only their
-   opacity changes, so the button never resizes and the swap cannot reflow. */
+/* Collapsed: icons only, centred, labels clipped but still announced. */
+.sidebar.sidebar--collapsed .sidebar__scroll {
+  margin-top: var(--s-4);
+}
+
+.sidebar--collapsed .sidebar__name,
+.sidebar--collapsed .side-group__label,
+.sidebar--collapsed .side-item__text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.sidebar--collapsed .side-item,
+.sidebar--collapsed .new-chat {
+  justify-content: center;
+  width: 44px;
+  padding: 0;
+  margin: 0 auto var(--s-1);
+  border: 0;
+  clip-path: none;
+}
+
+.sidebar--collapsed .side-group,
+.sidebar--collapsed .side-group--others {
+  margin-bottom: var(--s-3);
+  border-top: 0;
+}
+
+/* Floating over the page below 992px. */
+.sidebar--overlay {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: min(84vw, 300px);
+  flex-basis: auto;
+  background: var(--ground-2);
+  box-shadow: var(--sh-3);
+  animation: slide-in 280ms var(--ease);
+}
+
+/* Collapsed, the rail shows only the mark; pointing at it swaps in the expand
+   icon in the same square, so the one thing on screen is also the control. */
 .rail-open {
   position: relative;
   display: grid;
   place-items: center;
-  width: 52px;
-  height: 52px;
+  width: 56px;
+  height: 56px;
   margin: 0 auto;
   padding: 0;
   border: 0;
-  border-radius: 14px;
   background: transparent;
-  color: var(--display);
+  color: var(--cream);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: background var(--dur) var(--ease);
-}
-
-.rail-open:hover {
-  background: color-mix(in srgb, var(--ink) 10%, transparent);
 }
 
 .rail-open__mark,
@@ -410,6 +500,10 @@ body {
   place-items: center;
   line-height: 0;
   transition: opacity var(--dur) var(--ease);
+}
+
+.rail-open__mark {
+  --mark-h: 44px;
 }
 
 .rail-open__icon {
@@ -426,8 +520,6 @@ body {
   opacity: 1;
 }
 
-/* Touch has no hover, so the swap would strand the control. There, both stay
-   put and the seal itself is the tap target. */
 @media (hover: none) {
   .rail-open__icon {
     opacity: 0;
@@ -437,248 +529,8 @@ body {
   }
 }
 
-.sidebar--collapsed .sidebar__name,
-.sidebar--collapsed .side-group__label,
-.sidebar--collapsed .side-item__text,
-.sidebar--collapsed .switch {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-  border: 0;
-}
-
-.sidebar--collapsed .sidebar__scroll {
-  width: 100%;
-  overflow-x: hidden;
-}
-
-.sidebar--collapsed .side-item,
-.sidebar--collapsed .new-chat {
-  justify-content: center;
-  padding: 0;
-  width: 48px;
-  margin: 0 auto var(--s-2);
-}
-
-.sidebar--collapsed .side-item--history {
-  border-bottom: 0;
-  padding-bottom: 0;
-  margin-bottom: var(--s-3);
-}
-
-.sidebar--collapsed .side-group--recent,
-.sidebar--collapsed .side-group--others {
-  border-top: 0;
-}
-
-/* The dark-mode row keeps its state visible without the switch: the icon
-   itself fills in when it is on. */
-.sidebar--collapsed .side-item[role="switch"][aria-checked="true"] {
-  background: linear-gradient(135deg, var(--orange) 0%, var(--orange-3) 100%);
-  color: #fff;
-}
-
-.sidebar--collapsed .side-item[role="switch"][aria-checked="true"] .side-item__icon {
-  color: #fff;
-}
-
-/* Below 992px the expanded rail floats instead of pushing — 288px of a 375px
-   screen would leave nothing for the conversation. */
-.sidebar--overlay {
-  position: fixed;
-  z-index: 50;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: min(86vw, 320px);
-  flex-basis: auto;
-  box-shadow: var(--sh-3);
-  animation: slide-in 280ms var(--ease);
-}
-
-.side-group {
-  margin-bottom: var(--s-6);
-}
-
-.side-group__label {
-  display: flex;
-  align-items: center;
-  gap: var(--s-1);
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: var(--ink);
-  padding: 0 var(--s-3);
-  margin: 0 0 var(--s-2);
-}
-
-/* The heading row, as a control. Sized to the text rather than the rail so
-   the click target does not stretch across empty space. */
-.side-group__toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--s-1);
-  padding: var(--s-1) var(--s-2);
-  margin: calc(var(--s-1) * -1) calc(var(--s-2) * -1);
-  border: 0;
-  border-radius: 8px;
-  background: none;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: background var(--dur) var(--ease);
-}
-
-.side-group__toggle:hover {
-  background: color-mix(in srgb, var(--ink) 10%, transparent);
-}
-
-.side-group__chevron {
-  transition: transform var(--dur) var(--ease);
-}
-
-/* Pointing down while open, and round to the closed side when folded. */
-.side-group__toggle[aria-expanded="false"] .side-group__chevron {
-  transform: rotate(-90deg);
-}
-
-/* The primary action, and the only filled control in the rail. */
-.new-chat {
-  display: flex;
-  align-items: center;
-  gap: var(--s-3);
-  width: 100%;
-  min-height: 48px;
-  margin-bottom: var(--s-3);
-  padding: 0 var(--s-4);
-  border: 1px solid var(--line-strong);
-  border-radius: 14px;
-  background: var(--field);
-  color: var(--field-ink);
-  font: inherit;
-  font-size: 1rem;
-  font-weight: 600;
-  text-align: left;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition:
-    background var(--dur) var(--ease),
-    transform var(--dur) var(--ease);
-}
-
-.new-chat:hover {
-  background: color-mix(in srgb, var(--red) 12%, var(--field));
-}
-
-.new-chat:active {
-  transform: scale(0.99);
-}
-
-.new-chat__icon {
-  flex: 0 0 auto;
-  color: var(--red);
-}
-
-/* Under the divider that follows New Chat in the comp. */
-.side-item--history {
-  margin-bottom: var(--s-5);
-  border-bottom: 1px solid var(--line);
-  border-radius: 0;
-  padding-bottom: var(--s-3);
-  padding-left: var(--s-4);
-  min-height: 40px;
-}
-
-.side-item {
-  display: flex;
-  align-items: center;
-  gap: var(--s-3);
-  width: 100%;
-  min-height: 44px;
-  padding: 0 var(--s-4);
-  border: 0;
-  border-radius: var(--r-side);
-  background: transparent;
-  color: var(--ink-soft);
-  font: inherit;
-  font-size: 0.95rem;
-  text-align: left;
-  cursor: pointer;
-  transition:
-    background var(--dur) var(--ease),
-    color var(--dur) var(--ease);
-}
-
-.side-item:hover {
-  background: color-mix(in srgb, var(--red) 9%, transparent);
-  color: var(--ink);
-}
-
-.side-item[aria-current="page"],
-.side-item[data-active] {
-  background: color-mix(in srgb, var(--red) 12%, transparent);
-  color: var(--display);
-  font-weight: 600;
-}
-
-.side-item[aria-current="page"] .side-item__icon,
-.side-item[data-active] .side-item__icon {
-  color: var(--display);
-}
-
-.side-item__icon {
-  flex: 0 0 auto;
-  color: var(--ink-soft);
-}
-
-.side-item__text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* The Dark Mode switch. Purely visual — the button that wraps it carries
-   role="switch" and aria-checked, so the state is announced, not inferred. */
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 44px;
-  height: 24px;
-  flex: 0 0 auto;
-  border-radius: var(--r-pill);
-  background: var(--line-strong);
-  transition: background var(--dur) var(--ease);
-}
-
-.switch[data-on="true"] {
-  background: var(--red);
-}
-
-.switch__knob {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 18px;
-  height: 18px;
-  border-radius: var(--r-pill);
-  background: #fff;
-  box-shadow: 0 1px 3px rgba(31, 31, 31, 0.3);
-  transition: transform var(--dur) var(--ease);
-}
-
-.switch[data-on="true"] .switch__knob {
-  transform: translateX(20px);
-}
-
 /* --------------------------------------------------------------- canvas -- */
 
-/* The comp has no inner card: the rail's dotted seam is the only division on
-   the page, and the content sits directly on the ground. */
 .canvas {
   flex: 1 1 auto;
   min-width: 0;
@@ -696,17 +548,8 @@ body {
   overflow: hidden;
 }
 
-/* A single warm bloom behind the headline, so the flat ground is not entirely
-   inert. Decorative, and far weaker than the card it replaced. */
 .stage__glow {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(60% 45% at 50% 38%, rgba(226, 18, 27, 0.05) 0%, transparent 70%);
-}
-
-:root[data-theme="dark"] .stage__glow {
-  background: radial-gradient(65% 50% at 50% 34%, rgba(255, 190, 150, 0.08) 0%, transparent 72%);
+  display: none;
 }
 
 .stage__body {
@@ -717,30 +560,86 @@ body {
   flex-direction: column;
 }
 
+/* -------------------------------------------------------------- masthead -- */
+
+/* Endorsement left, presenter centred, About right — a masthead, not a nav. */
+.masthead {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-4) var(--s-5) 0;
+}
+
+.masthead__left {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-width: 0;
+}
+
+.masthead__centre {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  color: var(--cream);
+}
+
+.masthead__presents {
+  margin-top: 2px;
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cream-dim);
+}
+
+.masthead__right {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* The cut-corner ticket the comps use for every cream control. */
+.ticket {
+  display: inline-grid;
+  place-items: center;
+  min-height: 38px;
+  padding: 0 var(--s-6);
+  border: 0;
+  background: var(--cream);
+  color: var(--on-cream);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  clip-path: polygon(12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 12px),
+    calc(100% - 12px) 100%, 12px 100%, 0 calc(100% - 12px), 0 12px);
+  transition: background var(--dur) var(--ease);
+}
+
+.ticket:hover {
+  background: #fff0cf;
+}
+
 /* ----------------------------------------------------------------- hero -- */
 
+/* The type sits in the upper third, above the painted figures. */
 .hero-wrap {
   position: relative;
   flex: 1 1 auto;
-  display: grid;
-  grid-template-rows: 1fr auto 1fr;
-  justify-items: center;
-  padding: var(--s-6) var(--s-5) var(--s-5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(40px, 13vh, 150px) var(--s-5) var(--s-5);
   overflow-y: auto;
 }
 
-.hero-wrap > .hero {
-  grid-row: 2;
-  align-self: center;
-}
-
-.hero-wrap > .footnote {
-  grid-row: 3;
-  align-self: end;
-}
-
-/* No card in this design — the page itself is the ground, so the hero is a
-   centred column of headline, bar and pills. */
 .hero {
   width: min(100%, 900px);
   text-align: center;
@@ -748,171 +647,61 @@ body {
 
 .hero__title {
   margin: 0 auto;
-  max-width: 16ch;
-  color: var(--display);
-  font-weight: 400;
-  line-height: 1.02;
-  letter-spacing: 0.01em;
-  text-transform: uppercase;
-  font-size: clamp(1.875rem, 1rem + 3.4vw, 3.5rem);
-  text-wrap: balance;
-}
-
-/* The campaign paragraph, along the bottom. Deliberately small and quiet: it
-   is the argument, not the instruction. */
-.footnote {
-  width: min(100%, 42rem);
-  margin: var(--s-7) auto 0;
-  padding: 0 var(--s-4);
-  color: var(--ink-muted);
-  font-size: clamp(0.6875rem, 0.64rem + 0.2vw, 0.8125rem);
-  line-height: 1.6;
-  text-align: center;
-}
-
-/* --------------------------------------------------- brand furniture ----- */
-
-.brand-top {
-  position: absolute;
-  top: var(--s-5);
-  right: var(--s-6);
-  color: var(--ink);
-  opacity: 0.9;
-}
-
-/* Bottom-right corner: the lockup and its button stack right-aligned, with the
-   pack shot sitting in the corner underneath them and bleeding off the edge,
-   as the comp has it. */
-/* Sized and spaced from the reference: at 1920 the lockup measures ~155px
-   wide, the button ~110x33, and the pack ~280px bleeding off the right edge.
-   All three scale with the viewport from those figures, and the three are
-   centred on one another rather than ragged. */
-.brand-shop {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  display: grid;
-  justify-items: center;
-  gap: 0;
-  padding: 0 var(--s-5) 0 0;
-  pointer-events: none;
-}
-
-.brand-shop__lockup,
-.shop-now {
-  pointer-events: auto;
-}
-
-.brand-shop__lockup {
-  display: block;
-  line-height: 0;
-  margin-bottom: clamp(10px, 1.3vw, 25px);
-  color: var(--display);
-}
-
-/* ~155px wide at 1920, which is 69px tall at the asset's 569:254. Declared on
-   the wrapper so it cascades into the mark, which carries its own inline
-   fallback. */
-.brand-shop__lockup {
-  --mark-h: clamp(46px, 3.6vw, 69px);
-}
-
-.shop-now {
-  display: inline-grid;
-  place-items: center;
-  min-height: 33px;
-  padding: 0 var(--s-5);
-  border-radius: 5px;
-  background: var(--red);
-  color: #fff;
-  font-size: 0.8125rem;
+  max-width: 13.5em;
+  color: var(--cream);
+  font-family: var(--font-display), "Iowan Old Style", Georgia, serif;
   font-weight: 600;
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-  text-decoration: none;
-  box-shadow: 0 6px 16px -10px rgba(140, 30, 34, 0.9);
-  transition:
-    transform var(--dur) var(--ease),
-    background var(--dur) var(--ease);
-}
-
-.shop-now:hover {
-  background: var(--red-deep);
-  transform: translateY(-1px);
-}
-
-/* Bleeds off the bottom-right corner. The red sweep is part of the asset, so
-   it has to reach the edges rather than float above them. */
-/* The supplied file carried a lot of transparent padding — the artwork sat in
-   the bottom-right corner of a 1200x459 frame, occupying 54% of its width. At
-   any box size the bottles therefore rendered at about half what they should,
-   which is why widening the element never fixed it. The asset is now cropped
-   to its opaque bounds (648x308), so the element IS the artwork and this width
-   is the width you see. */
-.brand-shop__pack {
-  display: block;
-  width: clamp(200px, 16vw, 310px);
-  aspect-ratio: 648 / 308;
-  background: url("/brand/vitalife-products.png") bottom center / contain no-repeat;
-  /* Sits directly under the button and bleeds off the right edge. */
-  margin: clamp(2px, 0.3vw, 6px) calc(var(--s-5) * -1) 0 0;
-}
-
-/* Between 992 and 1300px there is not enough width for a centred paragraph
-   and the corner lockup side by side. Rather than push the footnote off the
-   axis everything else shares, the hero column reserves the corner's height so
-   the paragraph clears it vertically instead. */
-@media (min-width: 992px) and (max-width: 1299px) {
-  .hero-wrap {
-    padding-bottom: 215px;
-  }
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-size: clamp(1.75rem, 1rem + 3.2vw, 3.5rem);
 }
 
 /* ------------------------------------------------------------- composer -- */
 
-/* Two rows, as the comp draws it: the line you type on, and a control row
-   under it with the mic at the left and send at the right. The whole box is
-   cream on the maroon, which is what marks it as the thing you touch. */
+/* A single cut-cornered rule, drawn not filled: on a painted ground a solid
+   input would read as a hole. The border IS the control. */
 .composer {
   position: relative;
-  width: min(100%, 720px);
-  margin: clamp(20px, 2.4vw, 34px) auto 0;
-  padding: var(--s-3) var(--s-4) var(--s-2);
-  border-radius: 22px;
-  background: var(--field);
-  border: 1px solid transparent;
-  box-shadow: var(--sh-2);
-  transition:
-    border-color var(--dur) var(--ease),
-    box-shadow var(--dur) var(--ease);
-  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: min(100%, 660px);
+  margin: clamp(20px, 3.5vh, 40px) auto 0;
+  padding: 0 var(--s-3) 0 var(--s-4);
+  min-height: 54px;
+  background: rgba(60, 12, 4, 0.35);
+  border: 1px solid var(--cream-2);
+  clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 14px, 100% calc(100% - 14px),
+    calc(100% - 14px) 100%, 14px 100%, 0 calc(100% - 14px), 0 14px);
+  transition: background var(--dur) var(--ease);
 }
 
 .composer:focus-within {
-  border-color: color-mix(in srgb, var(--red) 45%, transparent);
-  box-shadow: var(--sh-2), var(--sh-focus);
+  background: rgba(60, 12, 4, 0.5);
 }
 
 .composer--flat {
   margin-top: 0;
   width: 100%;
+  background: rgba(60, 12, 4, 0.72);
 }
 
 .composer__field {
+  flex: 1 1 auto;
+  min-width: 0;
   display: block;
   width: 100%;
   border: 0;
   outline: none;
   resize: none;
   background: transparent;
-  color: var(--field-ink);
+  color: var(--cream);
   font: inherit;
   font-size: 1rem;
   line-height: 1.5;
-  padding: 0 var(--s-2);
-  max-height: 220px;
-  /* A textarea paints a scrollbar track inside the rounded box, which reads as
-     a stray tab. The field still scrolls at max-height; only the chrome goes. */
+  padding: var(--s-3) 0;
+  max-height: 180px;
   scrollbar-width: none;
 }
 
@@ -922,98 +711,67 @@ body {
 }
 
 .composer__field::placeholder {
-  color: var(--field-muted);
+  color: var(--cream-dim);
 }
 
+/* Mic and send sit inline with the field rather than on a second row. */
 .composer__bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--s-3);
-  margin-top: var(--s-2);
+  display: contents;
 }
 
-/* Outlined circle, as in the comp — it is a mode, not a primary action. */
 .icon-btn {
   display: inline-grid;
   place-items: center;
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  border: 0;
   border-radius: var(--r-pill);
-  border: 1px solid color-mix(in srgb, var(--field-ink) 22%, transparent);
   background: transparent;
-  color: var(--field-ink);
+  color: var(--cream);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition:
-    transform var(--dur) var(--ease),
     background var(--dur) var(--ease),
-    border-color var(--dur) var(--ease),
-    color var(--dur) var(--ease);
+    opacity var(--dur) var(--ease);
 }
 
 .icon-btn:hover {
-  background: color-mix(in srgb, var(--red) 10%, transparent);
-  border-color: var(--red);
-  color: var(--red);
-}
-
-.icon-btn:active {
-  transform: scale(0.95);
+  background: rgba(243, 221, 178, 0.14);
 }
 
 .icon-btn--recording {
-  background: color-mix(in srgb, var(--red) 16%, transparent);
-  border-color: var(--red);
-  color: var(--red);
+  background: rgba(243, 221, 178, 0.22);
 }
 
-/* The rail and the top bar sit on the maroon, not on the cream box, so their
-   icon buttons take the page ink and carry no outline. */
-.sidebar .icon-btn,
-.topbar .icon-btn {
-  border-color: transparent;
-  color: var(--ink-soft);
-}
-
-.sidebar .icon-btn:hover,
-.topbar .icon-btn:hover {
-  border-color: transparent;
-  background: color-mix(in srgb, var(--ink) 10%, transparent);
-  color: var(--ink);
+/* The mic belongs at the head of the line, before what you type. */
+.composer .icon-btn {
+  order: -1;
 }
 
 .send-btn {
   display: inline-grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
   flex: 0 0 auto;
   border: 0;
   border-radius: var(--r-pill);
-  background: var(--red);
-  color: #fff;
+  background: transparent;
+  color: var(--cream);
   cursor: pointer;
-  box-shadow: 0 8px 18px -8px rgba(140, 30, 34, 0.9);
   transition:
-    transform var(--dur) var(--ease),
     background var(--dur) var(--ease),
     opacity var(--dur) var(--ease);
 }
 
 .send-btn:hover:not(:disabled) {
-  background: var(--red-deep);
-  transform: scale(1.04);
-}
-
-.send-btn:active:not(:disabled) {
-  transform: scale(0.96);
+  background: rgba(243, 221, 178, 0.14);
 }
 
 .send-btn:disabled {
-  opacity: 0.9;
+  opacity: 0.45;
   cursor: not-allowed;
-  box-shadow: none;
 }
 
 /* -------------------------------------------------------- action pills --- */
@@ -1024,47 +782,38 @@ body {
   align-items: center;
   justify-content: center;
   gap: var(--s-3);
-  margin-top: var(--s-4);
+  margin-top: var(--s-5);
 }
 
-/* Outlined, not filled — on the comp they read as options offered, with the
-   send button the only solid thing on the page. */
 .pill {
   display: inline-flex;
   align-items: center;
   gap: var(--s-2);
-  min-height: 38px;
+  min-height: 36px;
   padding: 0 var(--s-4);
-  border-radius: var(--r-pill);
-  border: 1.5px solid currentColor;
+  border: 1px solid var(--line-strong);
   background: transparent;
-  color: var(--display);
+  color: var(--cream);
   font: inherit;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 500;
+  letter-spacing: 0.06em;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px),
+    calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
   transition:
-    transform var(--dur) var(--ease),
     background var(--dur) var(--ease),
     color var(--dur) var(--ease);
 }
 
 .pill:hover {
-  transform: translateY(-2px);
-  background: color-mix(in srgb, currentColor 12%, transparent);
+  background: rgba(243, 221, 178, 0.14);
 }
 
-.pill:active {
-  transform: translateY(0) scale(0.99);
-}
-
-/* The command this pill writes is currently in the composer. It is a state,
-   not a destination — nothing has run yet. */
 .pill[data-active] {
-  background: var(--red);
-  border-color: var(--red);
-  color: #fff;
+  background: var(--cream);
+  color: var(--on-cream);
 }
 
 .pill__icon {
@@ -1258,6 +1007,7 @@ body {
 
 .thread__foot {
   position: relative;
+  background: linear-gradient(to top, var(--ground) 62%, rgba(119, 25, 8, 0));
   flex: 0 0 auto;
   padding: 0 var(--s-5) var(--s-5);
 }
@@ -1326,9 +1076,13 @@ body {
   --ink-soft: #4a3330;
   --ink-muted: #7d635c;
   --display: #241310;
-  --line: rgba(74, 16, 13, 0.12);
-  --line-strong: rgba(74, 16, 13, 0.22);
+  --line: rgba(74, 16, 13, 0.14);
+  --line-strong: rgba(74, 16, 13, 0.24);
   --surface-2: rgba(74, 16, 13, 0.04);
+  --attested: #1f7a4d;
+  --reconstructed: #9a5a12;
+  --inferred: #6b6152;
+  --modern: #3f5691;
 
   background: var(--field);
   color: var(--ink);
@@ -1552,177 +1306,150 @@ body {
   }
 }
 
+
 /* ---------------------------------------------------------- responsive --- */
 
 @media (max-width: 1200px) {
-  .canvas {
-    padding: var(--s-3);
-  }
-  .sidebar {
-    width: 264px;
-    flex-basis: 264px;
+  .sidebar:not(.sidebar--collapsed) {
+    width: 240px;
+    flex-basis: 240px;
   }
 }
 
 @media (max-width: 991px) {
-  /* The rail stays on screen as the icon variant; expanding it floats over the
-     page rather than squeezing the conversation.
-
-     The corner lockup comes out of the corner here, so the hero column drops
-     back to plain flex — left as a grid it would auto-place the lockup into
-     the first row, above the headline. */
+  .masthead {
+    padding: var(--s-3) var(--s-4) 0;
+  }
   .hero-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: var(--s-6) var(--s-4) var(--s-5);
-  }
-  .hero-wrap > .hero,
-  .hero-wrap > .footnote {
-    align-self: auto;
-  }
-  .footnote {
-    order: 2;
-    margin: var(--s-6) auto 0;
-  }
-  /* Out of the corner, but still the same stack: wordmark, then the button,
-     then the pack. A row here would reorder the three. */
-  .brand-shop {
-    position: static;
-    order: 3;
-    justify-items: center;
-    padding: var(--s-5) 0 0;
-  }
-  /* No bleed off an edge it is no longer against — a negative margin here
-     pushes the page wider than the viewport. */
-  /* No corner to bleed into here, so no negative margin — and the jars need
-     clear air under the button rather than touching it. */
-  .brand-shop__pack {
-    width: clamp(180px, 26vw, 260px);
-    margin: var(--s-3) 0 0;
+    padding: clamp(20px, 4vh, 48px) var(--s-4) var(--s-4);
   }
 }
 
 /* ---------------------------------------------------------------- phone -- */
 
 @media (max-width: 767px) {
-  /* The rail stops being a column of the layout and becomes an overlay the
-     top bar summons. Nothing is docked, so the canvas gets the full width. */
+  /* The frame narrows so it does not eat a small screen, and the painting
+     switches to the tall crop drawn for portrait. */
+  :root {
+    --frame: 6px;
+  }
+
   .app {
     flex-direction: column;
   }
+
+  .app::before {
+    background-image: url("/brand/phad-tall.jpg");
+  }
+
   .sidebar:not(.sidebar--overlay) {
     display: none;
   }
-  .sidebar--overlay {
-    width: min(88vw, 340px);
-  }
-  /* Brand left, close right — the drawer's own header, matching where a phone
-     user expects a dismiss to be. */
-  .sidebar--overlay .sidebar__head {
-    padding-top: env(safe-area-inset-top);
+
+  /* The masthead becomes the cream ticket bar the comp draws: menu, mark,
+     About — one object spanning the width. */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    flex: 0 0 auto;
+    margin: var(--s-3) var(--s-3) 0;
+    padding: 0 var(--s-2) 0 var(--s-3);
+    min-height: 52px;
+    background: var(--cream);
+    color: var(--on-cream);
+    clip-path: polygon(16px 0, calc(100% - 16px) 0, 100% 16px, 100% calc(100% - 16px),
+      calc(100% - 16px) 100%, 16px 100%, 0 calc(100% - 16px), 0 16px);
   }
 
-  .canvas {
-    padding: var(--s-2);
-    min-height: 0;
-  }
-  .stage {
-    border-radius: 24px;
+  .topbar__btn {
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 auto;
+    border: 0;
+    border-radius: var(--r-pill);
+    background: none;
+    color: var(--on-cream);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
   }
 
-  /* No orange card behind the input on a phone: the headline keeps the card,
-     the composer moves down to the bottom bar. */
-  .hero {
-    border-radius: 24px;
-    padding: var(--s-5) var(--s-4);
+  .topbar__brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--on-cream);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
   }
+
+  .topbar__about {
+    min-height: 32px;
+    padding: 0 var(--s-3);
+    font-size: 0.6875rem;
+    background: transparent;
+    color: var(--on-cream);
+    clip-path: none;
+  }
+
+  /* The masthead's desktop parts stand down; the ticket bar carries them. */
+  .masthead {
+    display: none;
+  }
+
   .hero-wrap {
     justify-content: flex-start;
-  }
-  .hero-wrap--phone {
-    justify-content: center;
-    padding: var(--s-4) var(--s-3);
-  }
-  .hero-wrap--phone .hero__subtitle {
-    font-size: 0.9375rem;
+    padding: clamp(28px, 7vh, 64px) var(--s-4) var(--s-4);
   }
 
-  .composer__field {
-    padding: var(--s-4) var(--s-4) var(--s-2);
+  /* The em measure that sets the desktop break is wider than a phone, so it
+     is released here and the size does the work instead: 1.5rem keeps
+     "IT'S TIME TO DECOLONISE" on one line at 360px. */
+  .hero__title {
+    max-width: none;
+    font-size: clamp(1.375rem, 0.9rem + 2.6vw, 1.75rem);
   }
+
+  /* The painting owns the lower half of a phone, and three full-width outlines
+     laid over the cooks read as damage. The comp has no pills here either; the
+     commands stay typeable. */
+  .actions {
+    display: none;
+  }
+
+  .composer {
+    width: 100%;
+    min-height: 50px;
+  }
+
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--s-2);
+    margin-top: var(--s-4);
+  }
+
+  .pill {
+    width: 100%;
+    justify-content: center;
+    min-height: 42px;
+  }
+
   .thread__inner,
   .thread__foot {
     padding-left: var(--s-3);
     padding-right: var(--s-3);
   }
-  /* Clear the home indicator on a notched phone rather than tucking the send
-     button under it. */
+
   .thread__foot {
     padding-bottom: max(var(--s-3), env(safe-area-inset-bottom));
-  }
-
-  /* The top bar already carries "new restoration" on every screen, so the
-     header duplicate goes — a stacked pill here reads as a list row anyway. */
-  .history__head .pill {
-    display: none;
-  }
-  .history__inner {
-    padding: var(--s-5) var(--s-4) var(--s-6);
-  }
-
-  /* A wrapping row of pills staggers into ragged lines at this width. Stacked
-     full-width rows read as a list of offers instead of debris. */
-  .actions {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-    margin-top: var(--s-5);
-  }
-  .pill {
-    width: 100%;
-    justify-content: center;
-    min-height: 46px;
-    font-size: 0.9375rem;
-    padding: 0 var(--s-4);
-  }
-
-  /* The corner marks and the whole Vitalife lockup stand down on a phone.
-     Wordmark, button and pack shot below a stacked hero read as clutter, and
-     the top bar already carries the brand. React skips the lockup once it
-     knows the width; this covers the server-rendered frame before that. */
-  .brand-top,
-  .brand-shop {
-    display: none;
-  }
-  .footnote {
-    margin-top: var(--s-5);
-    text-align: center;
-  }
-  /* The composer is a two-row box, not the single-line bar this block used to
-     override — no side room to reserve for the controls. */
-  .composer {
-    padding: var(--s-3) var(--s-3) var(--s-2);
-    border-radius: 22px;
-  }
-  .composer__field {
-    font-size: 1rem;
-    padding: 0 var(--s-1);
-  }
-  .send-btn {
-    width: 42px;
-    height: 42px;
-  }
-  .icon-btn {
-    width: 38px;
-    height: 38px;
-  }
-
-  /* Taller than the viewport on a phone, so the column starts at the top —
-     centred, the headline would be clipped above the scroll origin. */
-  .hero-wrap {
-    justify-content: flex-start;
   }
 }
 

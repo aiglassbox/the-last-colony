@@ -85,7 +85,7 @@ export function Sidebar({
             title="Expand sidebar"
           >
             <span className="rail-open__mark">
-              <Logo size={38} />
+              <Logo size={40} />
             </span>
             <span className="rail-open__icon" aria-hidden>
               <PanelLeftOpen size={22} />
@@ -97,9 +97,9 @@ export function Sidebar({
               type="button"
               className="sidebar__brand"
               onClick={onGoToChat}
-              title="Asli Rasoi"
+              title="The Kranti Cookbook"
             >
-              <Logo size={46} />
+              <Logo size={40} />
             </button>
             <button
               type="button"
