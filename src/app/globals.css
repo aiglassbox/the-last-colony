@@ -407,10 +407,11 @@ body {
   align-items: center;
   gap: var(--s-3);
   width: 100%;
-  min-height: 44px;
+  min-height: 46px;
   margin-bottom: var(--s-4);
-  padding: 0 var(--s-4);
-  border: 1px solid rgba(111, 23, 16, 0.35);
+  padding: 0 var(--s-3);
+  border: 13px solid transparent;
+  border-image: url("/brand/btn-outline-dark.svg") 13 stretch;
   background: transparent;
   color: var(--on-cream);
   font: inherit;
@@ -419,12 +420,11 @@ body {
   text-align: left;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-  transition: background var(--dur) var(--ease);
+  transition: opacity var(--dur) var(--ease);
 }
 
 .new-chat:hover {
-  background: rgba(111, 23, 16, 0.1);
+  opacity: 0.72;
 }
 
 .new-chat__icon {
@@ -605,14 +605,21 @@ body {
   justify-content: flex-end;
 }
 
-/* The cut-corner ticket the comps use for every cream control. */
+/*
+  One button profile everywhere: the notched ticket the supplied rail and bar
+  are drawn with, re-authored at button size. Applied as a border-image with a
+  13px slice so the corner arcs hold their radius whatever the label's length —
+  a clip-path polygon can only fake the curve with a straight bevel, and
+  stretching the whole SVG would flatten it.
+*/
 .ticket {
   display: inline-grid;
   place-items: center;
-  min-height: 38px;
-  padding: 0 var(--s-6);
-  border: 0;
-  background: var(--cream);
+  min-height: 40px;
+  padding: 0 var(--s-5);
+  border: 13px solid transparent;
+  border-image: url("/brand/btn-fill-cream.svg") 13 fill stretch;
+  background: transparent;
   color: var(--on-cream);
   font: inherit;
   font-size: 0.8125rem;
@@ -622,13 +629,11 @@ body {
   text-decoration: none;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  clip-path: polygon(12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 12px),
-    calc(100% - 12px) 100%, 12px 100%, 0 calc(100% - 12px), 0 12px);
-  transition: background var(--dur) var(--ease);
+  transition: filter var(--dur) var(--ease);
 }
 
 .ticket:hover {
-  background: #fff0cf;
+  filter: brightness(1.06);
 }
 
 /* ----------------------------------------------------------------- hero -- */
@@ -651,7 +656,11 @@ body {
 
 .hero__title {
   margin: 0 auto;
-  max-width: 13.5em;
+  /* Measured in New Spirit at the display size: "It's time to decolonise"
+     runs 14.43em and adding "our" takes it to 17.05em, so anything between
+     puts the break where the comp puts it. `ch` cannot express this — it is
+     the width of a zero, far narrower than these caps. */
+  max-width: 15.5em;
   color: var(--cream);
   font-family: var(--font-display), "Iowan Old Style", Georgia, serif;
   font-weight: 600;
@@ -810,10 +819,12 @@ body {
 .pill {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: var(--s-2);
-  min-height: 36px;
-  padding: 0 var(--s-4);
-  border: 1px solid var(--line-strong);
+  min-height: 40px;
+  padding: 0 var(--s-3);
+  border: 13px solid transparent;
+  border-image: url("/brand/btn-outline-cream.svg") 13 stretch;
   background: transparent;
   color: var(--cream);
   font: inherit;
@@ -822,19 +833,16 @@ body {
   letter-spacing: 0.06em;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px),
-    calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
-  transition:
-    background var(--dur) var(--ease),
-    color var(--dur) var(--ease);
+  transition: opacity var(--dur) var(--ease);
 }
 
 .pill:hover {
-  background: rgba(243, 221, 178, 0.14);
+  opacity: 0.75;
 }
 
+/* Selected, it fills — the same profile, the other way round. */
 .pill[data-active] {
-  background: var(--cream);
+  border-image: url("/brand/btn-fill-cream.svg") 13 fill stretch;
   color: var(--on-cream);
 }
 
@@ -1422,11 +1430,12 @@ body {
 
   .topbar__about {
     min-height: 32px;
-    padding: 0 var(--s-3);
+    padding: 0 var(--s-2);
     font-size: 0.6875rem;
+    border: 0;
+    border-image: none;
     background: transparent;
     color: var(--on-cream);
-    clip-path: none;
   }
 
   /* The masthead's desktop parts stand down; the ticket bar carries them. */

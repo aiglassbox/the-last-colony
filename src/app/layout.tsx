@@ -1,17 +1,19 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Poppins } from "next/font/google";
+import { Poppins } from "next/font/google";
+import localFont from "next/font/local";
 
 import "./globals.css";
 
 /**
  * Two faces.
  *
- * Cormorant Garamond carries the headline — a high-contrast old-style serif,
- * which is what makes the page read as a printed manuscript rather than a
- * product page. Poppins carries everything you operate: it is the sans in the
- * comps, and its evenness is what keeps the illustrated ground legible.
+ * New Spirit carries the headline — the supplied display face, a contemporary
+ * high-contrast serif. It is licensed and not on Google Fonts, so it is
+ * bundled locally; the file arrived named .ttf but is OpenType/CFF, and is
+ * renamed so the loader declares the right format.
  *
- * The licensed display face used by the previous design is gone with it.
+ * Poppins carries everything you operate: it is the sans in the comps, and its
+ * evenness is what keeps the illustrated ground legible.
  */
 const poppins = Poppins({
   subsets: ["latin"],
@@ -20,11 +22,11 @@ const poppins = Poppins({
   display: "swap",
 });
 
-const cormorant = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+const newSpirit = localFont({
+  src: "./fonts/new-spirit-medium.otf",
   variable: "--font-display",
   display: "swap",
+  fallback: ["Iowan Old Style", "Georgia", "serif"],
 });
 
 export const metadata: Metadata = {
@@ -47,7 +49,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   // One theme, so there is no pre-paint script and no `data-theme` to write.
   return (
-    <html lang="en" className={`${poppins.variable} ${cormorant.variable}`}>
+    <html lang="en" className={`${poppins.variable} ${newSpirit.variable}`}>
       <body>{children}</body>
     </html>
   );
