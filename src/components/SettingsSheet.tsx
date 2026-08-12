@@ -66,12 +66,12 @@ export function SettingsSheet({
           >
             {confirmClear ? "Delete every conversation, confirm" : "Clear history"}
           </button>
-          {confirmClear && (
-            <p className="modal__note">
-              Every conversation on this device, and its copy on the server, goes. There is
-              no undo.
-            </p>
-          )}
+
+          {/* Standing, not only once the button is armed. What it costs is
+              worth knowing before the first click, not after it. */}
+          <p className="modal__note">
+            Clearing history removes all the chat on this device and there is no undo.
+          </p>
         </div>
       </div>
     </>
