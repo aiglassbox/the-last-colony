@@ -81,6 +81,52 @@ const LEADING_CONJUNCTION = /^(?:and|or|but)\s+/i;
 const STRANDED_PAIR = /\b(?:for|with|of|to|in|on|by|from|than)\s+(?:for|with|of|to|in|on|by|from|than)\b/i;
 
 /**
+ * A cell that names a category instead of giving a reason.
+ *
+ * The prompt spells this out at length — "flavour", "heat", "texture", "aroma"
+ * are categories, and a preposition in front of one does not rescue it — and
+ * the column still comes back as "sharp heat", "pungent warmth", "aromatic,
+ * earthy notes", "texture and mild flavour". Four of those landed in one
+ * ingredient table. Stating the rule harder has been tried; this is the same
+ * remedy the em dash, the markdown and the health claim get, which is removal.
+ *
+ * The bar is deliberately low: a cell is only cut when it is category words and
+ * joining words and nothing else. "browns faster than white sugar" carries a
+ * category word and survives, because there is a verb and a comparison doing
+ * work around it. Anything with a real clause in it is left exactly as written.
+ *
+ * An emptied cell is the documented preference, not a loss. The prompt already
+ * tells the model to leave the field blank rather than fill it with a label,
+ * and the table already draws an empty cell for an ingredient with nothing
+ * recorded: "an empty cell is a silence the reader can see".
+ */
+const CATEGORY_WORD =
+  "(?:flavou?rs?|flavouring|heat|spice|spicy|spiciness|seasonings?|textures?|aromas?|aromatics?|aromatic|fragrance|fragrant|scent|smell|tastes?|tasty|binders?|binding|thickeners?|garnish|colour|color|colouring|warmth|pungency|pungent|sharp|sharpness|earthy|nutty|savoury|savory|tang|tanginess|tangy|freshness|fresh|crunch|crunchy|crispness|crispy|body|richness|rich|depth|notes?|balance|bitterness|sourness|sweetness)";
+
+/** Joining words that can sit around the categories without adding a reason. */
+const FILLER =
+  "(?:for|its|the|a|an|and|or|with|of|to|some|extra|more|mild|light|good|nice|" +
+  "distinct|subtle|delicate|strong|gentle|deep|adds?|gives?|brings?|provides?|" +
+  "lends?|imparts?)";
+
+const CATEGORY_ONLY = new RegExp(
+  `^(?:${FILLER}|${CATEGORY_WORD})(?:[\\s,;·]+(?:${FILLER}|${CATEGORY_WORD}))*$`,
+  "i",
+);
+
+/**
+ * True when a cell is nothing but category and joining words.
+ *
+ * Exported so the routing harness can hold the list to specific strings rather
+ * than to the regex, which is the part that will be edited.
+ */
+export function isCategoryOnly(reason: string): boolean {
+  const words = reason.trim().replace(/[.!?]+$/, "");
+  if (!words) return false;
+  return CATEGORY_ONLY.test(words);
+}
+
+/**
  * Trims a reason to its words, and to nothing when it no longer reads.
  *
  * The health pass upstream removes a claim and judges what survives against the
@@ -100,6 +146,7 @@ function tidyReason(text: string): string {
     .trim();
   if (!/[a-z]/i.test(trimmed)) return "";
   if (STRANDED_OPEN.test(trimmed) || STRANDED_PAIR.test(trimmed)) return "";
+  if (isCategoryOnly(trimmed)) return "";
   return trimmed;
 }
 

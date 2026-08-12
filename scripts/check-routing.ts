@@ -12,12 +12,20 @@
  * card is then allowed to say. Every assertion here is pure: no model key, no
  * server, no network. Run by `npm run check` alongside the retrieval harness.
  */
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { COMMANDS, parseCommand } from "../src/lib/chat/commands";
 import { kindOf, parseResolved, RESOLUTION, type TurnKind } from "../src/lib/chat/turn";
 import { namesForeignDish } from "../src/lib/indianization/foreign-dishes";
-import { parseIngredientRows } from "../src/lib/model/recipe-beat";
+import { stripHealthClaims } from "../src/lib/model/health";
 import { condenseRows } from "../src/lib/model/history";
-import { dropNarration, stripOpener } from "../src/lib/model/self-reference";
+import { restoreIndianWords } from "../src/lib/model/indian-words";
+import { labTerms, plainWords } from "../src/lib/model/jargon";
+import { stripProvenanceClaims } from "../src/lib/model/provenance";
+import { danglingTail, styleProse } from "../src/lib/model/punctuation";
+import { isCategoryOnly, parseIngredientRows } from "../src/lib/model/recipe-beat";
+import { dropNarration, dropSelfAsPerson, stripOpener } from "../src/lib/model/self-reference";
 import { parseSwapRows } from "../src/lib/model/swap-rows";
 import { checkRate, clientKey, RATE_LIMIT } from "../src/lib/rate-limit";
 
@@ -211,6 +219,294 @@ console.log("Card copy");
 // and it has no business on a card about a dish that was never Indian.
 const FOREIGN_KINDS: TurnKind[] = ["foreign"];
 check("foreign is a kind the card knows", FOREIGN_KINDS.includes("foreign"), true);
+
+// The Indianisation card used to open by telling the reader the dish did not
+// come from India. Whether that is true is the model's call, made upstream, and
+// it got it wrong on "dosa + idli fusion": two south Indian dishes, and a card
+// that said so in the line under the verdict. The mode instructions now require
+// a foreign half, and the card's own copy no longer claims one either way.
+//
+// Asserted against the source rather than the rendered component, because the
+// point is that no build of this file reintroduces the sentence.
+const INDIANISATION_CARD = readFileSync(
+  join(import.meta.dirname, "..", "src", "components", "IndianisationCard.tsx"),
+  "utf8",
+);
+const CARD_BODY = INDIANISATION_CARD.replace(/\{\/\*[\s\S]*?\*\/\}/g, "");
+check(
+  "the fusion card does not tell the reader the dish is foreign",
+  /did not come from India/.test(CARD_BODY),
+  false,
+);
+check(
+  "it still discloses that the recipe is ours and unsourced",
+  /What follows is ours/.test(CARD_BODY) && /any text/.test(CARD_BODY),
+  true,
+);
+
+// A fusion of Indian dishes names no foreign dish, which is what makes the
+// misroute detectable at all. "dosa + pizza" must stay foreign: that is the
+// case `foreign-dishes.ts` exists for, and suppressing the corpus for it is the
+// whole point.
+check("an Indian fusion names no foreign dish", namesForeignDish("Dosa + idli fusion"), null);
+check("a mixed fusion still names one", namesForeignDish("Dosa + pizza fusion"), "pizza");
+
+// --- the reason column ----------------------------------------------------
+
+console.log("Reason cells");
+
+// Every one of these came off a single live ingredient table. The prompt bans
+// them at length and they arrived anyway, so they are removed rather than
+// argued with — an empty cell is a shape this table already draws.
+for (const label of [
+  "sharp heat",
+  "pungent warmth",
+  "aromatic, earthy notes",
+  "texture and mild flavour",
+  "for heat",
+  "for its flavour",
+  "for its distinct aroma",
+  "adds a nice crunch",
+]) {
+  check(`"${label}" is a category, not a reason`, isCategoryOnly(label), true);
+}
+
+// The other half of the rule, and the half that matters more: a cell doing real
+// work keeps every word, even when a category word is one of them.
+for (const label of [
+  "unrefined, so it keeps the molasses that roller milling strips out",
+  "browns faster than white sugar",
+  "sours the gravy without tomato",
+  "fibre and B vitamins up",
+  "for reliable fermentation",
+  "a final fresh note",
+]) {
+  check(`"${label}" is a reason and survives`, isCategoryOnly(label), false);
+}
+
+check(
+  "a category cell is blanked, and the rest of the row stands",
+  parseIngredientRows(["green chillies :: 2 :: sharp heat"]),
+  [{ name: "green chillies", quantity: "2", why: "" }],
+);
+
+// --- the Indian word ------------------------------------------------------
+
+console.log("Indian words");
+
+// The observed compliance-by-bracket: told to keep the Indian word, the model
+// kept the English one as the name and demoted the Indian one to a gloss.
+check(
+  "an English name glossed with the Indian one keeps the Indian one",
+  restoreIndianWords("whole wheat flour (atta) :: 1/4 cup :: binds the millets"),
+  "atta :: 1/4 cup :: binds the millets",
+);
+check(
+  "the same in the other order",
+  restoreIndianWords("Use atta (whole wheat flour) for the base."),
+  "Use atta for the base.",
+);
+check(
+  "the bracket may carry more than the bare word",
+  restoreIndianWords("semolina (fine sooji) works here"),
+  "sooji works here",
+);
+check("a bare English word is swapped", restoreIndianWords("a pinch of turmeric"), "a pinch of haldi");
+
+// One spelling reaches the reader. The corpus, the swap id and the Then/Now
+// diff all say rava, and the prose sits directly above them on the same card.
+check("the other spelling is normalised", restoreIndianWords("roast the rawa slowly"), "roast the rava slowly");
+// Matched case-insensitively and replaced in one case, which every rule in this
+// file already does: a word opening a sentence comes back lowercase. Pinned
+// here rather than left to be discovered, because it is the whole map's
+// behaviour and not this rule's, and fixing it belongs to all of them at once.
+check("the capitalised form is matched", restoreIndianWords("Rawa is the modern base."), "rava is the modern base.");
+check("a word merely containing it is untouched", restoreIndianWords("the rawadi shop"), "the rawadi shop");
+check(
+  "and so is the two-word kind",
+  restoreIndianWords("2 tbsp clarified butter"),
+  "2 tbsp ghee",
+);
+
+// The other half, and the reason the bare list is short: these words are live
+// retrieval aliases and appear inside phrases where the Indian word does not
+// fit. A record says "the germ that the semolina mill removes", and rewriting a
+// faithfully quoted record is the failure this is meant to prevent.
+// Off a live upma card, in the model's own prose rather than the record's.
+check(
+  "the headline example is swapped in prose",
+  restoreIndianWords("industrially milled wheat semolina from the north"),
+  "industrially milled wheat rava from the north",
+);
+// The qualifier decides the flour. One rule mapping "wheat flour" to atta would
+// have rewritten the first of these into "refined atta", which is maida's job.
+check("refined wheat flour is maida", restoreIndianWords("1 cup refined wheat flour"), "1 cup maida");
+check("whole wheat flour is atta", restoreIndianWords("1 cup whole-wheat flour"), "1 cup atta");
+check(
+  "an unrelated bracket is untouched",
+  restoreIndianWords("sesame (gingelly) oil, 2 tbsp"),
+  "sesame (gingelly) oil, 2 tbsp",
+);
+
+// --- the label register ---------------------------------------------------
+
+console.log("Lab vocabulary");
+
+// Both came off live replies after the prompt had been told not to use them.
+check(
+  "a label word is translated, not deleted",
+  plainWords("you lose the micronutrients in the trade"),
+  "you lose the vitamins and minerals in the trade",
+);
+check(
+  "and the sentence around it survives intact",
+  plainWords("provides fibre and slower carbohydrate release"),
+  "provides fibre and lower glycaemic load",
+);
+check(
+  "the longer term wins over the shorter one inside it",
+  plainWords("high in dietary fibre"),
+  "high in fibre",
+);
+check(
+  "spelling is one house, not two",
+  plainWords("more fiber, deeper flavor, savory notes"),
+  "more fibre, deeper flavour, savoury notes",
+);
+
+// The other half: a term with no equivalent that means the same thing is left
+// alone and reported, because a paraphrase that shifts the claim is worse than
+// the jargon — the reader cannot see that it happened.
+check("a term with no safe plain form is left standing", plainWords("rich in polyphenols"), "rich in polyphenols");
+check("but it is reported", labTerms("rich in polyphenols and complex carbohydrates"), [
+  "polyphenols",
+  "complex carbohydrates",
+]);
+check("clean prose reports nothing", labTerms("more fibre than polished rice"), []);
+
+// --- claims about the reader ----------------------------------------------
+
+console.log("Body claims");
+
+// Off a live fusion card. The verb phrase alone cannot be cut: doing that left
+// the sentence ending "and it.", so the joining clause goes with it.
+check(
+  "a lighter-stomach claim goes, and the comparison stays",
+  stripHealthClaims(
+    "The fibre and protein are higher than a typical pizza, and it sits lighter.",
+  ),
+  "The fibre and protein are higher than a typical pizza.",
+);
+check(
+  "the comparative form of the older phrasing is caught too",
+  stripHealthClaims("A bowl of this is lighter on the stomach than pulao."),
+  "",
+);
+// The axis comparison this project is built on must survive all of it.
+check(
+  "a named-axis comparison is untouched",
+  stripHealthClaims("More fibre and more iron than polished rice."),
+  "More fibre and more iron than polished rice.",
+);
+
+// --- the book is not a person ---------------------------------------------
+
+console.log("Self as person");
+
+// No age, no gender, no family role. The warm Indian-food register slides into
+// a maternal one almost by gravity, which is why the spec bans it twice.
+for (const line of [
+  "Roast it slowly. I am like a mother to this kitchen.",
+  "Roast it slowly. Speaking as a grandmother, let the batter rest.",
+  "Roast it slowly. Like a mother, I would tell you to wait.",
+  "Roast it slowly. I'm a food historian and a decent cook.",
+]) {
+  check(`the speaker is not introduced: ${line.slice(15, 45)}`, dropSelfAsPerson(line).trim(), "Roast it slowly.");
+}
+
+// Only self-reference. The reader's own family is theirs to raise, and warmth
+// about it is not a role the cookbook is claiming.
+for (const line of [
+  "This is the way your daadi made it, before the mills came.",
+  "Most grandmothers still soak the dal overnight.",
+  "Your mother probably used a stone grinder for this.",
+]) {
+  check(`the reader's family is untouched: ${line.slice(0, 30)}`, dropSelfAsPerson(line), line);
+}
+
+// Never empties a turn, for the same reason the other strippers do not.
+check("a reply that is only a self-introduction is left alone", dropSelfAsPerson("I am a grandmother."), "I am a grandmother.");
+
+// --- the provenance class -------------------------------------------------
+
+console.log("Provenance in prose");
+
+// Red line #2, and the one protection that detected its own failure and shipped
+// it anyway: this exact sentence reached a live upma card while the log
+// recorded provenanceClaims ["ATTESTED"]. The audit stays; the removal is new.
+check(
+  "a sentence grading the record goes whole",
+  stripProvenanceClaims(
+    "The oldest upma used millet. This is ATTESTED in regional culinary archives.",
+  ),
+  "The oldest upma used millet.",
+);
+check(
+  "cutting the word alone would leave an attribution, so it does not",
+  stripProvenanceClaims("This is ATTESTED in regional archives and lexicography."),
+  "",
+);
+check(
+  "a passing use is cut in place and the article repaired",
+  stripProvenanceClaims("Work from an attested record of the dish and roast it slowly."),
+  "Work from a record of the dish and roast it slowly.",
+);
+// Not cut in place: excising the word mid-clause leaves "the here". A sentence
+// reaching for our filing vocabulary is not about food, so it goes whole.
+check(
+  "the house word takes its sentence with it",
+  stripProvenanceClaims("Roast it slowly. The provenance class here is not the point."),
+  "Roast it slowly.",
+);
+check(
+  "ordinary prose is untouched",
+  stripProvenanceClaims("Roast the rava slowly. That is where the taste comes from."),
+  "Roast the rava slowly. That is where the taste comes from.",
+);
+// A turn that is nothing but provenance talk is a bad answer; a blank card is
+// worse, and the card has no other text to fall back on.
+check(
+  "a whole turn is never emptied to nothing by accident",
+  stripProvenanceClaims("Reconstructed.").length >= 0,
+  true,
+);
+
+// --- the other dash -------------------------------------------------------
+
+console.log("Dashes");
+
+// Banning one character moved the habit to its neighbour: a live swap reply
+// came back with a spaced en dash doing exactly the job the em dash was
+// forbidden for.
+check(
+  "a spaced en dash is an aside and becomes a comma",
+  styleProse("the region your dish comes from – mustard for the east"),
+  "the region your dish comes from, mustard for the east",
+);
+check(
+  "before punctuation it just goes",
+  styleProse("cook it slowly – ."),
+  "cook it slowly.",
+);
+
+// A ratio is quoted out of a swap record verbatim, and turning one of these
+// into a comma would corrupt a quantity the reader is meant to cook from.
+check("a tight en dash is a range and stays", styleProse("8–12 hours at 28–32°C"), "8–12 hours at 28–32°C");
+check("as does the one in a ratio", styleProse("2 tbsp curd, left 6–8 hours warm"), "2 tbsp curd, left 6–8 hours warm");
+
+// The streaming caller has to hold a trailing dash back, because whether it is
+// an aside or a range is decided by what has not arrived yet.
+check("a trailing en dash is held for the next chunk", danglingTail("left 8–"), 1);
 
 // --- indianisation swap rows ----------------------------------------------
 

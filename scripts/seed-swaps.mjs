@@ -45,7 +45,7 @@ const swaps = [
         ratio: "1 cup maida → 1 cup atta plus 2 tbsp extra water. Rest the dough 20 minutes longer.",
         taste_and_texture:
           "Denser, less stretchy, tears rather than folds. Bad for anything that needs to be laminated or paper-thin; fine for everyday breads.",
-        nutritional_rationale: "Fibre up, and the germ carries fat-soluble vitamins the mill removes.",
+        nutritional_rationale: "Fibre up, and the germ holds vitamin E and vitamin K that the mill takes out with it.",
       },
       {
         swap: "Pearl millet (bajra), finger millet (ragi) or sorghum (jowar)",
@@ -123,7 +123,7 @@ const swaps = [
         taste_and_texture:
           "These oils taste of something, which is the point and also the problem — mustard oil in a south Indian tempering is simply wrong. Match the oil to the dish's region, not to a general rule.",
         nutritional_rationale:
-          "Cold pressing keeps the fatty-acid profile and minor compounds that high-heat refining and deodorising strip. Comparable in calories — this is a fat-quality swap, not a fat-reduction one.",
+          "Cold pressing leaves the fat as it sits in the seed, along with the smell and taste that high-heat refining and deodorising take out. Same calories, so this is a swap about the quality of the fat and not about using less of it.",
       },
       {
         swap: "Ghee",
@@ -167,13 +167,13 @@ const swaps = [
         ratio: "No 1:1. Replace 2 tsp yeast with 8–12 hours at 28–32°C, or a 1/4 cup mature starter.",
         taste_and_texture: "Sourer, more complex, and much less predictable. It will fail on a cold night. That is the trade.",
         nutritional_rationale:
-          "Long fermentation breaks down phytates, which improves mineral availability from the grain. Slower is doing the work, not the organism.",
+          "A long ferment loosens the grip the grain keeps on its own iron and calcium, so more of what is in the flour reaches the plate. Slower is doing the work, not the organism.",
       },
       {
         swap: "Curd or buttermilk as a starter",
         ratio: "2 tbsp thick curd per cup of batter, left 6–8 hours warm.",
         taste_and_texture: "Reliably tangy, faster than a pure wild ferment, less lift.",
-        nutritional_rationale: "Same phytate-reduction benefit at a shorter fermentation.",
+        nutritional_rationale: "The same gain on iron and calcium, in a shorter ferment.",
       },
     ],
     where_it_went:
