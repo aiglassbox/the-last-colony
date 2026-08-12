@@ -28,13 +28,6 @@ import {
   subscribe as railSubscribe,
   toggleCollapsed as toggleRail,
 } from "@/lib/sidebar-store";
-import {
-  getServerSnapshot as themeServerSnapshot,
-  getSnapshot as themeSnapshot,
-  subscribe as themeSubscribe,
-  toggleTheme,
-} from "@/lib/theme";
-
 import { Composer } from "./Composer";
 import { History } from "./History";
 import { Message } from "./Message";
@@ -87,7 +80,6 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
     getSnapshot,
     getServerSnapshot,
   );
-  const theme = useSyncExternalStore(themeSubscribe, themeSnapshot, themeServerSnapshot);
   const railCollapsed = useSyncExternalStore(railSubscribe, railSnapshot, railServerSnapshot);
 
   const [input, setInput] = useState("");
@@ -486,8 +478,6 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
           setSettingsOpen(true);
           dismissOverlay();
         }}
-        theme={theme}
-        onToggleTheme={toggleTheme}
         onGoToChat={goToChat}
         collapsed={railCollapsed}
         onToggleCollapsed={toggleRail}
@@ -634,8 +624,6 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
 
       {settingsOpen && (
         <SettingsSheet
-          theme={theme}
-          onToggleTheme={toggleTheme}
           onClearConversations={clearAll}
           onClose={() => setSettingsOpen(false)}
         />

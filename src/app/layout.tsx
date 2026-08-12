@@ -1,23 +1,47 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
-
-import { THEME_INIT_SCRIPT } from "@/lib/theme";
+import { Poppins } from "next/font/google";
+import localFont from "next/font/local";
 
 import "./globals.css";
 
-const inter = Inter({
+/**
+ * Two faces.
+ *
+ * New Spirit carries the headline — the supplied display face, a contemporary
+ * high-contrast serif. It is licensed and not on Google Fonts, so both weights
+ * are bundled locally; the files arrived named .ttf but are OpenType/CFF, and
+ * are renamed so the loader declares the right format.
+ *
+ * Regular is the headline weight. Medium stays registered at 500 for the card
+ * verdict, which is set small enough to want the extra weight.
+ *
+ * Poppins carries everything you operate: it is the sans in the comps, and its
+ * evenness is what keeps the illustrated ground legible.
+ */
+const poppins = Poppins({
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
   variable: "--font-sans",
   display: "swap",
 });
 
+const newSpirit = localFont({
+  src: [
+    { path: "./fonts/new-spirit-regular.otf", weight: "400", style: "normal" },
+    { path: "./fonts/new-spirit-medium.otf", weight: "500", style: "normal" },
+  ],
+  variable: "--font-display",
+  display: "swap",
+  fallback: ["Iowan Old Style", "Georgia", "serif"],
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.SITE_URL ?? "http://localhost:3000"),
-  title: "Kranti Cookbook: The Great Indian Food Restoration",
+  title: "Kranti Cookbook — The Great Indian Food Restoration",
   description:
-    "Name a dish you eat every week. See what it was before colonial-era crop policy and industrial milling rewrote it, and how to cook that version tonight.",
+    "Name a dish you eat every week. See what it was before colonial-era crop policy and industrial milling rewrote it — and how to cook that version tonight.",
   openGraph: {
-    title: "The Great Indian Food Restoration",
+    title: "The Kranti Cookbook",
     description:
       "Your idli is a rice cake. It did not begin as one. A restoration project for the Indian plate.",
     type: "website",
@@ -25,20 +49,13 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#131211" },
-  ],
+  themeColor: "#8a1c14",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // One theme, so there is no pre-paint script and no `data-theme` to write.
   return (
-    // suppressHydrationWarning because the script below writes `data-theme`
-    // onto <html> before React hydrates, which is the point of it.
-    <html lang="en" className={inter.variable} suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
-      </head>
+    <html lang="en" className={`${poppins.variable} ${newSpirit.variable}`}>
       <body>{children}</body>
     </html>
   );

@@ -3,7 +3,6 @@
 import {
   History,
   MessageCircle,
-  Moon,
   PanelLeft,
   PanelLeftOpen,
   Plus,
@@ -14,7 +13,6 @@ import {
 import { useEffect, useRef } from "react";
 
 import type { Conversation } from "@/lib/chat/store";
-import type { Theme } from "@/lib/theme";
 
 import { Logo } from "./Logo";
 
@@ -43,8 +41,6 @@ export interface SidebarProps {
   onDeleteConversation: (id: string) => void;
   onNewConversation: () => void;
   onOpenSettings: () => void;
-  theme: Theme;
-  onToggleTheme: () => void;
   /** The wordmark doubles as the way back to the chat. */
   onGoToChat: () => void;
   collapsed: boolean;
@@ -64,8 +60,6 @@ export function Sidebar({
   onDeleteConversation,
   onNewConversation,
   onOpenSettings,
-  theme,
-  onToggleTheme,
   onGoToChat,
   collapsed,
   onToggleCollapsed,
@@ -201,23 +195,6 @@ export function Sidebar({
               onClick={onOpenSettings}
             />
           </li>
-          <li>
-            <button
-              type="button"
-              className="side-item"
-              onClick={onToggleTheme}
-              role="switch"
-              aria-checked={theme === "dark"}
-              aria-label="Dark Mode"
-              title="Dark Mode"
-            >
-              <Moon size={18} className="side-item__icon" aria-hidden />
-              <span className="side-item__text">Dark Mode</span>
-              <span aria-hidden className="switch" data-on={theme === "dark"}>
-                <span className="switch__knob" />
-              </span>
-            </button>
-          </li>
         </ul>
       </div>
     </aside>
@@ -252,7 +229,10 @@ function SideItem({
          only clipped visually — so `title` adds a pointer hint without being
          the sole source of the accessible name. */
       title={collapsed ? label : undefined}
-      style={accent ? { color: "var(--orange)" } : undefined}
+      /* The rail is the one cream surface in the design, and `--orange` is an
+         alias for cream — right on the painted ground, invisible here. The CTA
+         red is the accent that reads against beige. */
+      style={accent ? { color: "var(--red)" } : undefined}
     >
       {icon}
       <span className="side-item__text">{label}</span>

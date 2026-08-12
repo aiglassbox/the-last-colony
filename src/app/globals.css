@@ -1,56 +1,68 @@
 @import "tailwindcss";
 
 /*
-  Kranti Cookbook — design tokens.
+  The Kranti Cookbook — design tokens.
 
-  Everything is driven from here so the shell, the cards and the drawers stay
-  in one visual language, and so light/dark is a single attribute flip on
-  <html> rather than two sets of hardcoded classes.
+  One theme: a Phad-painted ground in the brand maroon, cream ink, and a cream
+  rule framing the whole page like the border of a scroll. Nothing here is a
+  gradient or a shadow-heavy "app" surface — the depth comes from the painting,
+  so the interface stays flat and quiet on top of it.
 
   Spacing follows an 8px grid: --s-1 through --s-10.
 */
 :root {
-  /* brand */
-  --orange: #ff6a00;
-  --orange-2: #ff8c3a;
-  --orange-3: #ff9d55;
-  --orange-4: #ffa25b;
+  /* the painted ground, sampled from the artwork so CSS and image agree */
+  --ground: #771908;
+  --ground-2: #661404;
+  --ground-wash: rgba(60, 10, 3, 0.55);
 
-  /* The hero ramp, split out so the AA variant can override it alone. */
-  --hero-1: #ff6a00;
-  --hero-2: #ff7d1f;
-  --hero-3: #ff9245;
-  --hero-4: #ffa25b;
+  /* cream and gold — the ink of the painting */
+  --cream: #f3ddb2;
+  --cream-2: #e7cb98;
+  --cream-dim: rgba(243, 221, 178, 0.62);
+  --gold: #c99a3e;
+  --beige: #f9d695; /* the rail, from the supplied SVGs */
 
-  /* surfaces */
-  --canvas: #ffffff; /* behind the stage, same as the sidebar */
-  --stage: #f7f4f2; /* the big rounded container */
-  --surface: #ffffff; /* cards, pills, composer */
-  --surface-2: #faf7f5;
+  /* on a cream surface */
+  --on-cream: #6f1710;
+  --on-cream-soft: #8d4030;
 
-  /* ink — #6e6e6e rather than the specified #777777, which measures 4.09:1 on
-     the stage and misses AA for body text. The 5-unit darkening is not
-     perceptible next to the reference and takes it to 4.6:1. */
-  --ink: #1f1f1f;
-  --ink-soft: #555555;
-  --ink-muted: #6e6e6e;
+  /* kept as aliases so the card and drawer rules did not need renaming */
+  --red: #8c1e22;
+  --red-deep: #6d151a;
+  --orange: var(--cream);
+  --orange-3: var(--gold);
 
-  /* lines */
-  --line: rgba(31, 31, 31, 0.08);
-  --line-strong: rgba(31, 31, 31, 0.14);
+  --canvas: var(--ground);
+  --stage: transparent;
+  --rail: transparent;
+  --surface: rgba(243, 221, 178, 0.08);
+  --surface-2: rgba(243, 221, 178, 0.12);
+
+  --field: var(--beige);
+  --field-ink: #55110b;
+  --field-muted: #9a6a4e;
+
+  --display: var(--cream);
+  --ink: var(--cream);
+  --ink-soft: var(--cream-dim);
+  --ink-muted: rgba(243, 221, 178, 0.5);
+
+  --line: rgba(243, 221, 178, 0.28);
+  --line-strong: rgba(243, 221, 178, 0.5);
 
   /* provenance badges */
-  --attested: #1f7a4d;
-  --reconstructed: #b8651a;
-  --inferred: #6b6152;
-  --modern: #4a5b8c;
+  --attested: #7fd3a5;
+  --reconstructed: #f0bd7c;
+  --inferred: #c9bda9;
+  --modern: #a8bbe8;
 
-  /* radii */
-  --r-card: 30px;
-  --r-stage: 32px;
-  --r-input: 24px;
+  /* radii — the design has almost none; corners are cut, not rounded */
+  --r-card: 6px;
+  --r-stage: 0px;
+  --r-input: 4px;
   --r-pill: 999px;
-  --r-side: 18px;
+  --r-side: 6px;
 
   /* spacing — 8px grid */
   --s-1: 4px;
@@ -64,80 +76,16 @@
   --s-9: 64px;
   --s-10: 80px;
 
-  /* motion */
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --dur: 220ms;
+  --dur: 240ms;
 
-  /* shadows — soft, never harsh */
-  --sh-1: 0 1px 2px rgba(31, 31, 31, 0.04), 0 2px 8px rgba(31, 31, 31, 0.04);
-  --sh-2: 0 2px 6px rgba(31, 31, 31, 0.05), 0 10px 28px -12px rgba(31, 31, 31, 0.14);
-  --sh-3: 0 8px 20px -6px rgba(31, 31, 31, 0.1), 0 24px 48px -20px rgba(31, 31, 31, 0.18);
-  --sh-hero: 0 18px 48px -20px rgba(255, 106, 0, 0.55), 0 6px 18px -8px rgba(255, 106, 0, 0.3);
-  --sh-focus: 0 0 0 3px rgba(255, 106, 0, 0.28);
-
-  color-scheme: light;
-}
-
-:root[data-theme="dark"] {
-  --canvas: #131211;
-  --stage: #1a1817;
-  --surface: #221f1d;
-  --surface-2: #2a2624;
-
-  --ink: #f4f1ee;
-  --ink-soft: #c2bbb4;
-  --ink-muted: #948c85;
-
-  --line: rgba(244, 241, 238, 0.1);
-  --line-strong: rgba(244, 241, 238, 0.18);
-
-  --attested: #5fbf8f;
-  --reconstructed: #e0a15c;
-  --inferred: #a99f8e;
-  --modern: #8fa4dc;
-
-  --sh-1: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --sh-2: 0 2px 6px rgba(0, 0, 0, 0.45), 0 10px 28px -12px rgba(0, 0, 0, 0.6);
-  --sh-3: 0 8px 20px -6px rgba(0, 0, 0, 0.5), 0 24px 48px -20px rgba(0, 0, 0, 0.7);
-  --sh-hero: 0 18px 48px -20px rgba(255, 106, 0, 0.45), 0 6px 18px -8px rgba(0, 0, 0, 0.5);
+  --sh-1: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --sh-2: 0 2px 6px rgba(0, 0, 0, 0.32), 0 12px 30px -14px rgba(0, 0, 0, 0.5);
+  --sh-3: 0 10px 24px -8px rgba(0, 0, 0, 0.45), 0 30px 60px -24px rgba(0, 0, 0, 0.6);
+  --sh-hero: none;
+  --sh-focus: 0 0 0 3px rgba(243, 221, 178, 0.35);
 
   color-scheme: dark;
-}
-
-/* No-JS fallback. An explicit data-theme always wins. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    --canvas: #131211;
-    --stage: #1a1817;
-    --surface: #221f1d;
-    --surface-2: #2a2624;
-    --ink: #f4f1ee;
-    --ink-soft: #c2bbb4;
-    --ink-muted: #948c85;
-    --line: rgba(244, 241, 238, 0.1);
-    --line-strong: rgba(244, 241, 238, 0.18);
-    --attested: #5fbf8f;
-    --reconstructed: #e0a15c;
-    --inferred: #a99f8e;
-    --modern: #8fa4dc;
-    color-scheme: dark;
-  }
-}
-
-/* Opt-in WCAG AA hero. Deepens the ramp until white clears 4.5:1 for the
-   subtitle and 3.0:1 for the heading, at the cost of matching the reference's
-   lighter orange. Set data-contrast="aa" on <html>. */
-:root[data-contrast="aa"] {
-  --hero-1: #b03f00;
-  --hero-2: #b84400;
-  --hero-3: #c24700;
-  --hero-4: #c85000;
-}
-
-:root[data-contrast="aa"] .hero {
-  background:
-    radial-gradient(52% 78% at 8% 48%, rgba(255, 172, 96, 0.35) 0%, transparent 62%),
-    linear-gradient(115deg, var(--hero-1) 0%, var(--hero-2) 38%, var(--hero-3) 68%, var(--hero-4) 100%);
 }
 
 * {
@@ -175,7 +123,7 @@ body {
 }
 
 html {
-  background: var(--canvas);
+  background: var(--ground);
 }
 
 body {
@@ -185,7 +133,6 @@ body {
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  letter-spacing: -0.006em;
 }
 
 .sr-only {
@@ -200,16 +147,15 @@ body {
   border: 0;
 }
 
-/* Visible only to screen readers, until focused. */
 .skip-link {
   position: absolute;
   left: var(--s-4);
   top: -100px;
   z-index: 100;
   padding: var(--s-3) var(--s-4);
-  border-radius: var(--r-side);
-  background: var(--orange);
-  color: #fff;
+  border-radius: 4px;
+  background: var(--cream);
+  color: var(--on-cream);
   font-weight: 600;
   transition: top var(--dur) var(--ease);
 }
@@ -218,78 +164,127 @@ body {
   top: var(--s-4);
 }
 
-/* One focus treatment everywhere, so keyboard use is never ambiguous. */
 :where(a, button, input, textarea, [tabindex]):focus-visible {
-  outline: 2px solid var(--orange);
+  outline: 2px solid var(--cream);
   outline-offset: 2px;
-  border-radius: 6px;
+  border-radius: 3px;
+}
+
+/* The display face. Old-style serif, wide-tracked caps — the page reads as a
+   printed plate rather than a dashboard. */
+.display {
+  font-family: var(--font-display), "Iowan Old Style", Georgia, serif;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 /* ---------------------------------------------------------------- shell -- */
 
+/*
+  The page is a framed plate: a cream rule around the whole viewport, the Phad
+  painting bled to the edges inside it, and everything else drawn on top. The
+  frame is a border on .app rather than an inset box so nothing can scroll out
+  from under it.
+*/
 .app {
+  position: relative;
   display: flex;
   height: 100dvh;
   overflow: hidden;
-  background: var(--canvas);
+  background: var(--ground);
 }
 
+/* The painting. Bottom-anchored so the cooks stand on the lower edge at every
+   height, with the flat ground above them carrying the type. */
+.app::before {
+  content: "";
+  position: absolute;
+  /* Bled past the edges so that, once blurred, the softened rim falls outside
+     the viewport instead of showing as a pale border. */
+  inset: -24px;
+  z-index: 0;
+  pointer-events: none;
+  background: url("/brand/phad-wide.jpg") center bottom / cover no-repeat;
+  transition:
+    filter var(--dur) var(--ease),
+    opacity var(--dur) var(--ease);
+}
+
+/*
+  Reading a restoration, the painting steps back a little: enough softening for
+  the card to sit clearly in front of it, not so much that the illustration
+  turns to fog. It is the artwork that moves, not the card — a scrim over the
+  top would flatten the colour as well as the detail.
+*/
+.app--reading::before {
+  filter: blur(6px) brightness(0.82) saturate(0.95);
+}
+
+/* z-index alone, with no position — `.app` is a flex container, so z-index
+   already applies to its children, and forcing `position: relative` here would
+   drag the absolutely-positioned skip link into the flex row as a column. */
+.app > * {
+  z-index: 1;
+}
+
+/* ----------------------------------------------------------------- rail -- */
+
+/* A narrow strip, not a panel: the painting continues behind it and a single
+   cream rule separates it from the page. */
+/*
+  The rail is a beige plate with a tab down its outer edge, drawn from the
+  supplied SVG. It is applied as a border-image rather than a background so the
+  13px corner curves keep their radius at any height while the middle stretches
+  — scaling the whole artwork would flatten them.
+*/
 .sidebar {
-  width: 288px;
-  flex: 0 0 288px;
+  width: 81px;
+  flex: 0 0 81px;
   display: flex;
   flex-direction: column;
-  background: var(--canvas);
-  border-right: 1px solid var(--line);
-  padding: var(--s-5) var(--s-4) var(--s-4);
-  /* Width is the only thing that animates; the contents cross-fade with it so
-     the labels do not reflow visibly on the way in or out. */
+  align-items: center;
+  gap: var(--s-2);
+  color: var(--on-cream);
+  border: 13px solid transparent;
+  border-image: url("/brand/sidebar-desktop.svg") 13 fill stretch;
+  padding: var(--s-3) 0 var(--s-4);
   transition:
     width var(--dur) var(--ease),
-    flex-basis var(--dur) var(--ease),
-    padding var(--dur) var(--ease);
+    flex-basis var(--dur) var(--ease);
+}
+
+/* Expanded it is the same plate, just wider. */
+.sidebar:not(.sidebar--collapsed) {
+  width: 268px;
+  flex-basis: 268px;
+  align-items: stretch;
+  padding: var(--s-3) var(--s-4) var(--s-4);
 }
 
 .sidebar__head {
   display: flex;
   align-items: center;
   gap: var(--s-3);
-  min-height: 44px;
+  min-height: 40px;
 }
 
 .sidebar__brand {
   display: flex;
   align-items: center;
-  gap: var(--s-3);
   flex: 1 1 auto;
   min-width: 0;
   padding: 0;
   border: 0;
   background: none;
-  color: inherit;
+  color: var(--on-cream);
   font: inherit;
-  text-align: left;
   cursor: pointer;
-  /* The wordmark is a control but should not read as one — no hover fill, no
-     tap flash. The keyboard focus ring is deliberately left in place; it only
-     appears on :focus-visible, so it never fires on a click. */
   -webkit-tap-highlight-color: transparent;
 }
 
-.sidebar__name {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 1.05rem;
-  line-height: 1.2;
-}
-
 .sidebar__toggle {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  width: 34px;
+  height: 34px;
   flex: 0 0 auto;
 }
 
@@ -297,7 +292,8 @@ body {
   flex: 1 1 auto;
   overflow-y: auto;
   min-height: 0;
-  margin-top: var(--s-6);
+  width: 100%;
+  margin-top: var(--s-5);
 }
 
 .side-list {
@@ -306,7 +302,7 @@ body {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: var(--s-1);
+  gap: 2px;
 }
 
 .side-row {
@@ -320,11 +316,9 @@ body {
   min-width: 0;
 }
 
-/* Revealed on hover or keyboard focus — a delete button on every row at rest
-   makes the list read as a toolbar rather than a history. */
 .side-row__delete {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border: 0;
   flex: 0 0 auto;
   opacity: 0;
@@ -338,96 +332,148 @@ body {
 
 .side-empty {
   margin: 0;
-  padding: 0 var(--s-4);
-  font-size: 0.875rem;
-  color: var(--ink-muted);
+  padding: 0 var(--s-3);
+  font-size: 0.8125rem;
+  color: var(--on-cream-soft);
+}
+
+.side-group {
+  margin-bottom: var(--s-5);
+}
+
+.side-group__label {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  margin: 0 0 var(--s-2);
+  padding: 0 var(--s-3);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--on-cream-soft);
+}
+
+.side-group__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  padding: var(--s-1) var(--s-2);
+  margin: calc(var(--s-1) * -1) calc(var(--s-2) * -1);
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--dur) var(--ease);
+}
+
+.side-group__toggle:hover {
+  color: var(--on-cream);
+}
+
+.side-group__chevron {
+  transition: transform var(--dur) var(--ease);
+}
+
+.side-group__toggle[aria-expanded="false"] .side-group__chevron {
+  transform: rotate(-90deg);
 }
 
 .side-group--others {
   flex: 0 0 auto;
+  width: 100%;
   margin-bottom: 0;
   padding-top: var(--s-3);
-  border-top: 1px solid var(--line);
+  border-top: 1px solid rgba(111, 23, 16, 0.22);
 }
 
-/* --------------------------------------------------------------- topbar -- */
-
-/* Phone only. Menu on the left, brand in the middle, new thread on the right —
-   the arrangement every mobile chat client has converged on, because it is the
-   one that keeps the canvas full-width. */
-.topbar {
+.side-item {
   display: flex;
   align-items: center;
-  gap: var(--s-2);
-  flex: 0 0 auto;
-  padding: max(var(--s-2), env(safe-area-inset-top)) var(--s-2) 0;
-  background: var(--canvas);
-}
-
-.topbar__btn {
-  display: inline-grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  flex: 0 0 auto;
+  gap: var(--s-3);
+  width: 100%;
+  min-height: 40px;
+  padding: 0 var(--s-3);
   border: 0;
-  border-radius: var(--r-pill);
-  background: none;
-  color: var(--ink-soft);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--on-cream-soft);
+  font: inherit;
+  font-size: 0.9375rem;
+  text-align: left;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: background var(--dur) var(--ease);
+  transition:
+    background var(--dur) var(--ease),
+    color var(--dur) var(--ease);
 }
 
-.topbar__btn:active {
-  background: color-mix(in srgb, var(--orange) 12%, transparent);
+.side-item:hover {
+  background: rgba(111, 23, 16, 0.1);
+  color: var(--on-cream);
 }
 
-.topbar__brand {
-  flex: 1 1 auto;
-  min-width: 0;
+.side-item[aria-current="page"],
+.side-item[data-active] {
+  background: rgba(111, 23, 16, 0.14);
+  color: var(--on-cream);
+}
+
+.side-item__icon {
+  flex: 0 0 auto;
+  color: inherit;
+}
+
+.side-item__text {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--ink);
+}
+
+/* New Chat: a cut-cornered outline, matching the search field. */
+.new-chat {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  min-height: 46px;
+  margin-bottom: var(--s-4);
+  padding: 0 var(--s-3);
+  border: 13px solid transparent;
+  border-image: url("/brand/btn-outline-dark.svg") 13 stretch;
+  background: transparent;
+  color: var(--on-cream);
   font: inherit;
-  font-size: 1.0625rem;
-  font-weight: 650;
-  letter-spacing: -0.015em;
-  text-align: center;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-align: left;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  transition: opacity var(--dur) var(--ease);
 }
 
-/* ------------------------------------------------- sidebar, collapsed ---- */
-
-/* The icon rail. Labels are clipped rather than removed, so the accessible
-   name of every control survives the collapse. */
-.sidebar--collapsed {
-  width: 76px;
-  flex-basis: 76px;
-  padding-left: var(--s-2);
-  padding-right: var(--s-2);
-  align-items: center;
+.new-chat:hover {
+  opacity: 0.72;
 }
 
-.sidebar--collapsed .sidebar__head {
-  flex-direction: column;
-  gap: var(--s-2);
-}
-
-.sidebar--collapsed .sidebar__brand {
+.new-chat__icon {
   flex: 0 0 auto;
-  justify-content: center;
+  color: var(--on-cream);
+}
+
+/* Collapsed: icons only, centred, labels clipped but still announced. */
+.sidebar.sidebar--collapsed .sidebar__scroll {
+  margin-top: var(--s-4);
 }
 
 .sidebar--collapsed .sidebar__name,
 .sidebar--collapsed .side-group__label,
-.sidebar--collapsed .side-item__text,
-.sidebar--collapsed .switch {
+.sidebar--collapsed .side-item__text {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -439,134 +485,86 @@ body {
   border: 0;
 }
 
-.sidebar--collapsed .sidebar__scroll {
-  width: 100%;
-  overflow-x: hidden;
-}
-
-.sidebar--collapsed .side-item {
+.sidebar--collapsed .side-item,
+.sidebar--collapsed .new-chat {
   justify-content: center;
+  width: 44px;
   padding: 0;
-  width: 48px;
-  margin: 0 auto;
+  margin: 0 auto var(--s-1);
+  border: 0;
+  clip-path: none;
 }
 
-/* The dark-mode row keeps its state visible without the switch: the icon
-   itself fills in when it is on. */
-.sidebar--collapsed .side-item[role="switch"][aria-checked="true"] {
-  background: linear-gradient(135deg, var(--orange) 0%, var(--orange-3) 100%);
-  color: #fff;
+.sidebar--collapsed .side-group,
+.sidebar--collapsed .side-group--others {
+  margin-bottom: var(--s-3);
+  border-top: 0;
 }
 
-.sidebar--collapsed .side-item[role="switch"][aria-checked="true"] .side-item__icon {
-  color: #fff;
-}
-
-/* Below 992px the expanded rail floats instead of pushing — 288px of a 375px
-   screen would leave nothing for the conversation. */
+/* Floating over the page below 992px. */
 .sidebar--overlay {
   position: fixed;
   z-index: 50;
   top: 0;
   bottom: 0;
   left: 0;
-  width: min(86vw, 320px);
+  width: min(84vw, 300px);
   flex-basis: auto;
   box-shadow: var(--sh-3);
   animation: slide-in 280ms var(--ease);
 }
 
-.side-group {
-  margin-bottom: var(--s-6);
-}
-
-.side-group__label {
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--ink-muted);
-  padding: 0 var(--s-3);
-  margin-bottom: var(--s-2);
-}
-
-.side-item {
-  display: flex;
-  align-items: center;
-  gap: var(--s-3);
-  width: 100%;
-  min-height: 44px;
-  padding: 0 var(--s-4);
-  border: 0;
-  border-radius: var(--r-side);
-  background: transparent;
-  color: var(--ink-soft);
-  font: inherit;
-  font-size: 0.95rem;
-  text-align: left;
-  cursor: pointer;
-  transition:
-    background var(--dur) var(--ease),
-    color var(--dur) var(--ease);
-}
-
-.side-item:hover {
-  background: color-mix(in srgb, var(--orange) 8%, transparent);
-  color: var(--ink);
-}
-
-.side-item[aria-current="page"],
-.side-item[data-active="true"] {
-  background: linear-gradient(135deg, var(--orange) 0%, var(--orange-3) 100%);
-  color: #fff;
-  box-shadow: 0 6px 16px -8px rgba(255, 106, 0, 0.8);
-}
-
-.side-item[aria-current="page"] .side-item__icon,
-.side-item[data-active="true"] .side-item__icon {
-  color: #fff;
-}
-
-.side-item__icon {
-  flex: 0 0 auto;
-  color: var(--ink-muted);
-}
-
-.side-item__text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* The Dark Mode switch. Purely visual — the button that wraps it carries
-   role="switch" and aria-checked, so the state is announced, not inferred. */
-.switch {
+/* Collapsed, the rail shows only the mark; pointing at it swaps in the expand
+   icon in the same square, so the one thing on screen is also the control. */
+.rail-open {
   position: relative;
-  display: inline-block;
-  width: 44px;
-  height: 24px;
-  flex: 0 0 auto;
-  border-radius: var(--r-pill);
-  background: var(--line-strong);
-  transition: background var(--dur) var(--ease);
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--on-cream);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.switch[data-on="true"] {
-  background: linear-gradient(135deg, var(--orange) 0%, var(--orange-3) 100%);
+.rail-open__mark,
+.rail-open__icon {
+  grid-area: 1 / 1;
+  display: grid;
+  place-items: center;
+  line-height: 0;
+  transition: opacity var(--dur) var(--ease);
 }
 
-.switch__knob {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 18px;
-  height: 18px;
-  border-radius: var(--r-pill);
-  background: #fff;
-  box-shadow: 0 1px 3px rgba(31, 31, 31, 0.3);
-  transition: transform var(--dur) var(--ease);
+.rail-open__mark {
+  --mark-h: 44px;
 }
 
-.switch[data-on="true"] .switch__knob {
-  transform: translateX(20px);
+.rail-open__icon {
+  opacity: 0;
+}
+
+.rail-open:hover .rail-open__mark,
+.rail-open:focus-visible .rail-open__mark {
+  opacity: 0;
+}
+
+.rail-open:hover .rail-open__icon,
+.rail-open:focus-visible .rail-open__icon {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .rail-open__icon {
+    opacity: 0;
+  }
+  .rail-open:hover .rail-open__mark {
+    opacity: 1;
+  }
 }
 
 /* --------------------------------------------------------------- canvas -- */
@@ -575,7 +573,7 @@ body {
   flex: 1 1 auto;
   min-width: 0;
   display: flex;
-  padding: var(--s-4);
+  padding: 0;
 }
 
 .stage {
@@ -584,30 +582,12 @@ body {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  border-radius: var(--r-stage);
-  background: var(--stage);
+  background: transparent;
   overflow: hidden;
 }
 
-/* Soft orange glow bloom in the corners. Decorative, so it is aria-hidden and
-   painted behind content rather than as a background-image on .stage — that
-   keeps it from tiling oddly when the stage scrolls. */
 .stage__glow {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(38% 42% at 20% 76%, rgba(255, 146, 74, 0.42) 0%, transparent 68%),
-    radial-gradient(34% 30% at 2% 28%, rgba(255, 168, 106, 0.3) 0%, transparent 70%),
-    radial-gradient(42% 36% at 100% 4%, rgba(255, 186, 138, 0.3) 0%, transparent 70%),
-    radial-gradient(60% 50% at 88% 96%, rgba(255, 196, 152, 0.22) 0%, transparent 72%);
-}
-
-:root[data-theme="dark"] .stage__glow {
-  background:
-    radial-gradient(46% 38% at 6% 34%, rgba(255, 122, 40, 0.16) 0%, transparent 70%),
-    radial-gradient(50% 42% at 34% 84%, rgba(255, 138, 56, 0.12) 0%, transparent 72%),
-    radial-gradient(40% 34% at 96% 6%, rgba(255, 160, 100, 0.1) 0%, transparent 70%);
+  display: none;
 }
 
 .stage__body {
@@ -618,93 +598,150 @@ body {
   flex-direction: column;
 }
 
+/* -------------------------------------------------------------- masthead -- */
+
+/* Endorsement left, presenter centred, About right — a masthead, not a nav. */
+.masthead {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-4) var(--s-5) 0;
+}
+
+.masthead__left {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-width: 0;
+}
+
+.masthead__centre {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  color: var(--cream);
+}
+
+.masthead__presents {
+  margin-top: 2px;
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cream-dim);
+}
+
+.masthead__right {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/*
+  One button profile everywhere: the notched ticket the supplied rail and bar
+  are drawn with, re-authored at button size. Applied as a border-image with a
+  13px slice so the corner arcs hold their radius whatever the label's length —
+  a clip-path polygon can only fake the curve with a straight bevel, and
+  stretching the whole SVG would flatten it.
+*/
+.ticket {
+  display: inline-grid;
+  place-items: center;
+  min-height: 40px;
+  padding: 0 var(--s-5);
+  border: 13px solid transparent;
+  border-image: url("/brand/btn-fill-cream.svg") 13 fill stretch;
+  background: transparent;
+  color: var(--on-cream);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: filter var(--dur) var(--ease);
+}
+
+.ticket:hover {
+  filter: brightness(1.06);
+}
+
 /* ----------------------------------------------------------------- hero -- */
 
+/* The type sits in the upper third, above the painted figures. */
 .hero-wrap {
+  position: relative;
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: var(--s-5);
-  padding: var(--s-6) var(--s-5);
+  padding: clamp(40px, 13vh, 150px) var(--s-5) var(--s-5);
   overflow-y: auto;
 }
 
 .hero {
-  width: min(100%, 860px);
-  border-radius: var(--r-card);
-  padding: clamp(28px, 4vw, 56px);
-  /* The bright hotspot sits left-of-centre, as in the reference, so the card
-     reads as lit from that side rather than as a flat gradient sweep.
-
-     ACCESSIBILITY NOTE: white on this gradient measures 2.0–2.9:1, below the
-     WCAG AA thresholds (4.5:1 body, 3.0:1 large). The reference's palette
-     cannot reach AA — doing so needs roughly #C24700, which is visibly darker.
-     Fidelity is the default because it was the stated primary goal; set
-     data-contrast="aa" on <html> to switch to the compliant ramp below. */
-  background:
-    radial-gradient(52% 78% at 8% 48%, rgba(255, 209, 106, 0.9) 0%, rgba(255, 168, 60, 0) 62%),
-    linear-gradient(115deg, var(--hero-1) 0%, var(--hero-2) 38%, var(--hero-3) 68%, var(--hero-4) 100%);
-  box-shadow: var(--sh-hero);
+  width: min(100%, 900px);
   text-align: center;
 }
 
 .hero__title {
-  margin: 0;
-  color: #fff;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.12;
-  font-size: clamp(1.625rem, 1.1rem + 2.4vw, 2.875rem);
-  text-wrap: balance;
-}
-
-.hero__subtitle {
-  margin: var(--s-3) auto 0;
-  max-width: 600px;
-  color: rgba(255, 255, 255, 0.95);
-  font-size: clamp(0.9375rem, 0.88rem + 0.25vw, 1.0625rem);
-  line-height: 1.5;
-  text-wrap: balance;
+  margin: 0 auto;
+  /* Measured in New Spirit at the display size: "It's time to decolonise"
+     runs 14.43em and adding "our" takes it to 17.05em, so anything between
+     puts the break where the comp puts it. `ch` cannot express this — it is
+     the width of a zero, far narrower than these caps. */
+  max-width: 15.5em;
+  color: var(--cream);
+  font-family: var(--font-display), "Iowan Old Style", Georgia, serif;
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-size: clamp(1.75rem, 1rem + 3.2vw, 3.5rem);
 }
 
 /* ------------------------------------------------------------- composer -- */
 
+/*
+  The chat box carried over from the previous design: a filled cream panel with
+  the line you type on top and a control row beneath it — outlined mic at the
+  left, solid send at the right. On the painted ground it is the one bright
+  object, which is what marks it as the thing you touch.
+*/
+/*
+  Same plate as every other control: the notched profile, sliced at 13px so the
+  corner arcs hold whatever height the field grows to.
+
+  No box-shadow — a shadow is cast from the border box, which is a rectangle,
+  so it would print square corners behind a notched shape. The focus state is a
+  drop-shadow filter instead, which follows the alpha silhouette.
+*/
 .composer {
   position: relative;
-  margin-top: var(--s-5);
-  border-radius: var(--r-input);
-  background: var(--surface);
-  border: 2px solid rgba(255, 255, 255, 0.65);
-  box-shadow:
-    inset 0 2px 10px rgba(31, 31, 31, 0.05),
-    0 10px 30px -18px rgba(31, 31, 31, 0.4);
-  transition:
-    border-color var(--dur) var(--ease),
-    box-shadow var(--dur) var(--ease);
+  width: min(100%, 660px);
+  margin: clamp(20px, 3.5vh, 40px) auto 0;
+  padding: var(--s-2) var(--s-3) 0;
+  border: 13px solid transparent;
+  border-image: url("/brand/btn-fill-cream.svg") 13 fill stretch;
+  background: transparent;
   text-align: left;
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.4));
+  transition: filter var(--dur) var(--ease);
 }
 
 .composer:focus-within {
-  border-color: rgba(255, 255, 255, 0.95);
-  box-shadow:
-    inset 0 2px 10px rgba(31, 31, 31, 0.05),
-    0 0 0 4px rgba(255, 255, 255, 0.35);
+  filter:
+    drop-shadow(0 10px 24px rgba(0, 0, 0, 0.4))
+    drop-shadow(0 0 3px rgba(140, 30, 34, 0.9));
 }
 
-/* In the thread the composer sits on the stage, not on the hero, so it needs
-   its own border rather than the white-on-orange treatment. */
 .composer--flat {
   margin-top: 0;
-  border-color: var(--line-strong);
-}
-
-.composer--flat:focus-within {
-  border-color: var(--orange);
-  box-shadow:
-    inset 0 2px 10px rgba(31, 31, 31, 0.04),
-    var(--sh-focus);
+  width: 100%;
 }
 
 /* The shortcut in force, shown in the box rather than typed into it. Sits above
@@ -766,14 +803,22 @@ body {
   outline: none;
   resize: none;
   background: transparent;
-  color: var(--ink);
+  color: var(--field-ink);
   font: inherit;
-  padding: var(--s-5) var(--s-5) var(--s-2);
-  max-height: 320px;
+  font-size: 1rem;
+  line-height: 1.5;
+  padding: 0 var(--s-2);
+  max-height: 220px;
+  scrollbar-width: none;
+}
+
+.composer__field::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .composer__field::placeholder {
-  color: var(--ink-muted);
+  color: var(--field-muted);
 }
 
 .composer__bar {
@@ -781,73 +826,74 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: var(--s-3);
-  padding: var(--s-2) var(--s-3) var(--s-3);
+  margin-top: var(--s-2);
 }
 
+/* Outlined circle — it is a mode, not a primary action. */
 .icon-btn {
   display: inline-grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  border: 1px solid color-mix(in srgb, var(--field-ink) 22%, transparent);
   border-radius: var(--r-pill);
-  border: 1px solid var(--line);
-  background: var(--surface);
-  color: var(--ink-soft);
+  background: transparent;
+  color: var(--field-ink);
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   transition:
     transform var(--dur) var(--ease),
-    box-shadow var(--dur) var(--ease),
     background var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
     color var(--dur) var(--ease);
 }
 
 .icon-btn:hover {
-  transform: translateY(-1px) scale(1.02);
-  box-shadow: var(--sh-1);
-  color: var(--ink);
+  background: color-mix(in srgb, var(--red) 10%, transparent);
+  border-color: var(--red);
+  color: var(--red);
 }
 
 .icon-btn:active {
-  transform: translateY(0) scale(0.98);
+  transform: scale(0.95);
 }
 
 .icon-btn--recording {
-  background: color-mix(in srgb, var(--orange) 14%, var(--surface));
-  color: var(--orange);
-  border-color: color-mix(in srgb, var(--orange) 40%, transparent);
+  background: color-mix(in srgb, var(--red) 16%, transparent);
+  border-color: var(--red);
+  color: var(--red);
 }
 
 .send-btn {
   display: inline-grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: 42px;
+  height: 42px;
   flex: 0 0 auto;
   border: 0;
   border-radius: var(--r-pill);
-  background: linear-gradient(135deg, var(--orange) 0%, var(--orange-3) 100%);
+  background: var(--red);
   color: #fff;
   cursor: pointer;
-  box-shadow: 0 6px 16px -8px rgba(255, 106, 0, 0.9);
+  box-shadow: 0 8px 18px -8px rgba(140, 30, 34, 0.9);
   transition:
     transform var(--dur) var(--ease),
-    box-shadow var(--dur) var(--ease),
+    background var(--dur) var(--ease),
     opacity var(--dur) var(--ease);
 }
 
 .send-btn:hover:not(:disabled) {
-  transform: translateY(-1px) scale(1.02);
-  box-shadow: 0 10px 22px -10px rgba(255, 106, 0, 0.95);
+  background: var(--red-deep);
+  transform: scale(1.04);
 }
 
 .send-btn:active:not(:disabled) {
-  transform: translateY(0) scale(0.97);
+  transform: scale(0.96);
 }
 
-/* Still clearly inert, but close enough to the reference's solid orange that
-   the composer does not look broken before you type. */
 .send-btn:disabled {
-  opacity: 0.62;
+  opacity: 0.9;
   cursor: not-allowed;
   box-shadow: none;
 }
@@ -860,50 +906,41 @@ body {
   align-items: center;
   justify-content: center;
   gap: var(--s-3);
-  width: min(100%, 860px);
+  margin-top: var(--s-5);
 }
 
 .pill {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: var(--s-2);
-  min-height: 44px;
-  padding: 0 var(--s-4);
-  border-radius: var(--r-pill);
-  border: 1px solid var(--line);
-  background: var(--surface);
-  color: var(--ink);
+  min-height: 40px;
+  padding: 0 var(--s-3);
+  border: 13px solid transparent;
+  border-image: url("/brand/btn-fill-cream.svg") 13 fill stretch;
+  background: transparent;
+  color: var(--on-cream);
   font: inherit;
-  font-size: 0.9375rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
   cursor: pointer;
-  box-shadow: var(--sh-1);
-  transition:
-    transform var(--dur) var(--ease),
-    box-shadow var(--dur) var(--ease),
-    border-color var(--dur) var(--ease);
+  -webkit-tap-highlight-color: transparent;
+  transition: filter var(--dur) var(--ease);
 }
 
 .pill:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: var(--sh-2);
-  border-color: color-mix(in srgb, var(--orange) 35%, transparent);
+  filter: brightness(1.06);
 }
 
-.pill:active {
-  transform: translateY(0) scale(0.99);
-  box-shadow: var(--sh-1);
-}
-
-/* The command this pill writes is currently in the composer. It is a state,
-   not a destination — nothing has run yet. */
+/* Selected, it inverts to the brand red — a filled default needs a second
+   fill to read as chosen, not a lighter tint of itself. */
 .pill[data-active] {
-  border-color: var(--orange);
-  background: color-mix(in srgb, var(--orange) 10%, var(--surface));
-  color: var(--orange);
+  border-image: url("/brand/btn-fill-red.svg") 13 fill stretch;
+  color: var(--cream);
 }
 
 .pill__icon {
-  color: var(--orange);
   flex: 0 0 auto;
 }
 
@@ -1100,6 +1137,7 @@ body {
 
 .thread__foot {
   position: relative;
+  background: linear-gradient(to top, var(--ground) 62%, rgba(119, 25, 8, 0));
   flex: 0 0 auto;
   padding: 0 var(--s-5) var(--s-5);
 }
@@ -1113,9 +1151,9 @@ body {
   max-width: min(85%, 46ch);
   padding: var(--s-3) var(--s-4);
   border-radius: 20px 20px 6px 20px;
-  background: linear-gradient(135deg, var(--orange) 0%, var(--orange-3) 100%);
+  background: var(--red);
   color: #fff;
-  box-shadow: 0 8px 20px -12px rgba(255, 106, 0, 0.9);
+  box-shadow: 0 8px 20px -12px rgba(0, 0, 0, 0.6);
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -1146,8 +1184,25 @@ body {
 
 /* ----------------------------------------------------------------- card -- */
 
+/* The answer card is cream, as the artboards draw it, and it re-declares the
+   ink tokens for its own subtree so everything inside reads dark-on-light.
+   This is also what makes the CTA red usable as an accent: #8c1e22 measures
+   about 1.4:1 on the maroon ground and about 8:1 here. */
 .card {
-  background: var(--surface);
+  --ink: #241310;
+  --ink-soft: #4a3330;
+  --ink-muted: #7d635c;
+  --display: #241310;
+  --line: rgba(74, 16, 13, 0.14);
+  --line-strong: rgba(74, 16, 13, 0.24);
+  --surface-2: rgba(74, 16, 13, 0.04);
+  --attested: #1f7a4d;
+  --reconstructed: #9a5a12;
+  --inferred: #6b6152;
+  --modern: #3f5691;
+
+  background: var(--field);
+  color: var(--ink);
   border: 1px solid var(--line);
   border-radius: var(--r-card);
   box-shadow: var(--sh-2);
@@ -1192,9 +1247,12 @@ body {
   text-transform: uppercase;
 }
 
+/* The licensed display face. Used only for the headline and the card verdict —
+   it has no lowercase refinement for long reading. */
 .display {
-  font-weight: 650;
-  letter-spacing: -0.015em;
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 400;
+  letter-spacing: 0.005em;
 }
 
 .verdict {
@@ -1212,6 +1270,97 @@ body {
 }
 
 /* -------------------------------------------------------------- overlays -- */
+
+/* --------------------------------------------------------------- popup -- */
+
+/* A small centred dialog, not a sheet — it holds one action. */
+.popup {
+  position: fixed;
+  z-index: 50;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(92vw, 380px);
+  padding: var(--s-5);
+  border-radius: 18px;
+  background: var(--field);
+  color: var(--field-ink);
+  box-shadow: var(--sh-3);
+  animation: pop-in 200ms var(--ease);
+}
+
+@keyframes pop-in {
+  from {
+    transform: translate(-50%, calc(-50% + 8px));
+    opacity: 0;
+  }
+}
+
+.popup__head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.popup__title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.popup__close {
+  margin-left: auto;
+  width: 34px;
+  height: 34px;
+  border-color: transparent;
+}
+
+.popup__note {
+  margin: var(--s-3) 0 var(--s-5);
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: color-mix(in srgb, var(--field-ink) 70%, transparent);
+}
+
+.popup__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.popup__btn {
+  flex: 1 1 auto;
+  min-height: 40px;
+  padding: 0 var(--s-4);
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--field-ink) 22%, transparent);
+  background: transparent;
+  color: var(--field-ink);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background var(--dur) var(--ease),
+    border-color var(--dur) var(--ease);
+}
+
+.popup__btn:hover {
+  background: color-mix(in srgb, var(--field-ink) 8%, transparent);
+}
+
+/* Clearing is irreversible, so it is coloured as such at both steps. */
+.popup__btn--danger {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.popup__btn--danger:hover {
+  background: var(--red);
+  color: #fff;
+}
 
 .drawer-backdrop {
   position: fixed;
@@ -1321,109 +1470,154 @@ body {
   }
 }
 
+
 /* ---------------------------------------------------------- responsive --- */
 
 @media (max-width: 1200px) {
-  .canvas {
-    padding: var(--s-3);
-  }
-  .sidebar {
-    width: 264px;
-    flex-basis: 264px;
+  .sidebar:not(.sidebar--collapsed) {
+    width: 240px;
+    flex-basis: 240px;
   }
 }
 
 @media (max-width: 991px) {
-  /* The rail stays on screen as the icon variant; expanding it floats it over
-     the stage rather than squeezing the conversation. */
+  .masthead {
+    padding: var(--s-3) var(--s-4) 0;
+  }
   .hero-wrap {
-    padding: var(--s-6) var(--s-4) var(--s-5);
+    padding: clamp(20px, 4vh, 48px) var(--s-4) var(--s-4);
   }
 }
 
 /* ---------------------------------------------------------------- phone -- */
 
 @media (max-width: 767px) {
-  /* The rail stops being a column of the layout and becomes an overlay the
-     top bar summons. Nothing is docked, so the canvas gets the full width. */
+  /* The painting switches to the tall crop drawn for portrait. */
   .app {
     flex-direction: column;
   }
+
+  .app::before {
+    background-image: url("/brand/phad-tall.jpg");
+  }
+
   .sidebar:not(.sidebar--overlay) {
     display: none;
   }
+  /* Floating, it keeps the beige plate but square edges — the tab belongs to
+     a docked rail, not a drawer. */
   .sidebar--overlay {
-    width: min(88vw, 340px);
-  }
-  /* Brand left, close right — the drawer's own header, matching where a phone
-     user expects a dismiss to be. */
-  .sidebar--overlay .sidebar__head {
-    padding-top: env(safe-area-inset-top);
+    border-image: none;
+    border: 0;
+    background: var(--beige);
+    padding: var(--s-4);
   }
 
-  .canvas {
-    padding: var(--s-2);
-    min-height: 0;
-  }
-  .stage {
-    border-radius: 24px;
+  /* The masthead becomes the cream ticket bar the comp draws: menu, mark,
+     About — one object spanning the width. */
+  /* Same treatment as the rail: the supplied bar as a border-image, so the
+     13px corner curves hold their radius while the middle stretches. */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    flex: 0 0 auto;
+    margin: var(--s-3) var(--s-3) 0;
+    min-height: 56px;
+    color: var(--on-cream);
+    border: 13px solid transparent;
+    border-image: url("/brand/sidebar-mobile.svg") 13 fill stretch;
   }
 
-  /* No orange card behind the input on a phone: the headline keeps the card,
-     the composer moves down to the bottom bar. */
-  .hero {
-    border-radius: 24px;
-    padding: var(--s-5) var(--s-4);
+  .topbar__btn {
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 auto;
+    border: 0;
+    border-radius: var(--r-pill);
+    background: none;
+    color: var(--on-cream);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
   }
+
+  .topbar__brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--on-cream);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .topbar__about {
+    min-height: 32px;
+    padding: 0 var(--s-2);
+    font-size: 0.6875rem;
+    border: 0;
+    border-image: none;
+    background: transparent;
+    color: var(--on-cream);
+  }
+
+  /* The masthead's desktop parts stand down; the ticket bar carries them. */
+  .masthead {
+    display: none;
+  }
+
   .hero-wrap {
     justify-content: flex-start;
-  }
-  .hero-wrap--phone {
-    justify-content: center;
-    padding: var(--s-4) var(--s-3);
-  }
-  .hero-wrap--phone .hero__subtitle {
-    font-size: 0.9375rem;
+    padding: clamp(28px, 7vh, 64px) var(--s-4) var(--s-4);
   }
 
-  .composer__field {
-    padding: var(--s-4) var(--s-4) var(--s-2);
+  /* The em measure that sets the desktop break is wider than a phone, so it
+     is released here and the size does the work instead: 1.5rem keeps
+     "IT'S TIME TO DECOLONISE" on one line at 360px. */
+  .hero__title {
+    max-width: none;
+    font-size: clamp(1.375rem, 0.9rem + 2.6vw, 1.75rem);
   }
+
+  /* The painting owns the lower half of a phone, and three full-width outlines
+     laid over the cooks read as damage. The comp has no pills here either; the
+     commands stay typeable. */
+  .actions {
+    display: none;
+  }
+
+  .composer {
+    width: 100%;
+    min-height: 50px;
+  }
+
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--s-2);
+    margin-top: var(--s-4);
+  }
+
+  .pill {
+    width: 100%;
+    justify-content: center;
+    min-height: 42px;
+  }
+
   .thread__inner,
   .thread__foot {
     padding-left: var(--s-3);
     padding-right: var(--s-3);
   }
-  /* Clear the home indicator on a notched phone rather than tucking the send
-     button under it. */
+
   .thread__foot {
     padding-bottom: max(var(--s-3), env(safe-area-inset-bottom));
-  }
-
-  /* The top bar already carries "new restoration" on every screen, so the
-     header duplicate goes — a stacked pill here reads as a list row anyway. */
-  .history__head .pill {
-    display: none;
-  }
-  .history__inner {
-    padding: var(--s-5) var(--s-4) var(--s-6);
-  }
-
-  /* A wrapping row of pills staggers into four ragged lines at this width.
-     Stacked full-width rows read as a list of offers instead of debris. */
-  .actions {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 6px;
-    margin-bottom: var(--s-2);
-  }
-  .pill {
-    width: 100%;
-    justify-content: flex-start;
-    min-height: 46px;
-    border-radius: 16px;
-    font-size: 0.9375rem;
-    padding: 0 var(--s-4);
   }
 }
 
