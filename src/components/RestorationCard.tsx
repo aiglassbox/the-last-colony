@@ -180,14 +180,6 @@ function titleCase(text: string): string {
 }
 
 export function RestorationCard({ data }: { data: CardData }) {
-  const [open, setOpen] = useState<Record<Beat, boolean>>({
-    VERDICT: true,
-    THEN: true,
-    WHAT_CHANGED: false,
-    // Open. This is the one beat the reader is meant to act on, and behind a
-    // collapsed header it reads as though the card never says how to cook it.
-    RESTORE_TODAY: true,
-  });
   const [drawer, setDrawer] = useState(false);
 
   const ancient = data.records.find((r) => r.tier === "ancient") ?? data.records[0] ?? null;
@@ -196,7 +188,6 @@ export function RestorationCard({ data }: { data: CardData }) {
       ? data.records.find((r) => r.id === ancient.modern_counterpart_id)
       : null) ?? null;
 
-  const toggle = (b: Beat) => setOpen((o) => ({ ...o, [b]: !o[b] }));
 
   // Every card that has something to say can be taken away. A record card is
   // built server-side from the record; a card with no record is built from what
@@ -278,8 +269,6 @@ export function RestorationCard({ data }: { data: CardData }) {
       <Beat
         beat="THEN"
         kind={data.kind}
-        open={open.THEN}
-        onToggle={toggle}
         badge={ancient?.dish_name_source ?? undefined}
       >
         <Prose text={data.beats.THEN} streaming={data.streaming} />
@@ -323,7 +312,7 @@ export function RestorationCard({ data }: { data: CardData }) {
       )}
 
       {shows("WHAT_CHANGED") && (
-      <Beat beat="WHAT_CHANGED" kind={data.kind} open={open.WHAT_CHANGED} onToggle={toggle}>
+      <Beat beat="WHAT_CHANGED" kind={data.kind}>
         <Prose text={data.beats.WHAT_CHANGED} streaming={data.streaming} />
         {ancient && modern ? (
           <ThenNow ancient={ancient} modern={modern} />
@@ -339,7 +328,7 @@ export function RestorationCard({ data }: { data: CardData }) {
       )}
 
       {shows("RESTORE_TODAY") && (
-      <Beat beat="RESTORE_TODAY" kind={data.kind} open={open.RESTORE_TODAY} onToggle={toggle}>
+      <Beat beat="RESTORE_TODAY" kind={data.kind}>
         {ancient?.restore_today ? (
           <>
             <Prose text={data.beats.RESTORE_TODAY} streaming={data.streaming} />
@@ -395,42 +384,39 @@ export function RestorationCard({ data }: { data: CardData }) {
   );
 }
 
+/**
+ * A section of the answer, always open.
+ *
+ * These used to be toggles. A reader who asks what their dinner used to be is
+ * owed the answer, not a set of headings to open one at a time — and the two
+ * that were collapsed by default were what changed and the recipe, which is
+ * the whole of what they came for. The headings stay, because they are how you
+ * find the recipe in a long card; the chevron and the hiding are gone.
+ */
 function Beat({
   beat,
   kind,
-  open,
-  onToggle,
   badge,
   children,
 }: {
   beat: Beat;
   kind: TurnKind;
-  open: boolean;
-  onToggle: (b: Beat) => void;
   badge?: string;
   children: React.ReactNode;
 }) {
   return (
     <section>
-      <button
-        type="button"
-        className="beat-toggle"
-        aria-expanded={open}
-        onClick={() => onToggle(beat)}
-      >
-        <span className="mono" style={{ color: "var(--ink-muted)" }}>
+      <div className="beat-head">
+        <h3 className="mono" style={{ margin: 0, fontWeight: 400, color: "var(--ink-muted)" }}>
           {TITLES[kind][beat]}
-        </span>
+        </h3>
         {badge && (
           <span className="display" style={{ fontSize: "0.95rem", color: "var(--orange)" }}>
             {badge}
           </span>
         )}
-        <span className="chevron" data-open={open} aria-hidden>
-          ›
-        </span>
-      </button>
-      {open && <div style={{ padding: "0.2rem 1.15rem 1.15rem" }}>{children}</div>}
+      </div>
+      <div style={{ padding: "0.2rem 1.15rem 1.15rem" }}>{children}</div>
     </section>
   );
 }
