@@ -112,16 +112,15 @@ export function Sidebar({
           </button>
         ) : (
           <>
-            {/* The mark and the wordmark are one control, as they are on every
-                product where the logo is the way home. */}
+            {/* The mark alone is the way home. It carries its own aria-label,
+                so dropping the wordmark beside it costs the button nothing. */}
             <button
               type="button"
               className="sidebar__brand"
               onClick={onGoToChat}
               title="Kranti Cookbook"
             >
-              <Logo size={34} />
-              <span className="sidebar__name display">Kranti Cookbook</span>
+              <Logo size={38} />
             </button>
             {/* Floating over the stage, this control dismisses rather than
                 collapses — so it reads as a close, not a resize. */}
