@@ -392,9 +392,11 @@ body {
   border-top: 1px solid rgba(111, 23, 16, 0.22);
 }
 
-/* The one solid control on the rail: brand red, cream lettering, sitting
-   directly under the mark. Everything else here is a quiet row on beige, which
-   is what lets this read as the thing to press. */
+/* The one solid control on the rail, directly under the mark. It takes the
+   same cut-corner ticket the quick actions use — `btn-fill-red` with cream
+   lettering, which is exactly the treatment a selected pill already wears — so
+   it is the design's own filled button rather than a rounded rectangle that
+   happens to be red. The corners here are cut, not rounded, everywhere else. */
 .new-thread {
   display: flex;
   align-items: center;
@@ -404,23 +406,21 @@ body {
   min-height: 46px;
   margin: var(--s-4) 0 0;
   padding: 0 var(--s-4);
-  border: 0;
-  border-radius: 6px;
-  background: var(--red);
+  border: 13px solid transparent;
+  border-image: url("/brand/btn-fill-red.svg") 13 fill stretch;
+  background: transparent;
   color: var(--cream);
   font: inherit;
   font-size: 0.9375rem;
   font-weight: 500;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition:
-    background var(--dur) var(--ease),
-    opacity var(--dur) var(--ease);
+  transition: filter var(--dur) var(--ease);
 }
 
 .new-thread:hover,
 .new-thread:focus-visible {
-  background: var(--red-deep);
+  filter: brightness(1.08);
 }
 
 .new-thread__icon {
@@ -429,10 +429,12 @@ body {
 }
 
 /* Collapsed, it becomes the same 44px square as every other icon on the rail,
-   and the label leaves the page without leaving the accessibility tree. */
+   and the label leaves the page without leaving the accessibility tree. The
+   13px slices need room to sit in at that size, so the padding goes rather
+   than the border. */
 .sidebar--collapsed .new-thread {
-  width: 44px;
-  min-height: 44px;
+  width: 46px;
+  min-height: 46px;
   margin-inline: auto;
   padding: 0;
   justify-content: center;

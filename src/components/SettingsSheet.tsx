@@ -1,7 +1,9 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+
+import { useDrawerExit } from "@/lib/use-drawer-exit";
 
 /**
  * Settings. Deliberately small — it shows only things that are real: what the
@@ -35,14 +37,8 @@ export function SettingsSheet({
   const [health, setHealth] = useState<Health | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
 
-  /**
-   * The parent owns whether this is mounted, so closing it destroys the node
-   * on the same frame as the click and the sheet vanishes rather than leaves.
-   * Closing is therefore a state of its own: every dismissal starts the exit,
-   * and the parent is told only once the animation has actually finished.
-   */
-  const [closing, setClosing] = useState(false);
-  const requestClose = useCallback(() => setClosing(true), []);
+  const { requestClose, backdropClassName, drawerClassName, onAnimationEnd } =
+    useDrawerExit(onClose);
 
   useEffect(() => {
     void fetch("/api/health")
@@ -51,36 +47,15 @@ export function SettingsSheet({
       .catch(() => setHealth(null));
   }, []);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && requestClose();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [requestClose]);
-
-  /* A reader who has asked for less motion gets none of this: the exit is
-     skipped and the sheet closes on the spot, as it did before. */
-  useEffect(() => {
-    if (!closing) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) onClose();
-  }, [closing, onClose]);
-
   return (
     <>
+      <div className={backdropClassName} onClick={requestClose} aria-hidden />
       <div
-        className={`drawer-backdrop${closing ? " drawer-backdrop--closing" : ""}`}
-        onClick={requestClose}
-        aria-hidden
-      />
-      <div
-        className={`drawer${closing ? " drawer--closing" : ""}`}
+        className={drawerClassName}
         role="dialog"
         aria-modal="true"
         aria-labelledby="settings-title"
-        /* The exit owns the unmount: the parent hears about it when the sheet
-           has left the screen, not when the click happened. */
-        onAnimationEnd={(e) => {
-          if (closing && e.target === e.currentTarget) onClose();
-        }}
+        onAnimationEnd={onAnimationEnd}
       >
         <div className="mx-auto max-w-[680px] px-6 pb-12 pt-6">
           <div className="mb-6 flex items-center gap-3">
