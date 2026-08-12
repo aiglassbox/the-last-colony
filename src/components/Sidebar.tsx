@@ -90,13 +90,20 @@ export function Sidebar({
   return (
     <aside ref={ref} className={className} aria-label="Sidebar">
       <div className="sidebar__head">
-        {/* The mark and the wordmark are one control, as they are on every
-            product where the logo is the way home. The text is the accessible
-            name and survives the collapse, so the icon-only rail is still
-            labelled. */}
-        <button type="button" className="sidebar__brand" onClick={onGoToChat} title="Kranti Cookbook">
+        {/* The logo is the way home, as it is on every product where it is a
+            control. It used to be a small mark with the name set beside it;
+            the lockup that replaced the mark already reads "The Kranti
+            Cookbook", so the text next to it was the brand written twice. The
+            accessible name moves onto the button, where it does not depend on
+            anything being drawn. */}
+        <button
+          type="button"
+          className="sidebar__brand"
+          onClick={onGoToChat}
+          aria-label="Kranti Cookbook"
+          title="Kranti Cookbook"
+        >
           <Logo size={collapsed ? 30 : 34} />
-          <span className="sidebar__name display">Kranti Cookbook</span>
         </button>
         {/* Floating over the stage, this control dismisses rather than
             collapses — so it reads as a close, not a resize. */}

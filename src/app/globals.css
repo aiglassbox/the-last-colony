@@ -486,7 +486,6 @@ body {
   width: 100%;
 }
 
-.sidebar--collapsed .sidebar__name,
 .sidebar--collapsed .side-group__label,
 .sidebar--collapsed .side-item__text {
   position: absolute;
