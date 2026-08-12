@@ -292,26 +292,14 @@ export function RestorationCard({ data }: { data: CardData }) {
         )}
         {ancient && (
           <>
-            {/* The recipe in ingredients you can buy.
-                The historical table names each component in Sanskrit with the
-                quantity the text gives and the reason it was there — which is
-                scholarship, and is what the source drawer is for. Someone who
-                has just been told their idli used to be something else wants to
-                know what to put in the bowl, so the restored version is the one
-                on the card. Both come from the record; neither is written by
-                the model. */}
-            {ancient.restore_today ? (
-              <RestoreToday record={ancient} />
-            ) : (
-              /* Not every record carries a restored version yet. Where none
-                 exists the historical table is the only recipe there is, and
-                 is better than no recipe. */
-              <IngredientTable record={ancient} />
-            )}
+            {/* What the dish was: the components the text names, and the method
+                as it describes them. The version you can cook is its own
+                section below, the same way a dish with no record gets one — an
+                ancient dish was the only kind that had lost it. */}
+            <IngredientTable record={ancient} />
             {ancient.provenance_class !== "MODERN_DISH" && (
               <>
-                {!ancient.restore_today && <Method record={ancient} />}
-                {ancient.make_today_notes && <MakeTodayNotes notes={ancient.make_today_notes} />}
+                <Method record={ancient} />
                 <SourceStrip record={ancient} onOpen={() => setDrawer(true)} />
               </>
             )}
@@ -336,15 +324,22 @@ export function RestorationCard({ data }: { data: CardData }) {
       </Beat>
       )}
 
-      {/* Only where there is no original to show.
-          A dish with a record already printed a full recipe above — its
-          ingredients, its method, its source — and this printed a second
-          complete one underneath, so the card asked the reader to hold two
-          recipes for one dish and work out which was the answer. Where there
-          is no record this is the only recipe on the card, and it stays. */}
-      {shows("RESTORE_TODAY") && !ancient?.restore_today && (
+      {/* The version you can cook, on every card that has one.
+          Above is what the dish was; this is what to do about it tonight —
+          ingredients you can buy and a method for a modern kitchen. A dish
+          with a record takes them from the record, a dish without takes them
+          from the beat the model wrote, and both arrive under the same
+          heading in the same place. */}
+      {shows("RESTORE_TODAY") && (
       <Beat beat="RESTORE_TODAY" kind={data.kind}>
-        <ModernRecipe text={data.beats.RESTORE_TODAY} streaming={data.streaming} />
+        {ancient?.restore_today ? (
+          <>
+            <Prose text={data.beats.RESTORE_TODAY} streaming={data.streaming} />
+            <RestoreToday record={ancient} />
+          </>
+        ) : (
+          <ModernRecipe text={data.beats.RESTORE_TODAY} streaming={data.streaming} />
+        )}
         {ancient?.make_today_notes && <MakeTodayNotes notes={ancient.make_today_notes} />}
       </Beat>
       )}
