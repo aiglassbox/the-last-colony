@@ -1792,19 +1792,19 @@ body {
     font-size: clamp(1.375rem, 0.9rem + 2.6vw, 1.75rem);
   }
 
-  /* The painting owns the lower half of a phone, and three full-width outlines
-     laid over the cooks read as damage. The comp has no pills here either; the
-     commands stay typeable. */
-  .actions {
-    display: none;
-  }
-
   .composer {
     width: 100%;
     min-height: 50px;
   }
 
+  /* Stacked rather than hidden.
+     Two rules landed here, one hiding the pills and one styling them for this
+     width, and the second never restored `display` — so a phone got neither
+     the row nor the stack, and the four shortcuts existed only for someone who
+     knew to type a slash. They are the product's four verbs; on the surface
+     with no keyboard shortcuts they matter more, not less. */
   .actions {
+    display: flex;
     flex-direction: column;
     align-items: stretch;
     gap: var(--s-2);

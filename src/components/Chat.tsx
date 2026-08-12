@@ -32,6 +32,7 @@ import {
 } from "@/lib/sidebar-store";
 import { Composer } from "./Composer";
 import { History } from "./History";
+import { Logo } from "./Logo";
 import { Message } from "./Message";
 import { SettingsSheet } from "./SettingsSheet";
 import { Sidebar, type SidebarView } from "./Sidebar";
@@ -531,14 +532,23 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
           >
             <Menu size={20} aria-hidden />
           </button>
-          <button type="button" className="topbar__brand" onClick={goToChat}>
-            Kranti Cookbook
+          {/* The lockup, as everywhere else. This was the wordmark set as text,
+              which is the brand drawn in the interface font rather than the
+              brand — and it is the one place a reader on a phone sees it. */}
+          <button
+            type="button"
+            className="topbar__brand"
+            onClick={goToChat}
+            aria-label="Kranti Cookbook"
+            title="Kranti Cookbook"
+          >
+            <Logo size={28} />
           </button>
           <button
             type="button"
             className="topbar__btn"
             onClick={startNew}
-            aria-label="New restoration"
+            aria-label="New Chat"
           >
             <SquarePen size={19} aria-hidden />
           </button>
