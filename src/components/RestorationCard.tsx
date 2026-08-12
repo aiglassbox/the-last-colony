@@ -322,19 +322,15 @@ export function RestorationCard({ data }: { data: CardData }) {
       </Beat>
       )}
 
-      {shows("RESTORE_TODAY") && (
+      {/* Only where there is no original to show.
+          A dish with a record already printed a full recipe above — its
+          ingredients, its method, its source — and this printed a second
+          complete one underneath, so the card asked the reader to hold two
+          recipes for one dish and work out which was the answer. Where there
+          is no record this is the only recipe on the card, and it stays. */}
+      {shows("RESTORE_TODAY") && !ancient?.restore_today && (
       <Beat beat="RESTORE_TODAY" kind={data.kind}>
-        {ancient?.restore_today ? (
-          <>
-            <Prose text={data.beats.RESTORE_TODAY} streaming={data.streaming} />
-            <RestoreToday record={ancient} />
-          </>
-        ) : (
-          // No record (a modern dish or a corpus gap): the model writes the
-          // ingredients and method into the beat, and we structure them here the
-          // same way the ancient card structures a record's restore_today.
-          <ModernRecipe text={data.beats.RESTORE_TODAY} streaming={data.streaming} />
-        )}
+        <ModernRecipe text={data.beats.RESTORE_TODAY} streaming={data.streaming} />
         {ancient?.make_today_notes && <MakeTodayNotes notes={ancient.make_today_notes} />}
       </Beat>
       )}
@@ -740,27 +736,3 @@ function MakeTodayNotes({ notes }: { notes: NonNullable<CorpusRecord["make_today
   );
 }
 
-function RestoreToday({ record }: { record: CorpusRecord }) {
-  const r = record.restore_today!;
-  return (
-    <div style={{ marginTop: "0.9rem" }}>
-      <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
-        {r.time_min} minutes · kirana ingredients
-      </div>
-      <ul style={{ margin: "0 0 0.9rem", paddingLeft: "1.1rem", maxWidth: "62ch" }}>
-        {r.ingredients.map((i) => (
-          <li key={i} style={{ fontSize: "0.9rem", marginBottom: "0.22rem" }}>
-            {i}
-          </li>
-        ))}
-      </ul>
-      <ol style={{ margin: 0, paddingLeft: "1.15rem", maxWidth: "62ch" }}>
-        {r.steps.map((s, i) => (
-          <li key={i} style={{ fontSize: "0.92rem", marginBottom: "0.4rem" }}>
-            {s}
-          </li>
-        ))}
-      </ol>
-    </div>
-  );
-}
