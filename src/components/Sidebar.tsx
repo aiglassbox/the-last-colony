@@ -5,7 +5,7 @@ import {
   MessageCircle,
   PanelLeft,
   PanelLeftOpen,
-  Plus,
+  SquarePen,
   Settings,
   Trash2,
   X,
@@ -142,6 +142,21 @@ export function Sidebar({
         )}
       </div>
 
+      {/* Starting a thread is the first thing anyone does here, so it sits
+          directly under the mark rather than at the foot of the recents it
+          would create. Solid rather than a quiet row, because it is the one
+          control on the rail that makes something. */}
+      <button
+        type="button"
+        className="new-thread"
+        onClick={onNewConversation}
+        aria-label="New Chat"
+        title="New Chat"
+      >
+        <SquarePen size={18} className="new-thread__icon" aria-hidden />
+        <span className="new-thread__text">New Chat</span>
+      </button>
+
       <div className="sidebar__scroll">
         <nav className="side-group" aria-label="Features">
           <h2 className="side-group__label">Features</h2>
@@ -198,13 +213,6 @@ export function Sidebar({
                 ))}
               </ul>
             ))}
-          <SideItem
-            label="New restoration"
-            icon={<Plus size={18} className="side-item__icon" aria-hidden />}
-            collapsed={collapsed}
-            onClick={onNewConversation}
-            accent
-          />
         </nav>
       </div>
 

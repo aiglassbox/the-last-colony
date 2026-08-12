@@ -392,6 +392,63 @@ body {
   border-top: 1px solid rgba(111, 23, 16, 0.22);
 }
 
+/* The one solid control on the rail: brand red, cream lettering, sitting
+   directly under the mark. Everything else here is a quiet row on beige, which
+   is what lets this read as the thing to press. */
+.new-thread {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+  width: 100%;
+  min-height: 46px;
+  margin: var(--s-4) 0 0;
+  padding: 0 var(--s-4);
+  border: 0;
+  border-radius: 6px;
+  background: var(--red);
+  color: var(--cream);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background var(--dur) var(--ease),
+    opacity var(--dur) var(--ease);
+}
+
+.new-thread:hover,
+.new-thread:focus-visible {
+  background: var(--red-deep);
+}
+
+.new-thread__icon {
+  flex: 0 0 auto;
+  color: inherit;
+}
+
+/* Collapsed, it becomes the same 44px square as every other icon on the rail,
+   and the label leaves the page without leaving the accessibility tree. */
+.sidebar--collapsed .new-thread {
+  width: 44px;
+  min-height: 44px;
+  margin-inline: auto;
+  padding: 0;
+  justify-content: center;
+}
+
+.sidebar--collapsed .new-thread__text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .side-item {
   display: flex;
   align-items: center;

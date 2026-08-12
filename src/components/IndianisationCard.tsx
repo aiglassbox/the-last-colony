@@ -1,6 +1,5 @@
 "use client";
 
-import type { CSSProperties } from "react";
 
 import { toPlainText } from "@/lib/model/plain-text";
 import {
@@ -8,7 +7,7 @@ import {
   parseIngredientRows,
   parseRecipeBeat,
 } from "@/lib/model/recipe-beat";
-import { parseSwapRows, type SwapRow } from "@/lib/model/swap-rows";
+import { parseSwapRows } from "@/lib/model/swap-rows";
 import { IngredientRows } from "./IngredientRows";
 import { Waiting } from "./RestorationCard";
 import { Download } from "lucide-react";
@@ -35,7 +34,6 @@ export interface IndianizationData {
 export function IndianisationCard({ data }: { data: IndianizationData }) {
   const { beats, streaming } = data;
   const share = shareTarget(beats);
-  const swapRows = parseSwapRows(beats.SWAPS);
 
   return (
     <article className="card" style={{ marginTop: "1rem" }}>
@@ -101,18 +99,11 @@ export function IndianisationCard({ data }: { data: IndianizationData }) {
         </Section>
       )}
 
-      {/* Gated on rows that actually parse, not on the beat being non-empty.
-          The prompt tells the model to leave a component out rather than invent
-          a swap for it, so a §SWAPS§ section containing only a line that does
-          not parse is the honest outcome — and it rendered as a heading with an
-          empty box under it, which reads as the card having broken. While the
-          stream runs the section stays regardless, because a row that has not
-          arrived is indistinguishable from one that never will. */}
-      {(streaming || swapRows.length > 0) && (
-        <Section title="Swaps">
-          <SwapTable rows={swapRows} streaming={streaming} />
-        </Section>
-      )}
+      {/* The swap table is gone from the card. The §SWAPS§ beat is still asked
+          for and still parsed, because "Then and now" below is drawn from it —
+          it is the component-by-component argument, and the diff would have
+          nothing to say without it. What has gone is the second, tabular
+          telling of the same thing directly under the rebuild. */}
 
       {(beats.PLATE || (streaming && Boolean(beats.SWAPS))) && (
         <Section title="Cook it">
@@ -238,13 +229,6 @@ function Prose({ text, streaming }: { text?: string; streaming: boolean }) {
   );
 }
 
-const cell: CSSProperties = {
-  padding: "0.5rem 0.6rem 0.5rem 0",
-  borderBottom: "1px solid var(--line)",
-  fontSize: "0.9rem",
-  verticalAlign: "top",
-};
-
 /**
  * "Make it today" as a recipe rather than a paragraph.
  *
@@ -312,53 +296,3 @@ function Plate({ text, streaming }: { text?: string; streaming: boolean }) {
   );
 }
 
-/**
- * One row per component, from `parseSwapRows` — the same discipline the
- * restoration ingredient table uses, so a fusion is built from named parts
- * rather than a wall of prose.
- */
-
-function SwapTable({ rows, streaming }: { rows: SwapRow[]; streaming: boolean }) {
-  if (!rows.length) {
-    return streaming ? (
-      <p style={{ margin: 0, color: "var(--ink-muted)" }}>
-        <Waiting />
-      </p>
-    ) : null;
-  }
-
-  return (
-    <div className="scroll-x">
-      <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 460 }}>
-        <thead>
-          <tr>
-            {["Foreign part", "Indian swap", "Why"].map((h) => (
-              <th
-                key={h}
-                className="mono"
-                style={{
-                  textAlign: "left",
-                  color: "var(--ink-muted)",
-                  padding: "0.4rem 0.6rem 0.4rem 0",
-                  borderBottom: "1px solid var(--line-strong)",
-                  fontWeight: 400,
-                }}
-              >
-                {h}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r, i) => (
-            <tr key={i}>
-              <td style={cell}>{r.foreign}</td>
-              <td style={{ ...cell, color: "var(--now)" }}>{r.indian}</td>
-              <td style={{ ...cell, color: "var(--ink-soft)" }}>{r.why}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
