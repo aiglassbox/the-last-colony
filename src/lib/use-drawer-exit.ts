@@ -14,7 +14,7 @@ import { useCallback, useEffect, useState, type AnimationEvent } from "react";
  * the spot, which is also the path taken if the animation never runs — there is
  * no timer here waiting to be missed.
  */
-export function useDrawerExit(onClose: () => void) {
+export function useDrawerExit(onClose: () => void, base = "drawer") {
   const [closing, setClosing] = useState(false);
   const requestClose = useCallback(() => setClosing(true), []);
 
@@ -33,7 +33,9 @@ export function useDrawerExit(onClose: () => void) {
   return {
     requestClose,
     backdropClassName: `drawer-backdrop${closing ? " drawer-backdrop--closing" : ""}`,
-    drawerClassName: `drawer${closing ? " drawer--closing" : ""}`,
+    /* `base` so a centred popup and a bottom sheet can share the machinery and
+       differ only in how they arrive and leave. */
+    drawerClassName: `${base}${closing ? ` ${base}--closing` : ""}`,
     /* Guarded on the target: a drawer full of its own animations would
        otherwise unmount on the first one of them to finish. */
     onAnimationEnd: (event: AnimationEvent<HTMLElement>) => {
