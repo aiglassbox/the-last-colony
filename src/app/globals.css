@@ -753,15 +753,18 @@ body {
   padding: var(--s-4) var(--s-5) 0;
 }
 
+/* The chip sits inside the composer, which is the beige field rather than the
+   painted ground, so it takes the on-cream ink. `--orange` is cream here and
+   would put the mode you are in out of sight on the surface carrying it. */
 .command-chip {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
   padding: 0.28rem 0.4rem 0.28rem 0.7rem;
   border-radius: 999px;
-  background: color-mix(in oklab, var(--orange) 14%, transparent);
-  border: 1px solid color-mix(in oklab, var(--orange) 38%, transparent);
-  color: var(--orange);
+  background: color-mix(in oklab, var(--on-cream) 10%, transparent);
+  border: 1px solid color-mix(in oklab, var(--on-cream) 34%, transparent);
+  color: var(--on-cream);
   font-size: 0.72rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -788,7 +791,7 @@ body {
 .command-chip__x:hover,
 .command-chip__x:focus-visible {
   opacity: 1;
-  background: color-mix(in oklab, var(--orange) 22%, transparent);
+  background: color-mix(in oklab, var(--on-cream) 18%, transparent);
 }
 
 /* With a chip above it the field has its own top padding already. */
@@ -1379,11 +1382,39 @@ body {
   z-index: 50;
   max-height: 85vh;
   overflow-y: auto;
-  background: var(--stage);
+  /* `--stage` is transparent: the stage is a hole onto the painting, which is
+     right for the page and wrong for a dialog. A drawer has to occlude what it
+     covers, so it takes the deeper ground as a solid panel — the cream ink and
+     rules inside it are already pitched for that. */
+  background: var(--ground-2);
   border-top: 1px solid var(--line-strong);
   border-radius: var(--r-stage) var(--r-stage) 0 0;
   box-shadow: var(--sh-3);
-  animation: slide-up 280ms var(--ease);
+  animation: slide-up 320ms var(--ease);
+}
+
+.drawer--closing {
+  animation: slide-down 260ms var(--ease) forwards;
+}
+
+.drawer-backdrop--closing {
+  animation: backdrop-out 260ms var(--ease) forwards;
+  /* The backdrop is on its way out and must stop swallowing clicks. */
+  pointer-events: none;
+}
+
+/* `.icon-btn` is pitched for the beige field and inks itself in `--field-ink`.
+   Inside a drawer it is sitting on the deep ground instead, where that ink is
+   the one thing you cannot see — and the control it hides is the close. */
+.drawer .icon-btn {
+  border-color: color-mix(in srgb, var(--cream) 26%, transparent);
+  color: var(--cream);
+}
+
+.drawer .icon-btn:hover,
+.drawer .icon-btn:focus-visible {
+  border-color: color-mix(in srgb, var(--cream) 48%, transparent);
+  background: color-mix(in srgb, var(--cream) 12%, transparent);
 }
 
 @keyframes fade-in {
@@ -1395,6 +1426,22 @@ body {
 @keyframes slide-up {
   from {
     transform: translateY(14px);
+    opacity: 0;
+  }
+}
+
+/* Going out travels further than it came in and takes a little longer. A sheet
+   that leaves on the same 14px it arrived on reads as a flicker rather than a
+   dismissal, because there is no backdrop left to explain where it went. */
+@keyframes slide-down {
+  to {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+}
+
+@keyframes backdrop-out {
+  to {
     opacity: 0;
   }
 }

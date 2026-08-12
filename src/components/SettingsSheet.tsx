@@ -1,7 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 /**
  * Settings. Deliberately small — it shows only things that are real: what the
@@ -35,6 +35,15 @@ export function SettingsSheet({
   const [health, setHealth] = useState<Health | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
 
+  /**
+   * The parent owns whether this is mounted, so closing it destroys the node
+   * on the same frame as the click and the sheet vanishes rather than leaves.
+   * Closing is therefore a state of its own: every dismissal starts the exit,
+   * and the parent is told only once the animation has actually finished.
+   */
+  const [closing, setClosing] = useState(false);
+  const requestClose = useCallback(() => setClosing(true), []);
+
   useEffect(() => {
     void fetch("/api/health")
       .then((r) => r.json())
@@ -43,15 +52,36 @@ export function SettingsSheet({
   }, []);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && requestClose();
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [requestClose]);
+
+  /* A reader who has asked for less motion gets none of this: the exit is
+     skipped and the sheet closes on the spot, as it did before. */
+  useEffect(() => {
+    if (!closing) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) onClose();
+  }, [closing, onClose]);
 
   return (
     <>
-      <div className="drawer-backdrop" onClick={onClose} aria-hidden />
-      <div className="drawer" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+      <div
+        className={`drawer-backdrop${closing ? " drawer-backdrop--closing" : ""}`}
+        onClick={requestClose}
+        aria-hidden
+      />
+      <div
+        className={`drawer${closing ? " drawer--closing" : ""}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="settings-title"
+        /* The exit owns the unmount: the parent hears about it when the sheet
+           has left the screen, not when the click happened. */
+        onAnimationEnd={(e) => {
+          if (closing && e.target === e.currentTarget) onClose();
+        }}
+      >
         <div className="mx-auto max-w-[680px] px-6 pb-12 pt-6">
           <div className="mb-6 flex items-center gap-3">
             <div>
@@ -60,7 +90,7 @@ export function SettingsSheet({
                 Preferences
               </h2>
             </div>
-            <button type="button" className="icon-btn ml-auto" onClick={onClose} aria-label="Close">
+            <button type="button" className="icon-btn ml-auto" onClick={requestClose} aria-label="Close">
               <X size={18} aria-hidden />
             </button>
           </div>
@@ -98,7 +128,7 @@ export function SettingsSheet({
                   onClick={() => {
                     onClearConversations();
                     setConfirmClear(false);
-                    onClose();
+                    requestClose();
                   }}
                 >
                   Delete all, confirm
