@@ -90,32 +90,53 @@ export function Sidebar({
   return (
     <aside ref={ref} className={className} aria-label="Sidebar">
       <div className="sidebar__head">
-        {/* The mark and the wordmark are one control, as they are on every
-            product where the logo is the way home. The text is the accessible
-            name and survives the collapse, so the icon-only rail is still
-            labelled. */}
-        <button type="button" className="sidebar__brand" onClick={onGoToChat} title="Kranti Cookbook">
-          <Logo size={collapsed ? 30 : 34} />
-          <span className="sidebar__name display">Kranti Cookbook</span>
-        </button>
-        {/* Floating over the stage, this control dismisses rather than
-            collapses — so it reads as a close, not a resize. */}
-        <button
-          type="button"
-          className="icon-btn sidebar__toggle"
-          onClick={onToggleCollapsed}
-          aria-expanded={!collapsed}
-          aria-label={overlay ? "Close menu" : collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          title={overlay ? "Close menu" : collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {overlay ? (
-            <X size={19} aria-hidden />
-          ) : collapsed ? (
-            <PanelLeftOpen size={18} aria-hidden />
-          ) : (
-            <PanelLeft size={18} aria-hidden />
-          )}
-        </button>
+        {collapsed && !overlay ? (
+          /* Collapsed, the rail shows only the mark. Pointing at it — or
+             reaching it by keyboard — swaps in the expand icon in the same
+             square, so the one thing on screen is also the control and no
+             second button competes with the logo. */
+          <button
+            type="button"
+            className="rail-open"
+            onClick={onToggleCollapsed}
+            aria-expanded={false}
+            aria-label="Expand sidebar"
+            title="Expand sidebar"
+          >
+            <span className="rail-open__mark">
+              <Logo size={30} />
+            </span>
+            <span className="rail-open__icon" aria-hidden>
+              <PanelLeftOpen size={20} />
+            </span>
+          </button>
+        ) : (
+          <>
+            {/* The mark and the wordmark are one control, as they are on every
+                product where the logo is the way home. */}
+            <button
+              type="button"
+              className="sidebar__brand"
+              onClick={onGoToChat}
+              title="Kranti Cookbook"
+            >
+              <Logo size={34} />
+              <span className="sidebar__name display">Kranti Cookbook</span>
+            </button>
+            {/* Floating over the stage, this control dismisses rather than
+                collapses — so it reads as a close, not a resize. */}
+            <button
+              type="button"
+              className="icon-btn sidebar__toggle"
+              onClick={onToggleCollapsed}
+              aria-expanded
+              aria-label={overlay ? "Close menu" : "Collapse sidebar"}
+              title={overlay ? "Close menu" : "Collapse sidebar"}
+            >
+              {overlay ? <X size={19} aria-hidden /> : <PanelLeft size={19} aria-hidden />}
+            </button>
+          </>
+        )}
       </div>
 
       <div className="sidebar__scroll">
