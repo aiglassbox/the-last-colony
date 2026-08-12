@@ -471,6 +471,21 @@ body {
   margin-top: var(--s-4);
 }
 
+/* The head was laid out for 268px: mark, then gap, then the toggle, on one
+   row. In the 76px rail that row wants 90px, so it overflowed the left edge
+   and cut the lockup in half. Collapsed, the two stack and centre instead —
+   the wordmark is the brand here, and it is not croppable. */
+.sidebar--collapsed .sidebar__head {
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.sidebar--collapsed .sidebar__brand {
+  flex: 0 0 auto;
+  justify-content: center;
+  width: 100%;
+}
+
 .sidebar--collapsed .sidebar__name,
 .sidebar--collapsed .side-group__label,
 .sidebar--collapsed .side-item__text {
