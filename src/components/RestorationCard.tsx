@@ -292,12 +292,26 @@ export function RestorationCard({ data }: { data: CardData }) {
         )}
         {ancient && (
           <>
-            {/* The ingredient table earns its place on a modern dish too: the
-                "why it was there" column is where the arrivals get named. */}
-            <IngredientTable record={ancient} />
+            {/* The recipe in ingredients you can buy.
+                The historical table names each component in Sanskrit with the
+                quantity the text gives and the reason it was there — which is
+                scholarship, and is what the source drawer is for. Someone who
+                has just been told their idli used to be something else wants to
+                know what to put in the bowl, so the restored version is the one
+                on the card. Both come from the record; neither is written by
+                the model. */}
+            {ancient.restore_today ? (
+              <RestoreToday record={ancient} />
+            ) : (
+              /* Not every record carries a restored version yet. Where none
+                 exists the historical table is the only recipe there is, and
+                 is better than no recipe. */
+              <IngredientTable record={ancient} />
+            )}
             {ancient.provenance_class !== "MODERN_DISH" && (
               <>
-                <Method record={ancient} />
+                {!ancient.restore_today && <Method record={ancient} />}
+                {ancient.make_today_notes && <MakeTodayNotes notes={ancient.make_today_notes} />}
                 <SourceStrip record={ancient} onOpen={() => setDrawer(true)} />
               </>
             )}
@@ -620,6 +634,37 @@ function SourceStrip({ record, onOpen }: { record: CorpusRecord; onOpen: () => v
   );
 }
 
+
+/**
+ * The restored version, in ingredients you can buy.
+ *
+ * Straight from `record.restore_today` — quantities, timings and steps are the
+ * record's, not the model's, for the same reason the historical table is.
+ */
+function RestoreToday({ record }: { record: CorpusRecord }) {
+  const r = record.restore_today!;
+  return (
+    <div style={{ marginTop: "0.9rem" }}>
+      <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
+        {r.time_min} minutes · kirana ingredients
+      </div>
+      <ul style={{ margin: "0 0 0.9rem", paddingLeft: "1.1rem", maxWidth: "62ch" }}>
+        {r.ingredients.map((i) => (
+          <li key={i} style={{ fontSize: "0.9rem", marginBottom: "0.22rem" }}>
+            {i}
+          </li>
+        ))}
+      </ul>
+      <ol style={{ margin: 0, paddingLeft: "1.15rem", maxWidth: "62ch" }}>
+        {r.steps.map((s, i) => (
+          <li key={i} style={{ fontSize: "0.92rem", marginBottom: "0.4rem" }}>
+            {s}
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
 
 function ModernRecipe({ text, streaming }: { text?: string; streaming: boolean }) {
   if (!text) {
