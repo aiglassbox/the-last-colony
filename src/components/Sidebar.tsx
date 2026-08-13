@@ -5,7 +5,7 @@ import {
   MessageCircle,
   PanelLeft,
   PanelLeftOpen,
-  Plus,
+  SquarePen,
   Settings,
   Trash2,
   X,
@@ -91,10 +91,11 @@ export function Sidebar({
     <aside ref={ref} className={className} aria-label="Sidebar">
       <div className="sidebar__head">
         {collapsed && !overlay ? (
-          /* Collapsed, the rail shows only the mark. Pointing at it — or
-             reaching it by keyboard — swaps in the expand icon in the same
-             square, so the one thing on screen is also the control and no
-             second button competes with the logo. */
+          /* Collapsed, the rail shows only the mark. Pointing at it swaps the
+             mark for the expand icon in the same square, so the one thing on
+             screen is also the control and nothing competes with it for a
+             76px column. On touch, where there is no hover, the mark stays and
+             the tap expands. */
           <button
             type="button"
             className="rail-open"
@@ -104,23 +105,26 @@ export function Sidebar({
             title="Expand sidebar"
           >
             <span className="rail-open__mark">
-              <Logo size={30} />
+              <Logo size={40} />
             </span>
             <span className="rail-open__icon" aria-hidden>
-              <PanelLeftOpen size={20} />
+              <PanelLeftOpen size={22} />
             </span>
           </button>
         ) : (
           <>
-            {/* The mark alone is the way home. It carries its own aria-label,
-                so dropping the wordmark beside it costs the button nothing. */}
+            {/* The logo is the way home, as it is on every product where it is
+                a control. The lockup already reads "The Kranti Cookbook", so
+                the accessible name sits on the button rather than in text
+                beside it. */}
             <button
               type="button"
               className="sidebar__brand"
               onClick={onGoToChat}
+              aria-label="Kranti Cookbook"
               title="Kranti Cookbook"
             >
-              <Logo size={38} />
+              <Logo size={34} />
             </button>
             {/* Floating over the stage, this control dismisses rather than
                 collapses — so it reads as a close, not a resize. */}
@@ -128,15 +132,30 @@ export function Sidebar({
               type="button"
               className="icon-btn sidebar__toggle"
               onClick={onToggleCollapsed}
-              aria-expanded
+              aria-expanded={!collapsed}
               aria-label={overlay ? "Close menu" : "Collapse sidebar"}
               title={overlay ? "Close menu" : "Collapse sidebar"}
             >
-              {overlay ? <X size={19} aria-hidden /> : <PanelLeft size={19} aria-hidden />}
+              {overlay ? <X size={19} aria-hidden /> : <PanelLeft size={18} aria-hidden />}
             </button>
           </>
         )}
       </div>
+
+      {/* Starting a thread is the first thing anyone does here, so it sits
+          directly under the mark rather than at the foot of the recents it
+          would create. Solid rather than a quiet row, because it is the one
+          control on the rail that makes something. */}
+      <button
+        type="button"
+        className="new-thread"
+        onClick={onNewConversation}
+        aria-label="New Chat"
+        title="New Chat"
+      >
+        <SquarePen size={18} className="new-thread__icon" aria-hidden />
+        <span className="new-thread__text">New Chat</span>
+      </button>
 
       <div className="sidebar__scroll">
         <nav className="side-group" aria-label="Features">
@@ -194,13 +213,6 @@ export function Sidebar({
                 ))}
               </ul>
             ))}
-          <SideItem
-            label="New restoration"
-            icon={<Plus size={18} className="side-item__icon" aria-hidden />}
-            collapsed={collapsed}
-            onClick={onNewConversation}
-            accent
-          />
         </nav>
       </div>
 

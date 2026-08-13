@@ -180,14 +180,6 @@ function titleCase(text: string): string {
 }
 
 export function RestorationCard({ data }: { data: CardData }) {
-  const [open, setOpen] = useState<Record<Beat, boolean>>({
-    VERDICT: true,
-    THEN: true,
-    WHAT_CHANGED: false,
-    // Open. This is the one beat the reader is meant to act on, and behind a
-    // collapsed header it reads as though the card never says how to cook it.
-    RESTORE_TODAY: true,
-  });
   const [drawer, setDrawer] = useState(false);
 
   const ancient = data.records.find((r) => r.tier === "ancient") ?? data.records[0] ?? null;
@@ -196,7 +188,6 @@ export function RestorationCard({ data }: { data: CardData }) {
       ? data.records.find((r) => r.id === ancient.modern_counterpart_id)
       : null) ?? null;
 
-  const toggle = (b: Beat) => setOpen((o) => ({ ...o, [b]: !o[b] }));
 
   // Every card that has something to say can be taken away. A record card is
   // built server-side from the record; a card with no record is built from what
@@ -274,12 +265,21 @@ export function RestorationCard({ data }: { data: CardData }) {
         )}
       </div>
 
+      {/* A short account of what changed, and nothing more. The Then/Now
+          columns and the nutrition delta that used to sit here were a second
+          telling of the recipe printed immediately above the recipe itself.
+          What changed is a sentence; the evidence for it is the original,
+          which follows. */}
+      {shows("WHAT_CHANGED") && (
+      <Beat beat="WHAT_CHANGED" kind={data.kind}>
+        <Prose text={data.beats.WHAT_CHANGED} streaming={data.streaming} />
+      </Beat>
+      )}
+
       {shows("THEN") && (
       <Beat
         beat="THEN"
         kind={data.kind}
-        open={open.THEN}
-        onToggle={toggle}
         badge={ancient?.dish_name_source ?? undefined}
       >
         <Prose text={data.beats.THEN} streaming={data.streaming} />
@@ -292,8 +292,10 @@ export function RestorationCard({ data }: { data: CardData }) {
         )}
         {ancient && (
           <>
-            {/* The ingredient table earns its place on a modern dish too: the
-                "why it was there" column is where the arrivals get named. */}
+            {/* What the dish was: the components the text names, and the method
+                as it describes them. The version you can cook is its own
+                section below, the same way a dish with no record gets one — an
+                ancient dish was the only kind that had lost it. */}
             <IngredientTable record={ancient} />
             {ancient.provenance_class !== "MODERN_DISH" && (
               <>
@@ -322,33 +324,20 @@ export function RestorationCard({ data }: { data: CardData }) {
       </Beat>
       )}
 
-      {shows("WHAT_CHANGED") && (
-      <Beat beat="WHAT_CHANGED" kind={data.kind} open={open.WHAT_CHANGED} onToggle={toggle}>
-        <Prose text={data.beats.WHAT_CHANGED} streaming={data.streaming} />
-        {ancient && modern ? (
-          <ThenNow ancient={ancient} modern={modern} />
-        ) : (
-          /* No modern counterpart record — but the substitution story names what
-             replaced what, so the diff can be drawn from that instead. Records
-             from the index have no counterpart and would otherwise show nothing
-             here, which is the beat doing the most work on the card. */
-          <ThenNowFromChanges record={ancient} />
-        )}
-        {ancient?.substitution_story && <NutritionDelta record={ancient} />}
-      </Beat>
-      )}
-
+      {/* The version you can cook, on every card that has one.
+          Above is what the dish was; this is what to do about it tonight —
+          ingredients you can buy and a method for a modern kitchen. A dish
+          with a record takes them from the record, a dish without takes them
+          from the beat the model wrote, and both arrive under the same
+          heading in the same place. */}
       {shows("RESTORE_TODAY") && (
-      <Beat beat="RESTORE_TODAY" kind={data.kind} open={open.RESTORE_TODAY} onToggle={toggle}>
+      <Beat beat="RESTORE_TODAY" kind={data.kind}>
         {ancient?.restore_today ? (
           <>
             <Prose text={data.beats.RESTORE_TODAY} streaming={data.streaming} />
             <RestoreToday record={ancient} />
           </>
         ) : (
-          // No record (a modern dish or a corpus gap): the model writes the
-          // ingredients and method into the beat, and we structure them here the
-          // same way the ancient card structures a record's restore_today.
           <ModernRecipe text={data.beats.RESTORE_TODAY} streaming={data.streaming} />
         )}
         {ancient?.make_today_notes && <MakeTodayNotes notes={ancient.make_today_notes} />}
@@ -395,42 +384,39 @@ export function RestorationCard({ data }: { data: CardData }) {
   );
 }
 
+/**
+ * A section of the answer, always open.
+ *
+ * These used to be toggles. A reader who asks what their dinner used to be is
+ * owed the answer, not a set of headings to open one at a time — and the two
+ * that were collapsed by default were what changed and the recipe, which is
+ * the whole of what they came for. The headings stay, because they are how you
+ * find the recipe in a long card; the chevron and the hiding are gone.
+ */
 function Beat({
   beat,
   kind,
-  open,
-  onToggle,
   badge,
   children,
 }: {
   beat: Beat;
   kind: TurnKind;
-  open: boolean;
-  onToggle: (b: Beat) => void;
   badge?: string;
   children: React.ReactNode;
 }) {
   return (
     <section>
-      <button
-        type="button"
-        className="beat-toggle"
-        aria-expanded={open}
-        onClick={() => onToggle(beat)}
-      >
-        <span className="mono" style={{ color: "var(--ink-muted)" }}>
+      <div className="beat-head">
+        <h3 className="mono" style={{ margin: 0, fontWeight: 400, color: "var(--ink-muted)" }}>
           {TITLES[kind][beat]}
-        </span>
+        </h3>
         {badge && (
           <span className="display" style={{ fontSize: "0.95rem", color: "var(--orange)" }}>
             {badge}
           </span>
         )}
-        <span className="chevron" data-open={open} aria-hidden>
-          ›
-        </span>
-      </button>
-      {open && <div style={{ padding: "0.2rem 1.15rem 1.15rem" }}>{children}</div>}
+      </div>
+      <div style={{ padding: "0.2rem 1.15rem 1.15rem" }}>{children}</div>
     </section>
   );
 }
@@ -643,123 +629,34 @@ function SourceStrip({ record, onOpen }: { record: CorpusRecord; onOpen: () => v
   );
 }
 
-function ThenNow({ ancient, modern }: { ancient: CorpusRecord; modern: CorpusRecord }) {
-  return (
-    <div className="scroll-x" style={{ marginTop: "1rem" }}>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "0.8rem",
-          minWidth: 360,
-        }}
-      >
-        <Column
-          title="Then"
-          colour="var(--orange)"
-          items={ancient.ingredients.map((i) => i.name)}
-        />
-        <Column title="Now" colour="var(--now)" items={modern.ingredients.map((i) => i.name)} />
-      </div>
-    </div>
-  );
-}
 
 /**
- * Then/Now drawn from the substitution story rather than a counterpart record.
+ * The restored version, in ingredients you can buy.
  *
- * The original diff needs two records — an ancient dish and the modern dish it
- * became — and only the fourteen hand-authored records have that pair. The 199
- * indexed records have no counterpart, so this beat rendered empty for them.
- *
- * But the diff was never really about two dishes. It is about what replaced
- * what, and `substitution_story.changed` says so directly: ghee became
- * vanaspati, gur became mill-refined sugar. Each of those pairs is sourced in
- * `displacements.json`, so this shows the same comparison from stronger
- * evidence — an ingredient-level claim with a citation, rather than an
- * inference from two ingredient lists sitting side by side.
+ * Straight from `record.restore_today` — quantities, timings and steps are the
+ * record's, not the model's, for the same reason the historical table is.
  */
-function ThenNowFromChanges({ record }: { record: CorpusRecord | null }) {
-  const changed = record?.substitution_story?.changed ?? [];
-  if (changed.length === 0) return null;
+function RestoreToday({ record }: { record: CorpusRecord }) {
+  const r = record.restore_today!;
   return (
-    <div className="scroll-x" style={{ marginTop: "1rem" }}>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "0.8rem",
-          minWidth: 360,
-        }}
-      >
-        <Column title="Then" colour="var(--orange)" items={changed.map((c) => c.from)} />
-        <Column title="Now" colour="var(--now)" items={changed.map((c) => c.to)} />
+    <div style={{ marginTop: "0.9rem" }}>
+      <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
+        {r.time_min} minutes · kirana ingredients
       </div>
-      <p style={{ margin: "0.6rem 0 0", fontSize: "0.8rem", color: "var(--ink-muted)" }}>
-        These substitutions happened across Indian kitchens, not only in this dish.
-      </p>
-    </div>
-  );
-}
-
-function Column({ title, colour, items }: { title: string; colour: string; items: string[] }) {
-  return (
-    <div
-      style={{
-        border: `1px solid ${colour}`,
-        borderRadius: 12,
-        padding: "0.7rem 0.8rem",
-      }}
-    >
-      <div className="mono" style={{ color: colour, marginBottom: "0.45rem" }}>
-        {title}
-      </div>
-      <ul style={{ margin: 0, paddingLeft: "1rem" }}>
-        {items.map((i) => (
-          <li key={i} style={{ fontSize: "0.88rem", marginBottom: "0.25rem" }}>
+      <ul style={{ margin: "0 0 0.9rem", paddingLeft: "1.1rem", maxWidth: "62ch" }}>
+        {r.ingredients.map((i) => (
+          <li key={i} style={{ fontSize: "0.9rem", marginBottom: "0.22rem" }}>
             {i}
           </li>
         ))}
       </ul>
-    </div>
-  );
-}
-
-const ARROW: Record<string, string> = {
-  up: "↑",
-  down: "↓",
-  unchanged: "→",
-  mixed: "↕",
-};
-
-function NutritionDelta({ record }: { record: CorpusRecord }) {
-  const delta = record.substitution_story?.nutrition_delta ?? {};
-  const entries = Object.entries(delta);
-  if (!entries.length) return null;
-  return (
-    <div style={{ marginTop: "1rem" }}>
-      <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
-        Then → now, by axis
-      </div>
-      <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-        {entries.map(([axis, dir]) => (
-          <span
-            key={axis}
-            style={{
-              padding: "0.28rem 0.6rem",
-              borderRadius: 999,
-              border: "1px solid var(--line-strong)",
-              fontSize: "0.82rem",
-            }}
-          >
-            {axis.replace(/_/g, " ")} <strong>{ARROW[dir] ?? "→"}</strong>
-          </span>
+      <ol style={{ margin: 0, paddingLeft: "1.15rem", maxWidth: "62ch" }}>
+        {r.steps.map((s, i) => (
+          <li key={i} style={{ fontSize: "0.92rem", marginBottom: "0.4rem" }}>
+            {s}
+          </li>
         ))}
-      </div>
-      <p style={{ margin: "0.6rem 0 0", fontSize: "0.8rem", color: "var(--ink-muted)" }}>
-        A comparison between two versions of one dish. Not a health claim, and not advice.
-        For anything personal, talk to a doctor or a dietitian.
-      </p>
+      </ol>
     </div>
   );
 }
@@ -879,27 +776,3 @@ function MakeTodayNotes({ notes }: { notes: NonNullable<CorpusRecord["make_today
   );
 }
 
-function RestoreToday({ record }: { record: CorpusRecord }) {
-  const r = record.restore_today!;
-  return (
-    <div style={{ marginTop: "0.9rem" }}>
-      <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
-        {r.time_min} minutes · kirana ingredients
-      </div>
-      <ul style={{ margin: "0 0 0.9rem", paddingLeft: "1.1rem", maxWidth: "62ch" }}>
-        {r.ingredients.map((i) => (
-          <li key={i} style={{ fontSize: "0.9rem", marginBottom: "0.22rem" }}>
-            {i}
-          </li>
-        ))}
-      </ul>
-      <ol style={{ margin: 0, paddingLeft: "1.15rem", maxWidth: "62ch" }}>
-        {r.steps.map((s, i) => (
-          <li key={i} style={{ fontSize: "0.92rem", marginBottom: "0.4rem" }}>
-            {s}
-          </li>
-        ))}
-      </ol>
-    </div>
-  );
-}

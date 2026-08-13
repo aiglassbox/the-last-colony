@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 
+import { useDrawerExit } from "@/lib/use-drawer-exit";
 import { trackClient } from "@/lib/analytics";
 import type { CorpusRecord } from "@/lib/corpus/types";
 
@@ -34,16 +35,19 @@ export function SourceDrawer({
     });
   }, [record.slug, record.provenance_class, verified]);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  const { requestClose, backdropClassName, drawerClassName, onAnimationEnd } =
+    useDrawerExit(onClose);
 
   return (
     <>
-      <div className="drawer-backdrop" onClick={onClose} aria-hidden />
-      <div className="drawer" role="dialog" aria-modal="true" aria-label="Source">
+      <div className={backdropClassName} onClick={requestClose} aria-hidden />
+      <div
+        className={drawerClassName}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Source"
+        onAnimationEnd={onAnimationEnd}
+      >
         <div style={{ padding: "1.2rem 1.2rem 2rem", maxWidth: 720, margin: "0 auto" }}>
           <div style={{ display: "flex", alignItems: "center", marginBottom: "1rem" }}>
             <div>
@@ -56,7 +60,7 @@ export function SourceDrawer({
             </div>
             <button
               type="button"
-              onClick={onClose}
+              onClick={requestClose}
               aria-label="Close"
               style={{
                 marginLeft: "auto",

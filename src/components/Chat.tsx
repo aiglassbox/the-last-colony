@@ -10,6 +10,7 @@ import {
   flush,
   getServerSnapshot,
   getSnapshot,
+  hydrateFromServer,
   newId,
   patchConversation,
   patchMessage,
@@ -18,6 +19,7 @@ import {
   subscribe,
   type ChatMessage,
 } from "@/lib/chat/store";
+import { flushSync } from "@/lib/chat/sync";
 import type { TurnKind, TurnMode } from "@/lib/chat/turn";
 import { PROSE, Typewriter } from "@/lib/chat/typewriter";
 import type { CorpusRecord } from "@/lib/corpus/types";
@@ -30,6 +32,7 @@ import {
 } from "@/lib/sidebar-store";
 import { Composer } from "./Composer";
 import { History } from "./History";
+import { Logo } from "./Logo";
 import { Message } from "./Message";
 import { SettingsSheet } from "./SettingsSheet";
 import { Sidebar, type SidebarView } from "./Sidebar";
@@ -112,6 +115,25 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
    */
   const [activeCommand, setActiveCommand] = useState<SlashCommand | null>(null);
 
+  // ---- the server mirror --------------------------------------------------
+
+  /**
+   * Ask the mirror for this device's threads, and make sure whatever is queued
+   * leaves before the page does.
+   *
+   * `visibilitychange` rather than `unload`: a phone browser backgrounding a
+   * tab frequently never fires the latter, and that is exactly the moment a
+   * thread would be lost.
+   */
+  useEffect(() => {
+    void hydrateFromServer();
+    const onHide = () => {
+      if (document.visibilityState === "hidden") flushSync();
+    };
+    document.addEventListener("visibilitychange", onHide);
+    return () => document.removeEventListener("visibilitychange", onHide);
+  }, []);
+
   // ---- viewport -----------------------------------------------------------
 
   useEffect(() => {
@@ -133,16 +155,28 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
   // ---- scrolling ----------------------------------------------------------
 
   /**
-   * Set while the follow animation is moving the thread itself.
+   * The position the follow animation last wrote.
    *
-   * Without it the animation's own scroll fires this handler, sees it has not
-   * caught up yet, concludes the reader scrolled away and stops following.
+   * The animation's own scrolling fires the handler below, which would see it
+   * has not caught up, conclude the reader scrolled away and stop following.
+   * A flag set for the duration of the write does not work: during streaming
+   * the animation writes every frame and clears on the next, so the flag is
+   * true almost continuously and the reader's own scrolling is swallowed with
+   * it — they scroll up, nothing registers, and the next frame pulls them back
+   * down. Recognising the value we wrote costs nothing and cannot be starved,
+   * and it does not care which input moved the thread: wheel, touch, keyboard
+   * or a drag on the scrollbar all read as the reader.
    */
-  const selfScrolling = useRef(false);
+  const wroteScroll = useRef<number | null>(null);
 
   const onScroll = () => {
     const el = threadRef.current;
-    if (!el || selfScrolling.current) return;
+    if (!el) return;
+    if (wroteScroll.current !== null && Math.abs(el.scrollTop - wroteScroll.current) <= 2) {
+      wroteScroll.current = null;
+      return;
+    }
+    wroteScroll.current = null;
     stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
   };
 
@@ -175,12 +209,9 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
         return;
       }
       // A long way behind is a new turn, not streaming: close it quickly.
-      selfScrolling.current = true;
       el.scrollTop += gap > 600 ? gap : Math.max(1, gap * 0.18);
-      // The scroll event lands after this frame, so the flag clears after it.
-      requestAnimationFrame(() => {
-        selfScrolling.current = false;
-      });
+      // Remember where we put it, so the event this causes is recognisable.
+      wroteScroll.current = el.scrollTop;
       follow.current = requestAnimationFrame(step);
     };
     follow.current = requestAnimationFrame(step);
@@ -501,14 +532,23 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
           >
             <Menu size={20} aria-hidden />
           </button>
-          <button type="button" className="topbar__brand" onClick={goToChat}>
-            Kranti Cookbook
+          {/* The lockup, as everywhere else. This was the wordmark set as text,
+              which is the brand drawn in the interface font rather than the
+              brand — and it is the one place a reader on a phone sees it. */}
+          <button
+            type="button"
+            className="topbar__brand"
+            onClick={goToChat}
+            aria-label="Kranti Cookbook"
+            title="Kranti Cookbook"
+          >
+            <Logo size={28} />
           </button>
           <button
             type="button"
             className="topbar__btn"
             onClick={startNew}
-            aria-label="New restoration"
+            aria-label="New Chat"
           >
             <SquarePen size={19} aria-hidden />
           </button>

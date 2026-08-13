@@ -4,6 +4,8 @@ import { parseCommand } from "@/lib/chat/commands";
 import type { TurnKind, TurnMode } from "@/lib/chat/turn";
 import type { CorpusRecord } from "@/lib/corpus/types";
 
+import { fetchConversations, scheduleSync } from "./sync";
+
 /**
  * Conversation state, as an external store.
  *
@@ -123,20 +125,29 @@ function read(): Conversation[] {
 }
 
 function write(list: Conversation[]): void {
+  const trimmed = [...list]
+    .sort((a, b) => b.updatedAt - a.updatedAt)
+    .slice(0, MAX_STORED)
+    // Streaming flags are transient; persisting one leaves a dead caret
+    // blinking in a restored thread.
+    .map((c) => ({
+      ...c,
+      messages: c.messages.map((m) => ({ ...m, streaming: false })),
+    }));
+
   try {
-    const trimmed = [...list]
-      .sort((a, b) => b.updatedAt - a.updatedAt)
-      .slice(0, MAX_STORED)
-      // Streaming flags are transient; persisting one leaves a dead caret
-      // blinking in a restored thread.
-      .map((c) => ({
-        ...c,
-        messages: c.messages.map((m) => ({ ...m, streaming: false })),
-      }));
     window.localStorage.setItem(KEY, JSON.stringify(trimmed));
   } catch {
-    // A full or disabled localStorage must not break the conversation.
+    // A full or disabled localStorage must not break the conversation, and
+    // must not stop the mirror either — a device that cannot write locally is
+    // exactly the one whose threads only survive on the server.
   }
+
+  // Every persisted change passes through here, deletes included, which is why
+  // the mirror hangs off this one call rather than off each mutator. Queued
+  // rather than awaited: the device copy is already written and the reader is
+  // not kept waiting on a round trip.
+  scheduleSync(trimmed);
 }
 
 // --- the store ------------------------------------------------------------
@@ -182,6 +193,30 @@ export function update(fn: (s: ChatState) => ChatState): void {
 /** Flush to storage regardless of streaming state — used when a turn ends. */
 export function flush(): void {
   if (state) write(state.conversations);
+}
+
+/**
+ * Seed the store from the mirror when this browser has nothing of its own.
+ *
+ * Only when it has nothing. The device is the source of truth, so a browser
+ * holding threads keeps them: merging two sets that have both moved is a
+ * conflict resolution problem this product does not have and should not
+ * invent. What it does buy is the case the mirror exists for — localStorage
+ * evicted, or a browser that has cleared it — where the history would
+ * otherwise be gone.
+ */
+export async function hydrateFromServer(): Promise<void> {
+  if (typeof window === "undefined") return;
+  if (getSnapshot().conversations.some((c) => c.messages.length > 0)) return;
+
+  const remote = await fetchConversations();
+  if (!remote.length) return;
+
+  state = { conversations: remote, currentId: remote[0].id };
+  // Puts them on the device too, so the next load needs no round trip. The
+  // push this triggers is the set the server just gave us, so it is a no-op.
+  write(remote);
+  for (const listener of listeners) listener();
 }
 
 // --- convenience mutators -------------------------------------------------
