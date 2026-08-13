@@ -265,14 +265,16 @@ export function RestorationCard({ data }: { data: CardData }) {
         )}
       </div>
 
-      {/* A short account of what changed, and nothing more. The Then/Now
-          columns and the nutrition delta that used to sit here were a second
-          telling of the recipe printed immediately above the recipe itself.
-          What changed is a sentence; the evidence for it is the original,
-          which follows. */}
+      {/* A short account of what changed, then which way each nutrition axis
+          moved. The Then/Now ingredient columns that used to sit here were a
+          second telling of the recipe printed immediately above the recipe
+          itself, and they are staying gone; the axes are not stated anywhere
+          else on the card. `shows` already counts a nutrition delta as reason
+          enough to draw this beat. */}
       {shows("WHAT_CHANGED") && (
       <Beat beat="WHAT_CHANGED" kind={data.kind}>
         <Prose text={data.beats.WHAT_CHANGED} streaming={data.streaming} />
+        {ancient?.substitution_story && <NutritionDelta record={ancient} />}
       </Beat>
       )}
 
@@ -657,6 +659,59 @@ function RestoreToday({ record }: { record: CorpusRecord }) {
           </li>
         ))}
       </ol>
+    </div>
+  );
+}
+
+const ARROW: Record<string, string> = {
+  up: "↑",
+  down: "↓",
+  unchanged: "→",
+  mixed: "↕",
+};
+
+/**
+ * Which way each nutrition axis moved between the two versions of the dish.
+ *
+ * This was removed alongside the Then/Now ingredient columns as part of the
+ * same duplication, but only those columns were duplication — they reprinted
+ * the ingredient table that sits directly below them. The axes are not stated
+ * anywhere else on the card, so they came back without them.
+ *
+ * Direction only, never a magnitude, and the axes are limited to the six the
+ * schema defines — `nutrition_delta` is built by filtering against DELTA_AXES,
+ * so nothing else can reach here. The line underneath is not boilerplate: a
+ * row of arrows invites being read as a health claim about the reader, and it
+ * is a comparison between two recipes.
+ */
+function NutritionDelta({ record }: { record: CorpusRecord }) {
+  const delta = record.substitution_story?.nutrition_delta ?? {};
+  const entries = Object.entries(delta);
+  if (!entries.length) return null;
+  return (
+    <div style={{ marginTop: "1rem" }}>
+      <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
+        Then → now, by axis
+      </div>
+      <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+        {entries.map(([axis, dir]) => (
+          <span
+            key={axis}
+            style={{
+              padding: "0.28rem 0.6rem",
+              borderRadius: 999,
+              border: "1px solid var(--line-strong)",
+              fontSize: "0.82rem",
+            }}
+          >
+            {axis.replace(/_/g, " ")} <strong>{ARROW[dir] ?? "→"}</strong>
+          </span>
+        ))}
+      </div>
+      <p style={{ margin: "0.6rem 0 0", fontSize: "0.8rem", color: "var(--ink-muted)" }}>
+        A comparison between two versions of one dish. Not a health claim, and not advice. For
+        anything personal, talk to a doctor or a dietitian.
+      </p>
     </div>
   );
 }

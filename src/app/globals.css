@@ -803,11 +803,11 @@ body {
 
 /* Tailwind's preflight zeroes the margin on every p, and nothing here ever put
    one back — so the deck sat flush against a 56px headline with no gap at all.
-   It stays tighter than the drop to the composer below it, because the
-   headline and the line under it are one block of type and should read as
-   one. */
+   A close gap is right: the headline and the line under it are one block of
+   type, and they need only enough air to stop the descenders touching, well
+   short of the drop to the composer below. */
 .hero__subtitle {
-  margin: var(--s-5) auto 0;
+  margin: var(--s-3) auto 0;
 }
 
 /* ------------------------------------------------------------- composer -- */
@@ -1753,12 +1753,6 @@ body {
   .hero__title {
     max-width: none;
     font-size: clamp(1.375rem, 0.9rem + 2.6vw, 1.75rem);
-  }
-
-  /* Against a 22px headline rather than a 56px one, the desktop gap is too
-     much air on a screen that has none to spare. */
-  .hero__subtitle {
-    margin-top: var(--s-3);
   }
 
   .composer {
