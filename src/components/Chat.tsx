@@ -217,6 +217,30 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
     };
   }, [conversations]);
 
+  /**
+   * Put a turn at the top of the view and leave it there.
+   *
+   * Called with the question the reader just asked, so the answer is written
+   * downward from the top of the screen instead of upward from the bottom of
+   * it. Waits a frame for the two new messages to be in the DOM, then moves
+   * the thread by the distance between the turn and the top of the viewport.
+   *
+   * `.thread__inner > *:last-child` carries the room this needs — an empty
+   * reply is only a few lines tall, and without something to scroll into the
+   * turn would stop wherever it ran out of thread.
+   */
+  const anchor = useCallback((messageId: string) => {
+    requestAnimationFrame(() => {
+      const el = threadRef.current;
+      const node = el?.querySelector<HTMLElement>(`[data-message-id="${messageId}"]`);
+      if (!el || !node) return;
+      const delta = node.getBoundingClientRect().top - el.getBoundingClientRect().top;
+      el.scrollTop += delta - 8;
+      // So the scroll event this fires is recognised as ours, not the reader's.
+      wroteScroll.current = el.scrollTop;
+    });
+  }, []);
+
   // ---- sending ------------------------------------------------------------
 
   const send = useCallback(
@@ -229,7 +253,13 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
       const base = state.conversations.find((c) => c.id === conversationId);
       if (!base) return;
 
-      stick.current = true;
+      // Not stuck to the bottom. The answer is about to be written under the
+      // question, and following the bottom of it means the reader is held at
+      // the last line while everything above scrolls past unread — the answer
+      // appears to arrive from underneath. `anchor` puts the question at the
+      // top instead and leaves it there; scrolling down to the end by hand
+      // turns following back on, which is what `onScroll` is for.
+      stick.current = false;
       setBusy(true);
       setView("chat");
 
@@ -257,6 +287,8 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
         messages: [...c.messages, userMsg, reply],
         title: c.messages.length === 0 ? deriveTitle([userMsg]) : c.title,
       }));
+
+      anchor(userMsg.id);
 
       const controller = new AbortController();
       abortRef.current = controller;
@@ -379,7 +411,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
         setBusy(false);
       }
     },
-    [busy],
+    [busy, anchor],
   );
 
   // Deep link from a QR code or permalink, deferred a tick — `send` sets state

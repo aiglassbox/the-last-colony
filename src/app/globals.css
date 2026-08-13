@@ -1183,6 +1183,16 @@ body {
   padding: var(--s-6) var(--s-5) var(--s-5);
 }
 
+/* Room under the newest turn so it can be scrolled to the top of the view.
+   A reply that has only just started is a few lines tall, and without
+   somewhere to scroll into, the question would stop partway down and the
+   answer would fill the space beneath it — which is the "arrives from the
+   bottom" the anchor is there to stop. Collapses on its own once the answer
+   is taller than this. */
+.thread__inner > *:last-child {
+  min-height: 58dvh;
+}
+
 .thread__foot {
   position: relative;
   background: linear-gradient(to top, var(--ground) 62%, rgba(44, 68, 30, 0));
@@ -1206,8 +1216,21 @@ body {
   word-break: break-word;
 }
 
+/* A reply turn on the same plate the restoration card uses. `.card` brings the
+   amber surface and the dark-on-amber ink with it, so the prose inside needs
+   nothing but padding and a measure. Narrower than the card's 820px column,
+   because this is running text and 62ch is where it stays readable. */
+.thread-answer {
+  max-width: 62ch;
+  padding: var(--s-4) var(--s-5);
+}
+
 .thread-prose {
   color: var(--ink);
+}
+
+.thread-prose p:last-child {
+  margin-bottom: 0;
 }
 
 .ghost-btn {
@@ -1600,7 +1623,7 @@ body {
   width: 0.34em;
   height: 0.34em;
   border-radius: 999px;
-  background: var(--orange);
+  background: currentColor;
   opacity: 0.35;
   animation: settle 1.25s ease-in-out infinite;
 }
@@ -1639,7 +1662,7 @@ body {
   height: 1.05em;
   margin-left: 0.1em;
   vertical-align: -0.16em;
-  background: var(--orange);
+  background: currentColor;
   animation: blink 1s steps(2, start) infinite;
 }
 
