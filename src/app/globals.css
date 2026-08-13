@@ -791,11 +791,10 @@ body {
 
 .hero__title {
   margin: 0 auto;
-  /* Measured in New Spirit at the display size: "It's time to decolonise"
-     runs 14.43em and adding "our" takes it to 17.05em, so anything between
-     puts the break where the comp puts it. `ch` cannot express this — it is
-     the width of a zero, far narrower than these caps. */
-  max-width: 15.5em;
+  /* No measure here any more. This carried a 15.5em max-width whose only job
+     was to fold the line in the right place; the break is a <br> in the markup
+     now, so the number would be a constraint with nothing to constrain. Both
+     halves are short enough to hold at any width this design reaches. */
   color: var(--cream);
   font-family: var(--font-display), "Iowan Old Style", Georgia, serif;
   font-weight: 400;
@@ -815,22 +814,22 @@ body {
 }
 
 /*
-  The hand break after "policies".
+  The hand break after "recipe".
 
-  It is off by default and only switches on once the line in front of it fits
-  whole. That first half measures 787px at this size, so below ~820px of hero
-  the break would push "crop policies" onto a line of its own and strand
-  "erased from our diet." under it — three lines, one of them two words. Left
-  off, the sentence simply wraps where it wants, which is never ugly.
+  Off by default, on once both halves fit whole. They measure 468px and 486px
+  at this size — the deck is 16px at every width, so those numbers do not move
+  — which is why the gate is 520px of hero. Under that the longer half would
+  wrap on its own and strand a fragment on a third line; left off, the sentence
+  breaks wherever it likes, which is never ugly.
 
-  The space beside it in the markup is what carries the sentence when it is
-  off, so "policies erased" stays one phrase rather than running together.
+  The space beside the br is what carries the sentence when it is off, so
+  "recipe and" stays one phrase rather than running together.
 */
 .hero__break {
   display: none;
 }
 
-@container (min-width: 820px) {
+@container (min-width: 520px) {
   .hero__break {
     display: inline;
   }
@@ -1773,11 +1772,9 @@ body {
     padding: clamp(28px, 7vh, 64px) var(--s-4) var(--s-4);
   }
 
-  /* The em measure that sets the desktop break is wider than a phone, so it
-     is released here and the size does the work instead: 1.5rem keeps
-     "IT'S TIME TO DECOLONISE" on one line at 360px. */
+  /* Only the size to set here now — the measure this used to release is gone,
+     and the break it was fighting is a <br> that holds at every width. */
   .hero__title {
-    max-width: none;
     font-size: clamp(1.375rem, 0.9rem + 2.6vw, 1.75rem);
   }
 

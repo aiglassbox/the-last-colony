@@ -46,20 +46,22 @@ import { Sidebar, type SidebarView } from "./Sidebar";
  * stage, and a hero that becomes a thread once a conversation starts.
  */
 
-const HEADING = "What are you cooking today?";
 /**
- * The deck, broken by hand after "policies".
+ * The hero type, both lines broken by hand.
  *
- * The headline above it sets its break with an em measure, but that only works
- * because it is four words the same length every time. This line has to break
- * at one named word, and a measure that lands there at one width lands a word
- * early or late at the next. So the two halves are separate and the break is
- * explicit — see `.hero__break`, which releases it on a phone where the line
- * already wraps three times on its own.
+ * These used to break on a measure — `.hero__title` carried a 15.5em max-width
+ * chosen so the line would fold in the right place. That only works while the
+ * words stay the same length, and it puts the reason for a typographic
+ * decision in a number in a stylesheet. Each line is two strings now and the
+ * break is where it looks like it is.
+ *
+ * The headline's halves are short enough to hold at any width. The deck's are
+ * not, so its break is conditional — see `.hero__break`.
  */
-const SUBHEADING_HEAD =
-  "Enter a modern dish to unearth its original, pre-1858 recipe and see what British cash-crop policies";
-const SUBHEADING_TAIL = "erased from our diet.";
+const HEADING_HEAD = "What are you";
+const HEADING_TAIL = "cooking today?";
+const SUBHEADING_HEAD = "Enter a modern dish to unearth its original, pre-1858 recipe";
+const SUBHEADING_TAIL = "and see what British cash-crop policies erased from our diet.";
 
 interface StreamEvent {
   type: "meta" | "delta" | "text" | "done" | "error" | "redact";
@@ -522,7 +524,8 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                   <section className="hero" aria-labelledby="hero-title">
                     <TwoBrothersMark className="hero__mark" />
                     <h1 id="hero-title" className="hero__title">
-                      {HEADING}
+                      {HEADING_HEAD}
+                      <br /> {HEADING_TAIL}
                     </h1>
                     <p className="hero__subtitle">
                       {SUBHEADING_HEAD}
@@ -552,7 +555,8 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                 <section className="hero" aria-labelledby="hero-title">
                   <TwoBrothersMark className="hero__mark" />
                   <h1 id="hero-title" className="hero__title">
-                    {HEADING}
+                    {HEADING_HEAD}
+                    <br /> {HEADING_TAIL}
                   </h1>
                   <p className="hero__subtitle">
                     {SUBHEADING_HEAD}
