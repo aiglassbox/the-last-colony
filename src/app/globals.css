@@ -1783,10 +1783,12 @@ body {
   }
 
   /* The deck holds body size everywhere else, but the headline drops from 56px
-     to 24px here and 16px next to that is nearly the same size — the two read
-     as one block of text rather than a title and a line under it. */
+     to 24px here, and at anything near 16px the two read as one block of text
+     rather than a title and a line under it. Desktop separates them 3.5:1; a
+     phone cannot buy that back — it would put the deck at 7px — so 12px and
+     2:1 is as far as this goes while the line is still comfortably read. */
   .hero__subtitle {
-    font-size: 0.875rem;
+    font-size: 0.75rem;
   }
 
   .composer {
