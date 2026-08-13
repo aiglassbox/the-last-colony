@@ -763,6 +763,10 @@ body {
 .hero {
   width: min(100%, 900px);
   text-align: center;
+  /* So the deck's hand break can ask how much room it actually has. A viewport
+     query would be wrong here: expanding the rail takes 187px off this box
+     without the viewport changing at all. */
+  container-type: inline-size;
 }
 
 /* The farm's mark, sitting above the headline as an endorsement rather than as
@@ -808,6 +812,28 @@ body {
    short of the drop to the composer below. */
 .hero__subtitle {
   margin: var(--s-3) auto 0;
+}
+
+/*
+  The hand break after "policies".
+
+  It is off by default and only switches on once the line in front of it fits
+  whole. That first half measures 787px at this size, so below ~820px of hero
+  the break would push "crop policies" onto a line of its own and strand
+  "erased from our diet." under it — three lines, one of them two words. Left
+  off, the sentence simply wraps where it wants, which is never ugly.
+
+  The space beside it in the markup is what carries the sentence when it is
+  off, so "policies erased" stays one phrase rather than running together.
+*/
+.hero__break {
+  display: none;
+}
+
+@container (min-width: 820px) {
+  .hero__break {
+    display: inline;
+  }
 }
 
 /* ------------------------------------------------------------- composer -- */

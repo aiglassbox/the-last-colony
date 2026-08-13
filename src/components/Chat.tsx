@@ -47,8 +47,19 @@ import { Sidebar, type SidebarView } from "./Sidebar";
  */
 
 const HEADING = "What are you cooking today?";
-const SUBHEADING =
-  "Enter a modern dish to unearth its original, pre-1858 recipe and see what British cash-crop policies erased from our diet.";
+/**
+ * The deck, broken by hand after "policies".
+ *
+ * The headline above it sets its break with an em measure, but that only works
+ * because it is four words the same length every time. This line has to break
+ * at one named word, and a measure that lands there at one width lands a word
+ * early or late at the next. So the two halves are separate and the break is
+ * explicit — see `.hero__break`, which releases it on a phone where the line
+ * already wraps three times on its own.
+ */
+const SUBHEADING_HEAD =
+  "Enter a modern dish to unearth its original, pre-1858 recipe and see what British cash-crop policies";
+const SUBHEADING_TAIL = "erased from our diet.";
 
 interface StreamEvent {
   type: "meta" | "delta" | "text" | "done" | "error" | "redact";
@@ -513,7 +524,10 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                     <h1 id="hero-title" className="hero__title">
                       {HEADING}
                     </h1>
-                    <p className="hero__subtitle">{SUBHEADING}</p>
+                    <p className="hero__subtitle">
+                      {SUBHEADING_HEAD}
+                      <br className="hero__break" /> {SUBHEADING_TAIL}
+                    </p>
                   </section>
                 </div>
 
@@ -540,7 +554,10 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                   <h1 id="hero-title" className="hero__title">
                     {HEADING}
                   </h1>
-                  <p className="hero__subtitle">{SUBHEADING}</p>
+                  <p className="hero__subtitle">
+                    {SUBHEADING_HEAD}
+                    <br className="hero__break" /> {SUBHEADING_TAIL}
+                  </p>
 
                   <Composer
                     value={input}
