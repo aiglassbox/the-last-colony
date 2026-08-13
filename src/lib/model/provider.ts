@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, type ThinkingConfig, ThinkingLevel } from "@google/genai";
 
 /**
  * The model seam.
@@ -102,19 +102,37 @@ function anthropicProvider(): ModelProvider {
 
 // --- Gemini ----------------------------------------------------------------
 
-/**
- * `gemini-2.5-flash` is the default because it is what the supplied key
- * actually has quota for — the Gemini 3 models list as available and then
- * return 429 on this key. Override with GEMINI_MODEL.
- */
-const GEMINI_MODEL = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
+const GEMINI_MODEL = process.env.GEMINI_MODEL ?? "gemini-3.6-flash";
 
 /**
- * Thinking is on by default on 2.5 and nothing streams until it finishes,
- * which on a chat surface reads as a dead screen. Zero keeps the verdict line
- * fast; raise GEMINI_THINKING_BUDGET (or -1 for dynamic) if replies feel thin.
+ * How thinking is asked for changed between generations, and the two spellings
+ * are not interchangeable: 3.x rejects `thinkingBudget` outright with a 400
+ * "Request contains an invalid argument", which surfaces as a card with no
+ * prose. Verified against the API — a bare request and one with `thinkingLevel`
+ * both answer; the same request with `thinkingBudget: 0` is the only one that
+ * fails.
+ */
+const IS_GEMINI_3_OR_LATER = /^gemini-(?:[3-9]|\d{2,})\b/.test(GEMINI_MODEL);
+
+/**
+ * Thinking is on by default and nothing streams until it finishes, which on a
+ * chat surface reads as a dead screen. The lowest setting keeps the verdict
+ * line fast; raise it if replies feel thin.
+ *
+ * 2.x counts tokens (GEMINI_THINKING_BUDGET, -1 for dynamic). 3.x takes a
+ * level (GEMINI_THINKING_LEVEL: MINIMAL | LOW | MEDIUM | HIGH).
  */
 const GEMINI_THINKING_BUDGET = Number(process.env.GEMINI_THINKING_BUDGET ?? "0");
+
+/** Falls back to MINIMAL on anything unrecognised rather than 400ing at runtime. */
+const GEMINI_THINKING_LEVEL =
+  ThinkingLevel[
+    (process.env.GEMINI_THINKING_LEVEL ?? "MINIMAL").toUpperCase() as keyof typeof ThinkingLevel
+  ] ?? ThinkingLevel.MINIMAL;
+
+const GEMINI_THINKING: ThinkingConfig = IS_GEMINI_3_OR_LATER
+  ? { thinkingLevel: GEMINI_THINKING_LEVEL }
+  : { thinkingBudget: GEMINI_THINKING_BUDGET };
 
 function geminiProvider(): ModelProvider {
   const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
@@ -130,7 +148,7 @@ function geminiProvider(): ModelProvider {
     config: {
       systemInstruction: req.system,
       maxOutputTokens: req.maxTokens,
-      thinkingConfig: { thinkingBudget: GEMINI_THINKING_BUDGET },
+      thinkingConfig: GEMINI_THINKING,
       abortSignal: undefined as AbortSignal | undefined,
     },
   });
