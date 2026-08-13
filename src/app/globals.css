@@ -767,10 +767,6 @@ body {
 .hero {
   width: min(100%, 900px);
   text-align: center;
-  /* So the deck's hand break can ask how much room it actually has. A viewport
-     query would be wrong here: expanding the rail takes 187px off this box
-     without the viewport changing at all. */
-  container-type: inline-size;
 }
 
 /* The farm's mark, sitting above the headline as an endorsement rather than as
@@ -815,29 +811,13 @@ body {
    short of the drop to the composer below. */
 .hero__subtitle {
   margin: var(--s-3) auto 0;
+  /* Four sentences at this measure fall 117 characters against 28 if left to
+     wrap on their own — a full line and then a stub. Balancing evens the rag
+     without fixing a break anywhere, which matters for copy that is still
+     being written: nothing here needs re-measuring when the words change. */
+  text-wrap: balance;
 }
 
-/*
-  The hand break after "recipe".
-
-  Off by default, on once both halves fit whole. They measure 468px and 486px
-  at this size — the deck is 16px at every width, so those numbers do not move
-  — which is why the gate is 520px of hero. Under that the longer half would
-  wrap on its own and strand a fragment on a third line; left off, the sentence
-  breaks wherever it likes, which is never ugly.
-
-  The space beside the br is what carries the sentence when it is off, so
-  "recipe and" stays one phrase rather than running together.
-*/
-.hero__break {
-  display: none;
-}
-
-@container (min-width: 520px) {
-  .hero__break {
-    display: inline;
-  }
-}
 
 /* ------------------------------------------------------------- composer -- */
 
@@ -1776,10 +1756,14 @@ body {
     padding: clamp(28px, 7vh, 64px) var(--s-4) var(--s-4);
   }
 
-  /* Only the size to set here now — the measure this used to release is gone,
-     and the break it was fighting is a <br> that holds at every width. */
+  /* Sized so the first line survives, not by eye. "It's time to decolonise"
+     measures 14.14em in this face at these caps, and a phone hero is the
+     viewport less 16px of padding a side — so the line holds while
+     14.14 × size ≤ 100vw − 32px, which 6.2vw satisfies down to a 260px
+     viewport. The previous 2.6vw curve put it at 23.8px on a 360px screen,
+     8px wider than the box, and the headline fell into three lines. */
   .hero__title {
-    font-size: clamp(1.375rem, 0.9rem + 2.6vw, 1.75rem);
+    font-size: clamp(1rem, 6.2vw, 1.75rem);
   }
 
   /* The deck holds body size everywhere else, but the headline drops from 56px

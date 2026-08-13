@@ -47,21 +47,25 @@ import { Sidebar, type SidebarView } from "./Sidebar";
  */
 
 /**
- * The hero type, both lines broken by hand.
+ * The hero type.
  *
- * These used to break on a measure — `.hero__title` carried a 15.5em max-width
- * chosen so the line would fold in the right place. That only works while the
- * words stay the same length, and it puts the reason for a typographic
- * decision in a number in a stylesheet. Each line is two strings now and the
- * break is where it looks like it is.
+ * The headline is set in two strings because it breaks in a fixed place; the
+ * stylesheet uppercases it, so it is written in sentence case here and the
+ * apostrophe is the typographic one rather than a straight quote.
  *
- * The headline's halves are short enough to hold at any width. The deck's are
- * not, so its break is conditional — see `.hero__break`.
+ * The deck is one string and wraps where it likes. It carried a hand break
+ * while it was a single sentence long enough to need directing — four
+ * sentences have their own rhythm, and forcing a fold into the middle of one
+ * would cut against it.
  */
-const HEADING_HEAD = "What are you";
-const HEADING_TAIL = "cooking today?";
-const SUBHEADING_HEAD = "Enter a modern dish to unearth its original, pre-1858 recipe";
-const SUBHEADING_TAIL = "and see what British cash-crop policies erased from our diet.";
+const HEADING_HEAD = "It’s time to decolonise";
+const HEADING_TAIL = "our kitchens";
+const SUBHEADING =
+  "The British colonised our land. Then they came for our grain. All for their selfish wants. " +
+  "Today, we reclaim our food and decolonise our kitchens.";
+
+/** The hero composer's prompt. The follow-up field keeps its own, milder line. */
+const PROMPT_PLACEHOLDER = "What recipe would you like to reclaim today?";
 
 interface StreamEvent {
   type: "meta" | "delta" | "text" | "done" | "error" | "redact";
@@ -528,8 +532,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                       <br /> {HEADING_TAIL}
                     </h1>
                     <p className="hero__subtitle">
-                      {SUBHEADING_HEAD}
-                      <br className="hero__break" /> {SUBHEADING_TAIL}
+                      {SUBHEADING}
                     </p>
                   </section>
                 </div>
@@ -542,7 +545,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                       onSubmit={submit}
                       onStop={() => abortRef.current?.abort()}
                       busy={busy}
-                      placeholder="Name a dish…"
+                      placeholder={PROMPT_PLACEHOLDER}
                       variant="flat"
                       minHeight={64}
                       inputRef={promptRef}
@@ -559,8 +562,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                     <br /> {HEADING_TAIL}
                   </h1>
                   <p className="hero__subtitle">
-                    {SUBHEADING_HEAD}
-                    <br className="hero__break" /> {SUBHEADING_TAIL}
+                    {SUBHEADING}
                   </p>
 
                   <Composer
@@ -569,7 +571,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                     onSubmit={submit}
                     onStop={() => abortRef.current?.abort()}
                     busy={busy}
-                    placeholder="Type a dish to travel back in time…"
+                    placeholder={PROMPT_PLACEHOLDER}
                     inputRef={promptRef}
                     minHeight={72}
                   />
