@@ -62,7 +62,7 @@ const HEADING_HEAD = "It’s time to decolonise";
 const HEADING_TAIL = "our kitchens";
 const SUBHEADING =
   "The British colonised our land. Then they came for our grain. All for their selfish wants. " +
-  "Today, we reclaim our food and decolonise our kitchens.";
+  "Today, we reclaim our food and cook it the Indian way.";
 
 /** The hero composer's prompt. The follow-up field keeps its own, milder line. */
 const PROMPT_PLACEHOLDER = "What recipe would you like to reclaim today?";
