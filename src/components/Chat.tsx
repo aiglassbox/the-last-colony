@@ -1,9 +1,9 @@
 "use client";
 
-import { Code2, FileText, ImageIcon, type LucideIcon, Menu, Pencil, SquarePen } from "lucide-react";
+import { Menu, SquarePen } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
-import { COMMANDS, parseCommand, type SlashCommand } from "@/lib/chat/commands";
+import { parseCommand } from "@/lib/chat/commands";
 import {
   deleteConversation,
   deriveTitle,
@@ -69,14 +69,6 @@ const COMPACT_BREAKPOINT = 991;
  */
 const PHONE_BREAKPOINT = 767;
 
-/** Icons live here rather than in the command table, which the server imports. */
-const COMMAND_ICONS: Record<string, LucideIcon> = {
-  "recipe-card": ImageIcon,
-  "pre-raj": Code2,
-  "healthier-swap": Pencil,
-  "oil-match": FileText,
-};
-
 export function Chat({ initialSlug }: { initialSlug?: string }) {
   const { conversations, currentId } = useSyncExternalStore(
     subscribe,
@@ -101,19 +93,6 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
   const current = conversations.find((c) => c.id === currentId) ?? null;
   const messages = current?.messages ?? [];
   const isEmpty = messages.length === 0;
-
-  // Read back out of the input rather than held as separate state, so typing
-  // or deleting the slash by hand stays in step with the pills.
-  /**
-   * The shortcut in force.
-   *
-   * It used to live inside the input as the literal "/pre-raj ", which made it
-   * something the reader could half-delete, and made the box read as a command
-   * line rather than a question. It is state now, and the composer shows it as
-   * a chip. The wire format is unchanged: it is put back in front of the text
-   * on send, so the server still parses one string.
-   */
-  const [activeCommand, setActiveCommand] = useState<SlashCommand | null>(null);
 
   // ---- the server mirror --------------------------------------------------
 
@@ -398,17 +377,11 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
   // ---- actions ------------------------------------------------------------
 
   const submit = () => {
-    const dish = input.trim();
-    // A shortcut on its own is not a question. "/pre-raj" names how to answer,
-    // not what to answer about, and sending it used to produce a card asking
-    // for the dish the reader had already been asked for.
-    if (activeCommand && !dish) return;
-
-    // The chip is presentation; the wire has always been one string.
-    const text = activeCommand ? `/${activeCommand.slug} ${dish}` : input;
+    // A typed "/pre-raj biryani" still works: the route parses the command off
+    // the front of the message, and `send` strips it again for the share-card
+    // query. `send` is the empty guard.
     setInput("");
-    setActiveCommand(null);
-    void send(text);
+    void send(input);
   };
 
   // While the rail is floating over the stage, acting on it should also put it
@@ -423,7 +396,6 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
     dismissOverlay();
     setView("chat");
     setInput("");
-    setActiveCommand(null);
   };
 
   const openConversation = (id: string) => {
@@ -448,45 +420,6 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
     setView("chat");
     dismissOverlay();
   };
-
-  // A pill writes its command into the composer and hands the caret back — it
-  // does not run anything. The turn only leaves when the reader sends it.
-  const pickCommand = (command: SlashCommand) => {
-    // Tapping the pill that is already lit turns it off.
-    setActiveCommand((current) => (current?.slug === command.slug ? null : command));
-    setView("chat");
-    // After the paint, so the caret lands past the command the reader just
-    // inserted rather than at whatever index it held before.
-    requestAnimationFrame(() => {
-      const el = promptRef.current;
-      if (!el) return;
-      el.focus();
-      el.setSelectionRange(el.value.length, el.value.length);
-    });
-  };
-
-  // One definition, two placements: beneath the hero on a desktop, stacked
-  // directly above the pinned composer on a phone.
-  const quickActions = (
-    <div className="actions" role="group" aria-label="Prompt starters">
-      {COMMANDS.map((command) => {
-        const Icon = COMMAND_ICONS[command.slug];
-        return (
-          <button
-            key={command.slug}
-            type="button"
-            className="pill"
-            data-active={activeCommand?.slug === command.slug || undefined}
-            aria-pressed={activeCommand?.slug === command.slug}
-            onClick={() => pickCommand(command)}
-          >
-            <Icon size={16} className="pill__icon" aria-hidden />
-            {command.label}
-          </button>
-        );
-      })}
-    </div>
-  );
 
   return (
     <div className="app">
@@ -585,16 +518,13 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
 
                 <div className="thread__foot">
                   <div className="thread__foot-inner">
-                    {quickActions}
                     <Composer
                       value={input}
                       onChange={setInput}
                       onSubmit={submit}
-                      command={activeCommand}
-                      onClearCommand={() => setActiveCommand(null)}
                       onStop={() => abortRef.current?.abort()}
                       busy={busy}
-                      placeholder={activeCommand ? "Type your query…" : "Name a dish…"}
+                      placeholder="Name a dish…"
                       variant="flat"
                       minHeight={64}
                       inputRef={promptRef}
@@ -614,17 +544,13 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                     value={input}
                     onChange={setInput}
                     onSubmit={submit}
-                    command={activeCommand}
-                    onClearCommand={() => setActiveCommand(null)}
                     onStop={() => abortRef.current?.abort()}
                     busy={busy}
-                    placeholder={activeCommand ? "Type your query…" : "Type a dish to travel back in time…"}
+                    placeholder="Type a dish to travel back in time…"
                     inputRef={promptRef}
                     minHeight={72}
                   />
                 </section>
-
-                {quickActions}
               </div>
             ) : (
               <>
@@ -642,11 +568,9 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                       value={input}
                       onChange={setInput}
                       onSubmit={submit}
-                      command={activeCommand}
-                      onClearCommand={() => setActiveCommand(null)}
                       onStop={() => abortRef.current?.abort()}
                       busy={busy}
-                      placeholder={activeCommand ? "Type your query…" : "Ask a follow-up…"}
+                      placeholder="Ask a follow-up…"
                       variant="flat"
                       minHeight={72}
                       inputRef={promptRef}

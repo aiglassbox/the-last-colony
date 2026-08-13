@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUp, Mic, Square, X } from "lucide-react";
+import { ArrowUp, Mic, Square } from "lucide-react";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 /**
@@ -50,13 +50,6 @@ export interface ComposerProps {
   onStop: () => void;
   busy: boolean;
   placeholder: string;
-  /**
-   * The shortcut in force, shown as a chip rather than as "/pre-raj " typed
-   * into the box. A command is a mode the turn is in, and a mode is a thing you
-   * can see and dismiss — not a string the reader has to not delete by accident.
-   */
-  command?: { label: string; hint: string } | null;
-  onClearCommand?: () => void;
   /** `hero` sits on the orange card; `flat` sits on the stage in a thread. */
   variant?: "hero" | "flat";
   /** Resting height in px. The reference hero input is tall. */
@@ -71,8 +64,6 @@ export function Composer({
   onStop,
   busy,
   placeholder,
-  command = null,
-  onClearCommand,
   variant = "hero",
   minHeight = 132,
   inputRef,
@@ -137,23 +128,6 @@ export function Composer({
         Name a dish
       </label>
 
-      {command && (
-        <div className="composer__chips">
-          <span className="command-chip">
-            {command.label}
-            {onClearCommand && (
-              <button
-                type="button"
-                onClick={onClearCommand}
-                aria-label={`Remove ${command.label}`}
-                className="command-chip__x"
-              >
-                <X size={13} aria-hidden />
-              </button>
-            )}
-          </span>
-        </div>
-      )}
       <textarea
         id="prompt"
         ref={ref}
@@ -191,7 +165,6 @@ export function Composer({
             className="send-btn"
             onClick={onSubmit}
             disabled={!value.trim()}
-            title={command && !value.trim() ? command.hint : undefined}
             aria-label="Send"
           >
             <ArrowUp size={19} aria-hidden />
