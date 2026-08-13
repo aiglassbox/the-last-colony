@@ -756,7 +756,11 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: clamp(40px, 13vh, 150px) var(--s-5) var(--s-5);
+  /* The stack is top-anchored, so this top padding is the only thing above the
+     mark and the only way to raise it. Lowered from 13vh: the page was carrying
+     more empty ground above the logo than below the composer, and the whole
+     block rides up with it. */
+  padding: clamp(28px, 8.5vh, 104px) var(--s-5) var(--s-5);
   overflow-y: auto;
 }
 
@@ -1776,6 +1780,13 @@ body {
      and the break it was fighting is a <br> that holds at every width. */
   .hero__title {
     font-size: clamp(1.375rem, 0.9rem + 2.6vw, 1.75rem);
+  }
+
+  /* The deck holds body size everywhere else, but the headline drops from 56px
+     to 24px here and 16px next to that is nearly the same size — the two read
+     as one block of text rather than a title and a line under it. */
+  .hero__subtitle {
+    font-size: 0.875rem;
   }
 
   .composer {
