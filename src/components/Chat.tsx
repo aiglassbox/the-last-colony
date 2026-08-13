@@ -620,7 +620,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                     busy={busy}
                     placeholder={activeCommand ? "Type your query…" : "Type a dish to travel back in time…"}
                     inputRef={promptRef}
-                    minHeight={88}
+                    minHeight={72}
                   />
                 </section>
 
