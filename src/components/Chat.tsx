@@ -32,7 +32,7 @@ import {
 } from "@/lib/sidebar-store";
 import { Composer } from "./Composer";
 import { History } from "./History";
-import { Logo } from "./Logo";
+import { Logo, TwoBrothersMark } from "./Logo";
 import { Message } from "./Message";
 import { SettingsSheet } from "./SettingsSheet";
 import { Sidebar, type SidebarView } from "./Sidebar";
@@ -509,6 +509,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
               <>
                 <div className="hero-wrap hero-wrap--phone">
                   <section className="hero" aria-labelledby="hero-title">
+                    <TwoBrothersMark className="hero__mark" />
                     <h1 id="hero-title" className="hero__title">
                       {HEADING}
                     </h1>
@@ -535,6 +536,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
             ) : isEmpty ? (
               <div className="hero-wrap">
                 <section className="hero" aria-labelledby="hero-title">
+                  <TwoBrothersMark className="hero__mark" />
                   <h1 id="hero-title" className="hero__title">
                     {HEADING}
                   </h1>

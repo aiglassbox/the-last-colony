@@ -38,6 +38,34 @@ export function Logo({ size = 46, className }: MarkProps) {
   );
 }
 
+/**
+ * "Two Brothers India Farms" — 1142 × 506 after cropping.
+ *
+ * The supplied file was 2813 × 2250 with the wordmark floating in a frame
+ * roughly twice its height, which would have rendered it small inside whatever
+ * box it was given. It is cropped to the ink and reduced to an alpha mask, so
+ * like the Kranti lockup it paints in `currentColor` rather than shipping its
+ * own beige — one less colour to keep in step with the palette.
+ */
+export function TwoBrothersMark({ size = 44, className }: MarkProps) {
+  return (
+    <span
+      role="img"
+      aria-label="Two Brothers India Farms"
+      className={className}
+      style={{
+        display: "inline-block",
+        height: `var(--mark-h, ${size}px)`,
+        aspectRatio: String(1142 / 506),
+        flex: "0 0 auto",
+        background: "currentColor",
+        WebkitMask: 'url("/brand/two-brothers.png") center / contain no-repeat',
+        mask: 'url("/brand/two-brothers.png") center / contain no-repeat',
+      }}
+    />
+  );
+}
+
 /** "A brand from gokul agro resources ltd" — 813 × 171, full colour. */
 export function GokulMark({ size = 22, className }: MarkProps) {
   return (

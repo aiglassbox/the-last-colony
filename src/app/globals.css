@@ -765,6 +765,23 @@ body {
   text-align: center;
 }
 
+/* The farm's mark, sitting above the headline as an endorsement rather than as
+   the page's own identity — the Kranti lockup already holds that job on the
+   rail. It is an alpha mask painted in `currentColor`, so it takes the cream
+   ink and cannot drift from the palette.
+
+   The mark centres because `.hero` is centre-aligned text and the span is
+   inline-block; `margin: auto` would do nothing to it. `vertical-align: top`
+   drops the descender slack a line box would otherwise leave underneath, so
+   the gap below is the margin and nothing else. */
+.hero__mark {
+  --mark-h: clamp(34px, 0.8rem + 2.9vw, 64px);
+  display: inline-block;
+  vertical-align: top;
+  margin-bottom: var(--s-5);
+  color: var(--cream);
+}
+
 .hero__title {
   margin: 0 auto;
   /* Measured in New Spirit at the display size: "It's time to decolonise"
