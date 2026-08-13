@@ -11,11 +11,13 @@
   Spacing follows an 8px grid: --s-1 through --s-10.
 */
 :root {
-  /* The painted ground. ESTIMATED from the supplied green plate — the maroon
-     pair was sampled from the file so CSS and image agreed exactly, and this
-     one should be re-sampled the same way once the artwork is on disk. */
-  --ground: #2d4a1f;
-  --ground-2: #243d19;
+  /* The painted ground, sampled from the flat centre of phad-wide.jpg so the
+     CSS and the image agree exactly — the plate is bottom-anchored, and any
+     drift would show as a seam along the top edge on a tall viewport.
+     --ground-2 is the same green stepped down 20% for panels that must occlude
+     the painting rather than sit as a hole onto it. */
+  --ground: #2c441e;
+  --ground-2: #233618;
   --ground-wash: rgba(24, 42, 16, 0.55);
 
   /* amber — the ink of the painting, and every surface you touch */
@@ -1216,7 +1218,7 @@ body {
 
 .thread__foot {
   position: relative;
-  background: linear-gradient(to top, var(--ground) 62%, rgba(119, 25, 8, 0));
+  background: linear-gradient(to top, var(--ground) 62%, rgba(44, 68, 30, 0));
   flex: 0 0 auto;
   padding: 0 var(--s-5) var(--s-5);
 }
