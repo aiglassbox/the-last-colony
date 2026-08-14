@@ -1491,14 +1491,59 @@ body {
   right: 0;
   bottom: 0;
   z-index: 50;
-  max-height: 85vh;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  max-height: 85dvh;
   background: var(--field);
   color: var(--ink);
   border-top: 1px solid var(--line-strong);
   border-radius: var(--r-card) var(--r-card) 0 0;
   box-shadow: var(--sh-3);
   animation: slide-up 320ms var(--ease);
+}
+
+/* The panel is a column: a head that stays and a body that moves. Scrolling
+   the panel as one piece took the close button up with it, and the record
+   runs past the bottom of the screen on anything with a translation. */
+.drawer__head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-4);
+  padding: var(--s-5) var(--s-5) var(--s-3);
+  border-bottom: 1px solid var(--line);
+}
+
+.drawer__close {
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+
+.drawer__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--s-4) var(--s-5) var(--s-6);
+}
+
+/* The one place in this design that wants a visible scrollbar. Everywhere else
+   the track is hidden because the content ends where it looks like it ends; a
+   dialog taller than the screen has to say so, or it reads as truncated. */
+.drawer__body {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--on-cream) 34%, transparent) transparent;
+}
+
+.drawer__body::-webkit-scrollbar {
+  width: 10px;
+}
+
+.drawer__body::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--on-cream) 34%, transparent);
+  background-clip: content-box;
 }
 
 @media (min-width: 768px) {
@@ -1508,7 +1553,7 @@ body {
     left: 50%;
     right: auto;
     width: min(680px, calc(100vw - 3rem));
-    max-height: min(82vh, 760px);
+    max-height: min(82dvh, 760px);
     transform: translate(-50%, -50%);
     border: 1px solid var(--line-strong);
     border-radius: var(--r-card);

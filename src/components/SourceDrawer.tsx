@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react";
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 
 import { useDrawerExit } from "@/lib/use-drawer-exit";
 import { trackClient } from "@/lib/analytics";
@@ -39,41 +40,52 @@ export function SourceDrawer({
   const { requestClose, backdropClassName, drawerClassName, onAnimationEnd } =
     useDrawerExit(onClose);
 
-  return (
+  /**
+   * Mounted on the body, not where it is written.
+   *
+   * This is rendered from inside the answer card, and `.thread` above it
+   * carries a mask for its bottom fade. A mask creates a stacking context, so
+   * a fixed-position dialog written inside one is sealed in it: `z-index: 50`
+   * counted only against the card's own children, the composer painted over
+   * the panel, and the backdrop stopped at the edge of the thread instead of
+   * covering the rail. A portal takes the dialog out of that subtree
+   * altogether, which is where a modal belongs anyway.
+   */
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <>
       <div className={backdropClassName} onClick={requestClose} aria-hidden />
       <div
         className={drawerClassName}
         role="dialog"
         aria-modal="true"
-        aria-label="Source"
+        aria-labelledby="source-title"
         onAnimationEnd={onAnimationEnd}
       >
-        <div style={{ padding: "1.2rem 1.2rem 2rem", maxWidth: 720, margin: "0 auto" }}>
-          <div style={{ display: "flex", alignItems: "center", marginBottom: "1rem" }}>
-            <div>
-              <div className="mono" style={{ color: "var(--ink-muted)" }}>
-                Source
-              </div>
-              <div className="display" style={{ fontSize: "1.2rem" }}>
-                {record.source.text}
-              </div>
+        {/* Held at the top while the body moves under it: the panel is taller
+            than the screen on most records, and a close button that scrolls
+            away is one the reader has to go looking for. */}
+        <div className="drawer__head">
+          <div>
+            <div className="mono" style={{ color: "var(--ink-muted)" }}>
+              Source
             </div>
-            {/* The same control every other panel closes with, rather than a
-                hand-rolled one — it was inked in `--ink` and inherited the
-                card's dark green onto a dark green panel, so the way out of
-                this dialog was the one thing on it you could not see. */}
-            <button
-              type="button"
-              className="icon-btn"
-              onClick={requestClose}
-              aria-label="Close"
-              title="Close"
-              style={{ marginLeft: "auto" }}
-            >
-              <X size={18} aria-hidden />
-            </button>
+            <div id="source-title" className="display" style={{ fontSize: "1.2rem" }}>
+              {record.source.text}
+            </div>
           </div>
+          <button
+            type="button"
+            className="icon-btn drawer__close"
+            onClick={requestClose}
+            aria-label="Close"
+          >
+            <X size={18} aria-hidden />
+          </button>
+        </div>
+
+        <div className="drawer__body">
 
           <Row label="Author" value={record.source.author} />
           <Row label="Period" value={record.source.century} />
@@ -162,7 +174,8 @@ export function SourceDrawer({
           </div>
         </div>
       </div>
-    </>
+    </>,
+    document.body,
   );
 }
 
