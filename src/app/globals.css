@@ -266,10 +266,27 @@ body {
 }
 
 /*
-  Reading a restoration, the painting steps back a little: enough softening for
+  The rail open, the painting softens under the type.
+
+  Expanding the rail narrows the stage and slides the hero sideways, off the
+  flat green it was centred on and onto the trees — cream lettering over cream
+  blossom, which is where the headline stops being readable. A tenth of the
+  reading blur is enough to break up the detail directly behind the words
+  without the illustration reading as out of focus, and the transition already
+  on `.app::before` carries it in and out rather than snapping.
+*/
+.app--rail-open::before {
+  filter: blur(3px) brightness(0.94);
+}
+
+/*
+  Reading a restoration, the painting steps back further: enough softening for
   the card to sit clearly in front of it, not so much that the illustration
   turns to fog. It is the artwork that moves, not the card — a scrim over the
   top would flatten the colour as well as the detail.
+
+  After the rule above, so that a thread open with the rail out gets the
+  stronger of the two rather than the last one written.
 */
 .app--reading::before {
   filter: blur(6px) brightness(0.82) saturate(0.95);

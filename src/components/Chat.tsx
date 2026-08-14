@@ -471,7 +471,11 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
   };
 
   return (
-    <div className="app">
+    /* The rail out narrows the stage and slides the hero type sideways onto
+       the painted trees, where cream on cream stops being readable. The
+       painting softens for as long as the rail is open and comes back the
+       moment it closes — see `.app--rail-open`. */
+    <div className={railCollapsed ? "app" : "app app--rail-open"}>
       <a href="#main" className="skip-link">
         Skip to content
       </a>
