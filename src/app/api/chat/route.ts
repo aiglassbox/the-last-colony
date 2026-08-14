@@ -417,10 +417,24 @@ export async function POST(request: NextRequest) {
           // always has records, and the no-record variants it used to carry
           // were unreachable.
           const records = retrieval.records;
+          /**
+           * A hit is not automatically a dish with a past.
+           *
+           * Seventeen records in the corpus are classed MODERN_DISH, and three
+           * of them lead a card of their own — pav bhaji among them, whose own
+           * verdict reads "Bombay, not antiquity". Emitting "record" for every
+           * hit put those under the record headings, so the card printed "Then"
+           * above a dish that has no then and listed its ingredients as though
+           * they were the older version. The record was honest; the turn kind
+           * was not. `modern` selects headings that claim only what is true —
+           * "What's in it", "Where its parts came from".
+           */
+          const modernDish = records[0].provenance_class === "MODERN_DISH";
+          const kind: TurnKind = modernDish ? "modern" : "record";
           emit({
             type: "meta",
             mode: "restoration" satisfies TurnMode,
-            kind: "record" satisfies TurnKind,
+            kind,
             top_score: retrieval.top_score,
             records,
           });
@@ -456,9 +470,27 @@ export async function POST(request: NextRequest) {
               "leave it empty rather than inventing a reason or padding a real one " +
               "with history you were not given. Plain text only, no other markdown.";
 
+          /**
+           * The headings are only half of it. Relabelling §THEN§ stops the card
+           * asserting a past, but the model is still writing that beat, and on
+           * a MODERN_DISH record it has no older version to write about — so it
+           * reaches for one. The same wording the corpus-miss branch already
+           * uses for MODERN is applied here, against the record instead of the
+           * swap table.
+           */
+          const noPast = modernDish
+            ? "\nThis record is classed MODERN_DISH: the dish has NO older version, and " +
+              "the card says so beneath your text. Do not write one. §THEN§ is what the " +
+              "dish is made of now and which of those components are recent arrivals — " +
+              "not a history of the dish. §WHAT_CHANGED§ is where those components came " +
+              "from and what they displaced, taken from the record's substitution story " +
+              "and nothing else. Do not invent an ancient text, a verse, a century for " +
+              "the dish itself, or a older form of it under another name."
+            : "";
+
           const iter = call(
             `${renderCorpusBlock(records)}\n\nThis is a RESTORATION turn. Emit the four ` +
-              `§markers§.${shape}${PLAIN_WORDS}${directive}\n\nUser said: ${label}`,
+              `§markers§.${noPast}${shape}${PLAIN_WORDS}${directive}\n\nUser said: ${label}`,
           )[Symbol.asyncIterator]();
           auditRecords = records;
           proseTurn = false;
@@ -530,6 +562,15 @@ export async function POST(request: NextRequest) {
             "of its own, prefer REPLY over inventing a dish to restore. A message " +
             "that DOES name a dish is not a REPLY, even when the only record for it " +
             "is in <semantic_candidates>.\n" +
+            "  When the reader asks to SEE a comparison — a table, a side by side, " +
+            "'what changed from then to now', 'show me the difference' — answer in " +
+            "rows rather than paragraphs. Write a line reading 'Aspect :: Then :: Now' " +
+            "and then one row per line in the same three-field shape, and the card " +
+            "renders them as a table. Keep every cell to a few words. One row per " +
+            "thing that actually changed, taken from the record on screen and the " +
+            "swap table; do not pad the table to look complete, and do not add a row " +
+            "for anything neither of them records. A sentence before the rows is " +
+            "fine, and where the comparison does not fit rows, stay in prose.\n" +
             "- MODE: INDIANISE — the user named a dish that is NOT Indian in origin " +
             "(pizza, pasta, sushi, ice cream, ramen, a burger, and the like); then the " +
             "four §VERDICT§ §REBUILD§ §SWAPS§ §PLATE§ markers from the INDIANISATION " +

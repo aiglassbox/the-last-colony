@@ -1233,6 +1233,43 @@ body {
   margin-bottom: 0;
 }
 
+/* Then against now, when the reader asks to see it rather than read it. Rules
+   between rows and nothing around the outside — the card is already the frame,
+   and a bordered box inside a bordered box is one more line than the
+   comparison needs. */
+.compare {
+  width: 100%;
+  margin: 0.2rem 0 0.9rem;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.compare th {
+  padding: 0 var(--s-3) var(--s-2) 0;
+  border-bottom: 1px solid var(--line-strong);
+  color: var(--ink-muted);
+  text-align: left;
+  vertical-align: bottom;
+  white-space: nowrap;
+}
+
+.compare td {
+  padding: var(--s-2) var(--s-3) var(--s-2) 0;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+  line-height: 1.5;
+}
+
+.compare tr:last-child td {
+  border-bottom: 0;
+}
+
+/* The first column is the axis being compared, so it carries the row. */
+.compare td:first-child {
+  color: var(--ink);
+  font-weight: 600;
+}
+
 .ghost-btn {
   min-height: 36px;
   padding: 0 var(--s-3);

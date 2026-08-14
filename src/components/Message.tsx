@@ -73,6 +73,79 @@ export function Message({ message }: { message: ChatMessage }) {
   );
 }
 
+/**
+ * Split a reply into paragraphs and comparison tables.
+ *
+ * A row is a line with two `::` separators, which is the shape the recipe table
+ * already uses — one convention for "this is tabular", not a second one the
+ * model has to remember. Consecutive rows are one table; anything else is a
+ * paragraph. A run of one row is left as prose, because a single line that
+ * happens to contain the separator is far more likely to be a sentence than a
+ * table of one.
+ */
+type Block = { text: string; rows?: string[][] };
+
+function blocks(body: string): Block[] {
+  const out: Block[] = [];
+  let rows: string[][] = [];
+  let para: string[] = [];
+
+  const flushRows = () => {
+    if (rows.length > 1) out.push({ text: "", rows });
+    else if (rows.length === 1) para.push(rows[0].join(" :: "));
+    rows = [];
+  };
+  const flushPara = () => {
+    const text = para.join("\n").trim();
+    if (text) out.push({ text });
+    para = [];
+  };
+
+  for (const line of body.split("\n")) {
+    const cells = line.split("::").map((c) => c.trim());
+    if (cells.length === 3 && cells.some(Boolean)) {
+      flushPara();
+      rows.push(cells);
+      continue;
+    }
+    flushRows();
+    if (!line.trim()) flushPara();
+    else para.push(line);
+  }
+  flushRows();
+  flushPara();
+  return out;
+}
+
+/** Then against now, as the reader asked to see it. */
+function ComparisonTable({ rows }: { rows: string[][] }) {
+  const [head, ...body] = rows;
+  return (
+    <div className="scroll-x">
+      <table className="compare">
+        <thead>
+          <tr>
+            {head.map((cell, i) => (
+              <th key={i} className="mono" scope="col">
+                {cell}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {body.map((row, r) => (
+            <tr key={r}>
+              {row.map((cell, i) => (
+                <td key={i}>{cell}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 /** The turn before it has a shape: a card holding the same dots the beats use. */
 function Thinking() {
   return (
@@ -104,11 +177,15 @@ function ProseTurn({ message }: { message: ChatMessage }) {
           the caret alone did not read as anything. */}
       {body.trim() ? (
         <div className="thread-prose">
-          {body.split(/\n{2,}/).map((para, i) => (
-            <p key={i} style={{ margin: "0 0 0.7rem", lineHeight: 1.6 }}>
-              {para}
-            </p>
-          ))}
+          {blocks(body).map((block, i) =>
+            block.rows ? (
+              <ComparisonTable key={i} rows={block.rows} />
+            ) : (
+              <p key={i} style={{ margin: "0 0 0.7rem", lineHeight: 1.6 }}>
+                {block.text}
+              </p>
+            ),
+          )}
           {message.streaming && <span className="caret" aria-hidden />}
         </div>
       ) : (

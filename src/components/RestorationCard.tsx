@@ -274,7 +274,7 @@ export function RestorationCard({ data }: { data: CardData }) {
       {shows("WHAT_CHANGED") && (
       <Beat beat="WHAT_CHANGED" kind={data.kind}>
         <Prose text={data.beats.WHAT_CHANGED} streaming={data.streaming} />
-        {ancient?.substitution_story && <NutritionDelta record={ancient} />}
+        {ancient?.substitution_story && <NutritionDelta record={ancient} kind={data.kind} />}
       </Beat>
       )}
 
@@ -684,14 +684,18 @@ const ARROW: Record<string, string> = {
  * row of arrows invites being read as a health claim about the reader, and it
  * is a comparison between two recipes.
  */
-function NutritionDelta({ record }: { record: CorpusRecord }) {
+function NutritionDelta({ record, kind }: { record: CorpusRecord; kind: TurnKind }) {
   const delta = record.substitution_story?.nutrition_delta ?? {};
   const entries = Object.entries(delta);
   if (!entries.length) return null;
   return (
     <div style={{ marginTop: "1rem" }}>
       <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
-        Then → now, by axis
+        {/* On a dish with no older version these axes are not a then and a now
+            — they are the plate as it is usually made against the one built
+            from the swap table. Saying "then" here would smuggle back the past
+            the headings above just stopped claiming. */}
+        {kind === "record" ? "Then → now, by axis" : "Usual → restored, by axis"}
       </div>
       <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
         {entries.map(([axis, dir]) => (
