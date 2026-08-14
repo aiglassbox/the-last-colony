@@ -20,11 +20,21 @@ export const dynamic = "force-dynamic";
  * breaking itself to protect a log file.
  */
 const MAX_BEACONS = 120;
-const MAX_PROPS = 12;
+
+/**
+ * Twelve was the right ceiling when a beacon carried only its own props. Every
+ * event now also carries the session's campaign markers — up to eight UTM and
+ * click-ID keys, a referrer host and a landing path — and `Object.entries`
+ * order would have put the event's own props last, so the ceiling that used to
+ * bound a payload would instead have silently dropped the thing the event was
+ * fired to record.
+ */
+const MAX_PROPS = 24;
 const MAX_PROP_CHARS = 200;
 const MAX_KEY_CHARS = 40;
 
 const ALLOWED: AnalyticsEvent[] = [
+  "visit",
   "dish_queried",
   "dish_restored",
   "no_original_found",
