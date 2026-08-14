@@ -1,5 +1,6 @@
 "use client";
 
+import { X } from "lucide-react";
 import { useEffect } from "react";
 
 import { useDrawerExit } from "@/lib/use-drawer-exit";
@@ -58,24 +59,19 @@ export function SourceDrawer({
                 {record.source.text}
               </div>
             </div>
+            {/* The same control every other panel closes with, rather than a
+                hand-rolled one — it was inked in `--ink` and inherited the
+                card's dark green onto a dark green panel, so the way out of
+                this dialog was the one thing on it you could not see. */}
             <button
               type="button"
+              className="icon-btn"
               onClick={requestClose}
               aria-label="Close"
-              style={{
-                marginLeft: "auto",
-                border: "1px solid var(--line)",
-                background: "transparent",
-                color: "var(--ink)",
-                borderRadius: 999,
-                width: 34,
-                height: 34,
-                cursor: "pointer",
-                fontSize: "1rem",
-                lineHeight: 1,
-              }}
+              title="Close"
+              style={{ marginLeft: "auto" }}
             >
-              ✕
+              <X size={18} aria-hidden />
             </button>
           </div>
 

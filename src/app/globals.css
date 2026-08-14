@@ -1296,7 +1296,19 @@ body {
    ink tokens for its own subtree so everything inside reads dark-on-light.
    This is also what makes the CTA accent usable on it: the brand green measures
    about 1.4:1 on the maroon ground and about 8:1 here. */
-.card {
+/*
+  The ink for anything drawn on an amber plate.
+
+  Stated on both surfaces rather than on the card alone, because the source
+  panel is mounted *inside* the card in the DOM. Custom properties inherit
+  through a fixed-position descendant like any other, so the panel was taking
+  the card's dark-on-amber ink and painting it on its own dark ground: green
+  text on green, with the close button — inked in `--ink` — invisible along
+  with it. Declared here, the panel carries its own palette wherever it is
+  mounted rather than depending on what it happens to sit inside.
+*/
+.card,
+.drawer {
   --ink: #17300e;
   --ink-soft: #33502a;
   --ink-muted: #5c7350;
@@ -1308,7 +1320,9 @@ body {
   --reconstructed: #9a5a12;
   --inferred: #6b6152;
   --modern: #3f5691;
+}
 
+.card {
   background: var(--field);
   color: var(--ink);
   border: 1px solid var(--line);
@@ -1462,6 +1476,15 @@ body {
   animation: fade-in var(--dur) var(--ease);
 }
 
+/*
+  The source panel.
+
+  An amber plate like every other surface you can read in this design, rather
+  than the deep ground it used to take. On a phone it is a sheet off the bottom
+  edge, which is where a thumb is; from 768px up it is a card in the middle of
+  the screen, bounded on all four sides, so it reads as a thing that opened and
+  can be shut rather than as a new page.
+*/
 .drawer {
   position: fixed;
   left: 0;
@@ -1470,15 +1493,47 @@ body {
   z-index: 50;
   max-height: 85vh;
   overflow-y: auto;
-  /* `--stage` is transparent: the stage is a hole onto the painting, which is
-     right for the page and wrong for a dialog. A drawer has to occlude what it
-     covers, so it takes the deeper ground as a solid panel — the cream ink and
-     rules inside it are already pitched for that. */
-  background: var(--ground-2);
+  background: var(--field);
+  color: var(--ink);
   border-top: 1px solid var(--line-strong);
-  border-radius: var(--r-stage) var(--r-stage) 0 0;
+  border-radius: var(--r-card) var(--r-card) 0 0;
   box-shadow: var(--sh-3);
   animation: slide-up 320ms var(--ease);
+}
+
+@media (min-width: 768px) {
+  .drawer {
+    top: 50%;
+    bottom: auto;
+    left: 50%;
+    right: auto;
+    width: min(680px, calc(100vw - 3rem));
+    max-height: min(82vh, 760px);
+    transform: translate(-50%, -50%);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-card);
+    animation: card-in 260ms var(--ease);
+  }
+
+  /* The exit has to carry the centring transform with it, or the card jumps to
+     the corner for the length of the animation on its way out. */
+  .drawer--closing {
+    animation: card-out 220ms var(--ease) forwards;
+  }
+}
+
+@keyframes card-in {
+  from {
+    transform: translate(-50%, calc(-50% + 10px));
+    opacity: 0;
+  }
+}
+
+@keyframes card-out {
+  to {
+    transform: translate(-50%, calc(-50% + 16px));
+    opacity: 0;
+  }
 }
 
 .drawer--closing {
@@ -1595,19 +1650,9 @@ body {
   pointer-events: none;
 }
 
-/* `.icon-btn` is pitched for the beige field and inks itself in `--field-ink`.
-   Inside a drawer it is sitting on the deep ground instead, where that ink is
-   the one thing you cannot see — and the control it hides is the close. */
-.drawer .icon-btn {
-  border-color: color-mix(in srgb, var(--cream) 26%, transparent);
-  color: var(--cream);
-}
-
-.drawer .icon-btn:hover,
-.drawer .icon-btn:focus-visible {
-  border-color: color-mix(in srgb, var(--cream) 48%, transparent);
-  background: color-mix(in srgb, var(--cream) 12%, transparent);
-}
+/* The panel is the beige field now, which is what `.icon-btn` is already
+   pitched for — the cream override that used to live here was correcting for a
+   deep ground this no longer has, and on amber it would be the invisible one. */
 
 @keyframes fade-in {
   from {
