@@ -37,7 +37,7 @@ const newSpirit = localFont({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.SITE_URL ?? "http://localhost:3000"),
-  title: "Kranti Cookbook — The Great Indian Food Restoration",
+  title: "Kranti Cookbook",
   description:
     "Name a dish you eat every week. See what it was before colonial-era crop policy and industrial milling rewrote it — and how to cook that version tonight.",
   openGraph: {

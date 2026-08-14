@@ -209,10 +209,59 @@ body {
   inset: -24px;
   z-index: 0;
   pointer-events: none;
-  background: url("/brand/phad-wide.jpg") center bottom / cover no-repeat;
+  /* Placement only. The plate itself is chosen below, and naming one here as
+     well would mean every screen downloaded it on top of the one it uses. */
+  background: center bottom / cover no-repeat;
   transition:
     filter var(--dur) var(--ease),
     opacity var(--dur) var(--ease);
+}
+
+/*
+  Four plates, chosen by the shape of the viewport rather than its width.
+
+  The painting is bottom-anchored and covers, so what a screen crops is decided
+  by how its proportions compare with the artwork's — a 1024px tablet held
+  upright has far more in common with a phone than with a 1024px window on a
+  desktop. Width alone cannot see that, which is why these are aspect-ratio
+  queries and why the tablet band fires above the 767px phone breakpoint.
+
+    ratio ≥ 1/1          phad-wide    16:9
+    1/1 … 5/8            phad-tablet  3:4    (iPad 768×1024 is 0.75)
+    5/8 … 1/2            phad-tall    9:16   (iPhone SE 375×667 is 0.56)
+    ratio ≤ 1/2          phad-small   9:16   (390×844 is 0.46)
+
+  The last two share a ratio but not a crop: the compact plate holds the scene
+  smaller inside the frame, so a very tall screen loses the trees at the sides
+  rather than cropping into the cooks.
+
+  The bands are mutually exclusive rather than a cascade of overrides, and the
+  rule above names no image. A browser fetches the background of every rule
+  that matches, not only the one that wins — written as overrides, a phone
+  pulled all four plates and spent 1.5MB to show 291KB of them.
+*/
+@media (min-aspect-ratio: 1 / 1) {
+  .app::before {
+    background-image: url("/brand/phad-wide.jpg");
+  }
+}
+
+@media (max-aspect-ratio: 1 / 1) and (min-aspect-ratio: 5 / 8) {
+  .app::before {
+    background-image: url("/brand/phad-tablet.jpg");
+  }
+}
+
+@media (max-aspect-ratio: 5 / 8) and (min-aspect-ratio: 1 / 2) {
+  .app::before {
+    background-image: url("/brand/phad-tall.jpg");
+  }
+}
+
+@media (max-aspect-ratio: 1 / 2) {
+  .app::before {
+    background-image: url("/brand/phad-small.jpg");
+  }
 }
 
 /*
@@ -1821,13 +1870,8 @@ body {
 /* ---------------------------------------------------------------- phone -- */
 
 @media (max-width: 767px) {
-  /* The painting switches to the tall crop drawn for portrait. */
   .app {
     flex-direction: column;
-  }
-
-  .app::before {
-    background-image: url("/brand/phad-tall.jpg");
   }
 
   .sidebar:not(.sidebar--overlay) {
