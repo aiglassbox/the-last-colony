@@ -228,12 +228,13 @@ body {
 
     ratio ≥ 1/1          phad-wide    16:9
     1/1 … 5/8            phad-tablet  3:4    (iPad 768×1024 is 0.75)
-    5/8 … 1/2            phad-tall    9:16   (iPhone SE 375×667 is 0.56)
-    ratio ≤ 1/2          phad-small   9:16   (390×844 is 0.46)
+    5/8 … 1/2            phad-small   9:16   (iPhone SE 375×667 is 0.56)
+    ratio ≤ 1/2          phad-tall    9:16   (390×844 is 0.46)
 
-  The last two share a ratio but not a crop: the compact plate holds the scene
-  smaller inside the frame, so a very tall screen loses the trees at the sides
-  rather than cropping into the cooks.
+  The last two share a ratio but not a crop. The compact plate holds the scene
+  smaller inside its frame, which is what a short screen wants: a 667px-tall
+  phone showing the original crop fills most of itself with the cooks. The
+  taller phones every current handset has keep the original.
 
   The bands are mutually exclusive rather than a cascade of overrides, and the
   rule above names no image. A browser fetches the background of every rule
@@ -254,13 +255,13 @@ body {
 
 @media (max-aspect-ratio: 5 / 8) and (min-aspect-ratio: 1 / 2) {
   .app::before {
-    background-image: url("/brand/phad-tall.jpg");
+    background-image: url("/brand/phad-small.jpg");
   }
 }
 
 @media (max-aspect-ratio: 1 / 2) {
   .app::before {
-    background-image: url("/brand/phad-small.jpg");
+    background-image: url("/brand/phad-tall.jpg");
   }
 }
 
