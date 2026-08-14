@@ -479,13 +479,17 @@ export async function POST(request: NextRequest) {
            * swap table.
            */
           const noPast = modernDish
-            ? "\nThis record is classed MODERN_DISH: the dish has NO older version, and " +
-              "the card says so beneath your text. Do not write one. §THEN§ is what the " +
-              "dish is made of now and which of those components are recent arrivals — " +
-              "not a history of the dish. §WHAT_CHANGED§ is where those components came " +
-              "from and what they displaced, taken from the record's substitution story " +
-              "and nothing else. Do not invent an ancient text, a verse, a century for " +
-              "the dish itself, or a older form of it under another name."
+            ? "\nThis record is classed MODERN_DISH: the dish has NO older version. Emit " +
+              "TWO markers only, §VERDICT§ and §RESTORE_TODAY§, and do not write §THEN§ " +
+              "or §WHAT_CHANGED§ at all — the card does not draw them for this kind of " +
+              "dish, so anything you put there is written for nobody. There is no past " +
+              "to narrate here and the reader came for the cooking: §VERDICT§ is what is " +
+              "specific to THIS dish in a line or two, and §RESTORE_TODAY§ is the whole " +
+              "answer. Build it from the record's substitution story and the swap table, " +
+              "putting back the component each swap names. Do not invent an ancient " +
+              "text, a verse, a century for the dish, or an older form of it under " +
+              "another name. Do not call the result healthy, healthier or good for " +
+              "anyone: say what the swap puts back and what it does to the dish."
             : "";
 
           const iter = call(

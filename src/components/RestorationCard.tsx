@@ -16,18 +16,20 @@ import {
 } from "@/lib/model/recipe-beat";
 
 import { IngredientRows } from "./IngredientRows";
-import { ProvenanceBadge } from "./ProvenanceBadge";
 import { SourceDrawer } from "./SourceDrawer";
 
 /**
  * The RestorationCard.
  *
- * The split that matters: model prose fills the four beats, and everything
- * citational — ingredient table, ancient method, source strip, provenance
- * badge, Then/Now diff, nutrition delta — is rendered here straight from the
- * retrieved record. The model never writes a citation because it never writes
- * that part of the card. It also means the record half is on screen the moment
- * retrieval returns, before the first token arrives.
+ * The split that matters: model prose fills the beats, and everything
+ * citational — ingredient table, ancient method, source strip, nutrition delta
+ * — is rendered here straight from the retrieved record. The model never
+ * writes a citation because it never writes that part of the card. It also
+ * means the record half is on screen the moment retrieval returns, before the
+ * first token arrives.
+ *
+ * How many beats depends on the turn: a dish with a past gets all four, a
+ * modern dish gets the verdict and the cooking. See `tellsHistory`.
  */
 
 export interface CardData {
@@ -52,8 +54,7 @@ export interface CardData {
 const RECORDLESS_NOTE: Partial<Record<TurnKind, string>> = {
   modern:
     "This one is younger than it tastes, so there is no older version to go back to. " +
-    "What follows is how it came about, and a version built on older principles " +
-    "rather than taken from a text.",
+    "What follows is a version built on older principles rather than taken from a text.",
   gap:
     "An Indian dish we have not written up yet. Nothing below is drawn from a text, " +
     "because we do not hold one for it.",
@@ -214,7 +215,19 @@ export function RestorationCard({ data }: { data: CardData }) {
    * to, because it treats both the same and waits. After the stream those two
    * cases collapse into one: nothing came, and nothing is coming.
    */
+  /**
+   * A modern dish is the verdict and the cooking, and nothing between.
+   *
+   * Those two beats exist to hold a past against a present. A dish with no
+   * older version has neither to show: "what's in it" restates the ingredient
+   * table further down, and "where its parts came from" is a paragraph of
+   * commodity history in front of the one thing the reader came for. The axes
+   * still run — they are the comparison that survives without a then.
+   */
+  const tellsHistory = data.kind !== "modern";
+
   const shows = (beat: Beat): boolean => {
+    if ((beat === "THEN" || beat === "WHAT_CHANGED") && !tellsHistory) return false;
     if (data.streaming) return true;
     if (data.beats[beat]) return true;
     switch (beat) {
@@ -247,11 +260,13 @@ export function RestorationCard({ data }: { data: CardData }) {
             !data.beats.THEN &&
             (data.beats.VERDICT ? <span className="caret" aria-hidden /> : <Waiting />)}
         </p>
-        {ancient && (
-          <div style={{ marginTop: "0.85rem" }}>
-            <ProvenanceBadge record={ancient} />
-          </div>
-        )}
+        {/* No provenance class on the card. "RECONSTRUCTED" and "MODERN DISH"
+            are the corpus's own vocabulary, and a pill of it above the answer
+            asks the reader to learn a taxonomy before they can read a recipe.
+            What the class was protecting is the citation, and that is still
+            stated where it belongs: the source strip below says in words when
+            a record has not been checked, and withholds the verse and page
+            until it has. */}
         {RECORDLESS_NOTE[data.kind] && (
           <p
             style={{
@@ -265,17 +280,22 @@ export function RestorationCard({ data }: { data: CardData }) {
         )}
       </div>
 
-      {/* A short account of what changed, then which way each nutrition axis
-          moved. The Then/Now ingredient columns that used to sit here were a
-          second telling of the recipe printed immediately above the recipe
-          itself, and they are staying gone; the axes are not stated anywhere
-          else on the card. `shows` already counts a nutrition delta as reason
-          enough to draw this beat. */}
+      {/* A short account of what changed. The Then/Now ingredient columns that
+          used to sit here were a second telling of the recipe printed
+          immediately above the recipe itself, and they are staying gone. */}
       {shows("WHAT_CHANGED") && (
       <Beat beat="WHAT_CHANGED" kind={data.kind}>
         <Prose text={data.beats.WHAT_CHANGED} streaming={data.streaming} />
-        {ancient?.substitution_story && <NutritionDelta record={ancient} kind={data.kind} />}
       </Beat>
+      )}
+
+      {/* Its own section rather than the tail of "what changed", so it survives
+          on a modern dish, where that beat is not drawn at all and these axes
+          are the only comparison the card has left to make. */}
+      {ancient?.substitution_story && (
+        <div className="card-axes">
+          <NutritionDelta record={ancient} kind={data.kind} />
+        </div>
       )}
 
       {shows("THEN") && (

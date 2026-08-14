@@ -1383,6 +1383,15 @@ body {
 
 /* A label above its section, not a control. The card no longer hides anything
    behind a toggle, so this has no hover, no cursor and nothing to press. */
+/* The axis strip standing on its own. Padded to the beats' body inset and
+   ruled off like one, since it is a section of the card now rather than the
+   last paragraph of another. NutritionDelta carries its own top margin, so
+   this only pays for the bottom. */
+.card-axes {
+  padding: 0 1.15rem 1.15rem;
+  border-top: 1px solid var(--line);
+}
+
 .beat-head {
   display: flex;
   width: 100%;
