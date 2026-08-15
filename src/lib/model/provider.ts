@@ -1,5 +1,12 @@
+import { createHash } from "node:crypto";
+
 import Anthropic from "@anthropic-ai/sdk";
-import { GoogleGenAI, type ThinkingConfig, ThinkingLevel } from "@google/genai";
+import {
+  GoogleGenAI,
+  type GenerateContentResponseUsageMetadata,
+  type ThinkingConfig,
+  ThinkingLevel,
+} from "@google/genai";
 
 /**
  * The model seam.
@@ -42,6 +49,35 @@ const ANTHROPIC_EFFORT = (process.env.RESTORATION_EFFORT ?? "low") as
   | "xhigh"
   | "max";
 
+/**
+ * What a turn cost, in tokens.
+ *
+ * Nothing read usage before this, which meant the one number deciding whether
+ * a public campaign can afford its own traffic was written down nowhere: the
+ * cost of a turn, the size of the prompt, and whether the cache is working at
+ * all were each a guess. A launch that cannot answer "what did today cost"
+ * finds out from the invoice.
+ *
+ * `cached` against `prompt` is the hit rate, and it is the line to watch after
+ * any prompt edit — caching is a prefix match, so a block moved above the
+ * stable span silently takes the discount away and nothing else changes.
+ * Its own `[tokens]` prefix, so it can be pulled out of the log the same way
+ * `[corpus-gap]` is.
+ */
+function logAnthropicUsage(where: string, usage: Anthropic.Usage): void {
+  console.info(
+    `[tokens] ${JSON.stringify({
+      vendor: "anthropic",
+      model: ANTHROPIC_MODEL,
+      where,
+      prompt: usage.input_tokens,
+      cached: usage.cache_read_input_tokens ?? 0,
+      cache_write: usage.cache_creation_input_tokens ?? 0,
+      output: usage.output_tokens,
+    })}`,
+  );
+}
+
 function anthropicProvider(): ModelProvider {
   const client = new Anthropic();
 
@@ -77,6 +113,7 @@ function anthropicProvider(): ModelProvider {
       }
 
       const final = await stream.finalMessage();
+      logAnthropicUsage("stream", final.usage);
       if (final.stop_reason === "refusal") throw new RefusalError();
     },
 
@@ -88,6 +125,7 @@ function anthropicProvider(): ModelProvider {
         system: system(req.system),
         messages: req.messages.map((m) => ({ role: m.role, content: m.content })),
       });
+      logAnthropicUsage("complete", message.usage);
       // Same check the streaming path makes. Without it a declined completion
       // returned as empty text and read as a model that had nothing to say.
       if (message.stop_reason === "refusal") throw new RefusalError();
@@ -134,41 +172,208 @@ const GEMINI_THINKING: ThinkingConfig = IS_GEMINI_3_OR_LATER
   ? { thinkingLevel: GEMINI_THINKING_LEVEL }
   : { thinkingBudget: GEMINI_THINKING_BUDGET };
 
+/** See `logAnthropicUsage`. `thoughts` bills as output and never reaches the screen. */
+function logGeminiUsage(
+  where: string,
+  usage: GenerateContentResponseUsageMetadata | undefined,
+): void {
+  if (!usage) return;
+  console.info(
+    `[tokens] ${JSON.stringify({
+      vendor: "gemini",
+      model: GEMINI_MODEL,
+      where,
+      // Google counts the cached span inside `promptTokenCount`, so these two
+      // are a ratio rather than two halves to add up.
+      prompt: usage.promptTokenCount ?? 0,
+      cached: usage.cachedContentTokenCount ?? 0,
+      output: usage.candidatesTokenCount ?? 0,
+      thoughts: usage.thoughtsTokenCount ?? 0,
+      total: usage.totalTokenCount ?? 0,
+    })}`,
+  );
+}
+
+// --- Gemini context cache ---------------------------------------------------
+
+/**
+ * The system prompt, held on Google's side rather than re-sent every turn.
+ *
+ * It is about 7,600 tokens (measured, not estimated — see `npm run check:cache`),
+ * byte-identical on every request, and was billed in full each time. At a
+ * hundred thousand turns that is the largest single line on the bill and none
+ * of it buys anything the previous turn had not already paid for. Cached, the
+ * span is billed once and read back at a fraction.
+ *
+ * Explicit rather than leaning on the implicit cache, which is best-effort by
+ * design: it is not guaranteed to hit, it reports nothing when it stops, and
+ * a discount nobody can see is not one anybody can plan against. The two do
+ * not conflict — this only removes the doubt.
+ *
+ * Nothing here is load-bearing. Every failure returns null and the caller
+ * sends the prompt inline exactly as it did before, because a cache is a
+ * discount and losing a discount must never cost a reader their card.
+ */
+
+/** Off by default is wrong here, but a way out without a deploy is not. */
+const CACHE_ENABLED = process.env.GEMINI_CACHE !== "off";
+
+/** Long enough that a quiet hour does not drop it, short enough to bound storage. */
+const CACHE_TTL_SECONDS = Number(process.env.GEMINI_CACHE_TTL ?? "3600");
+
+/** Renewed this far ahead of expiry, so no turn lands on a handle that just died. */
+const CACHE_REFRESH_MARGIN_MS = 5 * 60 * 1000;
+
+/** How long a refusal is believed before another attempt is made. */
+const CACHE_RETRY_AFTER_MS = 10 * 60 * 1000;
+
+/**
+ * Below this, caching is not attempted at all.
+ *
+ * The API declines a prompt under its own minimum, and this seam carries two:
+ * the restoration brief, which is worth caching, and the swap note, which is a
+ * few hundred characters and is not. Deciding here turns a guaranteed round
+ * trip and a rejection into nothing at all.
+ */
+const MIN_CACHE_CHARS = 8000;
+
+interface CacheAttempt {
+  /** Resource name, or null when the cache is unavailable and the turn goes inline. */
+  name: string | null;
+  /** When this answer stops being trusted and another attempt is made. */
+  staleAt: number;
+}
+
+/**
+ * One creation in flight per distinct prompt, not one per request.
+ *
+ * The promise is memoised rather than its result: a cold instance taking
+ * several turns at once would otherwise build a cache for each of them and pay
+ * storage several times over for the same bytes. Two entries at most, since
+ * two system prompts exist.
+ */
+const caches = new Map<string, Promise<CacheAttempt>>();
+
+/** A cache belongs to one model and one prompt; either changing means a new one. */
+function cacheKey(system: string): string {
+  const digest = createHash("sha256").update(system).digest("hex").slice(0, 16);
+  return `${GEMINI_MODEL}:${digest}`;
+}
+
+async function createCache(client: GoogleGenAI, system: string): Promise<CacheAttempt> {
+  try {
+    const cache = await client.caches.create({
+      model: GEMINI_MODEL,
+      config: {
+        systemInstruction: system,
+        ttl: `${CACHE_TTL_SECONDS}s`,
+        displayName: "the-last-colony system prompt",
+      },
+    });
+    if (!cache.name) throw new Error("created without a resource name");
+
+    // The server's own expiry is preferred over the requested TTL: they differ
+    // when the service clamps it, and trusting our own arithmetic there would
+    // keep a dead handle in play for the difference.
+    const expiresAt = cache.expireTime
+      ? Date.parse(cache.expireTime)
+      : Date.now() + CACHE_TTL_SECONDS * 1000;
+
+    console.info(
+      `[cache] ${JSON.stringify({
+        model: GEMINI_MODEL,
+        name: cache.name,
+        tokens: cache.usageMetadata?.totalTokenCount ?? null,
+        expires: cache.expireTime ?? null,
+      })}`,
+    );
+    return { name: cache.name, staleAt: expiresAt - CACHE_REFRESH_MARGIN_MS };
+  } catch (error) {
+    // Said plainly and not fatally. The turn still answers; it just costs full
+    // price, and the log is where that shows up before the invoice does.
+    console.warn(
+      "[cache] unavailable, sending the prompt inline: " +
+        `${error instanceof Error ? error.message : error}`,
+    );
+    return { name: null, staleAt: Date.now() + CACHE_RETRY_AFTER_MS };
+  }
+}
+
+/** The cache resource to use for this prompt, or null to send it inline. */
+async function systemCache(client: GoogleGenAI, system: string): Promise<string | null> {
+  if (!CACHE_ENABLED || system.length < MIN_CACHE_CHARS) return null;
+
+  const key = cacheKey(system);
+  for (;;) {
+    const pending = caches.get(key);
+    if (!pending) {
+      const next = createCache(client, system);
+      caches.set(key, next);
+      return (await next).name;
+    }
+
+    const attempt = await pending;
+    if (attempt.staleAt > Date.now()) return attempt.name;
+
+    // Only the turn still holding the entry that went stale clears it. Without
+    // that check two turns arriving together on an expiring cache would each
+    // discard the other's replacement and build a third.
+    if (caches.get(key) === pending) caches.delete(key);
+  }
+}
+
 function geminiProvider(): ModelProvider {
   const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-  const build = (req: StreamRequest) => ({
-    model: GEMINI_MODEL,
-    // Gemini names the assistant role "model", and takes the system prompt as
-    // a separate instruction rather than a message.
-    contents: req.messages.map((m) => ({
-      role: m.role === "assistant" ? ("model" as const) : ("user" as const),
-      parts: [{ text: m.content }],
-    })),
-    config: {
-      systemInstruction: req.system,
-      maxOutputTokens: req.maxTokens,
-      thinkingConfig: GEMINI_THINKING,
-      abortSignal: undefined as AbortSignal | undefined,
-    },
-  });
+  const build = async (req: StreamRequest, signal?: AbortSignal) => {
+    const cached = await systemCache(client, req.system);
+    return {
+      model: GEMINI_MODEL,
+      // Gemini names the assistant role "model", and takes the system prompt as
+      // a separate instruction rather than a message.
+      contents: req.messages.map((m) => ({
+        role: m.role === "assistant" ? ("model" as const) : ("user" as const),
+        parts: [{ text: m.content }],
+      })),
+      config: {
+        // The prompt travels one way or the other and never both: a request
+        // that sets `systemInstruction` alongside a cache already holding one
+        // is refused, so the cached path has to leave the field off entirely.
+        cachedContent: cached ?? undefined,
+        systemInstruction: cached ? undefined : req.system,
+        maxOutputTokens: req.maxTokens,
+        thinkingConfig: GEMINI_THINKING,
+        abortSignal: signal,
+      },
+    };
+  };
 
   return {
     vendor: "gemini",
     model: GEMINI_MODEL,
 
     async *streamText(req, signal) {
-      const params = build(req);
-      params.config.abortSignal = signal;
-      const stream = await client.models.generateContentStream(params);
-      for await (const chunk of stream) {
-        const text = chunk.text;
-        if (text) yield text;
+      const stream = await client.models.generateContentStream(await build(req, signal));
+      let usage: GenerateContentResponseUsageMetadata | undefined;
+      try {
+        for await (const chunk of stream) {
+          // Usage is finalised on the last chunk, but which chunk that is is
+          // not ours to assume; the most recent one seen is the whole count.
+          if (chunk.usageMetadata) usage = chunk.usageMetadata;
+          const text = chunk.text;
+          if (text) yield text;
+        }
+      } finally {
+        // A reader pressing stop still spent whatever was generated before
+        // they did, so the accounting runs on the way out rather than only on
+        // a clean finish.
+        logGeminiUsage("stream", usage);
       }
     },
 
     async completeText(req) {
-      const res = await client.models.generateContent(build(req));
+      const res = await client.models.generateContent(await build(req));
+      logGeminiUsage("complete", res.usageMetadata);
       return (res.text ?? "").trim();
     },
   };
