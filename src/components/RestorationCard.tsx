@@ -1,16 +1,13 @@
 "use client";
 
-import { Download } from "lucide-react";
 import { useState } from "react";
 
-import { trackClient } from "@/lib/analytics";
 import type { TurnKind } from "@/lib/chat/turn";
 import type { CorpusRecord } from "@/lib/corpus/types";
 import type { Beat } from "@/lib/model/beats";
 import { toPlainText } from "@/lib/model/plain-text";
 import {
   hasIngredientRows,
-  ingredientLabel,
   parseIngredientRows,
   parseRecipeBeat,
 } from "@/lib/model/recipe-beat";
@@ -106,79 +103,12 @@ const TITLES: Record<TurnKind, Record<Beat, string>> = {
   },
 };
 
-/** What the footer of a recordless card should say where a source would go. */
-const SHARE_FOOTER: Partial<Record<TurnKind, { note: string; kind: string }>> = {
-  modern: { note: "Component restoration", kind: "A modern dish, with no older version" },
-  gap: { note: "Component restoration", kind: "Not written up yet" },
-  foreign: { note: "Indian reinterpretation", kind: "Not an Indian dish" },
-};
-
-/**
- * Where the download button points, and what the file is called.
- *
- * A record card is rendered server-side from the record, so the slug is all the
- * route needs. A card with no record has nothing on the server to render from,
- * so what is on screen travels in the query string instead: the dish, the
- * verdict the model wrote, and the first few ingredients of the version it
- * offered. No text, no verse, no period, no provenance class — the things the
- * share image must never generate are exactly the things a recordless turn
- * never had.
- */
-function shareTarget(
-  data: CardData,
-  ancient: CorpusRecord | null,
-): { href: string; filename: string; slug: string } | null {
-  if (ancient) {
-    return {
-      href: `/api/share/${ancient.slug}`,
-      filename: `kranti-cookbook-${ancient.slug}.png`,
-      slug: ancient.slug,
-    };
-  }
-
-  const verdict = (data.beats.VERDICT ?? "").trim();
-  const footer = SHARE_FOOTER[data.kind];
-  // Mid-stream there is no verdict yet, and nothing to put on a card.
-  if (!verdict || !footer) return null;
-
-  const dish = titleCase(data.query ?? "") || firstLine(verdict);
-  const recipe = parseRecipeBeat(data.beats.RESTORE_TODAY ?? "");
-  // Name and quantity only. The reason field is the card's, not the image's:
-  // the column of short strings on a 1080×1350 has no room for it, and the raw
-  // "a :: b :: c" line went onto the image with its separators showing.
-  const now = parseIngredientRows(recipe.ingredients).slice(0, 6).map(ingredientLabel);
-  const steps = recipe.steps.slice(0, 7);
-
-  const params = new URLSearchParams({
-    dish,
-    verdict,
-    note: footer.note,
-    kind: footer.kind,
-  });
-  if (now.length) {
-    params.set("now", now.join("|"));
-    params.set("nowLabel", "Cook this");
-  }
-  if (steps.length) params.set("steps", steps.join("|"));
-
-  const slug = dish.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "restoration";
-  return {
-    href: `/api/share/turn?${params.toString()}`,
-    filename: `kranti-cookbook-${slug}.png`,
-    slug,
-  };
-}
-
-/** Last resort when the reply carries no query: the verdict's opening clause. */
-function firstLine(verdict: string): string {
-  const first = verdict.split(/[.!?]/)[0].trim();
-  return first.length > 3 && first.length <= 60 ? first : verdict.slice(0, 60);
-}
-
-/** A typed query is lower case; the line above a headline should not be. */
-function titleCase(text: string): string {
-  return text.trim().slice(0, 60).replace(/\S+/g, (w) => w[0].toUpperCase() + w.slice(1));
-}
+/* The download-card button and everything that pointed it at
+   `/api/share/...` — SHARE_FOOTER, shareTarget, firstLine, titleCase — are
+   gone from this card for now. The image route itself still exists and still
+   renders `/dish/[slug]` OpenGraph previews; what has been withdrawn is the
+   reader's way in. Recover the removed code from history when the share is
+   brought back rather than rewriting it. */
 
 export function RestorationCard({ data }: { data: CardData }) {
   const [drawer, setDrawer] = useState(false);
@@ -188,12 +118,6 @@ export function RestorationCard({ data }: { data: CardData }) {
     (ancient?.modern_counterpart_id
       ? data.records.find((r) => r.id === ancient.modern_counterpart_id)
       : null) ?? null;
-
-
-  // Every card that has something to say can be taken away. A record card is
-  // built server-side from the record; a card with no record is built from what
-  // is on screen, because otherwise half the product cannot travel.
-  const share = shareTarget(data, ancient);
 
   /**
    * Whether a beat has anything under its heading.
@@ -364,41 +288,6 @@ export function RestorationCard({ data }: { data: CardData }) {
         )}
         {ancient?.make_today_notes && <MakeTodayNotes notes={ancient.make_today_notes} />}
       </Beat>
-      )}
-
-      {share && (
-        <div
-          style={{
-            borderTop: "1px solid var(--line)",
-            padding: "0.85rem 1.15rem",
-            display: "flex",
-            gap: "0.6rem",
-            flexWrap: "wrap",
-          }}
-        >
-          {/* Downloads rather than opening in a tab. The card is a 1080×1350
-              image made to be posted, and a reader who wanted to look at it is
-              already looking at the card it was made from. */}
-          <a
-            href={share.href}
-            download={share.filename}
-            onClick={() => trackClient("card_shared", { slug: share.slug })}
-            className="mono"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.45rem",
-              padding: "0.45rem 0.8rem",
-              borderRadius: 999,
-              border: "1px solid var(--line-strong)",
-              color: "var(--ink)",
-              textDecoration: "none",
-            }}
-          >
-            <Download size={14} aria-hidden />
-            Download card
-          </a>
-        </div>
       )}
 
       {drawer && ancient && <SourceDrawer record={ancient} onClose={() => setDrawer(false)} />}

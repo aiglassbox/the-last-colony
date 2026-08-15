@@ -7,11 +7,8 @@ import {
   parseIngredientRows,
   parseRecipeBeat,
 } from "@/lib/model/recipe-beat";
-import { parseSwapRows } from "@/lib/model/swap-rows";
 import { IngredientRows } from "./IngredientRows";
 import { Waiting } from "./RestorationCard";
-import { Download } from "lucide-react";
-import { trackClient } from "@/lib/analytics";
 
 /**
  * The Indianisation card (Tier 3).
@@ -33,7 +30,6 @@ export interface IndianizationData {
 
 export function IndianisationCard({ data }: { data: IndianizationData }) {
   const { beats, streaming } = data;
-  const share = shareTarget(beats);
 
   return (
     <article className="card" style={{ marginTop: "1rem" }}>
@@ -111,89 +107,15 @@ export function IndianisationCard({ data }: { data: IndianizationData }) {
         </Section>
       )}
 
-      {share && (
-        <div
-          style={{
-            borderTop: "1px solid var(--line)",
-            padding: "0.85rem 1.15rem",
-            display: "flex",
-            gap: "0.6rem",
-            flexWrap: "wrap",
-          }}
-        >
-          <a
-            href={share.href}
-            download={share.filename}
-            onClick={() => trackClient("card_shared", { slug: share.slug })}
-            className="mono"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.45rem",
-              padding: "0.45rem 0.8rem",
-              borderRadius: 999,
-              border: "1px solid var(--line-strong)",
-              color: "var(--ink)",
-              textDecoration: "none",
-            }}
-          >
-            <Download size={14} aria-hidden />
-            Download card
-          </a>
-        </div>
-      )}
     </article>
   );
 }
 
-/**
- * The swap table is already a Then/Now: the foreign component on one side, the
- * Indian one on the other. That is the whole argument of the card, so it is
- * what the image carries.
- */
-function shareTarget(beats: Partial<Record<string, string>>) {
-  const verdict = (beats.VERDICT ?? "").trim();
-  if (!verdict) return null;
-
-  const rows = parseSwapRows(beats.SWAPS).slice(0, 5);
-
-  const dish = verdict.split(/[.!?]/)[0].trim().slice(0, 60) || verdict.slice(0, 60);
-  const params = new URLSearchParams({
-    dish,
-    verdict,
-    note: "Indian reinterpretation",
-    kind: "Not an Indian dish",
-  });
-  if (rows.length) {
-    params.set("then", rows.map((r) => r.foreign).join("|"));
-    params.set("now", rows.map((r) => r.indian).join("|"));
-    params.set("thenLabel", "Instead of");
-    params.set("nowLabel", "Use");
-  }
-
-  // PLATE is how it is cooked. Its own steps where the model marked a METHOD
-  // block, otherwise its sentences, which is still the method. Parsed rather
-  // than split on newlines, because the beat now carries an INGREDIENTS block
-  // too and those rows are not steps: splitting the whole beat put "a :: b ::
-  // c" onto the image with its separators showing.
-  const plate = (beats.PLATE ?? "").trim();
-  const beat = parseRecipeBeat(plate);
-  const flat = beat.steps.length
-    ? beat.steps.map((s) => s.replace(/^[-*•]\s*/, ""))
-    // The prose half only. An INGREDIENTS block with no METHOD after it would
-    // otherwise reach the sentence splitter and land on the image as rows.
-    : (beat.intro || plate).split(/(?<=[.!?])\s+/).map((x) => x.trim());
-  const usable = flat.filter((x) => x.length > 12).slice(0, 6);
-  if (usable.length) params.set("steps", usable.join("|"));
-
-  const slug =
-    dish.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "indianisation";
-  return {
-    href: `/api/share/turn?${params.toString()}`,
-    filename: `kranti-cookbook-${slug}.png`,
-    slug,
-  };
-}
+/* The download-card button and the shareTarget that built its
+   `/api/share/turn` URL out of the swap rows are gone from this card for now,
+   in step with the same removal on the RestorationCard. The §SWAPS§ beat is
+   still asked for and still parsed upstream; nothing here reads it any more.
+   Recover the removed code from history rather than rewriting it. */
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
