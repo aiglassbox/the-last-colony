@@ -299,6 +299,25 @@ async function createCache(client: GoogleGenAI, system: string): Promise<CacheAt
   }
 }
 
+/**
+ * Whether a rejected request is the cache's fault rather than the turn's.
+ *
+ * A handle can stop working before it expires — deleted out from under the
+ * process, or pinned to a model version the alias has since rotated past — and
+ * the service says so in words: "CachedContent not found (or permission
+ * denied)". Matching the message rather than a status code, because 403 and
+ * 404 both arrive here for reasons that have nothing to do with caching and a
+ * bad key should fail loudly rather than be retried into the same wall.
+ */
+function isCacheError(error: unknown): boolean {
+  return /cach/i.test(error instanceof Error ? error.message : String(error));
+}
+
+/** Forget a handle the service has just refused, so the next turn rebuilds it. */
+function dropCache(system: string): void {
+  caches.delete(cacheKey(system));
+}
+
 /** The cache resource to use for this prompt, or null to send it inline. */
 async function systemCache(client: GoogleGenAI, system: string): Promise<string | null> {
   if (!CACHE_ENABLED || system.length < MIN_CACHE_CHARS) return null;
@@ -325,8 +344,11 @@ async function systemCache(client: GoogleGenAI, system: string): Promise<string 
 function geminiProvider(): ModelProvider {
   const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-  const build = async (req: StreamRequest, signal?: AbortSignal) => {
-    const cached = await systemCache(client, req.system);
+  const build = async (req: StreamRequest, signal?: AbortSignal, inline = false) => {
+    // `inline` is the retry after a handle was refused. It must not ask for a
+    // cache again: the entry has just been dropped, so asking would build a
+    // fresh one and spend the round trip the retry exists to avoid.
+    const cached = inline ? null : await systemCache(client, req.system);
     return {
       model: GEMINI_MODEL,
       // Gemini names the assistant role "model", and takes the system prompt as
@@ -348,12 +370,45 @@ function geminiProvider(): ModelProvider {
     };
   };
 
+  /**
+   * The request, with one inline retry if the cached span turns out to be gone.
+   *
+   * Creation already falls back — a cache that cannot be built sends the prompt
+   * inline and the turn never notices. Using one did not: a handle refused at
+   * request time threw straight past the caller, which is the one way a
+   * discount could cost a reader their answer instead of costing money. Now the
+   * dead entry is dropped and the same turn goes again without it, so the next
+   * turn rebuilds the cache and this one still gets its card.
+   *
+   * Only the opening call is covered. A stream that dies after tokens have
+   * already reached the reader cannot be retried — the reader would watch the
+   * answer start over — so that propagates, as it did before.
+   */
+  const send = async <T>(
+    req: StreamRequest,
+    call: (params: Awaited<ReturnType<typeof build>>) => Promise<T>,
+    signal?: AbortSignal,
+  ): Promise<T> => {
+    const params = await build(req, signal);
+    try {
+      return await call(params);
+    } catch (error) {
+      if (!params.config.cachedContent || !isCacheError(error)) throw error;
+      console.warn(
+        "[cache] handle refused, retrying with the prompt inline: " +
+          `${error instanceof Error ? error.message : error}`,
+      );
+      dropCache(req.system);
+      return call(await build(req, signal, true));
+    }
+  };
+
   return {
     vendor: "gemini",
     model: GEMINI_MODEL,
 
     async *streamText(req, signal) {
-      const stream = await client.models.generateContentStream(await build(req, signal));
+      const stream = await send(req, (params) => client.models.generateContentStream(params), signal);
       let usage: GenerateContentResponseUsageMetadata | undefined;
       try {
         for await (const chunk of stream) {
@@ -372,7 +427,7 @@ function geminiProvider(): ModelProvider {
     },
 
     async completeText(req) {
-      const res = await client.models.generateContent(await build(req));
+      const res = await send(req, (params) => client.models.generateContent(params));
       logGeminiUsage("complete", res.usageMetadata);
       return (res.text ?? "").trim();
     },
