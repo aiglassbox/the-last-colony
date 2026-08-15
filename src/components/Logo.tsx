@@ -1,10 +1,11 @@
 /**
  * Brand marks.
  *
- * The Kranti Cookbook lockup arrived as red ink on an opaque white square, so
- * it is keyed to an alpha mask and painted with `currentColor`. That is what
- * lets the one file sit cream on the maroon ground and red on a cream bar,
- * without shipping two artworks that could drift apart.
+ * The Kranti Cookbook lockup is supplied as flat green ink, so it is reduced
+ * to an alpha mask and painted with `currentColor`. That is what lets the one
+ * file sit green on the amber rail and cream on the painted ground, without
+ * shipping two artworks that could drift apart — and why a new drop of the
+ * lockup needs only the mask replaced, never a colour decided.
  *
  * The Gokul endorsement keeps its own colour, so it stays a real image.
  */
@@ -15,7 +16,7 @@ interface MarkProps {
   className?: string;
 }
 
-/** "The Kranti Cookbook" — 739 × 554 after keying. */
+/** "The Kranti Cookbook" — 723 × 598 after keying and cropping to the ink. */
 export function Logo({ size = 46, className }: MarkProps) {
   return (
     <span
@@ -28,7 +29,7 @@ export function Logo({ size = 46, className }: MarkProps) {
         // by setting --mark-h on an ANCESTOR — declaring it inline here would
         // put it on this same element, where it outranks the stylesheet.
         height: `var(--mark-h, ${size}px)`,
-        aspectRatio: String(739 / 554),
+        aspectRatio: String(723 / 598),
         flex: "0 0 auto",
         background: "currentColor",
         WebkitMask: 'url("/brand/kranti.png") center / contain no-repeat',
