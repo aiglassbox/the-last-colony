@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 
 import { MetaPixel } from "@/components/MetaPixel";
 import { VisitTracker } from "@/components/VisitTracker";
+import { siteUrl } from "@/lib/site-url";
 
 import "./globals.css";
 
@@ -39,7 +40,12 @@ const newSpirit = localFont({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.SITE_URL ?? "http://localhost:3000"),
+  // Was `SITE_URL ?? "http://localhost:3000"`, and SITE_URL is not set in
+  // production — so every share card on the live site advertised its image at
+  // http://localhost:3000/api/share/<slug>, which no crawler can fetch. See
+  // `siteUrl`: same variable, a fallback that is wrong in the harmless
+  // direction instead of the expensive one.
+  metadataBase: new URL(siteUrl()),
   title: "The Kranti Cookbook",
   description:
     "Name a dish you eat every week. See what it was before colonial-era crop policy and industrial milling rewrote it — and how to cook that version tonight.",
