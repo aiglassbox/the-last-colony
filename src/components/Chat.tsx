@@ -530,14 +530,23 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
           >
             <Logo size={28} />
           </button>
-          <button
-            type="button"
-            className="topbar__btn"
-            onClick={startNew}
-            aria-label="New Chat"
-          >
-            <SquarePen size={19} aria-hidden />
-          </button>
+          {/* Only once there is a thread to leave. On the opening screen this
+              starts a new chat from a chat that has not been started — the
+              control is already what the reader is looking at, so it offers a
+              way out of nowhere. The spacer holds its 40px so the lockup stays
+              centred rather than sliding right when it goes. */}
+          {isEmpty ? (
+            <span className="topbar__btn" aria-hidden />
+          ) : (
+            <button
+              type="button"
+              className="topbar__btn"
+              onClick={startNew}
+              aria-label="New Chat"
+            >
+              <SquarePen size={19} aria-hidden />
+            </button>
+          )}
         </header>
       )}
 
