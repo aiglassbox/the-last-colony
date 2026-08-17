@@ -430,12 +430,55 @@ function Prose({ text, streaming }: { text?: string; streaming: boolean }) {
 
 function IngredientTable({ record }: { record: CorpusRecord }) {
   if (!record.ingredients.length) return null;
+
+  /**
+   * Which columns this record can actually fill.
+   *
+   * A record read out of the vector index carries an ingredient's name and
+   * little else: the pipeline schema has no field for what an ingredient was
+   * doing, so `ingredientOf` writes "not recorded in this source" rather than
+   * inventing one, and many of its quantities are the literal string
+   * "unspecified". Printed as a table that was three columns wide regardless,
+   * that became a column of "unspecified" beside a column of "not recorded in
+   * this source" — twelve cells saying nothing, which reads as the card having
+   * failed rather than as the source being quiet.
+   *
+   * The fix is not to fill those cells in. It is to stop drawing a column that
+   * holds nothing and say it once underneath instead, which is the rule
+   * `IngredientRows` already follows on the recordless path.
+   */
+  const quantityOf = (i: (typeof record.ingredients)[number]) =>
+    meaningful(i.quantity_modern) ?? meaningful(i.quantity_source);
+
+  /**
+   * A column has to earn its width, so quantity needs half the rows and not
+   * merely one of them. Sambar's indexed record carries a quantity for one
+   * ingredient in ten, and a column that is nine dashes and a value is the
+   * same failure at a smaller scale. Below the threshold the value is not
+   * thrown away — it goes inline beside the ingredient it belongs to, where
+   * one of them reads as a note rather than as a gap in a table.
+   */
+  const filled = record.ingredients.filter((i) => quantityOf(i)).length;
+  const withQuantity = filled * 2 >= record.ingredients.length;
+  const withFunction = record.ingredients.some((i) => meaningful(i.function));
+
+  const headers = [
+    "Ingredient",
+    ...(withQuantity ? ["Quantity"] : []),
+    ...(withFunction ? ["Why it was there"] : []),
+  ];
+
+  const silences = [
+    withQuantity ? null : "no quantities",
+    withFunction ? null : "no note on what each ingredient was doing",
+  ].filter(Boolean);
+
   return (
     <div className="scroll-x" style={{ marginTop: "0.9rem" }}>
-      <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 460 }}>
+      <table style={{ borderCollapse: "collapse", width: "100%", minWidth: withFunction ? 460 : 280 }}>
         <thead>
           <tr>
-            {["Ingredient", "Quantity", "Why it was there"].map((h) => (
+            {headers.map((h) => (
               <th
                 key={h}
                 className="mono"
@@ -460,17 +503,60 @@ function IngredientTable({ record }: { record: CorpusRecord }) {
                 {i.sanskrit && (
                   <span style={{ color: "var(--orange)", fontStyle: "italic" }}> · {i.sanskrit}</span>
                 )}
+                {!withQuantity && quantityOf(i) && (
+                  <span style={{ color: "var(--ink-muted)" }}> ({quantityOf(i)})</span>
+                )}
               </td>
-              <td style={{ ...cell, color: "var(--ink-soft)", whiteSpace: "nowrap" }}>
-                {i.quantity_modern ?? i.quantity_source ?? "not recorded"}
-              </td>
-              <td style={{ ...cell, color: "var(--ink-soft)" }}>{i.function}</td>
+              {withQuantity && (
+                <td style={{ ...cell, color: "var(--ink-soft)", whiteSpace: "nowrap" }}>
+                  {quantityOf(i) ?? "—"}
+                </td>
+              )}
+              {withFunction && (
+                <td style={{ ...cell, color: "var(--ink-soft)" }}>{meaningful(i.function) ?? "—"}</td>
+              )}
             </tr>
           ))}
         </tbody>
       </table>
+
+      {/* Said once, quietly, rather than repeated down a column. */}
+      {silences.length > 0 && (
+        <p style={{ margin: "0.6rem 0 0", fontSize: "0.82rem", color: "var(--ink-muted)" }}>
+          This source lists the ingredients with {silences.join(" and ")}.
+        </p>
+      )}
     </div>
   );
+}
+
+/**
+ * A cell's content, or null where it only looks like content.
+ *
+ * Two different pipelines put placeholder text where a value would go —
+ * "unspecified" arrives in the indexed records' own quantity field, and
+ * "not recorded in this source" is written by `ingredientOf` because the
+ * schema has nowhere to say nothing. Both are honest as prose and useless as a
+ * table cell, and a column of either is indistinguishable from a rendering
+ * fault. Treating them as absent is what lets the column drop.
+ */
+const EMPTY_MARKERS = new Set([
+  "unspecified",
+  "not recorded",
+  "not recorded in this source",
+  "not specified",
+  "unknown",
+  "n/a",
+  "na",
+  "none",
+  "-",
+  "—",
+]);
+
+function meaningful(value: string | null | undefined): string | null {
+  const text = value?.trim();
+  if (!text) return null;
+  return EMPTY_MARKERS.has(text.toLowerCase()) ? null : text;
 }
 
 const cell: React.CSSProperties = {

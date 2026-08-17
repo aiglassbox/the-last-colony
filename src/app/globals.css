@@ -1276,7 +1276,11 @@ body {
   max-width: min(85%, 46ch);
   padding: var(--s-3) var(--s-4);
   border-radius: 20px 20px 6px 20px;
-  background: var(--red);
+  /* Its own green rather than `--red`, the accent the send button and the New
+     Chat plate share. What the reader said is not a control, and lifting it a
+     step off the painted ground separates the two without introducing a
+     colour from outside the palette. */
+  background: #45601e;
   color: #fff;
   box-shadow: 0 8px 20px -12px rgba(0, 0, 0, 0.6);
   white-space: pre-wrap;
@@ -1387,6 +1391,13 @@ body {
   --reconstructed: #9a5a12;
   --inferred: #6b6152;
   --modern: #3f5691;
+
+  /* `--orange` aliases `--cream`, which is this plate's own background — so
+     everything inked in it on a card has been drawn in the background colour
+     and has not been visible at all: the Sanskrit name beside every ingredient,
+     the source name beside a beat heading, the "Open" on the source strip. It
+     is the accent here, not the surface. Measured 4.57:1 on amber. */
+  --orange: var(--ink-soft);
 }
 
 .card {
