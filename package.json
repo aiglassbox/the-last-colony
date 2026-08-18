@@ -13,7 +13,8 @@
     "check:routing": "tsx scripts/check-routing.ts",
     "check:cache": "tsx scripts/check-cache.ts",
     "check": "npm run corpus:validate && npm run corpus:check-retrieval && npm run check:routing",
-    "db:migrate": "tsx scripts/db-migrate.ts"
+    "db:migrate": "tsx scripts/db-migrate.ts",
+    "report:usage": "tsx scripts/usage-report.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",
