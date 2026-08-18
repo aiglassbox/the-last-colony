@@ -16,9 +16,15 @@
  * leaves writes no row, so every number below counts people who typed
  * something. Treat it as a floor on traffic and an exact count of use.
  */
-import "dotenv/config";
+import { config } from "dotenv";
 
 import { neon } from "@neondatabase/serverless";
+
+/* `.env.local` first, the way Next.js resolves it — that is where
+   `vercel env pull` writes, and where the production connection string lands.
+   Earlier entries win in dotenv, so a local override still beats the pulled
+   value. */
+config({ path: [".env.local", ".env"] });
 
 function bar(n: number, max: number, width = 28): string {
   if (max <= 0) return "";

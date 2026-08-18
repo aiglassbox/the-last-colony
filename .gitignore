@@ -20,3 +20,5 @@ pipeline/data/raw/
 
 # Generated authoring sheets — regenerate with npm run make-today
 pipeline/data/make-today-sheet.md
+.vercel
+.env*
