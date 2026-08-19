@@ -297,6 +297,122 @@ too — including at least one near-miss that must **not** match it.
 
 ---
 
+## Launch email tracking
+
+The Kranti Cookbook launch email is a single hosted image with three clickable
+regions, sent from Outlook as a VBA mail merge rather than through an ESP. There
+is no click data unless this site produces it, and these routes are that. They
+exist for one campaign and answer one question — how many people clicked each
+CTA.
+
+| Route | What it does |
+|---|---|
+| `GET /r?c=<code>&t=<tid>` | Records the click, 302s to the destination for `<code>` |
+| `GET /px.gif?t=<tid>` | 43-byte transparent GIF, records an open |
+| `GET /unsubscribe?t=<tid>` | Records a suppression, says so in one line |
+| `GET /api/email-report` | The numbers, behind `EMAIL_REPORT_TOKEN` |
+
+The email itself is a single image sliced into bands — `public/email-assets/` —
+with the three button rows split into left/button/right cells so each CTA is
+its own link. An image map would be one line, but Outlook renders mail through
+Word and ignores `<area>`, which would silently break the CTAs for a large share
+of a 2,000-contact list. The assembled, mail-merge-ready HTML is
+`docs/kranti-launch-email.html`; substitute each contact's token for `{{TID}}`.
+
+The three codes, in `src/lib/email/destinations.ts`:
+
+| code | CTA in the image | goes to |
+|---|---|---|
+| `ai` | DISCOVER THE KRANTI COOKBOOK AI | this site, UTM-tagged |
+| `film` | WATCH THE FILM | the YouTube film |
+| `post` | READ THE POST | the Instagram account |
+
+### The two rules
+
+**The destination only ever comes from the server-side map**, looked up by a
+short code. A URL arriving in the query string is never redirected to. That is
+an open redirect, and it is how a sending domain ends up on a blocklist a week
+before it matters.
+
+**The tracker is never allowed to break a CTA.** An unknown code, a missing
+token, a database that is down or was never configured — every one of them ends
+in a 302 to somewhere real, with the failure in the log and nothing on the
+reader's screen. `db()` returning null is a supported state here, the same as it
+is for the conversation mirror. The write runs in `after()`, so the redirect is
+flushed before the database is touched at all; measured at ~5ms with the
+database deliberately broken.
+
+### What is stored, and what is not
+
+No email addresses. `tid` is the opaque per-contact token from the mail-merge
+sheet, and the mapping back to a person lives in the campaign's spreadsheet,
+deliberately not on the server. In place of an IP address the events table holds
+a salted sha256 of address and user agent, truncated to 24 characters — enough
+to tell one reader's three clicks from three readers' one each, which is the
+only question it is asked.
+
+The salt is not optional in substance, only in configuration: an unsalted hash
+of an IPv4 address is reversible by brute force in minutes, because there are
+only four billion of them. `TRACK_SALT` supplies one explicitly; unset, the
+connection string is used, which is already secret, already present and stable
+for the life of the deployment. Set it explicitly only if the connection string
+might be rotated mid-campaign — the salt would change with it and the same
+reader would then count as two people.
+
+### The bot filter is not optional
+
+Mail security appliances and image proxies click every link in an email before a
+human sees it, within seconds of delivery. `looksAutomated()` in
+`src/lib/email/track.ts` flags them, every reported number excludes them, and
+the report prints the automated share so the filter can be sanity-checked before
+anyone quotes a figure. Without it the click rate is fiction — typically several
+times the real one and weighted entirely toward whichever corporate domains were
+on the list.
+
+### The tables create themselves
+
+`npm run db:migrate` creates `email_events` and `email_suppressions` ahead of
+time, and that is still the tidy way to do it. But the tracker also creates them
+on its own the first time a write finds them missing, and that is not belt and
+braces — it is the difference between a campaign that reports and one that does
+not. The migration is a step somebody has to remember on the day of the send,
+the credential needed to run it may be write-only in Vercel, and the failure
+mode if it is skipped is the worst available: every click dropped, the site
+completely healthy, and nothing saying so until someone asks for the numbers and
+gets zero.
+
+The recovery is memoised per process, so a launch-day spike produces one
+`create table` attempt rather than one per click, and is cleared on failure so a
+database that was briefly unreachable is retried rather than written off.
+
+### Reading the numbers
+
+With a connection string:
+
+```bash
+npm run email:report -- --sent 2000             # clickers per link, CTR, bot/human split
+npm run email:report -- --sent 2000 --tokens    # adds the per-contact hot list
+```
+
+Without one — the Vercel integration can store the Neon credential write-only,
+so the people running the campaign may be able to deploy the site but not read
+the database it is already talking to:
+
+```
+/api/email-report?token=<EMAIL_REPORT_TOKEN>&sent=2000[&tokens=1]
+```
+
+`EMAIL_REPORT_TOKEN` is a new variable, chosen by whoever sets it up, so it can
+be created without being able to read anything that already exists. Unset, the
+route 404s; a wrong token gets the same 404, so probing cannot establish that a
+report exists. Both surfaces share `src/lib/email/report.ts` — one set of
+queries, one formatter — so they cannot disagree.
+
+The per-token breakdown is opt-in on both (`--tokens`, `&tokens=1`). It is the
+closest thing here to personal data and should be asked for on purpose.
+
+---
+
 ## Known gaps
 
 - **The share image renders in a fallback sans-serif.** Satori needs an

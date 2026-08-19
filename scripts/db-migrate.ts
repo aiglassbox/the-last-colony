@@ -1,16 +1,18 @@
 /**
- * Creates the conversation tables.
+ * Creates the tables the app writes to.
  *
  *   npm run db:migrate
  *
  * Idempotent, so it is safe to run against a database that already has them.
- * There is no migration framework here and one table does not justify adding
- * one; if a second table ever needs altering rather than creating, that is the
- * moment to reach for one.
+ * There is no migration framework here and three `create table if not exists`
+ * statements do not justify adding one; if one of them ever needs altering
+ * rather than creating, that is the moment to reach for one.
  */
 import "dotenv/config";
 
 import { neon } from "@neondatabase/serverless";
+
+import { ensureEmailTables } from "../src/lib/email/schema";
 
 async function main(): Promise<void> {
   const url = process.env.DATABASE_URL || process.env.Last_Colony_DATABASE_URL;
@@ -49,8 +51,16 @@ async function main(): Promise<void> {
       on conversations (device_id, updated_at desc)
   `;
 
+  // Same definitions the tracker creates on demand, so the two cannot drift.
+  await ensureEmailTables(sql);
+
   const [{ count }] = await sql`select count(*)::int as count from conversations`;
   console.log(`conversations table ready — ${count} row${count === 1 ? "" : "s"}`);
+
+  const [{ events }] = await sql`select count(*)::int as events from email_events`;
+  const [{ suppressed }] = await sql`select count(*)::int as suppressed from email_suppressions`;
+  console.log(`email_events table ready — ${events} row${events === 1 ? "" : "s"}`);
+  console.log(`email_suppressions table ready — ${suppressed} row${suppressed === 1 ? "" : "s"}`);
 }
 
 main().catch((error: unknown) => {

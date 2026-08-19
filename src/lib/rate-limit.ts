@@ -71,12 +71,24 @@ export interface RateVerdict {
  * appends, so it is the one taken.
  */
 export function clientKey(request: Request): string {
-  const forwarded = request.headers.get("x-forwarded-for");
+  return clientKeyFromHeaders(request.headers);
+}
+
+/**
+ * The same reader, for callers that hold headers rather than a whole request.
+ *
+ * The email tracker logs from inside a route handler and needs an address to
+ * fingerprint, and it should not be deciding for itself what counts as one —
+ * two places answering that question is two places to fix when a proxy header
+ * changes.
+ */
+export function clientKeyFromHeaders(headers: Headers): string {
+  const forwarded = headers.get("x-forwarded-for");
   if (forwarded) {
     const first = forwarded.split(",")[0].trim();
     if (first) return first;
   }
-  const real = request.headers.get("x-real-ip")?.trim();
+  const real = headers.get("x-real-ip")?.trim();
   if (real) return real;
 
   warnUnidentified();
