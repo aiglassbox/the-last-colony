@@ -1,3 +1,5 @@
+import { siteUrl } from "@/lib/site-url";
+
 /**
  * Where each email link code actually sends people.
  *
@@ -9,20 +11,12 @@
  * looked up here by a short code; a URL arriving in the query string is never
  * redirected to, because that is an open redirect and it is how a sending
  * domain ends up on a blocklist.
- */
-
-/**
- * The origin used for destinations that live on this site.
  *
- * Read from the environment rather than from the request's `Host` header on
- * purpose. Building a redirect out of a header a client controls is the same
- * open-redirect hole by a quieter route, and the value is known at deploy time
- * anyway. Set `SITE_URL=http://localhost:3000` to exercise `/r` locally.
+ * The on-site origin comes from `siteUrl()`, the same helper the sitemap and
+ * the OG images use, rather than from the request's `Host` header. Building a
+ * redirect out of a header a client controls is the same open-redirect hole by
+ * a quieter route.
  */
-function site(path: string): string {
-  const origin = (process.env.SITE_URL ?? "https://kranticookbook.com").replace(/\/+$/, "");
-  return `${origin}${path}`;
-}
 
 export const DESTINATIONS: Record<string, string> = {
   /**
@@ -35,9 +29,7 @@ export const DESTINATIONS: Record<string, string> = {
    * we have already recorded the click ourselves, and appending our markers to
    * someone else's URL buys nothing.
    */
-  ai: site(
-    "/?utm_source=email&utm_medium=email&utm_campaign=kranti-launch&utm_content=ai",
-  ),
+  ai: `${siteUrl()}/?utm_source=email&utm_medium=email&utm_campaign=kranti-launch&utm_content=ai`,
 
   /** WATCH THE FILM. */
   film: "https://www.youtube.com/watch?v=C928wUxnVpo",
@@ -54,5 +46,5 @@ export const DESTINATIONS: Record<string, string> = {
  * who should find that out.
  */
 export function destinationFor(code: string | null): string {
-  return (code && DESTINATIONS[code]) || site("/");
+  return (code && DESTINATIONS[code]) || `${siteUrl()}/`;
 }

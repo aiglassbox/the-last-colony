@@ -17,7 +17,21 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/api/chat", "/api/track", "/api/conversations", "/api/health", "/api/swap"],
+      disallow: [
+        "/api/chat",
+        "/api/track",
+        "/api/conversations",
+        "/api/health",
+        "/api/swap",
+        // The launch email's endpoints. `/r` matters most: a crawler that
+        // follows it manufactures clicks against a campaign the numbers are
+        // being read from. The bot filter would catch them, but not counting
+        // them at all is better than filtering them afterwards.
+        "/r",
+        "/px.gif",
+        "/unsubscribe",
+        "/api/email-report",
+      ],
     },
     sitemap: `${siteUrl()}/sitemap.xml`,
     host: siteUrl(),
