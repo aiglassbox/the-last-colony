@@ -1,5 +1,10 @@
 import type { NeonQueryFunction } from "@neondatabase/serverless";
 
+/* Relative, not "@/" — the note below about the alias applies to imports out of
+   this file as much as to the constant in it. The migration script reaches
+   this module directly. */
+import { addGeoColumns } from "../db/geo-columns";
+
 /**
  * The campaign these rows belong to.
  *
@@ -53,6 +58,11 @@ export async function ensureEmailTables(
   await sql`create index if not exists email_events_tid_idx on email_events (tid)`;
   await sql`create index if not exists email_events_code_idx on email_events (code)`;
   await sql`create index if not exists email_events_occurred_idx on email_events (occurred_at)`;
+
+  /* Geography, on the same terms as the event log's: derived at the edge,
+     never from a stored address. One definition, because both logs must gain
+     and keep the identical set of columns. */
+  await addGeoColumns(sql, "email_events");
 
   /**
    * Unsubscribes, kept apart from the event log on purpose.

@@ -1,5 +1,7 @@
 import type { NeonQueryFunction } from "@neondatabase/serverless";
 
+import { addGeoColumns } from "../db/geo-columns";
+
 /**
  * The event log.
  *
@@ -82,4 +84,13 @@ export async function ensureEventTables(sql: NeonQueryFunction<false, false>): P
     create index if not exists analytics_events_source_idx
       on analytics_events (utm_source) where utm_source is not null
   `;
+
+  // Defined in `db/geo-columns.ts`; `email_events` gains the identical set.
+  await addGeoColumns(sql, "analytics_events");
+
+  await sql`
+    create index if not exists analytics_events_country_idx
+      on analytics_events (country) where country is not null
+  `;
 }
+

@@ -108,6 +108,14 @@ export interface FunnelStage {
   note: string;
 }
 
+export interface GeoPanel {
+  countries: Counted[];
+  cities: Counted[];
+  /** Devices whose edge-resolved zone is Asia/Kolkata, against those we know a zone for. */
+  inIndia: number;
+  located: number;
+}
+
 export interface EmailPanel {
   clicks: number;
   opens: number;
@@ -157,5 +165,6 @@ export interface Report {
   events: EventTotals[];
   attribution: AttributionRow[];
   funnel: FunnelStage[];
+  geo: GeoPanel;
   email: EmailPanel;
 }

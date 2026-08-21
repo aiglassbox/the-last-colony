@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import { track, type AnalyticsEvent, type EventProps } from "@/lib/analytics";
+import { geoProps } from "@/lib/events/geo";
 import { checkRate, clientKey } from "@/lib/rate-limit";
 
 /** Sink for client-side events (source drawer opens, shares, QR entries). */
@@ -80,7 +81,13 @@ export async function POST(request: NextRequest) {
     if (!ALLOWED.includes(event)) {
       return Response.json({ error: "unknown event" }, { status: 400 });
     }
-    track(event, clampProps(props));
+    /* Geography is spread last, and that ordering is the security property
+       rather than a style choice. Everything in `props` came from the browser,
+       so a beacon could otherwise post `country: "IN"` and have it stored as
+       fact; resolving it from the edge headers here and letting it win means a
+       client cannot forge its own location into the log. It also survives the
+       prop ceiling, which the clamp applies only to what the client sent. */
+    track(event, { ...clampProps(props), ...geoProps(request.headers) });
   } catch {
     // A malformed beacon is not worth a 500.
   }

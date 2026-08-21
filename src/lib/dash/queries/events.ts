@@ -2,7 +2,7 @@ import type { NeonQueryFunction } from "@neondatabase/serverless";
 
 import { isMissingTable } from "@/lib/email/schema";
 
-import type { AttributionRow, EventTotals, FunnelStage } from "../types";
+import type { AttributionRow, EventTotals, FunnelStage, GeoPanel } from "../types";
 
 /**
  * The half of the picture the thread mirror cannot see.
@@ -156,5 +156,73 @@ export function deviceFunnel(sql: Sql, since: string | null): Promise<FunnelStag
     },
     [],
     "deviceFunnel",
+  );
+}
+
+/**
+ * Where the readers actually are.
+ *
+ * Counted in devices rather than in events, for the reason the funnel is: one
+ * person asking nine questions from Pune is not nine people in Pune.
+ *
+ * The zone count at the bottom is the one that earns its place. Every bucket on
+ * this dashboard — every daily bar, the whole weekday-by-hour heatmap — is cut
+ * in IST, and that is an assumption nothing until now could check. If a
+ * meaningful share of readers turn out to be in the Gulf or North America, the
+ * evening peak the heatmap shows is two different evenings averaged together,
+ * and the honest fix is to say so rather than to keep drawing one curve.
+ *
+ * Geography starts at the deploy that added it and nothing before it can be
+ * filled in: there is no stored address anywhere to derive a country from after
+ * the fact. That is the cost of never having stored addresses, and it is the
+ * right cost to have paid.
+ */
+export function geography(sql: Sql, since: string | null): Promise<GeoPanel> {
+  const empty: GeoPanel = { countries: [], cities: [], inIndia: 0, located: 0 };
+  return tolerant(
+    async () => {
+      const countries = (await sql`
+        select country                        as label,
+               count(distinct device_id)::int as n
+          from analytics_events
+         where country is not null
+           and device_id is not null
+           and (${since}::timestamptz is null or occurred_at >= ${since}::timestamptz)
+         group by country
+         order by n desc, country
+         limit 15
+      `) as Row[];
+
+      const cities = (await sql`
+        select city || coalesce(', ' || country, '') as label,
+               count(distinct device_id)::int        as n
+          from analytics_events
+         where city is not null
+           and device_id is not null
+           and (${since}::timestamptz is null or occurred_at >= ${since}::timestamptz)
+         group by 1
+         order by n desc, 1
+         limit 12
+      `) as Row[];
+
+      const [zones] = (await sql`
+        select count(distinct device_id) filter (
+                 where timezone = 'Asia/Kolkata')::int as in_india,
+               count(distinct device_id)::int          as located
+          from analytics_events
+         where timezone is not null
+           and device_id is not null
+           and (${since}::timestamptz is null or occurred_at >= ${since}::timestamptz)
+      `) as Row[];
+
+      return {
+        countries: countries.map((r) => ({ label: str(r.label), n: int(r.n) })),
+        cities: cities.map((r) => ({ label: str(r.label), n: int(r.n) })),
+        inIndia: int(zones?.in_india),
+        located: int(zones?.located),
+      };
+    },
+    empty,
+    "geography",
   );
 }

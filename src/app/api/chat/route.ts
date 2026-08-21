@@ -6,6 +6,7 @@ import { parseResolved, RESOLUTION, type TurnKind, type TurnMode } from "@/lib/c
 import { fileCorpus } from "@/lib/corpus/load";
 import type { CorpusRecord } from "@/lib/corpus/types";
 import { isDeviceId } from "@/lib/db/conversations";
+import { geoProps } from "@/lib/events/geo";
 import { renderIndianizationBlock } from "@/lib/indianization";
 import { BeatParser, INDIANIZE_BEATS, MarkerParser, type StreamingParser } from "@/lib/model/beats";
 import { renderComponentSwaps, renderCorpusBlock, renderRecord } from "@/lib/model/corpus-block";
@@ -177,7 +178,13 @@ export async function POST(request: NextRequest) {
     ? request.headers.get("x-device-id")
     : null;
 
+  /* Where the request came from, as the edge resolved it. Read once here and
+     attached to every event this turn writes — see `lib/events/geo.ts` for why
+     this is a country rather than an address. */
+  const geo = geoProps(request.headers);
+
   track("dish_queried", {
+    ...geo,
     device_id: device,
     query: label,
     via: slug ? "slug" : "search",
@@ -451,6 +458,7 @@ export async function POST(request: NextRequest) {
             records,
           });
           track("dish_restored", {
+            ...geo,
             device_id: device,
             query: label,
             slug: records[0].slug,
@@ -525,6 +533,7 @@ export async function POST(request: NextRequest) {
               })}`,
             );
             track("turn_resolved", {
+              ...geo,
               device_id: device,
               query: label,
               resolved: "indianise",
@@ -721,6 +730,7 @@ export async function POST(request: NextRequest) {
           // A genuine Indian-dish gap goes to the corpus-roadmap log; foreign
           // dishes, modern dishes and follow-ups are not gaps to fill.
           track(resolved === "restore" ? "no_original_found" : "turn_resolved", {
+            ...geo,
             device_id: device,
             query: label,
             resolved,

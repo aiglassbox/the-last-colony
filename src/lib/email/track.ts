@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import type { NeonQueryFunction } from "@neondatabase/serverless";
 
 import { db } from "@/lib/db/client";
+import { geoFrom } from "@/lib/events/geo";
 import { clientKeyFromHeaders } from "@/lib/rate-limit";
 
 import { CAMPAIGN, ensureEmailTables, isMissingTable } from "./schema";
@@ -160,9 +161,17 @@ export async function logEvent({ kind, tid, code, headers }: EventInput): Promis
     const userAgent = headers.get("user-agent");
     const ip = clientKeyFromHeaders(headers);
 
+    /* The address is hashed into the fingerprint above and thrown away; the
+       country is resolved at the edge and kept. Those are not in tension — one
+       is an identifier and the other is a fact about a request, and a campaign
+       is entitled to know which countries its list is in without holding a
+       table of where each contact was sitting. */
+    const geo = geoFrom(headers);
+
     const insert = () => sql`
       insert into email_events
-        (campaign, kind, tid, code, is_automated, fingerprint, user_agent)
+        (campaign, kind, tid, code, is_automated, fingerprint, user_agent,
+         country, region, city, timezone)
       values (
         ${CAMPAIGN},
         ${kind},
@@ -170,7 +179,11 @@ export async function logEvent({ kind, tid, code, headers }: EventInput): Promis
         ${code?.slice(0, 32) || null},
         ${looksAutomated(userAgent)},
         ${fingerprint(ip, userAgent)},
-        ${userAgent?.slice(0, 400) ?? null}
+        ${userAgent?.slice(0, 400) ?? null},
+        ${geo.country},
+        ${geo.region},
+        ${geo.city},
+        ${geo.timezone}
       )
     `;
 

@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import { track } from "@/lib/analytics";
+import { geoProps } from "@/lib/events/geo";
 import { fileCorpus } from "@/lib/corpus/load";
 import type { SwapRecord } from "@/lib/corpus/types";
 import { renderSwapBlock } from "@/lib/model/corpus-block";
@@ -75,9 +76,10 @@ export async function POST(request: NextRequest) {
     items.map(async (query) => ({ query, record: await fileCorpus.findSwap(query) })),
   );
 
+  const geo = geoProps(request.headers);
   for (const r of results) {
-    track("swap_requested", { item: r.query, matched: Boolean(r.record) });
-    if (!r.record) track("no_original_found", { query: r.query, kind: "swap" });
+    track("swap_requested", { ...geo, item: r.query, matched: Boolean(r.record) });
+    if (!r.record) track("no_original_found", { ...geo, query: r.query, kind: "swap" });
   }
 
   // The panel renders the ratios and rationale straight from the records. The

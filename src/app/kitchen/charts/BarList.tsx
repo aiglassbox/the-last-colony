@@ -30,6 +30,12 @@ export function BarList({
   emptyNote = "Nothing in this window yet.",
 }: {
   items: BarItem[];
+  /**
+   * Singular. An "s" is appended unless the count is one, which covers
+   * "device" and "people"-free cases and nothing harder — the moment a caller
+   * needs an irregular plural, this should take a [singular, plural] pair
+   * rather than grow a rule.
+   */
   unit?: string;
   emptyNote?: string;
 }) {
@@ -49,7 +55,7 @@ export function BarList({
             </span>
             <span className="k-bar__value">
               {item.n.toLocaleString("en-IN")}
-              {unit ? ` ${unit}` : ""}
+              {unit ? ` ${unit}${item.n === 1 ? "" : "s"}` : ""}
             </span>
           </div>
           <div className="k-bar__track">

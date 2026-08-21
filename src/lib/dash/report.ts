@@ -2,7 +2,7 @@ import { db } from "@/lib/db/client";
 
 import { commandUse, corpusGaps, foreignAsks, mostAsked, provenanceMix, topRecords } from "./queries/demand";
 import { emailPanel } from "./queries/email";
-import { attribution, deviceFunnel, eventTotals, eventsPresent } from "./queries/events";
+import { attribution, deviceFunnel, eventTotals, eventsPresent, geography } from "./queries/events";
 import {
   activityHeat,
   cohorts,
@@ -60,6 +60,7 @@ export async function buildReport(key: RangeKey, now: Date = new Date()): Promis
     attributionRows,
     funnel,
     hasEvents,
+    geo,
     email,
   ] = await Promise.all([
     usageTotals(sql, since, previousSince),
@@ -80,6 +81,7 @@ export async function buildReport(key: RangeKey, now: Date = new Date()): Promis
     attribution(sql, since),
     deviceFunnel(sql, since),
     eventsPresent(sql, since),
+    geography(sql, since),
     emailPanel(sql, since),
   ]);
 
@@ -105,6 +107,7 @@ export async function buildReport(key: RangeKey, now: Date = new Date()): Promis
     events,
     attribution: attributionRows,
     funnel,
+    geo,
     email,
   };
 }

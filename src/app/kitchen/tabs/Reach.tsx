@@ -1,3 +1,4 @@
+import { countryName } from "@/lib/dash/country";
 import { INK, SERIES, STATUS } from "@/lib/dash/tokens";
 import type { Report } from "@/lib/dash/types";
 
@@ -16,7 +17,14 @@ import { Panel } from "../ui/Panel";
  * event in the log says that as plainly as its absence from the mirror does.
  */
 export function Reach({ report }: { report: Report }) {
-  const { email } = report;
+  const { email, geo } = report;
+
+  /* The share of located readers actually in the zone this whole dashboard
+     buckets by. Below about four fifths, the evening peak on the heatmap is
+     two different evenings averaged into one curve, and the panel says so
+     rather than leaving the reader to notice. */
+  const istShare = geo.located ? Math.round((geo.inIndia / geo.located) * 100) : null;
+  const istHolds = istShare === null || istShare >= 80;
   const openToClick = email.uniqueOpeners
     ? Math.round((email.uniqueClickers / email.uniqueOpeners) * 100)
     : null;
@@ -70,6 +78,67 @@ export function Reach({ report }: { report: Report }) {
             No visits recorded yet. Attribution starts from the first arrival after this deploy —
             campaign markers were never stored before it, so nothing can be back-filled.
           </p>
+        )}
+      </Panel>
+
+      <Panel
+        title="Where readers are"
+        note="Resolved at the edge from the request, never from a stored address — there is no IP column anywhere in this codebase to derive one from. Counted in devices, so one person asking nine questions from Pune is one row."
+        span={4}
+      >
+        <BarList
+          /* Country name only. A flag emoji beside it was the obvious touch and
+             renders as a bare letter pair on Windows, which has no glyphs for
+             the regional indicator block — a small permanent glitch on half the
+             machines this is read from, in exchange for decoration the name
+             already provides. */
+          items={geo.countries.map((c) => ({ label: countryName(c.label), n: c.n }))}
+          unit="device"
+          emptyNote="No geography yet. It starts from the first request after the deploy that added it, and nothing earlier can be filled in."
+        />
+      </Panel>
+
+      <Panel title="Cities" span={4}>
+        <BarList
+          items={geo.cities.map((c) => ({ ...c, colour: SERIES[1] }))}
+          unit="device"
+          emptyNote="No cities yet."
+        />
+      </Panel>
+
+      <Panel
+        title="Does the IST assumption hold?"
+        note="Every bar and the whole heatmap on this dashboard are cut in India Standard Time. This is the only thing that checks it."
+        span={4}
+      >
+        {istShare === null ? (
+          <p className="k-empty">
+            Not enough located readers yet to say. Until then, treat every time-of-day figure here
+            as assuming India.
+          </p>
+        ) : (
+          <>
+            <strong className="k-stat__value">
+              {istShare}
+              <span style={{ fontSize: 20, color: INK.secondary }}>%</span>
+            </strong>
+            <div className="k-stat__row">
+              <span
+                className="k-pill"
+                style={{ color: istHolds ? STATUS.good : STATUS.warning }}
+              >
+                {istHolds ? "holds" : "check this"}
+              </span>
+              <span className="k-delta__base">
+                {geo.inIndia} of {geo.located} located devices in Asia/Kolkata
+              </span>
+            </div>
+            <p className="k-panel__note" style={{ marginTop: 12, marginBottom: 0 }}>
+              {istHolds
+                ? "High enough that bucketing by IST is telling you about one evening rather than several averaged together."
+                : "A large share of readers are in other zones, so the evening peak on the heatmap is two different local evenings laid on top of each other. Read the time-of-day figures as India-only until this is split by zone."}
+            </p>
+          </>
         )}
       </Panel>
 
@@ -152,7 +221,7 @@ export function Reach({ report }: { report: Report }) {
              row that should not be here — the untagged `(none)` bucket in
              particular is always present in the group-by and usually empty. */
           items={email.perCode.filter((c) => c.n > 0).map((c) => ({ ...c, colour: SERIES[3] }))}
-          unit="people"
+          unit="reader"
           emptyNote="No clicks in this window."
         />
       </Panel>

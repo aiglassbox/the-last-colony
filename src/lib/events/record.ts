@@ -48,6 +48,13 @@ const COLUMNS = [
   "utm_term",
   "referrer_host",
   "landing",
+  // Geography arrives the same way and for the same reason: it is grouped by,
+  // so it earns a column. Resolved at the edge and never derived from a stored
+  // address — see `geo.ts`. Absent off Vercel, which is a null, not an error.
+  "country",
+  "region",
+  "city",
+  "timezone",
 ] as const;
 
 /** One click identifier, whichever platform sent it. Which one is not a question anyone asks. */
@@ -81,7 +88,8 @@ export async function recordEvent(
     const insert = () => sql`
       insert into analytics_events
         (event, device_id, utm_source, utm_medium, utm_campaign, utm_content,
-         utm_term, click_id, referrer_host, landing, props)
+         utm_term, click_id, referrer_host, landing, country, region, city,
+         timezone, props)
       values (
         ${event.slice(0, MAX_EVENT)},
         ${deviceId},
@@ -93,6 +101,10 @@ export async function recordEvent(
         ${clickId},
         ${lifted.referrer_host},
         ${lifted.landing},
+        ${lifted.country},
+        ${lifted.region},
+        ${lifted.city},
+        ${lifted.timezone},
         ${JSON.stringify(rest)}::jsonb
       )
     `;
