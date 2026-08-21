@@ -4,7 +4,7 @@
  *   npm run db:migrate
  *
  * Idempotent, so it is safe to run against a database that already has them.
- * There is no migration framework here and three `create table if not exists`
+ * There is no migration framework here and four `create table if not exists`
  * statements do not justify adding one; if one of them ever needs altering
  * rather than creating, that is the moment to reach for one.
  */
@@ -13,6 +13,7 @@ import "dotenv/config";
 import { neon } from "@neondatabase/serverless";
 
 import { ensureEmailTables } from "../src/lib/email/schema";
+import { ensureEventTables } from "../src/lib/events/schema";
 
 async function main(): Promise<void> {
   const url = process.env.DATABASE_URL || process.env.Last_Colony_DATABASE_URL;
@@ -54,13 +55,18 @@ async function main(): Promise<void> {
   // Same definitions the tracker creates on demand, so the two cannot drift.
   await ensureEmailTables(sql);
 
+  // Same again for the event log, which `recordEvent` also heals on demand.
+  await ensureEventTables(sql);
+
   const [{ count }] = await sql`select count(*)::int as count from conversations`;
   console.log(`conversations table ready — ${count} row${count === 1 ? "" : "s"}`);
 
   const [{ events }] = await sql`select count(*)::int as events from email_events`;
   const [{ suppressed }] = await sql`select count(*)::int as suppressed from email_suppressions`;
+  const [{ tracked }] = await sql`select count(*)::int as tracked from analytics_events`;
   console.log(`email_events table ready — ${events} row${events === 1 ? "" : "s"}`);
   console.log(`email_suppressions table ready — ${suppressed} row${suppressed === 1 ? "" : "s"}`);
+  console.log(`analytics_events table ready — ${tracked} row${tracked === 1 ? "" : "s"}`);
 }
 
 main().catch((error: unknown) => {

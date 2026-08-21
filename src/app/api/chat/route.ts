@@ -5,6 +5,7 @@ import { parseCommand } from "@/lib/chat/commands";
 import { parseResolved, RESOLUTION, type TurnKind, type TurnMode } from "@/lib/chat/turn";
 import { fileCorpus } from "@/lib/corpus/load";
 import type { CorpusRecord } from "@/lib/corpus/types";
+import { isDeviceId } from "@/lib/db/conversations";
 import { renderIndianizationBlock } from "@/lib/indianization";
 import { BeatParser, INDIANIZE_BEATS, MarkerParser, type StreamingParser } from "@/lib/model/beats";
 import { renderComponentSwaps, renderCorpusBlock, renderRecord } from "@/lib/model/corpus-block";
@@ -166,7 +167,18 @@ export async function POST(request: NextRequest) {
   const label = slug || query;
   const provider = activeProvider();
 
+  /* Whose turn this is, as far as anything here can know. The client sends the
+     same id it files threads under, so every event below can be joined to the
+     conversation it produced — which is what makes "of the people who arrived,
+     how many got an answer" a computable number rather than two unrelated
+     counts. Absent when the browser has storage switched off, and the events
+     are still worth logging without it. */
+  const device = isDeviceId(request.headers.get("x-device-id"))
+    ? request.headers.get("x-device-id")
+    : null;
+
   track("dish_queried", {
+    device_id: device,
     query: label,
     via: slug ? "slug" : "search",
     hit: !retrieval.empty,
@@ -439,6 +451,7 @@ export async function POST(request: NextRequest) {
             records,
           });
           track("dish_restored", {
+            device_id: device,
             query: label,
             slug: records[0].slug,
             provenance: records[0].provenance_class,
@@ -511,7 +524,12 @@ export async function POST(request: NextRequest) {
                 model: provider.model,
               })}`,
             );
-            track("turn_resolved", { query: label, resolved: "indianise", top_score: 0 });
+            track("turn_resolved", {
+              device_id: device,
+              query: label,
+              resolved: "indianise",
+              top_score: 0,
+            });
             emit({
               type: "meta",
               mode: "indianize" satisfies TurnMode,
@@ -703,6 +721,7 @@ export async function POST(request: NextRequest) {
           // A genuine Indian-dish gap goes to the corpus-roadmap log; foreign
           // dishes, modern dishes and follow-ups are not gaps to fill.
           track(resolved === "restore" ? "no_original_found" : "turn_resolved", {
+            device_id: device,
             query: label,
             resolved,
             top_score: retrieval.top_score,

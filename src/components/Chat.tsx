@@ -23,6 +23,7 @@ import { flushSync } from "@/lib/chat/sync";
 import type { TurnKind, TurnMode } from "@/lib/chat/turn";
 import { PROSE, Typewriter } from "@/lib/chat/typewriter";
 import type { CorpusRecord } from "@/lib/corpus/types";
+import { deviceId } from "@/lib/device-id";
 import {
   getServerSnapshot as railServerSnapshot,
   getSnapshot as railSnapshot,
@@ -305,10 +306,21 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
         }));
       });
 
+      const device = deviceId();
+
       try {
         const res = await fetch("/api/chat", {
           method: "POST",
-          headers: { "content-type": "application/json" },
+          /* The device id is sent so the events the route logs can be joined to
+             the thread they produced. Without it a `dish_queried` line and the
+             conversation it started are two unrelated rows, and the funnel from
+             arrival to answer cannot be computed at all. Same id the mirror
+             files under; null when storage is off, and the header is simply
+             absent then. */
+          headers: {
+            "content-type": "application/json",
+            ...(device ? { "x-device-id": device } : {}),
+          },
           signal: controller.signal,
           body: JSON.stringify({
             slug,
