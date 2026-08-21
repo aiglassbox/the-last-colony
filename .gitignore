@@ -22,3 +22,8 @@ pipeline/data/raw/
 pipeline/data/make-today-sheet.md
 .vercel
 .env*
+
+EXPLANATION.md
+
+TASK.md
+.serena/
