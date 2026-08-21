@@ -1,5 +1,7 @@
 "use client";
 
+import { deviceId } from "@/lib/device-id";
+
 import type { Conversation } from "./store";
 
 /**
@@ -12,23 +14,13 @@ import type { Conversation } from "./store";
  * nothing of theirs is lost.
  */
 
-const DEVICE_KEY = "tlc.device.v1";
 /** Long enough to coalesce a burst of writes, short enough to survive a tab close. */
 const PUSH_DELAY = 1200;
 
-export function deviceId(): string | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const existing = window.localStorage.getItem(DEVICE_KEY);
-    if (existing) return existing;
-    const fresh = crypto.randomUUID();
-    window.localStorage.setItem(DEVICE_KEY, fresh);
-    return fresh;
-  } catch {
-    // Private mode with storage disabled. No id, so no mirror.
-    return null;
-  }
-}
+/* The id moved to a directive-free module so the analytics shim — which route
+   handlers import — can read it without crossing a client boundary. Re-exported
+   here because this is where every existing caller looks for it. */
+export { deviceId } from "@/lib/device-id";
 
 let timer: ReturnType<typeof setTimeout> | null = null;
 let pending: Conversation[] | null = null;
