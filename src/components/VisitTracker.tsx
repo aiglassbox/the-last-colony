@@ -19,6 +19,14 @@ import { captureAttribution, claimVisit, isQrEntry } from "@/lib/attribution";
  */
 export function VisitTracker() {
   useEffect(() => {
+    /* The dashboard lives under this same root layout, so without this guard
+       every look at the numbers writes a `visit` row into the numbers being
+       looked at — and on a product with a hundred and sixty devices, three
+       people checking the graphs each morning is a visible line on them. An
+       analytics page that inflates its own traffic is worse than no analytics
+       page, because the error is invisible and grows with how much you use it. */
+    if (window.location.pathname.startsWith("/kitchen")) return;
+
     const attribution = captureAttribution();
 
     // Attribution is attached to every beacon by `trackClient`, so `visit`

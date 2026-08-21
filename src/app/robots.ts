@@ -31,6 +31,10 @@ export default function robots(): MetadataRoute.Robots {
         "/px.gif",
         "/unsubscribe",
         "/api/email-report",
+        // The dashboard. The password is the control; this only keeps it from
+        // turning up in a search result and announcing that it exists.
+        "/kitchen",
+        "/api/kitchen",
       ],
     },
     sitemap: `${siteUrl()}/sitemap.xml`,
