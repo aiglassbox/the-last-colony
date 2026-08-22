@@ -71,11 +71,12 @@ corpus/            JSON records, one per culinary item (the Part 3 contract)
   modern/          their modern counterparts, and modern-dish records
   swaps/           ingredient swap records
 src/lib/corpus/    types, validator, file-backed repository
+src/lib/lang/      language detection + query translation (the normalize step)
 src/lib/retrieval/ normalisation, BM25, the threshold and ambiguity gates
 src/lib/model/     system prompt, corpus block, streaming beat parser
 src/lib/chat/      conversation state as an external store, localStorage-backed
 src/app/           chat surface, /dish/[slug], API routes, 1080×1350 share card
-tests/             132 hand-checked retrieval queries
+tests/             132 hand-checked retrieval queries + multilingual query set
 ```
 
 ### Two kinds of turn
@@ -181,6 +182,25 @@ One thing deliberately not carried across: the *Pāka Śāstra* passage makes
 Ayurvedic claims about what the dish cures. Those are recorded as part of what
 the text says and never as a claim of this product's own.
 
+### Multilingual queries: normalize before retrieval
+
+The keyword engine is English, so a non-English query is translated to English
+before it ever reaches BM25. `src/lib/lang/normalize.ts` makes one cheap,
+greedy-decoded (`temperature: 0`) model call that detects the language and
+returns the dish name in its common English spelling — `இட்லி`, `इडली` and
+`idli kaise banti hai` all become `idli`. It runs on the eight active languages
+(Hindi, Bengali, Marathi, Telugu, Tamil, Gujarati, Kannada, English); anything
+unsupported (Urdu, for now) or detected too weakly falls back to English and the
+untranslated string, so retrieval always has something to run and never blocks
+on the model. The echoed query keeps the user's own words; only retrieval reads
+the translation. `npm run corpus:check-multilingual` exercises this end to end
+(it calls the model, so it is a live check, kept out of `npm run check`).
+
+This is the translate-then-retrieve path. It deliberately reuses the English
+keyword engine below unchanged rather than leaning on cross-lingual vector
+search — a wrong ancestor is worse than no ancestor, and the keyword gates are
+where that discipline lives.
+
 ### Retrieval
 
 Keyword-first, exactly as the brief requires. BM25 over dish names and aliases
@@ -219,6 +239,12 @@ nothing else.
 `tests/retrieval-queries.json` holds 132 hand-checked queries covering Hinglish
 spellings, Devanagari and Tamil, and the traps above. The harness fails the
 build on any **wrong** answer and on more misses than `ALLOWED_MISSES` (zero).
+
+`tests/multilingual-queries.json` is the other set: the same dishes in native
+scripts across the active languages, exercised end to end through the normalize
+step by `npm run corpus:check-multilingual`. Because it makes model calls it is
+a live check, not part of `npm run check`; the deterministic parsing logic has
+its own keyless check at `npm run lang:check`.
 
 ### Model layer
 
@@ -421,9 +447,15 @@ closest thing here to personal data and should be asked for on purpose.
   the `fonts` option in `src/app/api/share/[slug]/route.tsx`.
 - **Vector retrieval is a stub.** The interface is in place and threshold
   discipline is written to cover it; the pgvector implementation is not.
-- **The language toggle is not built.** Hinglish input is understood and the
-  model replies in the language of the question, but there is no UI toggle
-  stub for Hindi, Marathi, Tamil, Telugu or Kannada yet.
+- **Multilingual: input is live, reply mirroring is in progress.** A query in
+  any of the eight active languages (Hindi, Bengali, Marathi, Telugu, Tamil,
+  Gujarati, Kannada, English), in native script or Hinglish, is now detected and
+  translated to English before retrieval (`src/lib/lang/`), so it finds the right
+  record. Authoring the *reply* back in the user's language and register is the
+  next step and not yet shipped — replies are still written in English for now.
+  There is no UI language toggle: detection is automatic from the message.
+  Urdu is deferred (right-to-left layout is out of scope pending review); it is
+  detected but answered in English.
 - **Analytics goes to the console.** `track()` is a one-function shim over a
   real sink.
 - **Eight ancient records await editorial verification** — see above. This is
