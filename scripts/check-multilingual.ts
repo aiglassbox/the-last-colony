@@ -6,6 +6,8 @@
  * Same failure taxonomy as check-retrieval: WRONG (returned a different dish)
  * fails the run; MISS (declined when a dish was expected) is counted.
  */
+import "dotenv/config";
+
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
