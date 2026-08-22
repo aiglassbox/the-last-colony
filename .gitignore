@@ -24,6 +24,7 @@ pipeline/data/make-today-sheet.md
 .env*
 
 EXPLANATION.md
-
+LOCAL_AGENTS.md
 TASK.md
 .serena/
+.docs/
