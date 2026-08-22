@@ -5,6 +5,7 @@ import { parseCommand } from "@/lib/chat/commands";
 import { parseResolved, RESOLUTION, type TurnKind, type TurnMode } from "@/lib/chat/turn";
 import { fileCorpus } from "@/lib/corpus/load";
 import type { CorpusRecord } from "@/lib/corpus/types";
+import { normalize } from "@/lib/lang/normalize";
 import { renderIndianizationBlock } from "@/lib/indianization";
 import { BeatParser, INDIANIZE_BEATS, MarkerParser, type StreamingParser } from "@/lib/model/beats";
 import { renderComponentSwaps, renderCorpusBlock, renderRecord } from "@/lib/model/corpus-block";
@@ -151,7 +152,14 @@ export async function POST(request: NextRequest) {
   const { command, rest } = parseCommand(raw);
   const query = rest;
 
-  const retrieval = slug ? await retrieveBySlug(slug) : await retrieveForDish(query);
+  // A slug is already canonical, so it is not normalized. A typed query may be
+  // in any of the eight languages, so detect and translate it to English before
+  // the (English) keyword engine sees it. The echoed `label` stays the user's
+  // own words; only retrieval reads the translation.
+  const normalized = slug ? null : await normalize(query);
+  const retrieval = slug
+    ? await retrieveBySlug(slug)
+    : await retrieveForDish(normalized!.english);
 
   // A slug names a record directly, so an empty result means the slug is not
   // one. Asking the model about it invites an answer about some other dish
