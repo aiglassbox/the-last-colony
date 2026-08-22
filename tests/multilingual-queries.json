@@ -1,0 +1,13 @@
+{
+  "cases": [
+    { "q": "इडली", "lang": "hi", "expect": "idli", "why": "Hindi native script for idli" },
+    { "q": "இட்லி", "lang": "ta", "expect": "idli", "why": "Tamil native script for idli" },
+    { "q": "idli kaise banti hai", "lang": "hi", "expect": "idli", "why": "Hinglish follow-up naming idli" },
+    { "q": "দোসা", "lang": "bn", "expect": "dosa", "why": "Bengali native script for dosa" },
+    { "q": "ದೋಸೆ", "lang": "kn", "expect": "dosa", "why": "Kannada native script for dosa" },
+    { "q": "ખીચડી", "lang": "gu", "expect": "khichdi", "why": "Gujarati native script for khichdi" },
+    { "q": "पोहा", "lang": "mr", "expect": "poha", "why": "Marathi native script for poha" },
+    { "q": "ఉప్మా", "lang": "te", "expect": "upma", "why": "Telugu native script for upma" },
+    { "q": "asdfgh", "lang": "en", "expect": null, "why": "junk must still decline, not guess" }
+  ]
+}
