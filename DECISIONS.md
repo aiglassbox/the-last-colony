@@ -49,6 +49,54 @@ whichever rice dish happens to score highest.
 
 ---
 
+## Multilingual
+
+**Translate-then-retrieve (Path B), not cross-lingual embeddings (Path A).** A
+non-English query is translated to English and then run through the unchanged
+English keyword engine, rather than embedding the raw multilingual query and
+leaning on vector search. The task brief marked cross-lingual embeddings
+"recommended", but the retrieval code disagrees: vectors here are a
+decline-not-decide fallback (a wrong ancestor is worse than none), and making
+them the primary path for a whole language class would move retrieval onto the
+seam the three gates exist to distrust. Path A is kept as a benchmark (see the
+eval file base) so the choice is revisited from data, not asserted.
+→ `src/lib/lang/normalize.ts`, `src/lib/retrieval/retrieve.ts`
+
+**Detection + translation is one greedy model call, not a JS language library.**
+Libraries detect Indic scripts passably but fail on the actual target inputs —
+romanized Indic and Hinglish. One `gemini-flash` call handles all of it and
+reuses the provider seam already in the app. It runs at `temperature: 0`: the
+same dish name must map to the same English token every time, or retrieval
+flakes (observed directly — Bengali "দোসা" alternated between hitting and
+missing at the default temperature until decoding was made greedy).
+→ `src/lib/lang/normalize.ts`, `src/lib/model/provider.ts`
+
+**`english` is the dish name for the search index, not a sentence translation.**
+Because the translated string feeds BM25, `normalize` is told to return the dish
+name in its common spelling ("dosa", not "dhosa" or "dosai"), so "idli kaise
+banti hai" retrieves on "idli" rather than on "how is idli made" — which the
+keyword engine would miss.
+
+**Detection failure degrades to English, never throws.** An unsupported language
+(Urdu, for now), confidence below `CONFIDENCE_THRESHOLD`, malformed JSON, or a
+quota/network error all resolve to the English fallback: reply in English,
+retrieve on the untranslated string. Retrieval must always have something to run;
+a lost translation must never cost the reader an answer.
+→ `src/lib/lang/types.ts` (`enFallback`)
+
+**Urdu is deferred, not unsupported in principle.** It is right-to-left and needs
+layout work outside this feature's scope, so it is detected but routed to the
+English fallback pending a senior review. The eight active languages are Hindi,
+Bengali, Marathi, Telugu, Tamil, Gujarati, Kannada, English.
+
+**Reply-language mirroring is separate from input handling.** Getting a
+non-English query to retrieve correctly (done) is distinct from authoring the
+reply back in the user's language and register (the next step). They ship in
+that order so retrieval correctness lands first, at lowest risk, without the
+English-tuned card discipline having to hold in eight scripts at the same time.
+
+---
+
 ## Corpus and provenance
 
 **A record's citation is enforced structurally, not by convention.** The

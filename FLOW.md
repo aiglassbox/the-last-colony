@@ -172,6 +172,27 @@ always terminates cleanly.
 
 ## 3. Retrieval decision path in detail
 
+Before `retrieveForDish` runs, a typed query passes through the language
+normalize step, so the English keyword engine below always sees English:
+
+```
+POST /api/chat  (typed query, not a slug)
+  │
+  ├─ normalize(query)  (src/lib/lang/normalize.ts)
+  │     one greedy (temperature 0) model call: detect language + return the
+  │     dish name in its common English spelling
+  │       "இட்லி" / "इडली" / "idli kaise banti hai"  →  "idli"
+  │     single ASCII word → skipped (already English)
+  │     unsupported (Urdu), low confidence, or any error → English fallback
+  │       (reply English, retrieve on the untranslated string)
+  │
+  └─ retrieveForDish(normalized.english)   ← the English engine, unchanged
+```
+
+The echoed `label` stays the user's own words; only retrieval reads
+`normalized.english`. A slug entry (QR / /dish/[slug]) skips normalize — a slug
+is already canonical.
+
 ```
 retrieveForDish(query)
   │
