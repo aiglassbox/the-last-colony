@@ -29,6 +29,13 @@ export interface StreamRequest {
   system: string;
   messages: ChatTurn[];
   maxTokens: number;
+  /**
+   * Sampling temperature. Left unset for the prose turns, which want the
+   * model's default. Set to 0 by the classify-and-translate calls (see
+   * `normalize`), where a stable answer matters more than variety — the same
+   * dish name must map to the same English token every time or retrieval flakes.
+   */
+  temperature?: number;
 }
 
 export interface ModelProvider {
@@ -100,6 +107,7 @@ function anthropicProvider(): ModelProvider {
           model: ANTHROPIC_MODEL,
           max_tokens: req.maxTokens,
           output_config: { effort: ANTHROPIC_EFFORT },
+          ...(req.temperature !== undefined && { temperature: req.temperature }),
           system: system(req.system),
           messages: req.messages.map((m) => ({ role: m.role, content: m.content })),
         },
@@ -122,6 +130,7 @@ function anthropicProvider(): ModelProvider {
         model: ANTHROPIC_MODEL,
         max_tokens: req.maxTokens,
         output_config: { effort: ANTHROPIC_EFFORT },
+        ...(req.temperature !== undefined && { temperature: req.temperature }),
         system: system(req.system),
         messages: req.messages.map((m) => ({ role: m.role, content: m.content })),
       });
@@ -364,6 +373,7 @@ function geminiProvider(): ModelProvider {
         cachedContent: cached ?? undefined,
         systemInstruction: cached ? undefined : req.system,
         maxOutputTokens: req.maxTokens,
+        ...(req.temperature !== undefined && { temperature: req.temperature }),
         thinkingConfig: GEMINI_THINKING,
         abortSignal: signal,
       },
