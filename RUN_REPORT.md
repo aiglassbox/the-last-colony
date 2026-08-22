@@ -3,6 +3,10 @@
 Ran on 2026-08-21. Node v24.16.0, npm 12.0.1. Windows 11.
 Every `npm run` script in both packages, invoked with `.env` already in place.
 
+**Addendum 2026-08-22 — multilingual accessibility (Slice 1).** New language
+normalize step (`src/lib/lang/`) and its two checks added below. Full gate
+(`npm run check`, `npm run lint`, `npm run build`) re-run clean after the change.
+
 ## Legend
 
 - **PASS** — exit 0, did what it should.
@@ -21,6 +25,8 @@ Every `npm run` script in both packages, invoked with `.env` already in place.
 |---|---|---|---|
 | `npm run corpus:validate` | validate-corpus.ts | **PASS** | 31 records, 14 swaps valid. 5 records `RECONSTRUCTED`, awaiting editorial verification (khichdi, laddu, poha, roti, vada) — cannot render ATTESTED. Expected, not an error. |
 | `npm run corpus:check-retrieval` | check-retrieval.ts | **PASS** | 132/132 hand-checked queries pass. Reranker now DeepInfra Qwen3-Reranker-4B (was Pinecone bge, which 429'd on its 500/month cap). No rerank errors, no degradation. Fixed by adding `DEEPINFRA_API_KEY` + `RERANK_PROVIDER=deepinfra` to root `.env` — see below. |
+| `npm run lang:check` | check-lang.ts | **PASS** | 8/8 deterministic checks for the language pure functions (parse, fallback, `isSupported`). No model, no network — keyless, safe anywhere. |
+| `npm run corpus:check-multilingual` | check-multilingual.ts | **PASS** | 9/9 end-to-end: native-script + Hinglish queries across the 8 active languages normalize to English and retrieve the right record; junk still declines. Live (calls the model), so deliberately kept out of `npm run check`. Stable across repeated runs after `temperature: 0` + dish-name-for-search normalization. |
 | `npm run check:routing` | check-routing.ts | **PASS** | 166/166 routing checks pass. One informational `[rate-limit]` line: no `x-forwarded-for`/`x-real-ip` in test request, so callers share one 240/5min allowance. Set header at proxy in prod. |
 | `npm run check:cache` | check-cache.ts | **PASS** | Gemini context cache live and read. model `gemini-3.6-flash`, system prompt 31757 chars, 7634 tokens cached, 100% hit rate over 2 turns. |
 | `npm run check` | (validate + check-retrieval + check:routing) | **PASS (degraded)** | Aggregate of the three above. Green overall; carries the Pinecone-rerank 429 degradation. |
