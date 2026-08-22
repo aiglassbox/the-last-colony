@@ -10,6 +10,7 @@
     "lint": "eslint",
     "corpus:validate": "tsx scripts/validate-corpus.ts",
     "corpus:check-retrieval": "tsx scripts/check-retrieval.ts",
+    "lang:check": "tsx scripts/check-lang.ts",
     "check:routing": "tsx scripts/check-routing.ts",
     "check:cache": "tsx scripts/check-cache.ts",
     "check": "npm run corpus:validate && npm run corpus:check-retrieval && npm run check:routing",
