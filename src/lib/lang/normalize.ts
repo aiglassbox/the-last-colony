@@ -29,8 +29,14 @@ Rules:
 - script is "native" if the user wrote in a non-Latin script, else "roman".
 - register is "hinglish" for Latin-script Indian-language mixed with English,
   "roman" for a purely romanized single language, "native" for a native script.
-- english is the dish name or question translated to natural English. Keep
-  proper nouns and dish names as themselves (idli stays idli).
+- english feeds a dish-name search index, so return the DISH NAME the message
+  is about, in English, not a translated sentence. "idli kaise banti hai" and
+  "how is idli made" both become "idli". If several dishes are named, list them
+  space-separated ("dosa idli"). If no dish is named (a general cooking
+  question), return the key food nouns, or an empty string if there are none.
+  Use the common English/romanized spelling, the one most people would type:
+  "dosa" not "dhosa" or "dosai", "khichdi" not "khichri". Do not invent a
+  variant spelling.
 - confidence is your certainty about lang, 0 to 1.
 - Output the JSON only. No markdown, no code fence, no commentary.`;
 
@@ -93,6 +99,10 @@ export async function normalize(query: string): Promise<Normalized> {
     const raw = await provider.completeText({
       system: NORMALIZE_SYSTEM,
       maxTokens: NORMALIZE_MAX_TOKENS,
+      // Greedy decoding: the same dish name must map to the same English token
+      // every time, or retrieval flakes on it. Detection/translation wants the
+      // single most-likely answer, not a sample.
+      temperature: 0,
       messages: [{ role: "user", content: trimmed }],
     });
     return parseNormalizeResponse(raw, trimmed);
