@@ -8,6 +8,8 @@ import assert from "node:assert/strict";
 import { enFallback, isSupported, type Normalized } from "../src/lib/lang/types";
 import { CONFIDENCE_THRESHOLD, parseNormalizeResponse } from "../src/lib/lang/normalize";
 import { replyInstruction } from "../src/lib/lang/reply-instruction";
+import { EN_LABELS, validateLocalizedCard } from "../src/lib/lang/localized-card";
+import type { CorpusRecord } from "../src/lib/corpus/types";
 
 let pass = 0;
 const check = (name: string, fn: () => void) => {
@@ -90,6 +92,49 @@ check("fallback instruction lists supported languages in English", () => {
   const s = replyInstruction(mk({ lang: "en", register: "roman", fell_back: true }));
   assert.match(s, /English/);
   assert.match(s, /Tamil/); // the supported list is named
+});
+
+// validateLocalizedCard — a minimal record carrying only the fields the
+// validator reads (lengths of ingredients / method / restore_today).
+const rec = {
+  ingredients: [{ name: "rock salt", sanskrit: "saindhava", quantity_source: null, quantity_modern: "to taste", function: "seasoning" }],
+  method_reconstructed: ["Soak the dal.", "Grind it."],
+  restore_today: null,
+} as unknown as CorpusRecord;
+
+const validRaw = {
+  labels: EN_LABELS, // a valid LocalizedLabels payload
+  record: {
+    verdict: "आपकी इडली",
+    ingredients: [{ name: "सेंधा नमक", quantity: "स्वादानुसार", function: "मसाला" }],
+    method: ["दाल भिगोएँ।", "पीस लें।"],
+    source: { text: "मानसोल्लास", century: "1129", author: null, edition: null, locus: null },
+    contested_points: [],
+    axes: {},
+  },
+};
+
+check("validateLocalizedCard parses a well-formed card", () => {
+  const card = validateLocalizedCard(rec, "hi", validRaw);
+  assert.ok(card);
+  assert.equal(card!.record.ingredients[0].name, "सेंधा नमक");
+  assert.equal(card!.record.method.length, 2);
+  assert.equal(card!.labels.ingredient, EN_LABELS.ingredient);
+});
+
+check("validateLocalizedCard rejects an ingredient-count mismatch", () => {
+  const bad = { ...validRaw, record: { ...validRaw.record, ingredients: [] } };
+  assert.equal(validateLocalizedCard(rec, "hi", bad), null);
+});
+
+check("validateLocalizedCard rejects a method-count mismatch", () => {
+  const bad = { ...validRaw, record: { ...validRaw.record, method: ["only one step"] } };
+  assert.equal(validateLocalizedCard(rec, "hi", bad), null);
+});
+
+check("validateLocalizedCard rejects missing labels", () => {
+  const { record } = validRaw;
+  assert.equal(validateLocalizedCard(rec, "hi", { record }), null);
 });
 
 console.log(`\n✓ ${pass} language checks pass\n`);
