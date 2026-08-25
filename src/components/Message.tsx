@@ -47,6 +47,7 @@ export function Message({ message }: { message: ChatMessage }) {
             kind: kindOf(message),
             beats: message.beats ?? {},
             streaming: Boolean(message.streaming),
+            localized: message.localized,
           }}
         />
       ) : message.mode === "indianize" ? (
