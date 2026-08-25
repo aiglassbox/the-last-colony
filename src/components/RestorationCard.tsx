@@ -4,6 +4,12 @@ import { useState } from "react";
 
 import type { TurnKind } from "@/lib/chat/turn";
 import type { CorpusRecord } from "@/lib/corpus/types";
+import {
+  EN_LABELS,
+  type LocalizedCard,
+  type LocalizedLabels,
+  type NutritionAxis,
+} from "@/lib/lang/localized-card";
 import type { Beat } from "@/lib/model/beats";
 import { toPlainText } from "@/lib/model/plain-text";
 import {
@@ -36,6 +42,8 @@ export interface CardData {
   kind: TurnKind;
   beats: Partial<Record<string, string>>;
   streaming: boolean;
+  /** Precomputed localized cards per record slug, on a non-English turn. */
+  localized?: Record<string, LocalizedCard>;
 }
 
 /**
@@ -103,6 +111,20 @@ const TITLES: Record<TurnKind, Record<Beat, string>> = {
   },
 };
 
+/**
+ * The localized-label key for each beat heading. Only the `record` kind maps
+ * cleanly — its headings ("The verdict", "Then", "What changed", "Cook it
+ * today") are the ones the label set was written for. Other kinds relabel these
+ * ("What's in it") and are left in English, so a localized title is applied only
+ * on a record-kind card.
+ */
+const RECORD_LABEL: Record<Beat, "verdict" | "then" | "whatChanged" | "cookToday"> = {
+  VERDICT: "verdict",
+  THEN: "then",
+  WHAT_CHANGED: "whatChanged",
+  RESTORE_TODAY: "cookToday",
+};
+
 /* The download-card button and everything that pointed it at
    `/api/share/...` — SHARE_FOOTER, shareTarget, firstLine, titleCase — are
    gone from this card for now. The image route itself still exists and still
@@ -118,6 +140,14 @@ export function RestorationCard({ data }: { data: CardData }) {
     (ancient?.modern_counterpart_id
       ? data.records.find((r) => r.id === ancient.modern_counterpart_id)
       : null) ?? null;
+
+  // The localized card for the ancient record, if this turn carried one. Every
+  // field below prefers the localization and falls back to the English record,
+  // so a missing or partial localization is never a blank — only untranslated.
+  const loc = ancient ? (data.localized?.[ancient.slug] ?? null) : null;
+  const labels: LocalizedLabels = loc?.labels ?? EN_LABELS;
+  const titleFor = (beat: Beat): string =>
+    loc && data.kind === "record" ? labels[RECORD_LABEL[beat]] : TITLES[data.kind][beat];
 
   /**
    * Whether a beat has anything under its heading.
@@ -179,7 +209,8 @@ export function RestorationCard({ data }: { data: CardData }) {
           {/* If the model wrote nothing — no key, a dropped stream — the
               editorial verdict on the record stands in. It is the same line the
               share image uses, so the card is never blank and never invents. */}
-          {data.beats.VERDICT ?? (data.streaming ? "" : (ancient?.share_verdict ?? ""))}
+          {data.beats.VERDICT ??
+            (data.streaming ? "" : (loc?.record.verdict ?? ancient?.share_verdict ?? ""))}
           {data.streaming &&
             !data.beats.THEN &&
             (data.beats.VERDICT ? <span className="caret" aria-hidden /> : <Waiting />)}
@@ -208,7 +239,7 @@ export function RestorationCard({ data }: { data: CardData }) {
           used to sit here were a second telling of the recipe printed
           immediately above the recipe itself, and they are staying gone. */}
       {shows("WHAT_CHANGED") && (
-      <Beat beat="WHAT_CHANGED" kind={data.kind}>
+      <Beat beat="WHAT_CHANGED" kind={data.kind} title={titleFor("WHAT_CHANGED")}>
         <Prose text={data.beats.WHAT_CHANGED} streaming={data.streaming} />
       </Beat>
       )}
@@ -218,7 +249,7 @@ export function RestorationCard({ data }: { data: CardData }) {
           are the only comparison the card has left to make. */}
       {ancient?.substitution_story && (
         <div className="card-axes">
-          <NutritionDelta record={ancient} kind={data.kind} />
+          <NutritionDelta record={ancient} kind={data.kind} loc={loc} labels={labels} />
         </div>
       )}
 
@@ -226,6 +257,7 @@ export function RestorationCard({ data }: { data: CardData }) {
       <Beat
         beat="THEN"
         kind={data.kind}
+        title={titleFor("THEN")}
         badge={ancient?.dish_name_source ?? undefined}
       >
         <Prose text={data.beats.THEN} streaming={data.streaming} />
@@ -242,11 +274,11 @@ export function RestorationCard({ data }: { data: CardData }) {
                 as it describes them. The version you can cook is its own
                 section below, the same way a dish with no record gets one — an
                 ancient dish was the only kind that had lost it. */}
-            <IngredientTable record={ancient} />
+            <IngredientTable record={ancient} loc={loc} labels={labels} />
             {ancient.provenance_class !== "MODERN_DISH" && (
               <>
-                <Method record={ancient} />
-                <SourceStrip record={ancient} onOpen={() => setDrawer(true)} />
+                <Method record={ancient} loc={loc} labels={labels} />
+                <SourceStrip record={ancient} loc={loc} labels={labels} onOpen={() => setDrawer(true)} />
               </>
             )}
             {ancient.provenance_class === "MODERN_DISH" && ancient.contested_points.length > 0 && (
@@ -258,7 +290,7 @@ export function RestorationCard({ data }: { data: CardData }) {
                   maxWidth: "62ch",
                 }}
               >
-                {ancient.contested_points.map((c) => (
+                {(loc?.record.contested_points ?? ancient.contested_points).map((c) => (
                   <li key={c} style={{ fontSize: "0.9rem", marginBottom: "0.35rem" }}>
                     {c}
                   </li>
@@ -277,11 +309,11 @@ export function RestorationCard({ data }: { data: CardData }) {
           from the beat the model wrote, and both arrive under the same
           heading in the same place. */}
       {shows("RESTORE_TODAY") && (
-      <Beat beat="RESTORE_TODAY" kind={data.kind}>
+      <Beat beat="RESTORE_TODAY" kind={data.kind} title={titleFor("RESTORE_TODAY")}>
         {ancient?.restore_today ? (
           <>
             <Prose text={data.beats.RESTORE_TODAY} streaming={data.streaming} />
-            <RestoreToday record={ancient} />
+            <RestoreToday record={ancient} loc={loc} />
           </>
         ) : (
           <ModernRecipe text={data.beats.RESTORE_TODAY} streaming={data.streaming} />
@@ -308,18 +340,21 @@ function Beat({
   beat,
   kind,
   badge,
+  title,
   children,
 }: {
   beat: Beat;
   kind: TurnKind;
   badge?: string;
+  /** Localized heading; falls back to the English `TITLES` entry. */
+  title?: string;
   children: React.ReactNode;
 }) {
   return (
     <section>
       <div className="beat-head">
         <h3 className="mono" style={{ margin: 0, fontWeight: 400, color: "var(--ink-muted)" }}>
-          {TITLES[kind][beat]}
+          {title ?? TITLES[kind][beat]}
         </h3>
         {badge && (
           <span className="display" style={{ fontSize: "0.95rem", color: "var(--orange)" }}>
@@ -428,8 +463,20 @@ function Prose({ text, streaming }: { text?: string; streaming: boolean }) {
   );
 }
 
-function IngredientTable({ record }: { record: CorpusRecord }) {
+function IngredientTable({
+  record,
+  loc,
+  labels,
+}: {
+  record: CorpusRecord;
+  loc: LocalizedCard | null;
+  labels: LocalizedLabels;
+}) {
   if (!record.ingredients.length) return null;
+  // Localized rows are validated index-aligned with the record, so index maps
+  // directly. A missing localization leaves `li` undefined and each field falls
+  // back to the English record.
+  const li = (idx: number) => loc?.record.ingredients[idx];
 
   /**
    * Which columns this record can actually fill.
@@ -463,9 +510,9 @@ function IngredientTable({ record }: { record: CorpusRecord }) {
   const withFunction = record.ingredients.some((i) => meaningful(i.function));
 
   const headers = [
-    "Ingredient",
-    ...(withQuantity ? ["Quantity"] : []),
-    ...(withFunction ? ["Why it was there"] : []),
+    labels.ingredient,
+    ...(withQuantity ? [labels.quantity] : []),
+    ...(withFunction ? [labels.whyItWasThere] : []),
   ];
 
   const silences = [
@@ -496,27 +543,34 @@ function IngredientTable({ record }: { record: CorpusRecord }) {
           </tr>
         </thead>
         <tbody>
-          {record.ingredients.map((i) => (
-            <tr key={i.name}>
-              <td style={cell}>
-                {i.name}
-                {i.sanskrit && (
-                  <span style={{ color: "var(--orange)", fontStyle: "italic" }}> · {i.sanskrit}</span>
-                )}
-                {!withQuantity && quantityOf(i) && (
-                  <span style={{ color: "var(--ink-muted)" }}> ({quantityOf(i)})</span>
-                )}
-              </td>
-              {withQuantity && (
-                <td style={{ ...cell, color: "var(--ink-soft)", whiteSpace: "nowrap" }}>
-                  {quantityOf(i) ?? "—"}
+          {record.ingredients.map((i, idx) => {
+            const l = li(idx);
+            const name = l?.name ?? i.name;
+            const qty = l?.quantity ?? quantityOf(i);
+            const fn = l?.function ?? meaningful(i.function);
+            return (
+              <tr key={i.name}>
+                <td style={cell}>
+                  {name}
+                  {/* The source-language term stays as itself — a proper noun. */}
+                  {i.sanskrit && (
+                    <span style={{ color: "var(--orange)", fontStyle: "italic" }}> · {i.sanskrit}</span>
+                  )}
+                  {!withQuantity && qty && (
+                    <span style={{ color: "var(--ink-muted)" }}> ({qty})</span>
+                  )}
                 </td>
-              )}
-              {withFunction && (
-                <td style={{ ...cell, color: "var(--ink-soft)" }}>{meaningful(i.function) ?? "—"}</td>
-              )}
-            </tr>
-          ))}
+                {withQuantity && (
+                  <td style={{ ...cell, color: "var(--ink-soft)", whiteSpace: "nowrap" }}>
+                    {qty ?? "—"}
+                  </td>
+                )}
+                {withFunction && (
+                  <td style={{ ...cell, color: "var(--ink-soft)" }}>{fn ?? "—"}</td>
+                )}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
 
@@ -566,15 +620,24 @@ const cell: React.CSSProperties = {
   verticalAlign: "top",
 };
 
-function Method({ record }: { record: CorpusRecord }) {
+function Method({
+  record,
+  loc,
+  labels,
+}: {
+  record: CorpusRecord;
+  loc: LocalizedCard | null;
+  labels: LocalizedLabels;
+}) {
   if (!record.method_reconstructed.length) return null;
+  const steps = loc?.record.method ?? record.method_reconstructed;
   return (
     <div style={{ marginTop: "1.1rem" }}>
       <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
-        The method
+        {labels.theMethod}
       </div>
       <ol style={{ margin: 0, paddingLeft: "1.15rem", maxWidth: "62ch" }}>
-        {record.method_reconstructed.map((s, i) => (
+        {steps.map((s, i) => (
           <li key={i} style={{ marginBottom: "0.4rem", fontSize: "0.93rem" }}>
             {s}
           </li>
@@ -584,8 +647,19 @@ function Method({ record }: { record: CorpusRecord }) {
   );
 }
 
-function SourceStrip({ record, onOpen }: { record: CorpusRecord; onOpen: () => void }) {
+function SourceStrip({
+  record,
+  loc,
+  labels,
+  onOpen,
+}: {
+  record: CorpusRecord;
+  loc: LocalizedCard | null;
+  labels: LocalizedLabels;
+  onOpen: () => void;
+}) {
   const verified = record.verification.status === "editor_verified";
+  const src = loc?.record.source;
   return (
     <button
       type="button"
@@ -608,19 +682,21 @@ function SourceStrip({ record, onOpen }: { record: CorpusRecord; onOpen: () => v
     >
       <div style={{ minWidth: 0 }}>
         <div className="mono" style={{ color: "var(--ink-muted)" }}>
-          Source
+          {labels.source}
         </div>
         <div className="display" style={{ fontSize: "0.98rem" }}>
-          {record.source.text}
+          {src?.text ?? record.source.text}
         </div>
         <div style={{ fontSize: "0.82rem", color: "var(--ink-soft)" }}>
           {verified
-            ? [record.source.locus, record.source.edition].filter(Boolean).join(" · ")
-            : "Citation not yet verified, so no verse or page is shown"}
+            ? [src?.locus ?? record.source.locus, src?.edition ?? record.source.edition]
+                .filter(Boolean)
+                .join(" · ")
+            : labels.citationUnverified}
         </div>
       </div>
       <span className="mono" style={{ marginLeft: "auto", color: "var(--orange)" }}>
-        Open
+        {labels.open}
       </span>
     </button>
   );
@@ -633,22 +709,25 @@ function SourceStrip({ record, onOpen }: { record: CorpusRecord; onOpen: () => v
  * Straight from `record.restore_today` — quantities, timings and steps are the
  * record's, not the model's, for the same reason the historical table is.
  */
-function RestoreToday({ record }: { record: CorpusRecord }) {
+function RestoreToday({ record, loc }: { record: CorpusRecord; loc: LocalizedCard | null }) {
   const r = record.restore_today!;
+  // Localized restore_today is validated index-aligned, so fall back per array.
+  const ingredients = loc?.record.restore_today?.ingredients ?? r.ingredients;
+  const steps = loc?.record.restore_today?.steps ?? r.steps;
   return (
     <div style={{ marginTop: "0.9rem" }}>
       <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
         {r.time_min} minutes · kirana ingredients
       </div>
       <ul style={{ margin: "0 0 0.9rem", paddingLeft: "1.1rem", maxWidth: "62ch" }}>
-        {r.ingredients.map((i) => (
-          <li key={i} style={{ fontSize: "0.9rem", marginBottom: "0.22rem" }}>
+        {ingredients.map((i, k) => (
+          <li key={k} style={{ fontSize: "0.9rem", marginBottom: "0.22rem" }}>
             {i}
           </li>
         ))}
       </ul>
       <ol style={{ margin: 0, paddingLeft: "1.15rem", maxWidth: "62ch" }}>
-        {r.steps.map((s, i) => (
+        {steps.map((s, i) => (
           <li key={i} style={{ fontSize: "0.92rem", marginBottom: "0.4rem" }}>
             {s}
           </li>
@@ -679,18 +758,33 @@ const ARROW: Record<string, string> = {
  * row of arrows invites being read as a health claim about the reader, and it
  * is a comparison between two recipes.
  */
-function NutritionDelta({ record, kind }: { record: CorpusRecord; kind: TurnKind }) {
+function NutritionDelta({
+  record,
+  kind,
+  loc,
+  labels,
+}: {
+  record: CorpusRecord;
+  kind: TurnKind;
+  loc: LocalizedCard | null;
+  labels: LocalizedLabels;
+}) {
   const delta = record.substitution_story?.nutrition_delta ?? {};
   const entries = Object.entries(delta);
   if (!entries.length) return null;
+  // The localized axis name, else the localized label set, else the English key.
+  const axisLabel = (axis: string): string =>
+    loc?.record.axes[axis as NutritionAxis] ?? labels.axes[axis as NutritionAxis] ?? axis.replace(/_/g, " ");
   return (
     <div style={{ marginTop: "1rem" }}>
       <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
         {/* On a dish with no older version these axes are not a then and a now
             — they are the plate as it is usually made against the one built
             from the swap table. Saying "then" here would smuggle back the past
-            the headings above just stopped claiming. */}
-        {kind === "record" ? "Then → now, by axis" : "Usual → restored, by axis"}
+            the headings above just stopped claiming. Only the record-kind
+            heading has a localized label; the "usual → restored" variant stays
+            English. */}
+        {kind === "record" ? labels.byAxis : "Usual → restored, by axis"}
       </div>
       <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
         {entries.map(([axis, dir]) => (
@@ -703,13 +797,12 @@ function NutritionDelta({ record, kind }: { record: CorpusRecord; kind: TurnKind
               fontSize: "0.82rem",
             }}
           >
-            {axis.replace(/_/g, " ")} <strong>{ARROW[dir] ?? "→"}</strong>
+            {axisLabel(axis)} <strong>{ARROW[dir] ?? "→"}</strong>
           </span>
         ))}
       </div>
       <p style={{ margin: "0.6rem 0 0", fontSize: "0.8rem", color: "var(--ink-muted)" }}>
-        A comparison between two versions of one dish. Not a health claim, and not advice. For
-        anything personal, talk to a doctor or a dietitian.
+        {labels.deltaCaption}
       </p>
     </div>
   );
