@@ -1,0 +1,101 @@
+{
+  "_note": "Native-script variants are harvested from the corpus records' own aliases (authoritative) or verified via corpus:check-multilingual. Roman/Hinglish variants are authored. `english` is both the English anchor query and the expected slug. Distinctive dish tokens only (no short ambiguous ones like 'dal').",
+  "dishes": [
+    {
+      "english": "idli",
+      "variants": {
+        "hi": "इडली",
+        "ta": "இட்லி",
+        "bn": "ইডলি",
+        "kn": "ಇಡ್ಲಿ",
+        "te": "ఇడ్లీ",
+        "gu": "ઈડલી",
+        "roman": "idli",
+        "hinglish": "idli kaise banti hai"
+      }
+    },
+    {
+      "english": "dosa",
+      "variants": {
+        "ta": "தோசை",
+        "hi": "डोसा",
+        "bn": "দোসা",
+        "kn": "ದೋಸೆ",
+        "roman": "dosa",
+        "hinglish": "dosa kaise banate hain"
+      }
+    },
+    {
+      "english": "khichdi",
+      "variants": {
+        "hi": "खिचड़ी",
+        "gu": "ખીચડી",
+        "roman": "khichdi",
+        "hinglish": "khichdi kaise banti hai"
+      }
+    },
+    {
+      "english": "poha",
+      "variants": {
+        "hi": "पोहा",
+        "roman": "poha",
+        "hinglish": "poha kaise banaye"
+      }
+    },
+    {
+      "english": "upma",
+      "variants": {
+        "hi": "उपमा",
+        "ta": "உப்புமா",
+        "te": "ఉప్మా",
+        "roman": "upma",
+        "hinglish": "upma recipe"
+      }
+    },
+    {
+      "english": "rasam",
+      "variants": {
+        "hi": "रसम",
+        "ta": "ரசம்",
+        "roman": "rasam"
+      }
+    },
+    {
+      "english": "vada",
+      "variants": {
+        "hi": "वड़ा",
+        "ta": "வடை",
+        "roman": "vada"
+      }
+    },
+    {
+      "english": "kheer",
+      "variants": {
+        "hi": "खीर",
+        "roman": "kheer"
+      }
+    },
+    {
+      "english": "laddu",
+      "variants": {
+        "hi": "लड्डू",
+        "roman": "laddu"
+      }
+    },
+    {
+      "english": "roti",
+      "variants": {
+        "hi": "रोटी",
+        "roman": "roti",
+        "hinglish": "roti kaise banate hain"
+      }
+    },
+    {
+      "english": "bedhai",
+      "variants": {
+        "hi": "बेदई",
+        "roman": "bedhai"
+      }
+    }
+  ]
+}
