@@ -210,6 +210,19 @@ reader's language while the card structure and every content gate stay unchanged
 A slug entry has no detected language, so `langRule` is empty and it replies in
 English.
 
+The record-derived half of the card is localized the same turn, from data rather
+than the model. On a non-English hit the route reads the precomputed localized
+card and rides it along on the `meta` event:
+
+```
+loadLocalized(record, lang)   (src/lib/lang/localized-store.ts)
+  │   reads corpus/localized/<lang>/<slug>.json — a file, no model call
+  │   null on a missing/stale file → the card renders the English record
+  │
+  └─ emit meta { records, lang, localized }   → client stores it on the message
+                                              → RestorationCard renders it, per-field English fallback
+```
+
 ```
 retrieveForDish(query)
   │
