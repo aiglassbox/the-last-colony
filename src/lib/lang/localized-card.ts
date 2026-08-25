@@ -37,6 +37,10 @@ export interface LocalizedLabels {
   quantity: string;
   whyItWasThere: string;
   theMethod: string;
+  /** The word "minutes" in the restore-today meta line. */
+  minutes: string;
+  /** "kirana ingredients" — the everyday-groceries note in that meta line. */
+  kiranaIngredients: string;
   source: string;
   open: string;
   citationUnverified: string;
@@ -100,6 +104,8 @@ export const EN_LABELS: LocalizedLabels = {
   quantity: "Quantity",
   whyItWasThere: "Why it was there",
   theMethod: "The method",
+  minutes: "minutes",
+  kiranaIngredients: "kirana ingredients",
   source: "Source",
   open: "Open",
   citationUnverified: "Citation not yet verified, so no verse or page is shown",
@@ -135,8 +141,8 @@ function coerceLabels(v: unknown): LocalizedLabels | null {
   const a = axes as Record<string, unknown>;
   const keys: Array<keyof LocalizedLabels> = [
     "verdict", "then", "whatChanged", "cookToday", "ingredient", "quantity",
-    "whyItWasThere", "theMethod", "source", "open", "citationUnverified",
-    "byAxis", "deltaCaption",
+    "whyItWasThere", "theMethod", "minutes", "kiranaIngredients", "source",
+    "open", "citationUnverified", "byAxis", "deltaCaption",
   ];
   const out: Record<string, unknown> = {};
   for (const k of keys) {

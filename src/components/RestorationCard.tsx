@@ -313,7 +313,7 @@ export function RestorationCard({ data }: { data: CardData }) {
         {ancient?.restore_today ? (
           <>
             <Prose text={data.beats.RESTORE_TODAY} streaming={data.streaming} />
-            <RestoreToday record={ancient} loc={loc} />
+            <RestoreToday record={ancient} loc={loc} labels={labels} />
           </>
         ) : (
           <ModernRecipe text={data.beats.RESTORE_TODAY} streaming={data.streaming} />
@@ -709,7 +709,15 @@ function SourceStrip({
  * Straight from `record.restore_today` — quantities, timings and steps are the
  * record's, not the model's, for the same reason the historical table is.
  */
-function RestoreToday({ record, loc }: { record: CorpusRecord; loc: LocalizedCard | null }) {
+function RestoreToday({
+  record,
+  loc,
+  labels,
+}: {
+  record: CorpusRecord;
+  loc: LocalizedCard | null;
+  labels: LocalizedLabels;
+}) {
   const r = record.restore_today!;
   // Localized restore_today is validated index-aligned, so fall back per array.
   const ingredients = loc?.record.restore_today?.ingredients ?? r.ingredients;
@@ -717,7 +725,7 @@ function RestoreToday({ record, loc }: { record: CorpusRecord; loc: LocalizedCar
   return (
     <div style={{ marginTop: "0.9rem" }}>
       <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
-        {r.time_min} minutes · kirana ingredients
+        {r.time_min} {labels.minutes} · {labels.kiranaIngredients}
       </div>
       <ul style={{ margin: "0 0 0.9rem", paddingLeft: "1.1rem", maxWidth: "62ch" }}>
         {ingredients.map((i, k) => (
