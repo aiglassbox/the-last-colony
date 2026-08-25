@@ -31,6 +31,11 @@ import { splitSentences } from "./health";
  * bad answer, and a blank card is worse.
  */
 
+// ponytail: the class tokens are Latin, so this bare-word cut fires even inside
+// a Hindi or Tamil reply — the highest-stakes leak (a model typing "ATTESTED")
+// is caught in every language. The sentence-level GRADING repair below is
+// English-syntax and English-only; the non-English grading claim is held off by
+// the in-language prompt rule and checked by `npm run guards:check-multilingual`.
 /** The class names. Shared with the audit so the two cannot drift apart. */
 export const PROVENANCE_CLASS_SOURCE = String.raw`\b(?:attested|reconstructed|inferred)\b`;
 
