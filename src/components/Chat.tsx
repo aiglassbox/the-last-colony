@@ -23,6 +23,8 @@ import { flushSync } from "@/lib/chat/sync";
 import type { TurnKind, TurnMode } from "@/lib/chat/turn";
 import { PROSE, Typewriter } from "@/lib/chat/typewriter";
 import type { CorpusRecord } from "@/lib/corpus/types";
+import type { LocalizedCard } from "@/lib/lang/localized-card";
+import type { SupportedLang } from "@/lib/lang/types";
 import {
   getServerSnapshot as railServerSnapshot,
   getSnapshot as railSnapshot,
@@ -72,6 +74,8 @@ interface StreamEvent {
   mode?: TurnMode;
   kind?: TurnKind | null;
   records?: CorpusRecord[];
+  lang?: SupportedLang;
+  localized?: Record<string, LocalizedCard>;
   beat?: string;
   text?: string;
   message?: string;
@@ -353,6 +357,8 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                 mode: evt.mode ?? "restoration",
                 kind: evt.kind ?? undefined,
                 records,
+                lang: evt.lang,
+                localized: evt.localized,
               }));
               // Assigned unconditionally, including when empty. Guarding this on
               // `records.length` left the previous dish active through any turn

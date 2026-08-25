@@ -3,6 +3,8 @@
 import { parseCommand } from "@/lib/chat/commands";
 import type { TurnKind, TurnMode } from "@/lib/chat/turn";
 import type { CorpusRecord } from "@/lib/corpus/types";
+import type { LocalizedCard } from "@/lib/lang/localized-card";
+import type { SupportedLang } from "@/lib/lang/types";
 
 import { fetchConversations, scheduleSync } from "./sync";
 
@@ -31,6 +33,12 @@ export interface ChatMessage {
   kind?: TurnKind;
   /** Present on restoration turns — drives the card. */
   records?: CorpusRecord[];
+  /** The reader's language, when the reply was authored in one. Drives which
+   *  side of the card (English record vs localized) renders. */
+  lang?: SupportedLang;
+  /** Precomputed localized card per record slug, when the turn was non-English.
+   *  Persisted so a reloaded thread keeps the localized card. */
+  localized?: Record<string, LocalizedCard>;
   /**
    * What the reader asked for, kept on the reply.
    *
