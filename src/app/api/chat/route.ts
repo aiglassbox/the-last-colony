@@ -7,6 +7,7 @@ import { fileCorpus } from "@/lib/corpus/load";
 import type { CorpusRecord } from "@/lib/corpus/types";
 import { normalize } from "@/lib/lang/normalize";
 import { replyInstruction } from "@/lib/lang/reply-instruction";
+import { loadLocalized } from "@/lib/lang/localized-store";
 import { renderIndianizationBlock } from "@/lib/indianization";
 import { BeatParser, INDIANIZE_BEATS, MarkerParser, type StreamingParser } from "@/lib/model/beats";
 import { renderComponentSwaps, renderCorpusBlock, renderRecord } from "@/lib/model/corpus-block";
@@ -445,12 +446,31 @@ export async function POST(request: NextRequest) {
            */
           const modernDish = records[0].provenance_class === "MODERN_DISH";
           const kind: TurnKind = modernDish ? "modern" : "record";
+
+          // Localize the record-derived half of the card (table, method, source,
+          // labels) into the reader's language from the precomputed store. No
+          // model call here — a file read — and every field falls back to the
+          // English record when a localization is missing, short, or stale.
+          const cardLang =
+            normalized && !normalized.fell_back && normalized.lang !== "en"
+              ? normalized.lang
+              : undefined;
+          const localized = cardLang
+            ? Object.fromEntries(
+                records
+                  .map((r) => [r.slug, loadLocalized(r, cardLang)] as const)
+                  .filter(([, card]) => card !== null),
+              )
+            : undefined;
+
           emit({
             type: "meta",
             mode: "restoration" satisfies TurnMode,
             kind,
             top_score: retrieval.top_score,
             records,
+            ...(cardLang && { lang: cardLang }),
+            ...(localized && Object.keys(localized).length > 0 && { localized }),
           });
           track("dish_restored", {
             query: label,
