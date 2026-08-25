@@ -58,9 +58,16 @@ leaning on vector search. The task brief marked cross-lingual embeddings
 "recommended", but the retrieval code disagrees: vectors here are a
 decline-not-decide fallback (a wrong ancestor is worse than none), and making
 them the primary path for a whole language class would move retrieval onto the
-seam the three gates exist to distrust. Path A is kept as a benchmark (see the
-eval file base) so the choice is revisited from data, not asserted.
-→ `src/lib/lang/normalize.ts`, `src/lib/retrieval/retrieve.ts`
+seam the three gates exist to distrust. Path A was kept as a benchmark so the
+choice was made from data, not asserted — and the data confirms it. The A/B eval
+(`eval/multilingual/`, run on the real production surface: `normalize` +
+`retrieveForDish` for B, `searchVectors` for A) scores **Path B 41/41** correct
+across 41 queries in 8 language buckets, against **Path A 34/41** — the raw-vector
+path mis-retrieves poha, kheer and bedhai regardless of language, exactly the
+decline-not-decide failure the gates guard against. Gemini embeddings are strongly
+cross-lingual (39/41 consistent), so Path A stays recorded as the benchmark to
+revisit *if* retrieval ever moves vector-first, but translate-then-BM25 ships.
+→ `src/lib/lang/normalize.ts`, `src/lib/retrieval/retrieve.ts`, `eval/multilingual/report.md`
 
 **Detection + translation is one greedy model call, not a JS language library.**
 Libraries detect Indic scripts passably but fail on the actual target inputs —
@@ -89,11 +96,28 @@ layout work outside this feature's scope, so it is detected but routed to the
 English fallback pending a senior review. The eight active languages are Hindi,
 Bengali, Marathi, Telugu, Tamil, Gujarati, Kannada, English.
 
-**Reply-language mirroring is separate from input handling.** Getting a
-non-English query to retrieve correctly (done) is distinct from authoring the
-reply back in the user's language and register (the next step). They ship in
-that order so retrieval correctness lands first, at lowest risk, without the
-English-tuned card discipline having to hold in eight scripts at the same time.
+**Reply-language mirroring shipped after input handling, deliberately in that
+order.** Getting a non-English query to retrieve correctly landed first, at
+lowest risk; authoring the reply back in the user's language and register came
+second, once retrieval was proven. Mirroring is three parts: the `VOICE`
+`## WHICH LANGUAGE` block was rewritten from English-only to reply-in-the-
+question's-language-and-register (`BRIEF_PROMPT` untouched, per the freeze);
+`reply-instruction.ts` builds the per-turn rule (which language, native/roman/
+Hinglish register, or English + a supported-languages line on a fallback),
+appended to both turn builders in the chat route like `PLAIN_WORDS`; and the
+register is mirrored, never "corrected" — native script in, native script out.
+→ `src/lib/model/system-prompt.ts`, `src/lib/lang/reply-instruction.ts`, `src/app/api/chat/route.ts`
+
+**Guards stay English-lexical; non-English coverage is the prompt plus a live
+check, not a per-language wordlist.** The health-claim and provenance strippers
+are English regex and go blind in Hindi or Tamil. Translating every banned
+phrase into seven languages would be an unbounded, low-confidence net that guards
+worse than the alternative, so the in-language defence is the prompt rule in
+`reply-instruction.ts` ("no health claims … in {lang}"), verified by
+`npm run guards:check-multilingual` (a real non-English turn, judged by a second
+model call). The highest-stakes leak — a model typing the Latin token `ATTESTED`
+— is still caught in any language, because the provenance class tokens are Latin.
+→ `src/lib/model/health.ts`, `src/lib/model/provenance.ts`, `scripts/check-guards-multilingual.ts`
 
 ---
 

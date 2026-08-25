@@ -77,6 +77,7 @@ src/lib/model/     system prompt, corpus block, streaming beat parser
 src/lib/chat/      conversation state as an external store, localStorage-backed
 src/app/           chat surface, /dish/[slug], API routes, 1080×1350 share card
 tests/             132 hand-checked retrieval queries + multilingual query set
+eval/multilingual/ Path A vs Path B language-retrieval benchmark + recorded report
 ```
 
 ### Two kinds of turn
@@ -199,15 +200,32 @@ the translation. `npm run corpus:check-multilingual` exercises this end to end
 This is the translate-then-retrieve path. It deliberately reuses the English
 keyword engine below unchanged rather than leaning on cross-lingual vector
 search — a wrong ancestor is worse than no ancestor, and the keyword gates are
-where that discipline lives.
+where that discipline lives. That choice is measured, not asserted: the A/B eval
+in `eval/multilingual/` runs both approaches on the real retrieval surface and
+scores translate-then-BM25 at 41/41 against raw-vector's 34/41 (the vector path
+mis-retrieves several dishes regardless of language). `npm run eval:multilingual`
+regenerates `eval/multilingual/report.md`.
+
+The reply is authored back in the user's language and register. `normalize` also
+reports the language and register, and `src/lib/lang/reply-instruction.ts` turns
+that into a per-turn instruction appended to the model turn — reply in Tamil in
+its native script, or in Hinglish in Latin letters, mirroring exactly what the
+reader typed and never "correcting" the script. An unsupported or weakly-detected
+language replies in English and names, in one line, the languages that are
+supported. The English health-claim and provenance strippers cannot see an
+in-language violation, so that defence moves into the prompt rule and is verified
+live by `npm run guards:check-multilingual`; the Latin provenance tokens
+(`ATTESTED` and friends) are still stripped in any language.
 
 ### Retrieval
 
 Keyword-first, exactly as the brief requires. BM25 over dish names and aliases
 only — ingredients and method belong to the vector index, and mixing them in
-makes "coconut" retrieve six records. Vectors are the fallback (`searchVectors`
-is in the repository interface and currently returns nothing, which is the
-correct behaviour for a fallback that is not wired up).
+makes "coconut" retrieve six records. Vectors are the fallback (`searchVectors`,
+wired to the 199-record index and on by default since the ordering fix): on a
+keyword miss they ride along as *candidates* on a still-empty result, for the
+model to promote only on a RESTORE verdict — never a retrieval decision on their
+own. Set `VECTOR_FALLBACK=off` to disable.
 
 Three gates decide when to decline, because a wrong ancestor is worse than no
 ancestor:
@@ -447,15 +465,16 @@ closest thing here to personal data and should be asked for on purpose.
   the `fonts` option in `src/app/api/share/[slug]/route.tsx`.
 - **Vector retrieval is a stub.** The interface is in place and threshold
   discipline is written to cover it; the pgvector implementation is not.
-- **Multilingual: input is live, reply mirroring is in progress.** A query in
-  any of the eight active languages (Hindi, Bengali, Marathi, Telugu, Tamil,
-  Gujarati, Kannada, English), in native script or Hinglish, is now detected and
-  translated to English before retrieval (`src/lib/lang/`), so it finds the right
-  record. Authoring the *reply* back in the user's language and register is the
-  next step and not yet shipped — replies are still written in English for now.
-  There is no UI language toggle: detection is automatic from the message.
-  Urdu is deferred (right-to-left layout is out of scope pending review); it is
-  detected but answered in English.
+- **Multilingual: input and reply both live.** A query in any of the eight
+  active languages (Hindi, Bengali, Marathi, Telugu, Tamil, Gujarati, Kannada,
+  English), in native script or Hinglish, is detected and translated to English
+  before retrieval (`src/lib/lang/`), and the reply is authored back in the
+  reader's own language and register (`reply-instruction.ts`). There is no UI
+  language toggle: detection is automatic from the message. The choice of
+  translate-then-retrieve over cross-lingual embeddings is backed by the A/B eval
+  in `eval/multilingual/`. Urdu is deferred (right-to-left layout is out of scope
+  pending review); it is detected but answered in English, with a line naming the
+  supported languages.
 - **Analytics goes to the console.** `track()` is a one-function shim over a
   real sink.
 - **Eight ancient records await editorial verification** — see above. This is

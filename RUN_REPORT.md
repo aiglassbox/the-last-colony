@@ -3,9 +3,13 @@
 Ran on 2026-08-21. Node v24.16.0, npm 12.0.1. Windows 11.
 Every `npm run` script in both packages, invoked with `.env` already in place.
 
-**Addendum 2026-08-22 — multilingual accessibility (Slice 1).** New language
-normalize step (`src/lib/lang/`) and its two checks added below. Full gate
-(`npm run check`, `npm run lint`, `npm run build`) re-run clean after the change.
+**Addendum 2026-08-22 — multilingual accessibility (Slices 1–3).** New language
+normalize step (`src/lib/lang/`), reply-language mirroring (`reply-instruction.ts`
++ the `VOICE` block), non-English guard coverage, and the Path A vs B eval
+(`eval/multilingual/`). Their checks are the four multilingual rows below
+(`lang:check`, `corpus:check-multilingual`, `guards:check-multilingual`,
+`eval:multilingual`). Full gate (`npm run check`, `npm run lint`, `npm run build`)
+re-run clean after the changes.
 
 ## Legend
 
@@ -27,6 +31,8 @@ normalize step (`src/lib/lang/`) and its two checks added below. Full gate
 | `npm run corpus:check-retrieval` | check-retrieval.ts | **PASS** | 132/132 hand-checked queries pass. Reranker now DeepInfra Qwen3-Reranker-4B (was Pinecone bge, which 429'd on its 500/month cap). No rerank errors, no degradation. Fixed by adding `DEEPINFRA_API_KEY` + `RERANK_PROVIDER=deepinfra` to root `.env` — see below. |
 | `npm run lang:check` | check-lang.ts | **PASS** | 8/8 deterministic checks for the language pure functions (parse, fallback, `isSupported`). No model, no network — keyless, safe anywhere. |
 | `npm run corpus:check-multilingual` | check-multilingual.ts | **PASS** | 9/9 end-to-end: native-script + Hinglish queries across the 8 active languages normalize to English and retrieve the right record; junk still declines. Live (calls the model), so deliberately kept out of `npm run check`. Stable across repeated runs after `temperature: 0` + dish-name-for-search normalization. |
+| `npm run guards:check-multilingual` | check-guards-multilingual.ts | **PASS** | Non-English guard leak check. Drives a health-baiting Hindi and Tamil turn through the real `SYSTEM_PROMPT` + `replyInstruction`, then a second model call judges the reply — both CLEAN (the model pivots to comparative nutrition in-language rather than a body claim). Live, not in `check`. |
+| `npm run eval:multilingual` | eval/multilingual/run.ts | **PASS** | Path A vs Path B benchmark on the real retrieval surface. **Path B (production, translate→BM25) 41/41 absolute; Path A (raw→vector) 34/41** across 41 variants / 11 dishes / 8 language buckets. Confirms the translate-then-retrieve routing. Live; writes `eval/multilingual/report.{md,json}` (committed). |
 | `npm run check:routing` | check-routing.ts | **PASS** | 166/166 routing checks pass. One informational `[rate-limit]` line: no `x-forwarded-for`/`x-real-ip` in test request, so callers share one 240/5min allowance. Set header at proxy in prod. |
 | `npm run check:cache` | check-cache.ts | **PASS** | Gemini context cache live and read. model `gemini-3.6-flash`, system prompt 31757 chars, 7634 tokens cached, 100% hit rate over 2 turns. |
 | `npm run check` | (validate + check-retrieval + check:routing) | **PASS (degraded)** | Aggregate of the three above. Green overall; carries the Pinecone-rerank 429 degradation. |
