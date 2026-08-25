@@ -8,6 +8,7 @@ import type { CorpusRecord } from "@/lib/corpus/types";
 import { isDeviceId } from "@/lib/db/conversations";
 import { geoProps } from "@/lib/events/geo";
 import { normalize } from "@/lib/lang/normalize";
+import { replyInstruction } from "@/lib/lang/reply-instruction";
 import { renderIndianizationBlock } from "@/lib/indianization";
 import { BeatParser, INDIANIZE_BEATS, MarkerParser, type StreamingParser } from "@/lib/model/beats";
 import { renderComponentSwaps, renderCorpusBlock, renderRecord } from "@/lib/model/corpus-block";
@@ -162,6 +163,11 @@ export async function POST(request: NextRequest) {
   const retrieval = slug
     ? await retrieveBySlug(slug)
     : await retrieveForDish(normalized!.english);
+
+  // Authored in the user's language, appended after the turn instruction the
+  // same way PLAIN_WORDS is. A slug entry has no detected language, so it
+  // replies in English.
+  const langRule = normalized ? replyInstruction(normalized) : "";
 
   // A slug names a record directly, so an empty result means the slug is not
   // one. Asking the model about it invites an answer about some other dish
@@ -523,7 +529,7 @@ export async function POST(request: NextRequest) {
 
           const iter = call(
             `${renderCorpusBlock(records)}\n\nThis is a RESTORATION turn. Emit the four ` +
-              `§markers§.${noPast}${shape}${PLAIN_WORDS}${directive}\n\nUser said: ${label}`,
+              `§markers§.${noPast}${shape}${PLAIN_WORDS}${directive}${langRule}\n\nUser said: ${label}`,
           )[Symbol.asyncIterator]();
           auditRecords = records;
           proseTurn = false;
@@ -693,6 +699,7 @@ export async function POST(request: NextRequest) {
             "the axis and compare instead. Plain text only, no other markdown." +
             PLAIN_WORDS +
             directive +
+            langRule +
             `\n\nUser said: ${label}`;
 
           const iter = call(resolvePrompt)[Symbol.asyncIterator]();
