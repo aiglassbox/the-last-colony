@@ -1,0 +1,748 @@
+{
+  "total": 41,
+  "pathA": {
+    "consistent": 39,
+    "absolute": 34
+  },
+  "pathB": {
+    "consistent": 41,
+    "absolute": 41
+  },
+  "perLang": {
+    "aConsistent": {
+      "hi": {
+        "hit": 10,
+        "total": 11
+      },
+      "ta": {
+        "hit": 5,
+        "total": 5
+      },
+      "bn": {
+        "hit": 2,
+        "total": 2
+      },
+      "kn": {
+        "hit": 2,
+        "total": 2
+      },
+      "te": {
+        "hit": 2,
+        "total": 2
+      },
+      "gu": {
+        "hit": 2,
+        "total": 2
+      },
+      "roman": {
+        "hit": 11,
+        "total": 11
+      },
+      "hinglish": {
+        "hit": 5,
+        "total": 6
+      }
+    },
+    "bConsistent": {
+      "hi": {
+        "hit": 11,
+        "total": 11
+      },
+      "ta": {
+        "hit": 5,
+        "total": 5
+      },
+      "bn": {
+        "hit": 2,
+        "total": 2
+      },
+      "kn": {
+        "hit": 2,
+        "total": 2
+      },
+      "te": {
+        "hit": 2,
+        "total": 2
+      },
+      "gu": {
+        "hit": 2,
+        "total": 2
+      },
+      "roman": {
+        "hit": 11,
+        "total": 11
+      },
+      "hinglish": {
+        "hit": 6,
+        "total": 6
+      }
+    }
+  },
+  "perDish": {
+    "aAbsolute": {
+      "idli": {
+        "hit": 8,
+        "total": 8
+      },
+      "dosa": {
+        "hit": 6,
+        "total": 6
+      },
+      "khichdi": {
+        "hit": 4,
+        "total": 4
+      },
+      "poha": {
+        "hit": 0,
+        "total": 3
+      },
+      "upma": {
+        "hit": 5,
+        "total": 5
+      },
+      "rasam": {
+        "hit": 3,
+        "total": 3
+      },
+      "vada": {
+        "hit": 3,
+        "total": 3
+      },
+      "kheer": {
+        "hit": 0,
+        "total": 2
+      },
+      "laddu": {
+        "hit": 2,
+        "total": 2
+      },
+      "roti": {
+        "hit": 3,
+        "total": 3
+      },
+      "bedhai": {
+        "hit": 0,
+        "total": 2
+      }
+    },
+    "bAbsolute": {
+      "idli": {
+        "hit": 8,
+        "total": 8
+      },
+      "dosa": {
+        "hit": 6,
+        "total": 6
+      },
+      "khichdi": {
+        "hit": 4,
+        "total": 4
+      },
+      "poha": {
+        "hit": 3,
+        "total": 3
+      },
+      "upma": {
+        "hit": 5,
+        "total": 5
+      },
+      "rasam": {
+        "hit": 3,
+        "total": 3
+      },
+      "vada": {
+        "hit": 3,
+        "total": 3
+      },
+      "kheer": {
+        "hit": 2,
+        "total": 2
+      },
+      "laddu": {
+        "hit": 2,
+        "total": 2
+      },
+      "roti": {
+        "hit": 3,
+        "total": 3
+      },
+      "bedhai": {
+        "hit": 2,
+        "total": 2
+      }
+    }
+  },
+  "anchors": [
+    {
+      "dish": "idli",
+      "aId": "man-iddarika-012",
+      "aValid": true,
+      "bId": "idli",
+      "bValid": true
+    },
+    {
+      "dish": "dosa",
+      "aId": "man-dosaka-016",
+      "aValid": true,
+      "bId": "dosa",
+      "bValid": true
+    },
+    {
+      "dish": "khichdi",
+      "aId": "wf-k-sar-khica-065",
+      "aValid": true,
+      "bId": "khichdi",
+      "bValid": true
+    },
+    {
+      "dish": "poha",
+      "aId": "wf-vilep-145",
+      "aValid": false,
+      "bId": "poha",
+      "bValid": true
+    },
+    {
+      "dish": "upma",
+      "aId": "pbr-arisi-upma-025",
+      "aValid": true,
+      "bId": "upma",
+      "bValid": true
+    },
+    {
+      "dish": "rasam",
+      "aId": "pbr-milagu-rasam-026",
+      "aValid": true,
+      "bId": "rasam",
+      "bValid": true
+    },
+    {
+      "dish": "vada",
+      "aId": "wf-vataka-155",
+      "aValid": true,
+      "bId": "vada",
+      "bValid": true
+    },
+    {
+      "dish": "kheer",
+      "aId": "man-payasa-019",
+      "aValid": false,
+      "bId": "kheer",
+      "bValid": true
+    },
+    {
+      "dish": "laddu",
+      "aId": "wf-ksiraladduka-092",
+      "aValid": true,
+      "bId": "laddu",
+      "bValid": true
+    },
+    {
+      "dish": "roti",
+      "aId": "wf-rotika-156",
+      "aValid": true,
+      "bId": "roti",
+      "bValid": true
+    },
+    {
+      "dish": "bedhai",
+      "aId": "wf-badara-panaka-118",
+      "aValid": false,
+      "bId": "bedhai",
+      "bValid": true
+    }
+  ],
+  "rows": [
+    {
+      "dish": "idli",
+      "lang": "hi",
+      "query": "इडली",
+      "englishB": "idli",
+      "aId": "man-iddarika-012",
+      "bId": "idli",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "idli",
+      "lang": "ta",
+      "query": "இட்லி",
+      "englishB": "idli",
+      "aId": "man-iddarika-012",
+      "bId": "idli",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "idli",
+      "lang": "bn",
+      "query": "ইডলি",
+      "englishB": "idli",
+      "aId": "man-iddarika-012",
+      "bId": "idli",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "idli",
+      "lang": "kn",
+      "query": "ಇಡ್ಲಿ",
+      "englishB": "idli",
+      "aId": "man-iddarika-012",
+      "bId": "idli",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "idli",
+      "lang": "te",
+      "query": "ఇడ్లీ",
+      "englishB": "idli",
+      "aId": "man-iddarika-012",
+      "bId": "idli",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "idli",
+      "lang": "gu",
+      "query": "ઈડલી",
+      "englishB": "idli",
+      "aId": "man-iddarika-012",
+      "bId": "idli",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "idli",
+      "lang": "roman",
+      "query": "idli",
+      "englishB": "idli",
+      "aId": "man-iddarika-012",
+      "bId": "idli",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "idli",
+      "lang": "hinglish",
+      "query": "idli kaise banti hai",
+      "englishB": "idli",
+      "aId": "man-iddarika-012",
+      "bId": "idli",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "dosa",
+      "lang": "ta",
+      "query": "தோசை",
+      "englishB": "dosa",
+      "aId": "man-dosaka-016",
+      "bId": "dosa",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "dosa",
+      "lang": "hi",
+      "query": "डोसा",
+      "englishB": "dosa",
+      "aId": "man-dosaka-016",
+      "bId": "dosa",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "dosa",
+      "lang": "bn",
+      "query": "দোসা",
+      "englishB": "dosa",
+      "aId": "man-dosaka-016",
+      "bId": "dosa",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "dosa",
+      "lang": "kn",
+      "query": "ದೋಸೆ",
+      "englishB": "dosa",
+      "aId": "man-dosaka-016",
+      "bId": "dosa",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "dosa",
+      "lang": "roman",
+      "query": "dosa",
+      "englishB": "dosa",
+      "aId": "man-dosaka-016",
+      "bId": "dosa",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "dosa",
+      "lang": "hinglish",
+      "query": "dosa kaise banate hain",
+      "englishB": "dosa",
+      "aId": "man-dosaka-016",
+      "bId": "dosa",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "khichdi",
+      "lang": "hi",
+      "query": "खिचड़ी",
+      "englishB": "khichdi",
+      "aId": "wf-k-sar-khica-065",
+      "bId": "khichdi",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "khichdi",
+      "lang": "gu",
+      "query": "ખીચડી",
+      "englishB": "khichdi",
+      "aId": "wf-k-sar-khica-065",
+      "bId": "khichdi",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "khichdi",
+      "lang": "roman",
+      "query": "khichdi",
+      "englishB": "khichdi",
+      "aId": "wf-k-sar-khica-065",
+      "bId": "khichdi",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "khichdi",
+      "lang": "hinglish",
+      "query": "khichdi kaise banti hai",
+      "englishB": "khichdi",
+      "aId": "wf-k-sar-khica-065",
+      "bId": "khichdi",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "poha",
+      "lang": "hi",
+      "query": "पोहा",
+      "englishB": "poha",
+      "aId": "wf-poyika-048",
+      "bId": "poha",
+      "aConsistent": false,
+      "bConsistent": true,
+      "aAbsolute": false,
+      "bAbsolute": true
+    },
+    {
+      "dish": "poha",
+      "lang": "roman",
+      "query": "poha",
+      "englishB": "poha",
+      "aId": "wf-vilep-145",
+      "bId": "poha",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": false,
+      "bAbsolute": true
+    },
+    {
+      "dish": "poha",
+      "lang": "hinglish",
+      "query": "poha kaise banaye",
+      "englishB": "poha",
+      "aId": "wf-ghrta-pureta-190",
+      "bId": "poha",
+      "aConsistent": false,
+      "bConsistent": true,
+      "aAbsolute": false,
+      "bAbsolute": true
+    },
+    {
+      "dish": "upma",
+      "lang": "hi",
+      "query": "उपमा",
+      "englishB": "upma",
+      "aId": "pbr-arisi-upma-025",
+      "bId": "upma",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "upma",
+      "lang": "ta",
+      "query": "உப்புமா",
+      "englishB": "upma",
+      "aId": "pbr-arisi-upma-025",
+      "bId": "upma",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "upma",
+      "lang": "te",
+      "query": "ఉప్మా",
+      "englishB": "upma",
+      "aId": "pbr-arisi-upma-025",
+      "bId": "upma",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "upma",
+      "lang": "roman",
+      "query": "upma",
+      "englishB": "upma",
+      "aId": "pbr-arisi-upma-025",
+      "bId": "upma",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "upma",
+      "lang": "hinglish",
+      "query": "upma recipe",
+      "englishB": "upma",
+      "aId": "pbr-arisi-upma-025",
+      "bId": "upma",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "rasam",
+      "lang": "hi",
+      "query": "रसम",
+      "englishB": "rasam",
+      "aId": "pbr-milagu-rasam-026",
+      "bId": "rasam",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "rasam",
+      "lang": "ta",
+      "query": "ரசம்",
+      "englishB": "rasam",
+      "aId": "pbr-milagu-rasam-026",
+      "bId": "rasam",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "rasam",
+      "lang": "roman",
+      "query": "rasam",
+      "englishB": "rasam",
+      "aId": "pbr-milagu-rasam-026",
+      "bId": "rasam",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "vada",
+      "lang": "hi",
+      "query": "वड़ा",
+      "englishB": "vada",
+      "aId": "wf-vataka-155",
+      "bId": "vada",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "vada",
+      "lang": "ta",
+      "query": "வடை",
+      "englishB": "vada",
+      "aId": "wf-vataka-155",
+      "bId": "vada",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "vada",
+      "lang": "roman",
+      "query": "vada",
+      "englishB": "vada",
+      "aId": "wf-vataka-155",
+      "bId": "vada",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "kheer",
+      "lang": "hi",
+      "query": "खीर",
+      "englishB": "kheer",
+      "aId": "man-payasa-019",
+      "bId": "kheer",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": false,
+      "bAbsolute": true
+    },
+    {
+      "dish": "kheer",
+      "lang": "roman",
+      "query": "kheer",
+      "englishB": "kheer",
+      "aId": "man-payasa-019",
+      "bId": "kheer",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": false,
+      "bAbsolute": true
+    },
+    {
+      "dish": "laddu",
+      "lang": "hi",
+      "query": "लड्डू",
+      "englishB": "laddu",
+      "aId": "wf-ksiraladduka-092",
+      "bId": "laddu",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "laddu",
+      "lang": "roman",
+      "query": "laddu",
+      "englishB": "laddu",
+      "aId": "wf-ksiraladduka-092",
+      "bId": "laddu",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "roti",
+      "lang": "hi",
+      "query": "रोटी",
+      "englishB": "roti",
+      "aId": "wf-rotika-156",
+      "bId": "roti",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "roti",
+      "lang": "roman",
+      "query": "roti",
+      "englishB": "roti",
+      "aId": "wf-rotika-156",
+      "bId": "roti",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "roti",
+      "lang": "hinglish",
+      "query": "roti kaise banate hain",
+      "englishB": "roti",
+      "aId": "wf-rotika-156",
+      "bId": "roti",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": true,
+      "bAbsolute": true
+    },
+    {
+      "dish": "bedhai",
+      "lang": "hi",
+      "query": "बेदई",
+      "englishB": "bedmi poori",
+      "aId": "wf-badara-panaka-118",
+      "bId": "bedhai",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": false,
+      "bAbsolute": true
+    },
+    {
+      "dish": "bedhai",
+      "lang": "roman",
+      "query": "bedhai",
+      "englishB": "bedhai",
+      "aId": "wf-badara-panaka-118",
+      "bId": "bedhai",
+      "aConsistent": true,
+      "bConsistent": true,
+      "aAbsolute": false,
+      "bAbsolute": true
+    }
+  ]
+}
