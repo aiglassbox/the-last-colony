@@ -14,6 +14,7 @@
     "corpus:check-multilingual": "tsx scripts/check-multilingual.ts",
     "guards:check-multilingual": "tsx scripts/check-guards-multilingual.ts",
     "eval:multilingual": "tsx eval/multilingual/run.ts",
+    "localize:corpus": "tsx scripts/localize-corpus.ts",
     "check:routing": "tsx scripts/check-routing.ts",
     "check:cache": "tsx scripts/check-cache.ts",
     "check": "npm run corpus:validate && npm run corpus:check-retrieval && npm run check:routing",
