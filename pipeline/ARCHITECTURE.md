@@ -369,8 +369,19 @@ window costs latency, not billing.
   Kaggle licence, and build a tier router, before either changes.
 - **Gemini free-tier rate limits** will throttle a 5,898-record sync (~118
   batched requests). Sync needs pacing, not just retry.
-- **Nothing consumes `lib/retrieval.ts` yet.** The query path exists and is
-  measured; no application calls it.
+- **`lib/retrieval.ts` is now consumed as the vector fallback.** The root app
+  imports it in `src/lib/corpus/load.ts` (`searchVectors`), where a keyword miss
+  rides along as *candidates* for the model to promote — never a standalone
+  retrieval decision.
+
+**Cross-lingual queries.** The app does not embed raw non-English queries into
+this index; it translates them to English first and runs BM25, then falls back
+here. That routing was decided from data, not preference: the root
+`eval/multilingual/` A/B benchmark runs raw-query→vector (this engine) against
+translate→BM25 on the real surface and records the result (translate wins,
+41/41 vs 34/41 absolute — this index mis-retrieves some dishes regardless of
+language). Gemini embeddings are strongly cross-lingual, so the raw-vector path
+is the one to revisit *if* retrieval ever goes vector-first. See that report.
 
 Closed since the last revision: `aliases` are now populated on **178 of 199**
 records, which is why devanagari, transliteration and english-name queries all

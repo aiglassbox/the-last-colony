@@ -193,6 +193,23 @@ The echoed `label` stays the user's own words; only retrieval reads
 `normalized.english`. A slug entry (QR / /dish/[slug]) skips normalize — a slug
 is already canonical.
 
+`normalized` also carries the language and register, which become the reply
+instruction threaded into whichever turn the route builds:
+
+```
+langRule = replyInstruction(normalized)   (src/lib/lang/reply-instruction.ts)
+  │   "reply in Tamil, native script" / "reply in Hinglish, Latin letters"
+  │   fallback (Urdu, low confidence) → "reply in English" + supported-langs line
+  │
+  ├─ corpus-hit RESTORATION turn  → …${directive}${langRule}\n\nUser said: …
+  └─ resolve (MODE-declaring) turn → … + directive + langRule + "\n\nUser said: …"
+```
+
+Appended after `directive` like `PLAIN_WORDS`, so the reply is authored in the
+reader's language while the card structure and every content gate stay unchanged.
+A slug entry has no detected language, so `langRule` is empty and it replies in
+English.
+
 ```
 retrieveForDish(query)
   │
