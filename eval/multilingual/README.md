@@ -45,3 +45,24 @@ Distinctive dish tokens only — short ambiguous ones like "dal" are excluded so
 substring anchor check cannot false-match. Expand it with more dishes as
 coverage grows; only add native strings you have confirmed, because a garbled
 variant understates whichever path.
+
+## Screenshots — the reply and the localized card in the browser
+
+`screenshots/` holds Playwright captures of the real app answering a query in
+each language, driven one fresh session at a time. They show two things end to
+end: the model prose authored in the reader's language, and the record-derived
+card (ingredient table, method, axes, source) rendered from the precomputed
+localized cards in `corpus/localized/` with the English fallback where none
+exists.
+
+| Image | Query | Language | Shows |
+|---|---|---|---|
+| [`screenshots/01-hindi-idli.png`](screenshots/01-hindi-idli.png) | इडली | Hindi | native-script reply + fully localized card |
+| [`screenshots/02-tamil-idli.png`](screenshots/02-tamil-idli.png) | இட்லி | Tamil | native-script reply + fully localized card |
+| [`screenshots/03-bengali-dosa.png`](screenshots/03-bengali-dosa.png) | দোসা | Bengali | native-script reply + fully localized card |
+| [`screenshots/04-telugu-upma.png`](screenshots/04-telugu-upma.png) | ఉప్మా | Telugu | native-script reply + localized card |
+| [`screenshots/05-hinglish-idli.png`](screenshots/05-hinglish-idli.png) | idli kaise banti hai | Hinglish | Latin-script Hinglish reply |
+| [`screenshots/06-english-dosa.png`](screenshots/06-english-dosa.png) | dosa | English | English baseline |
+| [`screenshots/07-urdu-fallback.png`](screenshots/07-urdu-fallback.png) | بریانی | Urdu (deferred) | English fallback + supported-languages line |
+
+See `screenshots/README.md` for how they are regenerated.
