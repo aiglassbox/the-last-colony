@@ -1,0 +1,27 @@
+{
+  "dishes": [
+    {
+      "english": "idli",
+      "variants": {
+        "hi": "इडली", "bn": "ইডলি", "mr": "इडली", "te": "ఇడ్లీ",
+        "ta": "இட்லி", "gu": "ઈડલી", "kn": "ಇಡ್ಲಿ",
+        "hinglish": "idli kaise banate hain"
+      }
+    },
+    {
+      "english": "khichdi",
+      "variants": {
+        "hi": "खिचड़ी", "bn": "খিচুড়ি", "mr": "खिचडी", "te": "ఖిచడీ",
+        "ta": "கிச்சடி", "gu": "ખીચડી", "kn": "ಖಿಚಡಿ",
+        "hinglish": "khichdi recipe"
+      }
+    },
+    {
+      "english": "dosa",
+      "variants": {
+        "bn": "দোসা", "kn": "ದೋಸೆ",
+        "hinglish": "dosa kaise banate hain"
+      }
+    }
+  ]
+}
