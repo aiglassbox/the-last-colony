@@ -5,8 +5,9 @@
  */
 import assert from "node:assert/strict";
 
-import { enFallback, isSupported } from "../src/lib/lang/types";
+import { enFallback, isSupported, type Normalized } from "../src/lib/lang/types";
 import { CONFIDENCE_THRESHOLD, parseNormalizeResponse } from "../src/lib/lang/normalize";
+import { replyInstruction } from "../src/lib/lang/reply-instruction";
 
 let pass = 0;
 const check = (name: string, fn: () => void) => {
@@ -66,6 +67,29 @@ check("survives a code fence around the JSON", () => {
   );
   assert.equal(n.lang, "hi");
   assert.equal(n.english, "khichdi");
+});
+
+// replyInstruction
+const mk = (over: Partial<Normalized>): Normalized => ({
+  lang: "hi", script: "native", register: "native", confidence: 0.9,
+  english: "idli", fell_back: false, ...over,
+});
+
+check("instruction names the target language", () => {
+  const s = replyInstruction(mk({ lang: "ta", script: "native", register: "native" }));
+  assert.match(s, /Tamil/);
+  assert.match(s, /native script/);
+});
+
+check("hinglish register is mirrored", () => {
+  const s = replyInstruction(mk({ lang: "hi", script: "roman", register: "hinglish" }));
+  assert.match(s, /Hinglish/i);
+});
+
+check("fallback instruction lists supported languages in English", () => {
+  const s = replyInstruction(mk({ lang: "en", register: "roman", fell_back: true }));
+  assert.match(s, /English/);
+  assert.match(s, /Tamil/); // the supported list is named
 });
 
 console.log(`\n✓ ${pass} language checks pass\n`);
