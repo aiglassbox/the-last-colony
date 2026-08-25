@@ -70,8 +70,9 @@ corpus/            JSON records, one per culinary item (the Part 3 contract)
   ancient/         the originals
   modern/          their modern counterparts, and modern-dish records
   swaps/           ingredient swap records
+  localized/       precomputed per-language cards (localize:corpus), <lang>/<slug>.json
 src/lib/corpus/    types, validator, file-backed repository
-src/lib/lang/      language detection + query translation (the normalize step)
+src/lib/lang/      normalize, reply-instruction, and the localized-card store
 src/lib/retrieval/ normalisation, BM25, the threshold and ambiguity gates
 src/lib/model/     system prompt, corpus block, streaming beat parser
 src/lib/chat/      conversation state as an external store, localStorage-backed
@@ -216,6 +217,16 @@ supported. The English health-claim and provenance strippers cannot see an
 in-language violation, so that defence moves into the prompt rule and is verified
 live by `npm run guards:check-multilingual`; the Latin provenance tokens
 (`ATTESTED` and friends) are still stripped in any language.
+
+The card itself is localized too — the ingredient table, method, axes, source
+strip and labels, not just the prose. Those render from the record (rule 1), so
+they are translated **ahead of time**, not by the model at request time: `npm run
+localize:corpus` translates each searchable record into every active language
+once and writes `corpus/localized/<lang>/<slug>.json` (committed, so a native
+speaker reviews it in the PR). On a non-English hit the route loads that file
+with no model call, and each field falls back to the English record if a
+localization is missing. Source-language terms (`· māṣa`) stay as themselves.
+`salt` becomes `नमक`/`উপ্পু`; the whole card reads in one language.
 
 ### Retrieval
 

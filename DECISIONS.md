@@ -119,6 +119,31 @@ model call). The highest-stakes leak — a model typing the Latin token `ATTESTE
 — is still caught in any language, because the provenance class tokens are Latin.
 → `src/lib/model/health.ts`, `src/lib/model/provenance.ts`, `scripts/check-guards-multilingual.ts`
 
+**The record-derived card is localized as precomputed data, not a per-turn call.**
+The prose beats mirror the reader's language, but the ingredient table, method,
+axes and source strip render from the record — English. A record's translation
+is deterministic (the idli card in Hindi is always the same bytes), so it is a
+build-time artifact: `localize:corpus` translates each searchable record ×
+language once into `corpus/localized/<lang>/<slug>.json` (committed, reviewable),
+and the route loads the file on a non-English hit with no model call. Chosen over
+a per-turn translation because it is free at request time, adds no latency, and —
+being committed JSON — is native-speaker-reviewable in the PR, the same trust
+model as the corpus. Every field falls back to the English record when a
+localization is missing, short, or stale (a content-hash guards staleness).
+→ `src/lib/lang/localize.ts`, `src/lib/lang/localized-store.ts`, `scripts/localize-corpus.ts`
+
+**Translation touches only what already renders; rule 1/2 hold.** It is a
+reviewed data transform, not the model writing a citation live, so the render-
+from-record rule stands. The verified/unverified gate is untouched: an unverified
+record's locus/edition are never in the translate payload, exactly as
+`renderRecord` withholds them from the model. Source-language terms (`· māṣa`)
+and the historical dish name stay as-is — proper nouns. Numeral style is
+best-effort and left inconsistent by decision: the prompt asks for Western digits
+but the model sometimes returns native numerals (`২`, `১/৪`); making it
+consistent is a deterministic card-side digit map if ever wanted, not a prompt
+change.
+→ `src/lib/lang/localized-card.ts`, `src/lib/model/corpus-block.ts`
+
 ---
 
 ## Corpus and provenance

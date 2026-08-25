@@ -65,6 +65,11 @@ export function buildLocalizeInput(record: CorpusRecord) {
   };
 }
 
+// ponytail: the numeral rule below is best-effort, not enforced. The model
+// mostly keeps Western digits but at times renders native numerals (২, ১/৪), so
+// numeral style is inconsistent across dishes and runs. Left as-is by decision;
+// if consistency is ever wanted, do it deterministically in the card (a digit
+// map over the quantity column, scoped past the century and "100%"), not here.
 function systemPrompt(lang: SupportedLang): string {
   const name = LANG_NAMES[lang];
   return `You are a culinary translator localizing a recipe card into ${name}.

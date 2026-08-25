@@ -26,10 +26,17 @@ import { SourceDrawer } from "./SourceDrawer";
  *
  * The split that matters: model prose fills the beats, and everything
  * citational — ingredient table, ancient method, source strip, nutrition delta
- * — is rendered here straight from the retrieved record. The model never
- * writes a citation because it never writes that part of the card. It also
- * means the record half is on screen the moment retrieval returns, before the
- * first token arrives.
+ * — is rendered here from the retrieved record. The model never writes a
+ * citation because it never writes that part of the card. It also means the
+ * record half is on screen the moment retrieval returns, before the first token
+ * arrives.
+ *
+ * On a non-English turn each of those fields is rendered from the record's
+ * precomputed localized card (`data.localized`, built by `localize:corpus` and
+ * loaded server-side) instead, falling back to the English record per field
+ * when a localization is missing. That is still not the model writing the
+ * citation live — it is reviewed, committed translation data, the same trust
+ * model as the corpus itself.
  *
  * How many beats depends on the turn: a dish with a past gets all four, a
  * modern dish gets the verdict and the cooking. See `tellsHistory`.
