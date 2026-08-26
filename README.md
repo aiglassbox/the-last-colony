@@ -70,12 +70,15 @@ corpus/            JSON records, one per culinary item (the Part 3 contract)
   ancient/         the originals
   modern/          their modern counterparts, and modern-dish records
   swaps/           ingredient swap records
+  localized/       precomputed per-language cards (localize:corpus), <lang>/<slug>.json
 src/lib/corpus/    types, validator, file-backed repository
+src/lib/lang/      normalize, reply-instruction, and the localized-card store
 src/lib/retrieval/ normalisation, BM25, the threshold and ambiguity gates
 src/lib/model/     system prompt, corpus block, streaming beat parser
 src/lib/chat/      conversation state as an external store, localStorage-backed
 src/app/           chat surface, /dish/[slug], API routes, 1080×1350 share card
-tests/             132 hand-checked retrieval queries
+tests/             132 hand-checked retrieval queries + multilingual query set
+eval/multilingual/ Path A vs Path B language-retrieval benchmark + recorded report
 ```
 
 ### Two kinds of turn
@@ -181,13 +184,59 @@ One thing deliberately not carried across: the *Pāka Śāstra* passage makes
 Ayurvedic claims about what the dish cures. Those are recorded as part of what
 the text says and never as a claim of this product's own.
 
+### Multilingual queries: normalize before retrieval
+
+The keyword engine is English, so a non-English query is translated to English
+before it ever reaches BM25. `src/lib/lang/normalize.ts` makes one cheap,
+greedy-decoded (`temperature: 0`) model call that detects the language and
+returns the dish name in its common English spelling — `இட்லி`, `इडली` and
+`idli kaise banti hai` all become `idli`. It runs on the eight active languages
+(Hindi, Bengali, Marathi, Telugu, Tamil, Gujarati, Kannada, English); anything
+unsupported (Urdu, for now) or detected too weakly falls back to English and the
+untranslated string, so retrieval always has something to run and never blocks
+on the model. The echoed query keeps the user's own words; only retrieval reads
+the translation. `npm run corpus:check-multilingual` exercises this end to end
+(it calls the model, so it is a live check, kept out of `npm run check`).
+
+This is the translate-then-retrieve path. It deliberately reuses the English
+keyword engine below unchanged rather than leaning on cross-lingual vector
+search — a wrong ancestor is worse than no ancestor, and the keyword gates are
+where that discipline lives. That choice is measured, not asserted: the A/B eval
+in `eval/multilingual/` runs both approaches on the real retrieval surface and
+scores translate-then-BM25 at 41/41 against raw-vector's 34/41 (the vector path
+mis-retrieves several dishes regardless of language). `npm run eval:multilingual`
+regenerates `eval/multilingual/report.md`.
+
+The reply is authored back in the user's language and register. `normalize` also
+reports the language and register, and `src/lib/lang/reply-instruction.ts` turns
+that into a per-turn instruction appended to the model turn — reply in Tamil in
+its native script, or in Hinglish in Latin letters, mirroring exactly what the
+reader typed and never "correcting" the script. An unsupported or weakly-detected
+language replies in English and names, in one line, the languages that are
+supported. The English health-claim and provenance strippers cannot see an
+in-language violation, so that defence moves into the prompt rule and is verified
+live by `npm run guards:check-multilingual`; the Latin provenance tokens
+(`ATTESTED` and friends) are still stripped in any language.
+
+The card itself is localized too — the ingredient table, method, axes, source
+strip and labels, not just the prose. Those render from the record (rule 1), so
+they are translated **ahead of time**, not by the model at request time: `npm run
+localize:corpus` translates each searchable record into every active language
+once and writes `corpus/localized/<lang>/<slug>.json` (committed, so a native
+speaker reviews it in the PR). On a non-English hit the route loads that file
+with no model call, and each field falls back to the English record if a
+localization is missing. Source-language terms (`· māṣa`) stay as themselves.
+`salt` becomes `नमक`/`উপ্পু`; the whole card reads in one language.
+
 ### Retrieval
 
 Keyword-first, exactly as the brief requires. BM25 over dish names and aliases
 only — ingredients and method belong to the vector index, and mixing them in
-makes "coconut" retrieve six records. Vectors are the fallback (`searchVectors`
-is in the repository interface and currently returns nothing, which is the
-correct behaviour for a fallback that is not wired up).
+makes "coconut" retrieve six records. Vectors are the fallback (`searchVectors`,
+wired to the 199-record index and on by default since the ordering fix): on a
+keyword miss they ride along as *candidates* on a still-empty result, for the
+model to promote only on a RESTORE verdict — never a retrieval decision on their
+own. Set `VECTOR_FALLBACK=off` to disable.
 
 Three gates decide when to decline, because a wrong ancestor is worse than no
 ancestor:
@@ -219,6 +268,12 @@ nothing else.
 `tests/retrieval-queries.json` holds 132 hand-checked queries covering Hinglish
 spellings, Devanagari and Tamil, and the traps above. The harness fails the
 build on any **wrong** answer and on more misses than `ALLOWED_MISSES` (zero).
+
+`tests/multilingual-queries.json` is the other set: the same dishes in native
+scripts across the active languages, exercised end to end through the normalize
+step by `npm run corpus:check-multilingual`. Because it makes model calls it is
+a live check, not part of `npm run check`; the deterministic parsing logic has
+its own keyless check at `npm run lang:check`.
 
 ### Model layer
 
@@ -421,9 +476,16 @@ closest thing here to personal data and should be asked for on purpose.
   the `fonts` option in `src/app/api/share/[slug]/route.tsx`.
 - **Vector retrieval is a stub.** The interface is in place and threshold
   discipline is written to cover it; the pgvector implementation is not.
-- **The language toggle is not built.** Hinglish input is understood and the
-  model replies in the language of the question, but there is no UI toggle
-  stub for Hindi, Marathi, Tamil, Telugu or Kannada yet.
+- **Multilingual: input and reply both live.** A query in any of the eight
+  active languages (Hindi, Bengali, Marathi, Telugu, Tamil, Gujarati, Kannada,
+  English), in native script or Hinglish, is detected and translated to English
+  before retrieval (`src/lib/lang/`), and the reply is authored back in the
+  reader's own language and register (`reply-instruction.ts`). There is no UI
+  language toggle: detection is automatic from the message. The choice of
+  translate-then-retrieve over cross-lingual embeddings is backed by the A/B eval
+  in `eval/multilingual/`. Urdu is deferred (right-to-left layout is out of scope
+  pending review); it is detected but answered in English, with a line naming the
+  supported languages.
 - **Analytics goes to the console.** `track()` is a one-function shim over a
   real sink.
 - **Eight ancient records await editorial verification** — see above. This is

@@ -80,6 +80,12 @@ const BODY_CLAIM = [
   String.raw`\b(?:sits?|feels?)\s+lighter\s+(?:in|on)\s+(?:the|your)\s+(?:stomach|belly|gut)\b`,
 ].join("|");
 
+// ponytail: English-lexical guard. A health claim written in Hindi or Tamil
+// script does not match these patterns, so the non-English defence is the
+// in-language prompt rule in reply-instruction.ts ("no health claims … in
+// {lang}"), verified by `npm run guards:check-multilingual` — not a
+// per-language banned-phrase list, which would be an unbounded, low-confidence
+// net that guards worse than an eval. English replies still pass through here.
 /** Both nets, as one source, so `guards.ts` audits exactly what this strips. */
 export const HEALTH_CLAIM_SOURCE = `${VERDICT_CLAIM}|${BODY_CLAIM}`;
 

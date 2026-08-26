@@ -10,6 +10,11 @@
     "lint": "eslint",
     "corpus:validate": "tsx scripts/validate-corpus.ts",
     "corpus:check-retrieval": "tsx scripts/check-retrieval.ts",
+    "lang:check": "tsx scripts/check-lang.ts",
+    "corpus:check-multilingual": "tsx scripts/check-multilingual.ts",
+    "guards:check-multilingual": "tsx scripts/check-guards-multilingual.ts",
+    "eval:multilingual": "tsx eval/multilingual/run.ts",
+    "localize:corpus": "tsx scripts/localize-corpus.ts",
     "check:routing": "tsx scripts/check-routing.ts",
     "check:cache": "tsx scripts/check-cache.ts",
     "check": "npm run corpus:validate && npm run corpus:check-retrieval && npm run check:routing",
@@ -27,7 +32,7 @@
     "clsx": "^2.1.1",
     "dotenv": "^16.4.5",
     "lucide-react": "^1.27.0",
-    "next": "16.2.10",
+    "next": "^16.3.1",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "tailwind-merge": "^3.6.0"
@@ -42,5 +47,11 @@
     "tailwindcss": "^4",
     "tsx": "^4.19.2",
     "typescript": "^5"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true,
+    "protobufjs@7.6.5": true,
+    "sharp@0.34.5": true,
+    "unrs-resolver@1.12.2": true
   }
 }

@@ -7,6 +7,9 @@ import { fileCorpus } from "@/lib/corpus/load";
 import type { CorpusRecord } from "@/lib/corpus/types";
 import { isDeviceId } from "@/lib/db/conversations";
 import { geoProps } from "@/lib/events/geo";
+import { normalize } from "@/lib/lang/normalize";
+import { replyInstruction } from "@/lib/lang/reply-instruction";
+import { loadLocalized } from "@/lib/lang/localized-store";
 import { renderIndianizationBlock } from "@/lib/indianization";
 import { BeatParser, INDIANIZE_BEATS, MarkerParser, type StreamingParser } from "@/lib/model/beats";
 import { renderComponentSwaps, renderCorpusBlock, renderRecord } from "@/lib/model/corpus-block";
@@ -153,7 +156,19 @@ export async function POST(request: NextRequest) {
   const { command, rest } = parseCommand(raw);
   const query = rest;
 
-  const retrieval = slug ? await retrieveBySlug(slug) : await retrieveForDish(query);
+  // A slug is already canonical, so it is not normalized. A typed query may be
+  // in any of the eight languages, so detect and translate it to English before
+  // the (English) keyword engine sees it. The echoed `label` stays the user's
+  // own words; only retrieval reads the translation.
+  const normalized = slug ? null : await normalize(query);
+  const retrieval = slug
+    ? await retrieveBySlug(slug)
+    : await retrieveForDish(normalized!.english);
+
+  // Authored in the user's language, appended after the turn instruction the
+  // same way PLAIN_WORDS is. A slug entry has no detected language, so it
+  // replies in English.
+  const langRule = normalized ? replyInstruction(normalized) : "";
 
   // A slug names a record directly, so an empty result means the slug is not
   // one. Asking the model about it invites an answer about some other dish
@@ -450,12 +465,31 @@ export async function POST(request: NextRequest) {
            */
           const modernDish = records[0].provenance_class === "MODERN_DISH";
           const kind: TurnKind = modernDish ? "modern" : "record";
+
+          // Localize the record-derived half of the card (table, method, source,
+          // labels) into the reader's language from the precomputed store. No
+          // model call here — a file read — and every field falls back to the
+          // English record when a localization is missing, short, or stale.
+          const cardLang =
+            normalized && !normalized.fell_back && normalized.lang !== "en"
+              ? normalized.lang
+              : undefined;
+          const localized = cardLang
+            ? Object.fromEntries(
+                records
+                  .map((r) => [r.slug, loadLocalized(r, cardLang)] as const)
+                  .filter(([, card]) => card !== null),
+              )
+            : undefined;
+
           emit({
             type: "meta",
             mode: "restoration" satisfies TurnMode,
             kind,
             top_score: retrieval.top_score,
             records,
+            ...(cardLang && { lang: cardLang }),
+            ...(localized && Object.keys(localized).length > 0 && { localized }),
           });
           track("dish_restored", {
             ...geo,
@@ -515,7 +549,7 @@ export async function POST(request: NextRequest) {
 
           const iter = call(
             `${renderCorpusBlock(records)}\n\nThis is a RESTORATION turn. Emit the four ` +
-              `§markers§.${noPast}${shape}${PLAIN_WORDS}${directive}\n\nUser said: ${label}`,
+              `§markers§.${noPast}${shape}${PLAIN_WORDS}${directive}${langRule}\n\nUser said: ${label}`,
           )[Symbol.asyncIterator]();
           auditRecords = records;
           proseTurn = false;
@@ -685,6 +719,7 @@ export async function POST(request: NextRequest) {
             "the axis and compare instead. Plain text only, no other markdown." +
             PLAIN_WORDS +
             directive +
+            langRule +
             `\n\nUser said: ${label}`;
 
           const iter = call(resolvePrompt)[Symbol.asyncIterator]();
