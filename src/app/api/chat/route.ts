@@ -25,6 +25,7 @@ import { danglingTail, styleProse } from "@/lib/model/punctuation";
 import { activeProvider, asQuotaError, MAX_TOKENS, RefusalError } from "@/lib/model/provider";
 import { SYSTEM_PROMPT } from "@/lib/model/system-prompt";
 import { checkRate, clientKey } from "@/lib/rate-limit";
+import { mayPromoteCandidate } from "@/lib/retrieval/promote";
 import { retrieveBySlug, retrieveForDish } from "@/lib/retrieval/retrieve";
 
 /**
@@ -596,7 +597,16 @@ export async function POST(request: NextRequest) {
           // whatever the vector search found nearest, which for a modern or
           // foreign dish is a coincidence wearing a citation. Only a RESTORE
           // verdict below turns one into a record on screen.
-          const candidates = retrieval.candidates ?? [];
+          //
+          // Filtered by name overlap first: the model promotes a nearest
+          // neighbour even when it is a different dish ("thalipeeth" reached a
+          // rice gruel, "thecha" a buttermilk), so a candidate that shares no
+          // token with the query is withheld from the model entirely — it can
+          // neither promote nor narrate a dish it never sees, and RESTORE falls
+          // to component restoration instead of a wrong ancestor.
+          const candidates = (retrieval.candidates ?? []).filter((c) =>
+            mayPromoteCandidate(normalized?.english ?? label, c),
+          );
           const candidateBlock = candidates.length
             ? `<semantic_candidates>\nThese records are the closest matches in the ` +
               `restored corpus by meaning. They are NOT confirmed to be this dish's ` +

@@ -10,6 +10,7 @@
     "lint": "eslint",
     "corpus:validate": "tsx scripts/validate-corpus.ts",
     "corpus:check-retrieval": "tsx scripts/check-retrieval.ts",
+    "corpus:check-promotion": "tsx scripts/check-promotion.ts",
     "lang:check": "tsx scripts/check-lang.ts",
     "corpus:check-multilingual": "tsx scripts/check-multilingual.ts",
     "guards:check-multilingual": "tsx scripts/check-guards-multilingual.ts",
@@ -17,7 +18,7 @@
     "localize:corpus": "tsx scripts/localize-corpus.ts",
     "check:routing": "tsx scripts/check-routing.ts",
     "check:cache": "tsx scripts/check-cache.ts",
-    "check": "npm run corpus:validate && npm run corpus:check-retrieval && npm run check:routing",
+    "check": "npm run corpus:validate && npm run corpus:check-retrieval && npm run corpus:check-promotion && npm run check:routing",
     "db:migrate": "tsx scripts/db-migrate.ts",
     "report:usage": "tsx scripts/usage-report.ts",
     "email:report": "tsx scripts/email-report.ts"
