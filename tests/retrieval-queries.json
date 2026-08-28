@@ -238,6 +238,27 @@
       "expect": "laddu"
     },
     {
+      "q": "modak",
+      "expect": "modak",
+      "why": "Modaka split into two dishes: the steamed modak owns the name, not the laddu. A modak query must never return the laddu card."
+    },
+    {
+      "q": "ukadiche modak",
+      "expect": "modak"
+    },
+    {
+      "q": "ukdiche modak",
+      "expect": "modak"
+    },
+    {
+      "q": "steamed modak",
+      "expect": "modak"
+    },
+    {
+      "q": "मोदक",
+      "expect": "modak"
+    },
+    {
       "q": "palak paneer",
       "expect": "palak-paneer"
     },

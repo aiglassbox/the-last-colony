@@ -1,0 +1,129 @@
+{
+  "id": "modaka-steamed-001",
+  "slug": "modak",
+  "dish_name_modern": "Ukadiche Modak",
+  "dish_name_source": "Modaka",
+  "aliases": [
+    "modak",
+    "ukadiche modak",
+    "ukdiche modak",
+    "steamed modak",
+    "मोदक",
+    "उकडीचे मोदक"
+  ],
+  "share_verdict": "Steamed rice and jaggery, once. Fried, and full of mawa, now.",
+  "tier": "ancient",
+  "source": {
+    "text": "The modaka — a steamed rice-flour dumpling stuffed with coconut and jaggery — is an old festival sweet described across Sanskrit literature; the Mānasollāsa (12th CE) lists modaka among its festival foods. It survives as Maharashtra's ukadiche modak and the South's kozhukattai.",
+    "author": null,
+    "century": "Pre-12th CE, with the Mānasollāsa description 12th CE",
+    "locus": null,
+    "edition": null,
+    "page": null
+  },
+  "original_text": null,
+  "transliteration": null,
+  "translation": null,
+  "ingredients": [
+    {
+      "name": "rice flour",
+      "sanskrit": "taṇḍula-piṣṭa",
+      "quantity_source": null,
+      "quantity_modern": "1 cup",
+      "function": "the steamed shell; ground rice makes a soft, pliable dough that sets firm and translucent when steamed"
+    },
+    {
+      "name": "fresh coconut",
+      "sanskrit": "nārikela",
+      "quantity_source": null,
+      "quantity_modern": "1 cup, grated",
+      "function": "the body of the filling — fat, bulk and the sweetness-carrier"
+    },
+    {
+      "name": "jaggery",
+      "sanskrit": "guḍa",
+      "quantity_source": null,
+      "quantity_modern": "3/4 cup, grated",
+      "function": "the sweetener and binder of the filling; melted, it sets the coconut into a soft mass"
+    },
+    {
+      "name": "cardamom",
+      "sanskrit": "elā",
+      "quantity_source": null,
+      "quantity_modern": "4 pods, crushed",
+      "function": "aromatic"
+    },
+    {
+      "name": "ghee",
+      "sanskrit": "ghṛta",
+      "quantity_source": null,
+      "quantity_modern": "1 tsp",
+      "function": "a little in the dough keeps the shell supple, and it greases the mould and hands for shaping"
+    }
+  ],
+  "method_reconstructed": [
+    "Boil water with a little ghee and salt, stir in the rice flour off the heat, cover, and rest, then knead to a smooth, soft dough while warm.",
+    "Cook the grated coconut with the jaggery over low heat until it comes together, then fold in the crushed cardamom.",
+    "Shape a ball of dough into a cup, fill it, and pinch the top closed into the pleated peak.",
+    "Steam the modak for ten to twelve minutes until the shell turns glossy and translucent."
+  ],
+  "provenance_class": "RECONSTRUCTED",
+  "confidence": {
+    "identification": 0.8,
+    "ingredients": 0.8,
+    "method": 0.7
+  },
+  "contested_points": [
+    "Modaka is an old, pan-Indian word that split into two lines: the steamed rice-flour dumpling recorded here (Maharashtra's ukadiche modak, the Tamil kozhukattai) and the rolled sweet ball that became the modern laddu, which has its own record.",
+    "Whether the Mānasollāsa's modaka is specifically the steamed form is not settled — the term covers both — so this record claims no verse."
+  ],
+  "modern_counterpart_id": "modern-modak-001",
+  "substitution_story": {
+    "changed": [
+      {
+        "from": "jaggery and fresh coconut",
+        "to": "refined sugar, and in shop sweets mawa (khoya) or chocolate",
+        "period": "20th-21st century",
+        "driver": "refined sugar is cheaper and more uniform than jaggery, and mithai shops built mawa- and chocolate-filled modak as premium novelties"
+      },
+      {
+        "from": "a steamed rice-flour shell",
+        "to": "fried shells and refined-flour or ready-mix wrappers",
+        "period": "20th-21st century",
+        "driver": "frying and ready shells keep longer and read as richer than the plain steamed dumpling"
+      }
+    ],
+    "nutrition_delta": {
+      "glycaemic_load": "up",
+      "fibre": "down",
+      "fat_quality": "mixed"
+    }
+  },
+  "restore_today": {
+    "ingredients": [
+      "1 cup rice flour",
+      "1 cup grated fresh coconut",
+      "3/4 cup grated jaggery",
+      "4 cardamom pods, crushed",
+      "1 tsp ghee, plus more for the mould",
+      "a pinch of salt"
+    ],
+    "steps": [
+      "Cook the coconut with the jaggery over low heat until it holds together, then stir in the cardamom and cool.",
+      "Boil one cup of water with the ghee and salt. Off the heat, stir in the rice flour, cover, and rest two minutes.",
+      "Knead the warm dough smooth. Grease your palms, shape a small cup, fill it, and pinch the top into pleats.",
+      "Steam ten to twelve minutes until the shells turn glossy and translucent.",
+      "Eat warm with a little more ghee — the shell is soft, the filling barely sweet and all coconut."
+    ],
+    "time_min": 45
+  },
+  "region": "Maharashtra and South India",
+  "season": "Ganesh Chaturthi (Bhādrapada)",
+  "vitalife_relevance": "low",
+  "verification": {
+    "status": "unverified_seed",
+    "checked_by": null,
+    "checked_on": null,
+    "note": "Seed record, split from the former combined modaka/laddu entry so the steamed dumpling and the rolled sweet ball are no longer conflated. Not yet checked against a printed edition, so no verse or page is claimed."
+  }
+}

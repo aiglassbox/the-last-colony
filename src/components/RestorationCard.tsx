@@ -4,12 +4,14 @@ import { useState } from "react";
 
 import type { TurnKind } from "@/lib/chat/turn";
 import type { CorpusRecord } from "@/lib/corpus/types";
+import { cardStrings, type CardStrings, type HistoryBeat } from "@/lib/lang/card-strings";
 import {
   EN_LABELS,
   type LocalizedCard,
   type LocalizedLabels,
   type NutritionAxis,
 } from "@/lib/lang/localized-card";
+import type { SupportedLang } from "@/lib/lang/types";
 import type { Beat } from "@/lib/model/beats";
 import { toPlainText } from "@/lib/model/plain-text";
 import {
@@ -51,6 +53,8 @@ export interface CardData {
   streaming: boolean;
   /** Precomputed localized cards per record slug, on a non-English turn. */
   localized?: Record<string, LocalizedCard>;
+  /** Reader's language, for the recordless card's static chrome. */
+  lang?: SupportedLang;
 }
 
 /**
@@ -63,17 +67,9 @@ export interface CardData {
  * the restored corpus yet" under a pizza promised a record that can never
  * exist.
  */
-const RECORDLESS_NOTE: Partial<Record<TurnKind, string>> = {
-  modern:
-    "This one is younger than it tastes, so there is no older version to go back to. " +
-    "What follows is a version built on older principles rather than taken from a text.",
-  gap:
-    "An Indian dish we have not written up yet. Nothing below is drawn from a text, " +
-    "because we do not hold one for it.",
-  foreign:
-    "This one did not come from India, so there is no older version to find. Nothing " +
-    "below is drawn from a text, and none is implied.",
-};
+// The note itself and the modern/gap/foreign section titles are translated per
+// language in `card-strings.ts`; `cardStrings(data.lang)` resolves them below.
+// The `record`-kind labels stay in `TITLES`/the per-record localized store.
 
 /**
  * Beat headings, by what kind of turn this is.
@@ -153,8 +149,16 @@ export function RestorationCard({ data }: { data: CardData }) {
   // so a missing or partial localization is never a blank — only untranslated.
   const loc = ancient ? (data.localized?.[ancient.slug] ?? null) : null;
   const labels: LocalizedLabels = loc?.labels ?? EN_LABELS;
-  const titleFor = (beat: Beat): string =>
-    loc && data.kind === "record" ? labels[RECORD_LABEL[beat]] : TITLES[data.kind][beat];
+
+  // The recordless card's static chrome — notes, section titles, table headers —
+  // in the reader's language. English per field where a translation is missing.
+  const cs = cardStrings(data.lang);
+  const note = data.kind !== "record" ? cs.note[data.kind] : undefined;
+
+  const titleFor = (beat: Beat): string => {
+    if (data.kind === "record") return loc ? labels[RECORD_LABEL[beat]] : TITLES.record[beat];
+    return cs.title[data.kind][beat as HistoryBeat] ?? TITLES[data.kind][beat];
+  };
 
   /**
    * Whether a beat has anything under its heading.
@@ -229,7 +233,7 @@ export function RestorationCard({ data }: { data: CardData }) {
             stated where it belongs: the source strip below says in words when
             a record has not been checked, and withholds the verse and page
             until it has. */}
-        {RECORDLESS_NOTE[data.kind] && (
+        {note && (
           <p
             style={{
               margin: "0.85rem 0 0",
@@ -237,7 +241,7 @@ export function RestorationCard({ data }: { data: CardData }) {
               color: "var(--ink-soft)",
             }}
           >
-            {RECORDLESS_NOTE[data.kind]}
+            {note}
           </p>
         )}
       </div>
@@ -256,7 +260,7 @@ export function RestorationCard({ data }: { data: CardData }) {
           are the only comparison the card has left to make. */}
       {ancient?.substitution_story && (
         <div className="card-axes">
-          <NutritionDelta record={ancient} kind={data.kind} loc={loc} labels={labels} />
+          <NutritionDelta record={ancient} kind={data.kind} loc={loc} labels={labels} cs={cs} />
         </div>
       )}
 
@@ -323,7 +327,7 @@ export function RestorationCard({ data }: { data: CardData }) {
             <RestoreToday record={ancient} loc={loc} labels={labels} />
           </>
         ) : (
-          <ModernRecipe text={data.beats.RESTORE_TODAY} streaming={data.streaming} />
+          <ModernRecipe text={data.beats.RESTORE_TODAY} streaming={data.streaming} cs={cs} />
         )}
         {ancient?.make_today_notes && <MakeTodayNotes notes={ancient.make_today_notes} />}
       </Beat>
@@ -778,11 +782,13 @@ function NutritionDelta({
   kind,
   loc,
   labels,
+  cs,
 }: {
   record: CorpusRecord;
   kind: TurnKind;
   loc: LocalizedCard | null;
   labels: LocalizedLabels;
+  cs: CardStrings;
 }) {
   const delta = record.substitution_story?.nutrition_delta ?? {};
   const entries = Object.entries(delta);
@@ -799,7 +805,7 @@ function NutritionDelta({
             the headings above just stopped claiming. Only the record-kind
             heading has a localized label; the "usual → restored" variant stays
             English. */}
-        {kind === "record" ? labels.byAxis : "Usual → restored, by axis"}
+        {kind === "record" ? labels.byAxis : cs.usualRestored}
       </div>
       <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
         {entries.map(([axis, dir]) => (
@@ -823,7 +829,15 @@ function NutritionDelta({
   );
 }
 
-function ModernRecipe({ text, streaming }: { text?: string; streaming: boolean }) {
+function ModernRecipe({
+  text,
+  streaming,
+  cs,
+}: {
+  text?: string;
+  streaming: boolean;
+  cs: CardStrings;
+}) {
   if (!text) {
     return streaming ? (
       <p style={{ margin: 0, color: "var(--ink-muted)" }}>
@@ -841,7 +855,7 @@ function ModernRecipe({ text, streaming }: { text?: string; streaming: boolean }
       {ingredients.length > 0 && (
         <>
           <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
-            Ingredients
+            {cs.ingredients}
           </div>
           {/* The table only once the model has committed to the three-field
               shape. A plain list stays a plain list: an older completion, a
@@ -849,7 +863,12 @@ function ModernRecipe({ text, streaming }: { text?: string; streaming: boolean }
               its separators have arrived would otherwise render as a table of
               one-cell rows that reflows as it fills. */}
           {hasIngredientRows(ingredients) ? (
-            <IngredientRows rows={parseIngredientRows(ingredients)} />
+            <IngredientRows
+              rows={parseIngredientRows(ingredients)}
+              ingredientLabel={cs.ingredient}
+              quantityLabel={cs.quantity}
+              caption={cs.whyThisOne}
+            />
           ) : (
             <ul style={{ margin: "0 0 0.9rem", paddingLeft: "1.1rem" }}>
               {ingredients.map((i, k) => (
@@ -864,7 +883,7 @@ function ModernRecipe({ text, streaming }: { text?: string; streaming: boolean }
       {steps.length > 0 && (
         <>
           <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
-            Method
+            {cs.method}
           </div>
           <ol style={{ margin: 0, paddingLeft: "1.15rem" }}>
             {steps.map((s, k) => (

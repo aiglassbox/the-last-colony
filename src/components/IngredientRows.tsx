@@ -21,9 +21,14 @@ import type { IngredientRow } from "@/lib/model/recipe-beat";
 export function IngredientRows({
   rows,
   caption = "Why this one",
+  ingredientLabel = "Ingredient",
+  quantityLabel = "Quantity",
 }: {
   rows: IngredientRow[];
   caption?: string;
+  /** Localized column headers; default to English on a card with no language. */
+  ingredientLabel?: string;
+  quantityLabel?: string;
 }) {
   if (!rows.length) return null;
 
@@ -35,8 +40,8 @@ export function IngredientRows({
   // sentences beside two columns of short strings ends up the narrowest of the
   // three — a word per line against acres of empty quantity column.
   const headers: Array<{ label: string; width?: string }> = [
-    { label: "Ingredient", width: withReason ? "26%" : undefined },
-    ...(withQuantity ? [{ label: "Quantity", width: withReason ? "20%" : undefined }] : []),
+    { label: ingredientLabel, width: withReason ? "26%" : undefined },
+    ...(withQuantity ? [{ label: quantityLabel, width: withReason ? "20%" : undefined }] : []),
     ...(withReason ? [{ label: caption, width: "54%" }] : []),
   ];
 

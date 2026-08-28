@@ -28,3 +28,6 @@ LOCAL_AGENTS.md
 TASK.md
 .serena/
 .docs/
+
+# graphify knowledge-graph outputs — regenerate with /graphify .
+graphify-out/
