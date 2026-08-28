@@ -2,22 +2,21 @@
   "id": "modaka-laddu-001",
   "slug": "laddu",
   "dish_name_modern": "Laddu",
-  "dish_name_source": "Modaka",
+  "dish_name_source": "Laḍḍukā",
   "aliases": [
     "ladoo",
     "laddoo",
     "besan ladoo",
     "motichoor",
-    "मोदक",
     "लड्डू"
   ],
   "share_verdict": "Sesame and jaggery, once. Besan and syrup, now.",
   "tier": "ancient",
   "source": {
-    "text": "Modaka is described across the Sanskrit literature, including the Mānasollāsa",
+    "text": "Sweet balls of jaggery, sesame and coconut — laḍḍukā — are an old class of festival sweet; the Mānasollāsa (12th CE) describes modaka-type sweets among festival foods, though the rolled ball and the steamed dumpling are distinct lines.",
     "author": null,
     "century": "Pre-12th CE, with the Mānasollāsa description 12th CE",
-    "locus": "Mānasollāsa, Adhyāya 13 (Annabhoga)",
+    "locus": null,
     "edition": "Gaekwad's Oriental Series",
     "page": null
   },
@@ -74,7 +73,7 @@
     "method": 0.6
   },
   "contested_points": [
-    "Modaka names both steamed dumplings and rolled sweet balls depending on the text and region; mapping it onto the modern laddu flattens a real distinction.",
+    "The rolled sweet ball recorded here and the steamed modak are two lines of the old word modaka; the steamed dumpling now has its own record.",
     "The besan (gram flour) laddu that most people picture is a later development and depends on finely milled gram flour."
   ],
   "modern_counterpart_id": "modern-laddu-001",
@@ -124,6 +123,6 @@
     "status": "unverified_seed",
     "checked_by": null,
     "checked_on": null,
-    "note": "Seed record. Composite description; not yet checked against a printed edition, so no verse number or page is claimed."
+    "note": "Seed record, split from the former combined modaka/laddu entry: the steamed modak is now a separate record. Composite description; not yet checked against a printed edition, so no verse number or page is claimed."
   }
 }
