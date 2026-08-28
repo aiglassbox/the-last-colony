@@ -76,6 +76,17 @@ const MAX_HISTORY_TURNS = 20;
 const INDIANISE_ONLY = /§\s*(REBUILD|SWAPS|PLATE)\s*§/i;
 
 /**
+ * The escape a restoration completion emits when the dish the user named is a
+ * MODERN namesake of the record that matched — "sabudana khichdi" for the
+ * ancient rice-and-pulse Kṛsara, "rava idli" for the fermented Iḍḍarikā. The
+ * record is not this dish's ancestor, so its badge, source strip and Then are
+ * withdrawn and the turn renders as a recordless modern card. The model puts
+ * the marker before §VERDICT§, and the BeatParser drops everything before its
+ * first known marker, so it never reaches the reader — no extra stripping.
+ */
+const NAMESAKE_ONLY = /§\s*NO_ANCESTOR\s*§/i;
+
+/**
  * How much of any one turn is read.
  *
  * The limiter bounds how many requests arrive and never how large they are, so
@@ -170,6 +181,12 @@ export async function POST(request: NextRequest) {
   // same way PLAIN_WORDS is. A slug entry has no detected language, so it
   // replies in English.
   const langRule = normalized ? replyInstruction(normalized) : "";
+
+  // The reader's language for the card chrome. A record card also carries its
+  // per-record localized card; a recordless card (modern / gap) carries only
+  // this, so the client can localize its static labels from the string table.
+  const uiLang =
+    normalized && !normalized.fell_back && normalized.lang !== "en" ? normalized.lang : undefined;
 
   // A slug names a record directly, so an empty result means the slug is not
   // one. Asking the model about it invites an answer about some other dish
@@ -284,6 +301,13 @@ export async function POST(request: NextRequest) {
          * redacted first.
          */
         onFrameRefused?: () => StreamingParser,
+        /**
+         * Called when a restoration completion declares the dish a MODERN
+         * namesake of the record that matched (a §NO_ANCESTOR§ marker). The
+         * record is withdrawn and the turn re-renders as a recordless modern
+         * card, the same shape a corpus-miss MODERN turn produces.
+         */
+        onNamesakeRefused?: () => StreamingParser,
       ): Promise<string> {
         let full = "";
         let carry = "";
@@ -331,6 +355,22 @@ export async function POST(request: NextRequest) {
           if (onFrameRefused && !refused && INDIANISE_ONLY.test(full)) {
             refused = true;
             parser = onFrameRefused();
+            if (emitted) emit({ type: "redact" });
+            emitted = 0;
+            released = true;
+            pending = "";
+            release(full);
+            return;
+          }
+
+          // The record matched by name, but the completion says the dish is a
+          // modern namesake of it — "sabudana khichdi" is not the ancient Kṛsara.
+          // Same move as the Indianisation refusal: the record's badge, source
+          // strip and Then are withdrawn and the turn becomes a recordless modern
+          // card, keeping the verdict and the cooking.
+          if (onNamesakeRefused && !refused && NAMESAKE_ONLY.test(full)) {
+            refused = true;
+            parser = onNamesakeRefused();
             if (emitted) emit({ type: "redact" });
             emitted = 0;
             released = true;
@@ -548,9 +588,35 @@ export async function POST(request: NextRequest) {
               "anyone: say what the swap puts back and what it does to the dish."
             : "";
 
+          // A record can match a MODERN NAMESAKE rather than a descendant:
+          // "sabudana khichdi" (tapioca) matches the ancient rice-pulse Kṛsara,
+          // "rava idli" the fermented idli. The model already says so in prose;
+          // this lets it say so structurally, so the ancient badge and Then are
+          // pulled rather than contradicting a verdict that calls the dish modern.
+          // Skipped for a MODERN_DISH record, which already renders without a past.
+          const namesakeGuard = modernDish
+            ? ""
+            : "\nOne check before you begin. This record matched by NAME, and the " +
+              "dish the user named may be a MODERN NAMESAKE of it rather than a " +
+              "descendant. The test is REPLACEMENT, not addition. Emit the marker " +
+              "ONLY when a modern ingredient REPLACES the base the record is built " +
+              "on: potato instead of the lentil of a vada (batata vada, aloo vada), " +
+              "sabudana/tapioca instead of the rice and pulse of khichdi, instant " +
+              "semolina (rava) instead of the fermented batter of idli or dosa. If " +
+              "instead the base dish is intact and something is merely ADDED to it — " +
+              "aloo poha is still poha with potato on top, masala dosa is a dosa with " +
+              "a potato filling, dahi vada is a lentil vada in yoghurt — then this " +
+              "record IS the ancestor: do NOT emit the marker, emit the four markers " +
+              "as normal. When it is a true namesake, make §NO_ANCESTOR§ the very " +
+              "first thing you write, before §VERDICT§, then emit ONLY §VERDICT§ and " +
+              "§RESTORE_TODAY§ — no §THEN§, no §WHAT_CHANGED§. Write §RESTORE_TODAY§ " +
+              "as a full recipe: a line reading INGREDIENTS with one ingredient per " +
+              "line, then a line reading METHOD with numbered steps; the record's own " +
+              "table will not be shown.";
+
           const iter = call(
             `${renderCorpusBlock(records)}\n\nThis is a RESTORATION turn. Emit the four ` +
-              `§markers§.${noPast}${shape}${PLAIN_WORDS}${directive}${langRule}\n\nUser said: ${label}`,
+              `§markers§.${noPast}${shape}${namesakeGuard}${PLAIN_WORDS}${directive}${langRule}\n\nUser said: ${label}`,
           )[Symbol.asyncIterator]();
           auditRecords = records;
           proseTurn = false;
@@ -582,6 +648,35 @@ export async function POST(request: NextRequest) {
               records: [],
             });
             return new MarkerParser(INDIANIZE_BEATS);
+          }, () => {
+            // The named dish is a modern namesake of this record, so the record
+            // is not its ancestor: the badge, source strip and Then leave with
+            // it, and the audit below must not treat it as evidence.
+            auditRecords = [];
+            console.warn(
+              `[namesake-refused] ${JSON.stringify({
+                query: label,
+                slug: records[0].slug,
+                vendor: provider.vendor,
+                model: provider.model,
+              })}`,
+            );
+            track("turn_resolved", {
+              ...geo,
+              device_id: device,
+              query: label,
+              resolved: "modern",
+              top_score: retrieval.top_score,
+            });
+            emit({
+              type: "meta",
+              mode: "restoration" satisfies TurnMode,
+              kind: "modern" satisfies TurnKind,
+              top_score: retrieval.top_score,
+              records: [],
+              ...(uiLang && { lang: uiLang }),
+            });
+            return new BeatParser();
           });
         } else {
           // ---- Corpus miss: the model decides the turn ----------------------
@@ -771,6 +866,7 @@ export async function POST(request: NextRequest) {
             kind,
             top_score: retrieval.top_score,
             records: outRecords,
+            ...(uiLang && { lang: uiLang }),
           });
           // A genuine Indian-dish gap goes to the corpus-roadmap log; foreign
           // dishes, modern dishes and follow-ups are not gaps to fill.
