@@ -185,9 +185,10 @@ export function Sidebar({
         </ul>
       </nav>
 
-      <div className="sidebar__scroll">
-        <nav className="side-group side-group--recent" aria-label="Recent conversations">
-          <h2 className="side-group__label">Recent</h2>
+      {/* The header stays put with Features above it; only the rows scroll. */}
+      <nav className="side-group side-group--recent" aria-label="Recent conversations">
+        <h2 className="side-group__label">Recent</h2>
+        <div className="sidebar__scroll">
           {/* Unlabelled history rows are meaningless at 76px, so the list is
               dropped from the icon rail — creating a new one is not. */}
           {!collapsed &&
@@ -215,8 +216,8 @@ export function Sidebar({
                 ))}
               </ul>
             ))}
-        </nav>
-      </div>
+        </div>
+      </nav>
 
       <div className="side-group side-group--others">
         <h2 className="side-group__label">Others</h2>

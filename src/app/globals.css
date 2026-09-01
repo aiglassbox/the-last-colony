@@ -368,6 +368,16 @@ body {
   margin-top: var(--s-5);
 }
 
+/* The recent group owns the leftover rail height; its label sits fixed and
+   only the list below it scrolls. */
+.side-group--recent {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
 .sidebar__scroll {
   flex: 1 1 auto;
   overflow-y: auto;
