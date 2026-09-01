@@ -526,3 +526,38 @@ real public-health gains that must never be told to "reverse."
 5. **No communal or ethnic framing** — colonial economic policy is documented
    history; attributing dietary change to a religious or ethnic community is
    not, and the prompt is instructed to decline it outright.
+
+---
+
+## Community submissions (Add Your Recipe) — settled 2026-09-01
+
+**Deterministic tag-match at query time, not embeddings.** The AI pipeline
+normalizes each submission's dish name into a canonical tag plus alias
+spellings once, at ingestion; retrieval does a token match against those or
+nothing. Pinecone embedding of submissions and Atlas Search were considered
+and rejected: nearest-neighbour serving is what the retrieval gates exist to
+prevent, and Atlas Search is proprietary lock-in ahead of a planned GCP
+migration. A missed spelling falls through to the existing AI fallback — the
+status quo, not a regression.
+→ `docs/superpowers/specs/2026-09-01-add-your-recipe-design.md`
+
+**AI moderates (GREEN/RED), operator outranks it.** No human approval queue —
+one structured model call issues the verdict and the dish tag; GREEN goes live
+immediately. A separate fail-closed admin route (`/pantry`, `ADMIN_PASSWORD`)
+can override per doc and download GREEN submissions as corpus candidates.
+RED submissions stay in the DB, rejected but never deleted.
+
+**Atlas free tier is the test home, photos and all.** Photos live base64 on
+the document (client-compressed, ~500 KB cap) rather than Vercel Blob —
+one store to migrate to GCP later, 512 MB ceiling accepted for the test
+phase. Access goes through one thin module so the store swaps behind one file.
+Fail-soft when `ATLAS_*` is unset, same posture as `db()`.
+
+**Form location outranks edge geo on the record; edge geo picks at query
+time.** The submitter's stated State is what the recipe *is*; the querier's
+Vercel region only chooses which GREEN version to serve, and its absence
+(localhost) degrades to most-recent.
+
+**Model split by job.** Verdict + tagging on `gemini-2.5-flash-lite`
+(classification, cheapest multimodal); image extraction on `gemini-3.6-flash`
+(handwriting, regional scripts, already the repo default). Names in env vars.
