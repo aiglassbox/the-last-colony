@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ChevronDown,
   History,
   MessageCircle,
   PanelLeft,
@@ -10,7 +11,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { Conversation } from "@/lib/chat/store";
 
@@ -66,6 +67,7 @@ export function Sidebar({
   overlay = false,
 }: SidebarProps) {
   const ref = useRef<HTMLElement>(null);
+  const [recentOpen, setRecentOpen] = useState(true);
 
   // While floating, Escape puts it away — the same expectation any overlay sets.
   useEffect(() => {
@@ -187,11 +189,23 @@ export function Sidebar({
 
       {/* The header stays put with Features above it; only the rows scroll. */}
       <nav className="side-group side-group--recent" aria-label="Recent conversations">
-        <h2 className="side-group__label">Recent</h2>
-        <div className="sidebar__scroll">
+        <h2 className="side-group__label">
+          <button
+            type="button"
+            className="side-group__toggle"
+            onClick={() => setRecentOpen((o) => !o)}
+            aria-expanded={recentOpen}
+            aria-controls="recent-list"
+          >
+            Recent
+            <ChevronDown size={12} className="side-group__chevron" aria-hidden />
+          </button>
+        </h2>
+        <div className="sidebar__scroll" id="recent-list">
           {/* Unlabelled history rows are meaningless at 76px, so the list is
               dropped from the icon rail — creating a new one is not. */}
           {!collapsed &&
+            recentOpen &&
             (recent.length === 0 ? (
               <p className="side-empty">Nothing yet. Name a dish to begin.</p>
             ) : (
