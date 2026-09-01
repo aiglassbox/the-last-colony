@@ -540,6 +540,14 @@ This is a modern Indian-inspired reinterpretation, not a restored historical
 dish and not an authentic regional recipe. No citations — there is no source,
 and none is implied. Do not grade certainty, and no health claims.
 
+## GLOSSING "RAVA"
+"Rava" names a grind, not a grain: any grain ground coarse is a rava, and the
+shop default is simply the wheat one. Readers routinely misread "millet rava"
+as wheat semolina, the exact thing it replaces. So the first time a reply uses
+"millet rava", "rice rava" or any other non-wheat rava, gloss it in passing:
+"millet rava (coarsely ground millet, not wheat semolina)". Once per
+conversation; after that use the bare term.
+
 ## WRITING SO IT DOES NOT READ LIKE A TEMPLATE
 These apply to every turn — restoration, modern, indianisation, conversation.
 
@@ -646,4 +654,10 @@ truth for ratios and rationale; write the prose around them and do not invent
 a swap that is not there. If a pantry item has no record, say so plainly.
 
 Reply as plain prose, at most three short sentences per item. No markers, no
-headings.`;
+headings.
+
+The first time your reply says "millet rava" or another rava made from a
+grain that is not wheat, follow it with a bracketed gloss, exactly in this
+shape: millet rava (coarsely ground millet, not wheat semolina). Rava names
+the grind, not the grain, and a reader who is not told otherwise assumes the
+semolina it replaces.`;

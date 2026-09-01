@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ChevronDown,
   History,
   MessageCircle,
   PanelLeft,
@@ -10,7 +11,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { Conversation } from "@/lib/chat/store";
 
@@ -66,6 +67,7 @@ export function Sidebar({
   overlay = false,
 }: SidebarProps) {
   const ref = useRef<HTMLElement>(null);
+  const [recentOpen, setRecentOpen] = useState(true);
 
   // While floating, Escape puts it away — the same expectation any overlay sets.
   useEffect(() => {
@@ -157,38 +159,53 @@ export function Sidebar({
         <span className="new-thread__text">New Chat</span>
       </button>
 
-      <div className="sidebar__scroll">
-        <nav className="side-group" aria-label="Features">
-          <h2 className="side-group__label">Features</h2>
-          <ul className="side-list">
-            <li>
-              <SideItem
-                label="Chat"
-                icon={<MessageCircle size={18} className="side-item__icon" aria-hidden />}
-                active={view === "chat"}
-                collapsed={collapsed}
-                onClick={() => onViewChange("chat")}
-                current
-              />
-            </li>
-            <li>
-              <SideItem
-                label="History"
-                icon={<History size={18} className="side-item__icon" aria-hidden />}
-                active={view === "history"}
-                collapsed={collapsed}
-                onClick={() => onViewChange("history")}
-                current
-              />
-            </li>
-          </ul>
-        </nav>
+      {/* Features stays put while the recents underneath it scroll, so the two
+          view switches are always reachable. */}
+      <nav className="side-group side-group--features" aria-label="Features">
+        <h2 className="side-group__label">Features</h2>
+        <ul className="side-list">
+          <li>
+            <SideItem
+              label="Chat"
+              icon={<MessageCircle size={18} className="side-item__icon" aria-hidden />}
+              active={view === "chat"}
+              collapsed={collapsed}
+              onClick={() => onViewChange("chat")}
+              current
+            />
+          </li>
+          <li>
+            <SideItem
+              label="History"
+              icon={<History size={18} className="side-item__icon" aria-hidden />}
+              active={view === "history"}
+              collapsed={collapsed}
+              onClick={() => onViewChange("history")}
+              current
+            />
+          </li>
+        </ul>
+      </nav>
 
-        <nav className="side-group side-group--recent" aria-label="Recent conversations">
-          <h2 className="side-group__label">Recent</h2>
+      {/* The header stays put with Features above it; only the rows scroll. */}
+      <nav className="side-group side-group--recent" aria-label="Recent conversations">
+        <h2 className="side-group__label">
+          <button
+            type="button"
+            className="side-group__toggle"
+            onClick={() => setRecentOpen((o) => !o)}
+            aria-expanded={recentOpen}
+            aria-controls="recent-list"
+          >
+            Recent
+            <ChevronDown size={12} className="side-group__chevron" aria-hidden />
+          </button>
+        </h2>
+        <div className="sidebar__scroll" id="recent-list">
           {/* Unlabelled history rows are meaningless at 76px, so the list is
               dropped from the icon rail — creating a new one is not. */}
           {!collapsed &&
+            recentOpen &&
             (recent.length === 0 ? (
               <p className="side-empty">Nothing yet. Name a dish to begin.</p>
             ) : (
@@ -213,8 +230,8 @@ export function Sidebar({
                 ))}
               </ul>
             ))}
-        </nav>
-      </div>
+        </div>
+      </nav>
 
       <div className="side-group side-group--others">
         <h2 className="side-group__label">Others</h2>
