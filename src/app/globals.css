@@ -360,12 +360,19 @@ body {
   flex: 0 0 auto;
 }
 
+/* Fixed above the scrolling recents — a flex child of the rail, so it needs
+   its own width and the gap the scroll container used to carry. */
+.side-group--features {
+  flex: 0 0 auto;
+  width: 100%;
+  margin-top: var(--s-5);
+}
+
 .sidebar__scroll {
   flex: 1 1 auto;
   overflow-y: auto;
   min-height: 0;
   width: 100%;
-  margin-top: var(--s-5);
 }
 
 .side-list {
@@ -597,7 +604,7 @@ body {
 }
 
 /* Collapsed: icons only, centred, labels clipped but still announced. */
-.sidebar.sidebar--collapsed .sidebar__scroll {
+.sidebar.sidebar--collapsed .side-group--features {
   margin-top: var(--s-4);
 }
 

@@ -157,33 +157,35 @@ export function Sidebar({
         <span className="new-thread__text">New Chat</span>
       </button>
 
-      <div className="sidebar__scroll">
-        <nav className="side-group" aria-label="Features">
-          <h2 className="side-group__label">Features</h2>
-          <ul className="side-list">
-            <li>
-              <SideItem
-                label="Chat"
-                icon={<MessageCircle size={18} className="side-item__icon" aria-hidden />}
-                active={view === "chat"}
-                collapsed={collapsed}
-                onClick={() => onViewChange("chat")}
-                current
-              />
-            </li>
-            <li>
-              <SideItem
-                label="History"
-                icon={<History size={18} className="side-item__icon" aria-hidden />}
-                active={view === "history"}
-                collapsed={collapsed}
-                onClick={() => onViewChange("history")}
-                current
-              />
-            </li>
-          </ul>
-        </nav>
+      {/* Features stays put while the recents underneath it scroll, so the two
+          view switches are always reachable. */}
+      <nav className="side-group side-group--features" aria-label="Features">
+        <h2 className="side-group__label">Features</h2>
+        <ul className="side-list">
+          <li>
+            <SideItem
+              label="Chat"
+              icon={<MessageCircle size={18} className="side-item__icon" aria-hidden />}
+              active={view === "chat"}
+              collapsed={collapsed}
+              onClick={() => onViewChange("chat")}
+              current
+            />
+          </li>
+          <li>
+            <SideItem
+              label="History"
+              icon={<History size={18} className="side-item__icon" aria-hidden />}
+              active={view === "history"}
+              collapsed={collapsed}
+              onClick={() => onViewChange("history")}
+              current
+            />
+          </li>
+        </ul>
+      </nav>
 
+      <div className="sidebar__scroll">
         <nav className="side-group side-group--recent" aria-label="Recent conversations">
           <h2 className="side-group__label">Recent</h2>
           {/* Unlabelled history rows are meaningless at 76px, so the list is
