@@ -8,6 +8,7 @@
  * the enforcement.
  */
 import { validateSubmission, PHOTO_MAX_BYTES } from "../src/lib/community/schema";
+import { normalizeDish } from "../src/lib/community/normalize";
 
 let failed = 0;
 function check(name: string, pass: boolean): void {
@@ -102,6 +103,16 @@ check(
   "trims field edges only, keeps content verbatim",
   withSpaces.ok && withSpaces.value.recipe_name === "Amchi Vada Pav",
 );
+
+// --- normalization (Phase 4 matches against these; pin them now) ----------
+check("lowercases", normalizeDish("Vada Pav") === "vada pav");
+check("strips diacritics", normalizeDish("Vilepī") === "vilepi");
+check("collapses punctuation", normalizeDish("amma's vada-pav!") === "amma s vada pav");
+check("collapses whitespace", normalizeDish("  vada   pav  ") === "vada pav");
+check("keeps Devanagari intact", normalizeDish("वडा पाव") === "वडा पाव");
+check("keeps Tamil intact", normalizeDish("பொங்கல்") === "பொங்கல்");
+check("keeps Kannada intact", normalizeDish("ಬಿಸಿ ಬೇಳೆ") === "ಬಿಸಿ ಬೇಳೆ");
+check("empty stays empty", normalizeDish("   ") === "");
 
 if (failed > 0) {
   console.error(`\ncheck-submissions: ${failed} failure(s)`);
