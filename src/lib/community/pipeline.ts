@@ -39,8 +39,8 @@ Issue "RED" if ANY of these hold, and list which in reasons:
 - incoherent or filler text (jargon, lorem ipsum, keyboard mash)
 - health claims (curative, therapeutic, "boosts immunity", weight-loss promises)
 - communal framing: crediting or blaming a religious or ethnic community for how people eat, or attributing dietary change to one
-- personal data planted in public fields (phone numbers, addresses, emails in the story/method)
-- a photo that is not a dish, a recipe card, or a kitchen or cooking scene (a screenshot, a document, a person, an unrelated object)
+- personal data planted in public fields (phone numbers, addresses, emails in the story/method) or visible in the photo
+- a photo that is not a dish, a recipe card, or a kitchen or cooking scene (a screenshot, an unrelated document, a portrait with no food or kitchen in frame, an unrelated object)
 
 Otherwise issue "GREEN". A submitter's own name, state, city, language, and the family member a recipe belongs to are expected context — every entry carries them — and are never grounds for RED. A blurred, dark, or badly framed photo of a dish or card is not grounds for RED. Family memories are not claims to fact-check; do not judge authenticity, only the list above.
 

@@ -27,7 +27,8 @@ export interface SubmissionDoc {
   updated_at: Date;
   mode: "manual" | "image";
   submission: SubmissionInput;
-  /** Image mode: what the model read, before the submitter corrected it. */
+  /** Image mode: what the model read, before the submitter corrected it.
+   *  Client-supplied and unauthenticated — audit only, never a source of truth. */
   extracted?: Extracted;
   /** Audit only. The record's location IS the form's state; on any clash the form wins. */
   geo: Geo;

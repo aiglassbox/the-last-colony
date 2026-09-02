@@ -146,6 +146,9 @@ export function validateExtracted(raw: unknown): { ok: true; value: Extracted } 
     }
     out[key] = trimmed;
   }
+  // The doc promise on `Extracted.language` ("" when unsure or unsupported)
+  // is kept here, at the boundary, not only in the model's parser.
+  if (out.language && !isSupported(out.language)) out.language = "";
   return errors.length > 0 ? { ok: false, errors } : { ok: true, value: out };
 }
 

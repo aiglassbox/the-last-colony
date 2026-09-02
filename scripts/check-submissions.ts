@@ -211,6 +211,7 @@ check("manual mode refuses extracted", !validateSubmission({ ...good, extracted:
 check("extracted fields must be strings", !validateExtracted({ ...read, method: ["1. knead"] }).ok);
 check("extracted shares the field caps", !validateExtracted({ ...read, method: "x".repeat(8001) }).ok);
 check("extracted tolerates missing fields", (() => { const e = validateExtracted({}); return e.ok && e.value.method === ""; })());
+check("extracted blanks an unsupported language at the boundary", (() => { const e = validateExtracted({ language: "xx" }); return e.ok && e.value.language === ""; })());
 check("validatePhoto rejects nothing", !validatePhoto(undefined).ok);
 check("validatePhoto measures bytes", (() => { const p = validatePhoto(photoOk); return p.ok && p.value.bytes === 5; })());
 
