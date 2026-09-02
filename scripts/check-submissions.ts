@@ -7,7 +7,13 @@
  * trust boundary: the UI's required/optional split is convenience, this is
  * the enforcement.
  */
-import { validateSubmission, PHOTO_MAX_BYTES, MAX_BODY_BYTES } from "../src/lib/community/schema";
+import {
+  validateSubmission,
+  validateExtracted,
+  validatePhoto,
+  PHOTO_MAX_BYTES,
+  MAX_BODY_BYTES,
+} from "../src/lib/community/schema";
 import { normalizeDish } from "../src/lib/community/normalize";
 import { atlasUri } from "../src/lib/community/client";
 
@@ -183,6 +189,29 @@ check("strips a BOM", normalizeDish("\uFEFFvada pav") === "vada pav");
 check("keeps Bengali intact", normalizeDish("ভাপা ইলিশ") === "ভাপা ইলিশ");
 check("keeps Telugu intact", normalizeDish("పులిహోర") === "పులిహోర");
 check("keeps Gujarati intact", normalizeDish("ઉંધિયું") === "ઉંધિયું");
+
+// --- Phase 2: the image-mode envelope --------------------------------------
+const read = { recipe_name: " Aloo Paratha ", story: "", ingredients: "atta\npotato", method: "1. knead", language: "hi" };
+const manual = validateSubmission(good);
+check("mode defaults to manual", manual.ok && manual.mode === "manual" && manual.extracted === undefined);
+check("rejects an unknown mode", !validateSubmission({ ...good, mode: "magic" }).ok);
+check("image mode needs extracted", !validateSubmission({ ...good, mode: "image", photo: photoOk }).ok);
+check("image mode needs the photo it was read from", !validateSubmission({ ...good, mode: "image", extracted: read }).ok);
+const image = validateSubmission({ ...good, mode: "image", extracted: read, photo: photoOk });
+check(
+  "image mode keeps extracted beside the submission, trimmed",
+  image.ok && image.mode === "image" && image.extracted?.recipe_name === "Aloo Paratha" && image.extracted?.story === "",
+);
+check(
+  "extracted never leaks into the submission block",
+  image.ok && image.value.recipe_name === good.recipe_name && !("extracted" in image.value),
+);
+check("manual mode refuses extracted", !validateSubmission({ ...good, extracted: read }).ok);
+check("extracted fields must be strings", !validateExtracted({ ...read, method: ["1. knead"] }).ok);
+check("extracted shares the field caps", !validateExtracted({ ...read, method: "x".repeat(8001) }).ok);
+check("extracted tolerates missing fields", (() => { const e = validateExtracted({}); return e.ok && e.value.method === ""; })());
+check("validatePhoto rejects nothing", !validatePhoto(undefined).ok);
+check("validatePhoto measures bytes", (() => { const p = validatePhoto(photoOk); return p.ok && p.value.bytes === 5; })());
 
 if (failed > 0) {
   console.error(`\ncheck-submissions: ${failed} failure(s)`);

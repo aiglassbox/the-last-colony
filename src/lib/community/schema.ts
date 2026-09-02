@@ -50,6 +50,29 @@ function base64Bytes(data: string): number {
   return Math.floor((data.length * 3) / 4) - padding;
 }
 
+export interface Photo {
+  data: string;
+  mime: string;
+  bytes: number;
+}
+
+/**
+ * What the extraction read from the photo — the model's transcription, kept
+ * beside the submitter's confirmed words so /pantry can show both and a
+ * reviewer can see how much was corrected. Same caps as the fields they
+ * prefill; empty strings are the normal case for a card with no story.
+ */
+export interface Extracted {
+  recipe_name: string;
+  story: string;
+  ingredients: string;
+  method: string;
+  /** ISO 639-1 the model read the card in; "" when unsure or unsupported. */
+  language: string;
+}
+
+const EXTRACTED_KEYS = ["recipe_name", "story", "ingredients", "method", "language"] as const;
+
 export interface SubmissionInput {
   display_name: string;
   state: string;
@@ -64,7 +87,7 @@ export interface SubmissionInput {
   consent: { right_to_share: boolean; public_display: boolean };
   /** PII. Admin-route only, never in any served payload. */
   contact: string;
-  photo?: { data: string; mime: string; bytes: number };
+  photo?: Photo;
 }
 
 type Field = {
@@ -87,9 +110,50 @@ const FIELDS: Field[] = [
   { key: "contact", max: 120, required: true },
 ];
 
+const CAP: Record<string, number> = Object.fromEntries(FIELDS.map((f) => [f.key, f.max]));
+
+/** The photo block, when one is present. The client's own size claim is not trusted. */
+export function validatePhoto(raw: unknown): { ok: true; value: Photo } | { ok: false; error: string } {
+  const photo = (typeof raw === "object" && raw !== null ? raw : {}) as { data?: unknown; mime?: unknown };
+  const data = typeof photo.data === "string" ? photo.data : "";
+  // Raw base64 only: a data: URL or stray characters would poison the decode
+  // downstream, and the size estimate is exact only for real base64.
+  const wellFormed = /^[A-Za-z0-9+/]+={0,2}$/.test(data) && data.length % 4 === 0;
+  const bytes = wellFormed ? base64Bytes(data) : 0;
+  if (!wellFormed || typeof photo.mime !== "string" || !PHOTO_MIMES.includes(photo.mime) || bytes <= 0 || bytes > PHOTO_MAX_BYTES) {
+    return { ok: false, error: `photo must be jpeg/png/webp under ${PHOTO_MAX_BYTES / 1024}KB` };
+  }
+  return { ok: true, value: { data, mime: photo.mime, bytes } };
+}
+
+/** The model's reading. Every field optional, every field capped like the one it prefills. */
+export function validateExtracted(raw: unknown): { ok: true; value: Extracted } | { ok: false; errors: string[] } {
+  if (typeof raw !== "object" || raw === null) return { ok: false, errors: ["extracted must be an object"] };
+  const input = raw as Record<string, unknown>;
+  const errors: string[] = [];
+  const out: Extracted = { recipe_name: "", story: "", ingredients: "", method: "", language: "" };
+  for (const key of EXTRACTED_KEYS) {
+    const value = input[key];
+    if (value === undefined || value === null) continue;
+    if (typeof value !== "string") {
+      errors.push(`extracted.${key} must be a string`);
+      continue;
+    }
+    const trimmed = value.trim();
+    if (trimmed.length > CAP[key]) {
+      errors.push(`extracted.${key} is over ${CAP[key]} characters`);
+      continue;
+    }
+    out[key] = trimmed;
+  }
+  return errors.length > 0 ? { ok: false, errors } : { ok: true, value: out };
+}
+
 export function validateSubmission(
   input: unknown,
-): { ok: true; value: SubmissionInput } | { ok: false; errors: string[] } {
+):
+  | { ok: true; value: SubmissionInput; mode: "manual" | "image"; extracted?: Extracted }
+  | { ok: false; errors: string[] } {
   if (typeof input !== "object" || input === null) {
     return { ok: false, errors: ["submission must be an object"] };
   }
@@ -142,27 +206,28 @@ export function validateSubmission(
   }
 
   if (raw.photo !== undefined && raw.photo !== null) {
-    const photo = raw.photo as { data?: unknown; mime?: unknown };
-    const data = typeof photo?.data === "string" ? photo.data : "";
-    // Raw base64 only: a data: URL or stray characters would poison the
-    // decode downstream, and the size estimate is exact only for real base64.
-    const wellFormed = /^[A-Za-z0-9+/]+={0,2}$/.test(data) && data.length % 4 === 0;
-    // The client's own size claim is not trusted: the cap is enforced on the
-    // decoded length of what was actually sent.
-    const bytes = wellFormed ? base64Bytes(data) : 0;
-    if (
-      !wellFormed ||
-      typeof photo?.mime !== "string" ||
-      !PHOTO_MIMES.includes(photo.mime) ||
-      bytes <= 0 ||
-      bytes > PHOTO_MAX_BYTES
-    ) {
-      errors.push(`photo must be jpeg/png/webp under ${PHOTO_MAX_BYTES / 1024}KB`);
-    } else {
-      out.photo = { data, mime: photo.mime, bytes };
-    }
+    const photo = validatePhoto(raw.photo);
+    if (photo.ok) out.photo = photo.value;
+    else errors.push(photo.error);
+  }
+
+  // Image mode is an envelope around the same submission: what the model read
+  // travels beside what the submitter confirmed, and the photo it was read
+  // from is required. The submission block itself is identical in both modes.
+  const modeRaw = raw.mode ?? "manual";
+  const mode: "manual" | "image" = modeRaw === "image" ? "image" : "manual";
+  let extracted: Extracted | undefined;
+  if (modeRaw !== "manual" && modeRaw !== "image") {
+    errors.push("mode must be manual or image");
+  } else if (mode === "image") {
+    const ex = validateExtracted(raw.extracted);
+    if (ex.ok) extracted = ex.value;
+    else errors.push(...ex.errors);
+    if (raw.photo === undefined || raw.photo === null) errors.push("image mode needs the photo it was read from");
+  } else if (raw.extracted !== undefined && raw.extracted !== null) {
+    errors.push("extracted only applies to image mode");
   }
 
   if (errors.length > 0) return { ok: false, errors };
-  return { ok: true, value: out as unknown as SubmissionInput };
+  return { ok: true, value: out as unknown as SubmissionInput, mode, extracted };
 }

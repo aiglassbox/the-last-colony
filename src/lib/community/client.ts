@@ -2,7 +2,7 @@ import { MongoClient, ObjectId, type Db } from "mongodb";
 
 import type { Geo } from "../events/geo";
 import type { Verdict } from "./pipeline";
-import type { SubmissionInput } from "./schema";
+import type { Extracted, SubmissionInput } from "./schema";
 
 /**
  * The community store: MongoDB Atlas, reached the same way `db()` reaches
@@ -27,6 +27,8 @@ export interface SubmissionDoc {
   updated_at: Date;
   mode: "manual" | "image";
   submission: SubmissionInput;
+  /** Image mode: what the model read, before the submitter corrected it. */
+  extracted?: Extracted;
   /** Audit only. The record's location IS the form's state; on any clash the form wins. */
   geo: Geo;
   verdict?: {
@@ -40,7 +42,7 @@ export interface SubmissionDoc {
 }
 
 /** What a route hands over. Status and timestamps are the store's to stamp. */
-export type NewSubmission = Pick<SubmissionDoc, "mode" | "submission" | "geo">;
+export type NewSubmission = Pick<SubmissionDoc, "mode" | "submission" | "geo" | "extracted">;
 
 /**
  * Builds the connection string from the three env vars.

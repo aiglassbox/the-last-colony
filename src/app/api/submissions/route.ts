@@ -50,8 +50,10 @@ export async function POST(request: NextRequest) {
   if (!checked.ok) return Response.json({ errors: checked.errors }, { status: 400 });
 
   const id = await insertSubmission({
-    mode: "manual",
+    mode: checked.mode,
     submission: checked.value,
+    // Spread, not `extracted: undefined` — the driver would store a null.
+    ...(checked.extracted && { extracted: checked.extracted }),
     geo: geoFrom(request.headers),
   });
   if (!id) return Response.json({ error: "unavailable" }, { status: 503 });
