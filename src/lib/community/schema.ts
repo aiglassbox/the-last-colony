@@ -33,6 +33,15 @@ export const BELONGS_TO = [
 ];
 
 export const PHOTO_MAX_BYTES = 500 * 1024;
+
+/**
+ * Request-body ceiling, checked on `content-length` before a body is read.
+ * The one legitimately large member is the photo (its cap, as base64, is
+ * ~683 KB); every text cap together is under 17K characters, which is under
+ * 60 KB even in a three-byte script; Phase 2's `extracted` doubles the text.
+ * One megabyte leaves room for all of it and none for a flood.
+ */
+export const MAX_BODY_BYTES = 1_000_000;
 const PHOTO_MIMES = ["image/jpeg", "image/png", "image/webp"];
 
 /** Decoded size of a base64 string, without allocating the decode. */

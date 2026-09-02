@@ -1,13 +1,15 @@
 // src/app/api/submissions/route.ts
-import type { NextRequest } from "next/server";
+import { after, type NextRequest } from "next/server";
 
-import { communityDb, SUBMISSIONS } from "@/lib/community/client";
+import { applyVerdict, insertSubmission } from "@/lib/community/client";
 import { moderate } from "@/lib/community/pipeline";
-import { validateSubmission } from "@/lib/community/schema";
+import { MAX_BODY_BYTES, validateSubmission } from "@/lib/community/schema";
 import { geoFrom } from "@/lib/events/geo";
 import { checkRate, clientKey } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
+/** The verdict runs in `after()`, past the response; this is its room. 60 is allowed on every Vercel plan. */
+export const maxDuration = 60;
 
 /**
  * The submission trust boundary.
@@ -31,6 +33,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Before the body is read: the one legitimately large member is the photo,
+  // and its cap is known. Anything bigger is not a form submission.
+  if (Number(request.headers.get("content-length") ?? 0) > MAX_BODY_BYTES) {
+    return Response.json({ errors: ["body too large"] }, { status: 413 });
+  }
+
   let body: unknown;
   try {
     body = await request.json();
@@ -41,54 +49,21 @@ export async function POST(request: NextRequest) {
   const checked = validateSubmission(body);
   if (!checked.ok) return Response.json({ errors: checked.errors }, { status: 400 });
 
-  const db = await communityDb();
-  if (!db) return Response.json({ error: "unavailable" }, { status: 503 });
-
-  const now = new Date();
-  const doc = {
-    status: "pending" as const,
-    created_at: now,
-    updated_at: now,
-    mode: "manual" as const,
+  const id = await insertSubmission({
+    mode: "manual",
     submission: checked.value,
-    // Audit only. The record's location IS the form's state; on any clash
-    // the form wins. Edge geo's live job is query-side, in Phase 4.
     geo: geoFrom(request.headers),
-  };
+  });
+  if (!id) return Response.json({ error: "unavailable" }, { status: 503 });
 
-  let id;
-  try {
-    const inserted = await db.collection(SUBMISSIONS).insertOne(doc);
-    id = inserted.insertedId;
-  } catch (error) {
-    console.error("[community] insert failed:", error);
-    return Response.json({ error: "unavailable" }, { status: 503 });
-  }
-
-  // Inline verdict; a failure leaves the doc pending for a /pantry re-run.
-  const verdict = await moderate(checked.value);
-  if (verdict) {
-    try {
-      await db.collection(SUBMISSIONS).updateOne(
-        { _id: id },
-        {
-          $set: {
-            status: verdict.card === "GREEN" ? "green" : "red",
-            updated_at: new Date(),
-            verdict: {
-              card: verdict.card,
-              reasons: verdict.reasons,
-              model: verdict.model,
-              at: new Date(),
-            },
-            dish: { tag: verdict.dish_tag, aliases: verdict.aliases },
-          },
-        },
-      );
-    } catch (error) {
-      console.error("[community] verdict update failed (doc stays pending):", error);
-    }
-  }
+  /* `after`, not `await`: the reader waits on nothing, and a verdict that
+     outlives the platform timeout can no longer become a failed response the
+     form retries as a duplicate. A lost verdict leaves the doc pending for a
+     /pantry re-run (Phase 3). `moderate` and `applyVerdict` never throw. */
+  after(async () => {
+    const verdict = await moderate(checked.value);
+    if (verdict) await applyVerdict(id, verdict);
+  });
 
   return Response.json({ ok: true }, { status: 201 });
 }

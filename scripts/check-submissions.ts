@@ -7,7 +7,7 @@
  * trust boundary: the UI's required/optional split is convenience, this is
  * the enforcement.
  */
-import { validateSubmission, PHOTO_MAX_BYTES } from "../src/lib/community/schema";
+import { validateSubmission, PHOTO_MAX_BYTES, MAX_BODY_BYTES } from "../src/lib/community/schema";
 import { normalizeDish } from "../src/lib/community/normalize";
 import { atlasUri } from "../src/lib/community/client";
 
@@ -159,6 +159,19 @@ const withOperator = validateSubmission({ ...good, photo: { ...photoOk, $where: 
 check(
   "drops unknown keys from photo (no $-operators reach the store)",
   withOperator.ok && !("$where" in (withOperator.value.photo ?? {})),
+);
+
+// --- Phase 2: an @ inside the embedded password must not eat the host ------
+check(
+  "atlasUri: @ in an embedded password still finds the host",
+  atlasUri("mongodb+srv://old:p@ss@c.abc.mongodb.net/?appName=X", "u", "p") ===
+    "mongodb+srv://u:p@c.abc.mongodb.net/?appName=X&retryWrites=true&w=majority",
+);
+
+// --- body cap must leave room for the largest legal photo plus every text cap
+check(
+  "MAX_BODY_BYTES covers the photo cap as base64 plus the text caps",
+  MAX_BODY_BYTES >= Math.ceil(PHOTO_MAX_BYTES / 3) * 4 + 200_000,
 );
 
 if (failed > 0) {
