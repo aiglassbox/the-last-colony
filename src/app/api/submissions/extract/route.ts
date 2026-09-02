@@ -28,7 +28,10 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (Number(request.headers.get("content-length") ?? 0) > MAX_BODY_BYTES) {
+  // A missing or unparseable length is refused too: the form always sends
+  // one, and a chunked body is the one shape that could bypass the cap.
+  const length = Number(request.headers.get("content-length") ?? NaN);
+  if (!Number.isFinite(length) || length > MAX_BODY_BYTES) {
     return Response.json({ errors: ["body too large"] }, { status: 413 });
   }
 

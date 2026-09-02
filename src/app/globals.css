@@ -2150,3 +2150,32 @@ body {
   opacity: 0.6;
   cursor: default;
 }
+
+.recipe-form__modes {
+  display: flex;
+  gap: var(--s-2);
+  margin-bottom: var(--s-4);
+}
+
+.recipe-form__mode {
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.recipe-form__mode[aria-pressed="true"] {
+  border-color: var(--red);
+  color: var(--red);
+  font-weight: 600;
+}
+
+.recipe-form__fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+}

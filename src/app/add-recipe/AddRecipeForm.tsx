@@ -4,17 +4,23 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import { BELONGS_TO, PHOTO_MAX_BYTES, STATES } from "@/lib/community/schema";
+import { BELONGS_TO, PHOTO_MAX_BYTES, STATES, type Extracted, type Photo } from "@/lib/community/schema";
 import { LANG_NAMES, SUPPORTED_LANGS } from "@/lib/lang/types";
 
 /**
- * Manual submission form. The server's validateSubmission is the boundary;
- * everything here is convenience mirroring it, so a field the API would
- * refuse is refused before the round trip.
+ * The submission form, two ways in. The server's validateSubmission is the
+ * boundary; everything here is convenience mirroring it, so a field the API
+ * would refuse is refused before the round trip.
+ *
+ * "From a photo" reads the card first and prefills; the submitter corrects
+ * before anything is stored as their words. The envelope the server gets
+ * says what happened, not which button was pressed: a reading that landed
+ * makes it image mode, a failed reading followed by typing is manual mode
+ * with a photo attached.
  */
 
 /** Downscale + JPEG-encode so the payload fits the server's photo cap. */
-async function compressImage(file: File): Promise<{ data: string; mime: string; bytes: number } | null> {
+async function compressImage(file: File): Promise<Photo | null> {
   const bitmap = await createImageBitmap(file).catch(() => null);
   if (!bitmap) return null;
   const scale = Math.min(1, 1280 / Math.max(bitmap.width, bitmap.height));
@@ -31,35 +37,86 @@ async function compressImage(file: File): Promise<{ data: string; mime: string; 
   return null;
 }
 
+type Mode = "manual" | "image";
+
+const READ_FAILED: Record<string, string> = {
+  not_recipe: "We couldn't find a recipe or a dish in that photo. Try another, or type it in.",
+  unreadable: "The writing is too blurred or dark to read. Try a clearer photo, or type it in.",
+};
+
 export function AddRecipeForm() {
+  const [mode, setMode] = useState<Mode>("manual");
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [reading, setReading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [belongsTo, setBelongsTo] = useState("grandmother");
-  const [photo, setPhoto] = useState<{ data: string; mime: string; bytes: number } | null>(null);
+  const [photo, setPhoto] = useState<Photo | null>(null);
   const [photoNote, setPhotoNote] = useState("");
+  /** What the reading returned. The recipe fieldset remounts with it as defaults. */
+  const [extracted, setExtracted] = useState<Extracted | null>(null);
+  const [extractKey, setExtractKey] = useState(0);
+
+  async function readPhoto(p: Photo) {
+    setPhotoNote("Reading your photo…");
+    try {
+      const res = await fetch("/api/submissions/extract", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ photo: { data: p.data, mime: p.mime } }),
+      });
+      const payload = await res.json().catch(() => null);
+      if (res.ok && payload?.extracted) {
+        setExtracted(payload.extracted as Extracted);
+        setExtractKey((k) => k + 1);
+        setPhotoNote("Read from your photo — check every field below before submitting. Empty ones need your words.");
+      } else if (res.status === 422) {
+        setPhotoNote(READ_FAILED[String(payload?.error)] ?? "We couldn't read that photo. Try another, or type it in.");
+      } else if (res.status === 429) {
+        setPhotoNote(`Too many tries — wait ${payload?.retryAfter ?? 60}s, or type it in.`);
+      } else {
+        setPhotoNote("Reading photos is unavailable right now — you can still type it in.");
+      }
+    } catch {
+      // fetch itself failed (offline, DNS): same copy as a 5xx, never a stuck "Reading…".
+      setPhotoNote("Reading photos is unavailable right now — you can still type it in.");
+    }
+  }
 
   async function onPickPhoto(file: File | undefined) {
     setPhotoNote("");
     setPhoto(null);
+    // A reading belongs to the photo it came from; a new photo starts clean.
+    setExtracted(null);
     if (!file) return;
-    const compressed = await compressImage(file);
-    if (!compressed) {
-      setPhotoNote("That image could not be read or compressed under 500KB — try another.");
-      return;
+    // The input stays disabled from the first byte of compression to the end
+    // of the read, so a second pick cannot overlap the first and leave a
+    // reading beside a photo it did not come from.
+    setReading(true);
+    try {
+      const compressed = await compressImage(file);
+      if (!compressed) {
+        setPhotoNote("That image could not be read or compressed under 500KB — try another.");
+        return;
+      }
+      setPhoto(compressed);
+      if (mode === "image") await readPhoto(compressed);
+      else setPhotoNote(`Attached (${Math.round(compressed.bytes / 1024)}KB).`);
+    } finally {
+      setReading(false);
     }
-    setPhoto(compressed);
-    setPhotoNote(`Attached (${Math.round(compressed.bytes / 1024)}KB).`);
   }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (busy) return;
+    if (busy || reading) return;
     setErrors([]);
     const form = new FormData(e.currentTarget);
     const field = (name: string) => String(form.get(name) ?? "").trim();
 
     const body = {
+      mode: extracted ? "image" : "manual",
+      ...(extracted && { extracted }),
       display_name: field("display_name"),
       state: field("state"),
       city: field("city") || undefined,
@@ -111,6 +168,21 @@ export function AddRecipeForm() {
     );
   }
 
+  const photoField = (
+    <label className="recipe-form__field">
+      {mode === "image"
+        ? "Photo of the handwritten card or the dish. We read the recipe from it; you check every field before it is submitted."
+        : "Photo (optional — the dish or the handwritten card; stored with your recipe, not read from)"}
+      <input
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        disabled={reading}
+        onChange={(e) => onPickPhoto(e.target.files?.[0])}
+      />
+      {photoNote && <span className="recipe-form__note">{photoNote}</span>}
+    </label>
+  );
+
   return (
     <main className="recipe-form">
       {/* The rail lives on the chat page only, so this page carries its own
@@ -121,6 +193,15 @@ export function AddRecipeForm() {
         A family recipe, in your words. What you write is shown as you wrote it.
       </p>
 
+      <div className="recipe-form__modes" role="group" aria-label="How would you like to add it?">
+        <button type="button" className="recipe-form__mode" aria-pressed={mode === "manual"} onClick={() => setMode("manual")}>
+          Type it in
+        </button>
+        <button type="button" className="recipe-form__mode" aria-pressed={mode === "image"} onClick={() => setMode("image")}>
+          From a photo
+        </button>
+      </div>
+
       {errors.length > 0 && (
         <ul className="recipe-form__errors" role="alert">
           {errors.map((err) => (
@@ -130,6 +211,8 @@ export function AddRecipeForm() {
       )}
 
       <form onSubmit={onSubmit}>
+        {mode === "image" && photoField}
+
         <label className="recipe-form__field">
           Your name (real or family nickname)
           <input name="display_name" required maxLength={80} />
@@ -166,44 +249,39 @@ export function AddRecipeForm() {
           </label>
         )}
 
-        <label className="recipe-form__field">
-          Recipe name (any language, any script)
-          <input name="recipe_name" required maxLength={120} />
-        </label>
+        {/* Remounted with the reading as defaults when one lands; untouched otherwise. */}
+        <fieldset key={extractKey} className="recipe-form__fieldset">
+          <label className="recipe-form__field">
+            Recipe name (any language, any script)
+            <input name="recipe_name" required maxLength={120} defaultValue={extracted?.recipe_name ?? ""} />
+          </label>
 
-        <label className="recipe-form__field">
-          The story — when it is made, why it matters
-          <textarea name="story" required maxLength={4000} rows={4} />
-        </label>
+          <label className="recipe-form__field">
+            The story — when it is made, why it matters
+            <textarea name="story" required maxLength={4000} rows={4} defaultValue={extracted?.story ?? ""} />
+          </label>
 
-        <label className="recipe-form__field">
-          Ingredients
-          <textarea name="ingredients" required maxLength={4000} rows={4} />
-        </label>
+          <label className="recipe-form__field">
+            Ingredients
+            <textarea name="ingredients" required maxLength={4000} rows={4} defaultValue={extracted?.ingredients ?? ""} />
+          </label>
 
-        <label className="recipe-form__field">
-          Method
-          <textarea name="method" required maxLength={8000} rows={6} />
-        </label>
+          <label className="recipe-form__field">
+            Method
+            <textarea name="method" required maxLength={8000} rows={6} defaultValue={extracted?.method ?? ""} />
+          </label>
 
-        <label className="recipe-form__field">
-          Photo (optional — the dish or the handwritten card; stored with your recipe, not read from)
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            onChange={(e) => onPickPhoto(e.target.files?.[0])}
-          />
-          {photoNote && <span className="recipe-form__note">{photoNote}</span>}
-        </label>
+          <label className="recipe-form__field">
+            Language you are writing in
+            <select name="language" required defaultValue={extracted?.language || "en"}>
+              {SUPPORTED_LANGS.map((code) => (
+                <option key={code} value={code}>{LANG_NAMES[code]}</option>
+              ))}
+            </select>
+          </label>
+        </fieldset>
 
-        <label className="recipe-form__field">
-          Language you are writing in
-          <select name="language" required defaultValue="en">
-            {SUPPORTED_LANGS.map((code) => (
-              <option key={code} value={code}>{LANG_NAMES[code]}</option>
-            ))}
-          </select>
-        </label>
+        {mode === "manual" && photoField}
 
         <label className="recipe-form__field">
           Contact (email or phone — never shown publicly, used only to reach you about this recipe)
@@ -219,7 +297,7 @@ export function AddRecipeForm() {
           My name, location and recipe may be shown publicly and used by the AI.
         </label>
 
-        <button type="submit" className="recipe-form__submit" disabled={busy}>
+        <button type="submit" className="recipe-form__submit" disabled={busy || reading}>
           {busy ? "Submitting…" : "Submit recipe"}
         </button>
       </form>

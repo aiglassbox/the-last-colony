@@ -34,8 +34,11 @@ export async function POST(request: NextRequest) {
   }
 
   // Before the body is read: the one legitimately large member is the photo,
-  // and its cap is known. Anything bigger is not a form submission.
-  if (Number(request.headers.get("content-length") ?? 0) > MAX_BODY_BYTES) {
+  // and its cap is known. Anything bigger is not a form submission. A missing
+  // or unparseable length is refused too: the form always sends one, and a
+  // chunked body is the one shape that could bypass the cap.
+  const length = Number(request.headers.get("content-length") ?? NaN);
+  if (!Number.isFinite(length) || length > MAX_BODY_BYTES) {
     return Response.json({ errors: ["body too large"] }, { status: 413 });
   }
 
