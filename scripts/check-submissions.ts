@@ -16,6 +16,7 @@ import {
 } from "../src/lib/community/schema";
 import { normalizeDish } from "../src/lib/community/normalize";
 import { atlasUri } from "../src/lib/community/client";
+import { parseExtraction } from "../src/lib/community/extract";
 
 let failed = 0;
 function check(name: string, pass: boolean): void {
@@ -212,6 +213,32 @@ check("extracted shares the field caps", !validateExtracted({ ...read, method: "
 check("extracted tolerates missing fields", (() => { const e = validateExtracted({}); return e.ok && e.value.method === ""; })());
 check("validatePhoto rejects nothing", !validatePhoto(undefined).ok);
 check("validatePhoto measures bytes", (() => { const p = validatePhoto(photoOk); return p.ok && p.value.bytes === 5; })());
+
+// --- Phase 2: what the extraction model returns, before anyone sees it ------
+const seen = {
+  is_recipe: true,
+  readable: true,
+  recipe_name: " Amchi Vada Pav ",
+  story: "",
+  ingredients: "potato\npav\nbesan",
+  method: "1. boil\n2. mash\n3. fry",
+  language: "mr",
+  note: "",
+};
+const outcome = (raw: unknown): string => {
+  const r = parseExtraction(raw);
+  return r.ok ? "ok" : r.reason;
+};
+const kept = parseExtraction(seen);
+check("parseExtraction: keeps a good read, trimmed", kept.ok && kept.value.recipe_name === "Amchi Vada Pav" && kept.value.language === "mr");
+check("parseExtraction: not a recipe", outcome({ ...seen, is_recipe: false }) === "not_recipe");
+check("parseExtraction: unreadable", outcome({ ...seen, readable: false }) === "unreadable");
+check("parseExtraction: nothing read is not a recipe", outcome({ ...seen, recipe_name: "", ingredients: "", method: "" }) === "not_recipe");
+check("parseExtraction: dish-only photo keeps the name", outcome({ ...seen, ingredients: "", method: "" }) === "ok");
+check("parseExtraction: unsupported language becomes empty", (() => { const r = parseExtraction({ ...seen, language: "ur" }); return r.ok && r.value.language === ""; })());
+check("parseExtraction: non-object is malformed", outcome("nope") === "malformed");
+check("parseExtraction: over-cap field is malformed", outcome({ ...seen, method: "x".repeat(8001) }) === "malformed");
+check("parseExtraction: is_recipe must be literally true", outcome({ ...seen, is_recipe: "true" }) === "not_recipe");
 
 if (failed > 0) {
   console.error(`\ncheck-submissions: ${failed} failure(s)`);
