@@ -31,3 +31,5 @@ TASK.md
 
 # graphify knowledge-graph outputs — regenerate with /graphify .
 graphify-out/
+# gstack browse skill session state (holds a local token)
+.gstack/
