@@ -2,6 +2,7 @@
 
 import {
   ChevronDown,
+  CookingPot,
   History,
   MessageCircle,
   PanelLeft,
@@ -12,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import type { Conversation } from "@/lib/chat/store";
 
@@ -67,6 +69,7 @@ export function Sidebar({
   overlay = false,
 }: SidebarProps) {
   const ref = useRef<HTMLElement>(null);
+  const router = useRouter();
   const [recentOpen, setRecentOpen] = useState(true);
 
   // While floating, Escape puts it away — the same expectation any overlay sets.
@@ -172,6 +175,14 @@ export function Sidebar({
               collapsed={collapsed}
               onClick={() => onViewChange("chat")}
               current
+            />
+          </li>
+          <li>
+            <SideItem
+              label="Add Recipe"
+              icon={<CookingPot size={18} className="side-item__icon" aria-hidden />}
+              collapsed={collapsed}
+              onClick={() => router.push("/add-recipe")}
             />
           </li>
           <li>
