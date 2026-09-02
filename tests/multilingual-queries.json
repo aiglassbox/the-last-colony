@@ -16,6 +16,22 @@
     { "q": "how do I make rasam at home", "lang": "en", "expect": "rasam", "why": "English sentence, Tamil dish name" },
     { "q": "give me the recipe for modak", "lang": "en", "expect": "modak", "why": "English sentence, Marathi dish name" },
     { "q": "give me a recipe for shukto", "lang": "en", "expect": null, "english": "shukto", "why": "English sentence, Bengali dish not in corpus" },
-    { "q": "recipe of idli batao", "lang": "hi", "expect": "idli", "why": "Hinglish with English scaffolding must stay Hindi" }
+    { "q": "recipe of idli batao", "lang": "hi", "expect": "idli", "why": "Hinglish with English scaffolding must stay Hindi" },
+    { "q": "bengali taal recipe", "lang": "en", "expect": null, "english": "taal", "why": "a language named in English is a word, not the reply language" },
+    { "q": "marathi puran poli", "lang": "en", "expect": null, "why": "language name plus dish, no other words; still English" },
+    { "q": "tamil style rasam recipe", "lang": "en", "expect": "rasam", "why": "language name as an adjective in an English sentence" },
+    { "q": "authentic west bengal style shukto", "lang": "en", "expect": null, "english": "shukto", "why": "region name in an English sentence" },
+    { "q": "HOW TO MAKE TAAL?", "lang": "en", "expect": null, "english": "taal", "why": "casing does not change the sentence's language" },
+    { "q": "what oil should I use for frying", "lang": "en", "expect": null, "why": "general cooking question, no dish; must decline, not guess" },
+    { "q": "how to make ডোসা", "lang": "en", "expect": "dosa", "why": "English sentence with the dish typed in Bengali script" },
+    { "q": "idli recipe বলো", "lang": "bn", "expect": "idli", "why": "English words carried by a Bengali verb: the sentence is Bengali" },
+    { "q": "ami dosa khabo", "lang": "bn", "expect": "dosa", "why": "romanized Bengali made of short common words" },
+    { "q": "mujhe idli banana hai", "lang": "hi", "expect": "idli", "why": "Hinglish sentence" },
+    { "q": "idli eppadi seivathu", "lang": "ta", "expect": "idli", "why": "romanized Tamil" },
+    { "q": "puran poli kashi banvaychi", "lang": "mr", "expect": null, "why": "romanized Marathi; puran poli is not in the corpus" },
+    { "q": "dhokla kevi rite banavay", "lang": "gu", "expect": null, "why": "romanized Gujarati; dhokla is not in the corpus" },
+    { "q": "dosa hege madodu", "lang": "kn", "expect": "dosa", "why": "romanized Kannada" },
+    { "q": "dosa ela cheyali", "lang": "te", "expect": "dosa", "why": "romanized Telugu" },
+    { "q": "بریانی کیسے بنتی ہے", "lang": "en", "expect": null, "english": "biryani", "why": "Urdu is detected but deferred: English reply, translated dish name kept for retrieval" }
   ]
 }

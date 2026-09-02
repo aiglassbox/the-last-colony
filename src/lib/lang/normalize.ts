@@ -31,6 +31,9 @@ Rules:
   taal?" and "taal recipe" are English (lang "en") even though taal is a
   Bengali dish; "taal kivabe banabo" is Bengali (lang "bn") because the words
   around the dish are Bengali. Only the words around the dish name decide.
+- A language or region named in the message is a word, not a signal:
+  "bengali taal recipe", "marathi puran poli" and "west bengal style shukto"
+  are English (lang "en"). The reader wrote the name in English.
 - script is "native" if the user wrote in a non-Latin script, else "roman".
 - register is "hinglish" for Latin-script Indian-language mixed with English,
   "roman" for a purely romanized single language, "native" for a native script.
