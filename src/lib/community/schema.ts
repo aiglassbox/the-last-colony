@@ -8,6 +8,30 @@
  * this file is the enforcement.
  */
 
+import { isSupported } from "../lang/types";
+
+export const STATES: string[] = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
+  "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka",
+  "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya",
+  "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim",
+  "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand",
+  "West Bengal", "Andaman and Nicobar Islands", "Chandigarh",
+  "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Jammu and Kashmir",
+  "Ladakh", "Lakshadweep", "Puducherry",
+];
+
+export const BELONGS_TO = [
+  { value: "grandmother", label: "Grandmother" },
+  { value: "grandfather", label: "Grandfather" },
+  { value: "mother", label: "Mother" },
+  { value: "father", label: "Father" },
+  { value: "other relative", label: "Other relative" },
+  { value: "family friend", label: "Family friend" },
+  { value: "my own", label: "My own" },
+  { value: "other", label: "Other…" },
+];
+
 export const PHOTO_MAX_BYTES = 500 * 1024;
 const PHOTO_MIMES = ["image/jpeg", "image/png", "image/webp"];
 
@@ -86,6 +110,21 @@ export function validateSubmission(
     out[key] = trimmed;
   }
 
+  // The form offers lists; the server holds them. Free text here would be a
+  // silent never-match for Phase 4's geo pick and reply language.
+  if (typeof out.state === "string" && !STATES.includes(out.state)) {
+    errors.push("state must be one of the listed states");
+  }
+  if (typeof out.belongs_to === "string" && !BELONGS_TO.some((b) => b.value === out.belongs_to)) {
+    errors.push("belongs_to must be one of the listed options");
+  }
+  if (out.belongs_to === "other" && typeof out.belongs_to_other !== "string") {
+    errors.push("belongs_to_other is required when belongs_to is other");
+  }
+  if (typeof out.language === "string" && !isSupported(out.language)) {
+    errors.push("language must be one of the supported codes");
+  }
+
   const consent = raw.consent as { right_to_share?: unknown; public_display?: unknown } | undefined;
   if (consent?.right_to_share !== true || consent?.public_display !== true) {
     errors.push("both consent boxes are required");
@@ -96,11 +135,14 @@ export function validateSubmission(
   if (raw.photo !== undefined && raw.photo !== null) {
     const photo = raw.photo as { data?: unknown; mime?: unknown };
     const data = typeof photo?.data === "string" ? photo.data : "";
+    // Raw base64 only: a data: URL or stray characters would poison the
+    // decode downstream, and the size estimate is exact only for real base64.
+    const wellFormed = /^[A-Za-z0-9+/]+={0,2}$/.test(data) && data.length % 4 === 0;
     // The client's own size claim is not trusted: the cap is enforced on the
     // decoded length of what was actually sent.
-    const bytes = base64Bytes(data);
+    const bytes = wellFormed ? base64Bytes(data) : 0;
     if (
-      !data ||
+      !wellFormed ||
       typeof photo?.mime !== "string" ||
       !PHOTO_MIMES.includes(photo.mime) ||
       bytes <= 0 ||

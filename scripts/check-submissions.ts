@@ -138,6 +138,29 @@ check(
     "mongodb://u:p@a.net:27017,b.net:27017/?ssl=true&replicaSet=atlas-x&authSource=admin&retryWrites=true&w=majority",
 );
 
+// --- enum fields are lists, not free text ----------------------------------
+check("rejects a state not on the list", !validateSubmission({ ...good, state: "Narnia" }).ok);
+check("rejects a belongs_to not on the list", !validateSubmission({ ...good, belongs_to: "whoever" }).ok);
+check("rejects an unsupported language code", !validateSubmission({ ...good, language: "xx" }).ok);
+check(
+  "other needs belongs_to_other",
+  !validateSubmission({ ...good, belongs_to: "other" }).ok &&
+    validateSubmission({ ...good, belongs_to: "other", belongs_to_other: "Badi Amma" }).ok,
+);
+
+// --- photo data must be raw, well-formed base64 -----------------------------
+check("rejects non-base64 photo data", !validateSubmission({ ...good, photo: { ...photoOk, data: "!!!!????" } }).ok);
+check(
+  "rejects a data: URL prefix",
+  !validateSubmission({ ...good, photo: { ...photoOk, data: "data:image/jpeg;base64,aGVsbG8=" } }).ok,
+);
+check("rejects base64 with a bad length", !validateSubmission({ ...good, photo: { ...photoOk, data: "aGVsbG" } }).ok);
+const withOperator = validateSubmission({ ...good, photo: { ...photoOk, $where: "1" } });
+check(
+  "drops unknown keys from photo (no $-operators reach the store)",
+  withOperator.ok && !("$where" in (withOperator.value.photo ?? {})),
+);
+
 if (failed > 0) {
   console.error(`\ncheck-submissions: ${failed} failure(s)`);
   process.exit(1);

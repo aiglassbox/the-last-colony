@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
   if (!rate.ok) {
     return Response.json(
       { error: "rate_limited", retryAfter: rate.retryAfter },
-      { status: 429 },
+      { status: 429, headers: { "retry-after": String(rate.retryAfter) } },
     );
   }
 

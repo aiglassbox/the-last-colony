@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import { PHOTO_MAX_BYTES } from "@/lib/community/schema";
+import { BELONGS_TO, PHOTO_MAX_BYTES, STATES } from "@/lib/community/schema";
 import { LANG_NAMES, SUPPORTED_LANGS } from "@/lib/lang/types";
 
 /**
@@ -12,28 +12,6 @@ import { LANG_NAMES, SUPPORTED_LANGS } from "@/lib/lang/types";
  * everything here is convenience mirroring it, so a field the API would
  * refuse is refused before the round trip.
  */
-
-const STATES = [
-  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
-  "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka",
-  "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya",
-  "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim",
-  "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand",
-  "West Bengal", "Andaman and Nicobar Islands", "Chandigarh",
-  "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Jammu and Kashmir",
-  "Ladakh", "Lakshadweep", "Puducherry",
-];
-
-const BELONGS_TO = [
-  { value: "grandmother", label: "Grandmother" },
-  { value: "grandfather", label: "Grandfather" },
-  { value: "mother", label: "Mother" },
-  { value: "father", label: "Father" },
-  { value: "other relative", label: "Other relative" },
-  { value: "family friend", label: "Family friend" },
-  { value: "my own", label: "My own" },
-  { value: "other", label: "Other…" },
-];
 
 /** Downscale + JPEG-encode so the payload fits the server's photo cap. */
 async function compressImage(file: File): Promise<{ data: string; mime: string; bytes: number } | null> {
@@ -184,7 +162,7 @@ export function AddRecipeForm() {
         {belongsTo === "other" && (
           <label className="recipe-form__field">
             Who? (Nani, Dadi, Badi Amma — your word for them)
-            <input name="belongs_to_other" maxLength={80} />
+            <input name="belongs_to_other" required maxLength={80} />
           </label>
         )}
 
