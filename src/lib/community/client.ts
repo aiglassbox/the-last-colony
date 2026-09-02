@@ -13,14 +13,38 @@ import { MongoClient, type Db } from "mongodb";
 export const SUBMISSIONS = "submissions";
 const DB_NAME = "kranti";
 
+/**
+ * Builds the connection string from the three env vars.
+ *
+ * ATLAS_URL is accepted in every shape Atlas hands out: a bare cluster host,
+ * an `mongodb+srv://` string, or a standard `mongodb://host:port,...` string
+ * with its query (ssl, replicaSet, authSource) — that query is kept, because
+ * dropping it breaks the standard form. Credentials always come from their
+ * own vars, so any embedded `user:pass@` is replaced, never trusted.
+ * Exported pure for the check script; `null` when anything is missing.
+ */
+export function atlasUri(
+  url: string | undefined,
+  user: string | undefined,
+  pass: string | undefined,
+): string | null {
+  const u = url?.trim();
+  const usr = user?.trim();
+  const pwd = pass?.trim();
+  if (!u || !usr || !pwd) return null;
+  const m = /^(?:(mongodb(?:\+srv)?):\/\/)?(?:[^@/]*@)?([^/?]+)(?:\/[^?]*)?(?:\?(.*))?$/.exec(u);
+  if (!m) return null;
+  const [, scheme, hosts, query] = m;
+  // No scheme given: SRV unless a port is present, which SRV forbids.
+  const srv = scheme ? scheme === "mongodb+srv" : !/:\d+/.test(hosts);
+  const params = new URLSearchParams(query ?? "");
+  if (!params.has("retryWrites")) params.set("retryWrites", "true");
+  if (!params.has("w")) params.set("w", "majority");
+  return `${srv ? "mongodb+srv" : "mongodb"}://${encodeURIComponent(usr)}:${encodeURIComponent(pwd)}@${hosts}/?${params.toString()}`;
+}
+
 function uri(): string | null {
-  const url = process.env.ATLAS_URL?.trim();
-  const user = process.env.ATLAS_USER?.trim();
-  const pass = process.env.ATLAS_PASSWORD?.trim();
-  if (!url || !user || !pass) return null;
-  // ATLAS_URL may or may not carry the scheme; normalise to the SRV form.
-  const host = url.replace(/^mongodb(\+srv)?:\/\//, "").replace(/\/.*$/, "");
-  return `mongodb+srv://${encodeURIComponent(user)}:${encodeURIComponent(pass)}@${host}/?retryWrites=true&w=majority`;
+  return atlasUri(process.env.ATLAS_URL, process.env.ATLAS_USER, process.env.ATLAS_PASSWORD);
 }
 
 /* Serverless instances are frozen and thawed; a module-level promise on

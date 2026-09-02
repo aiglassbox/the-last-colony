@@ -9,6 +9,7 @@
  */
 import { validateSubmission, PHOTO_MAX_BYTES } from "../src/lib/community/schema";
 import { normalizeDish } from "../src/lib/community/normalize";
+import { atlasUri } from "../src/lib/community/client";
 
 let failed = 0;
 function check(name: string, pass: boolean): void {
@@ -113,6 +114,29 @@ check("keeps Devanagari intact", normalizeDish("वडा पाव") === "व�
 check("keeps Tamil intact", normalizeDish("பொங்கல்") === "பொங்கல்");
 check("keeps Kannada intact", normalizeDish("ಬಿಸಿ ಬೇಳೆ") === "ಬಿಸಿ ಬೇಳೆ");
 check("empty stays empty", normalizeDish("   ") === "");
+
+// --- Atlas URI shapes (client.ts must accept every form Atlas hands out) ----
+check("atlasUri: null when any var missing", atlasUri("h.mongodb.net", "u", undefined) === null);
+check(
+  "atlasUri: bare host becomes SRV with defaults",
+  atlasUri("cluster0.abc.mongodb.net", "u", "p") ===
+    "mongodb+srv://u:p@cluster0.abc.mongodb.net/?retryWrites=true&w=majority",
+);
+check(
+  "atlasUri: host with port is standard, not SRV",
+  atlasUri("cluster0.abc.mongodb.net:27017", "u", "p") ===
+    "mongodb://u:p@cluster0.abc.mongodb.net:27017/?retryWrites=true&w=majority",
+);
+check(
+  "atlasUri: SRV string keeps its query and replaces embedded creds",
+  atlasUri("mongodb+srv://old:creds@c.abc.mongodb.net/?appName=X", "u", "p@ss") ===
+    "mongodb+srv://u:p%40ss@c.abc.mongodb.net/?appName=X&retryWrites=true&w=majority",
+);
+check(
+  "atlasUri: standard multi-host string keeps ssl/replicaSet/authSource",
+  atlasUri("mongodb://a.net:27017,b.net:27017/?ssl=true&replicaSet=atlas-x&authSource=admin", "u", "p") ===
+    "mongodb://u:p@a.net:27017,b.net:27017/?ssl=true&replicaSet=atlas-x&authSource=admin&retryWrites=true&w=majority",
+);
 
 if (failed > 0) {
   console.error(`\ncheck-submissions: ${failed} failure(s)`);
