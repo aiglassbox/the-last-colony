@@ -174,6 +174,16 @@ check(
   MAX_BODY_BYTES >= Math.ceil(PHOTO_MAX_BYTES / 3) * 4 + 200_000,
 );
 
+// --- Phase 2: invisible format characters must not make two spellings ------
+check("strips zero-width space", normalizeDish("vada\u200Bpav") === "vadapav");
+check("strips zero-width joiner and non-joiner", normalizeDish("dal\u200Dbaati\u200Cchurma") === "dalbaatichurma");
+check("strips a BOM", normalizeDish("\uFEFFvada pav") === "vada pav");
+
+// --- and the remaining supported scripts survive the round trip -------------
+check("keeps Bengali intact", normalizeDish("ভাপা ইলিশ") === "ভাপা ইলিশ");
+check("keeps Telugu intact", normalizeDish("పులిహోర") === "పులిహోర");
+check("keeps Gujarati intact", normalizeDish("ઉંધિયું") === "ઉંધિયું");
+
 if (failed > 0) {
   console.error(`\ncheck-submissions: ${failed} failure(s)`);
   process.exit(1);
