@@ -73,6 +73,51 @@ export const EN_UI_STRINGS = {
   clearHistory: "Clear history",
   clearConfirm: "Delete every conversation, confirm",
   clearNote: "Clearing history removes all the chat on this device and there is no undo.",
+
+  // Restoration card: the fixed lines the record store does not carry
+  cardModernNote:
+    "There is no older version of this, and we are not going to invent one. Here is what " +
+    "is actually in it, and which of those ingredients only reached India in the last few " +
+    "centuries.",
+  cardSilences: "This source lists the ingredients with {silences}.",
+  cardNoQuantities: "no quantities",
+  cardNoFunction: "no note on what each ingredient was doing",
+  cardAnd: "and",
+  cardKeepHeading: "Keep these as the record has them",
+  cardNotX: "not {x}",
+  cardModernKitchen: "Doing it in a modern kitchen",
+  cardKeepX: "Keep {x}",
+  cardQuantitiesYours: "The record gives a method but not amounts, so quantities are yours to judge.",
+
+  // Source drawer
+  sourceTitle: "Source",
+  sourceAuthor: "Author",
+  sourcePeriod: "Period",
+  sourceRegion: "Region",
+  sourceLocus: "Locus",
+  sourceEdition: "Edition",
+  sourcePage: "Page",
+  sourceOriginal: "Original",
+  sourceTransliteration: "Transliteration",
+  sourceTranslation: "Translation",
+  sourceCheckedBy: "Checked by",
+  sourceUnverified: "Citation not yet verified",
+  sourceUnverifiedNote:
+    "Until an editor has read the printed edition, this record shows no verse number, no " +
+    "page and no original-language text. What you see above is the text and period only.",
+  sourceContested: "Where scholarship is contested",
+  sourceConfidence: "Confidence",
+  sourceIdentification: "identification",
+  sourceIngredients: "ingredients",
+  sourceMethod: "method",
+
+  // Indianisation (fusion) card
+  fusionPill: "Our own recipe · not a historical one",
+  fusionNote:
+    "What follows is ours: a dish built out of Indian ingredients, worked out here rather " +
+    "than taken from any text.",
+  fusionRebuild: "The rebuild",
+  fusionCook: "Cook it",
 };
 
 export type UiStrings = Record<keyof typeof EN_UI_STRINGS, string>;

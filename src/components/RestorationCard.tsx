@@ -12,6 +12,7 @@ import {
   type NutritionAxis,
 } from "@/lib/lang/localized-card";
 import type { SupportedLang } from "@/lib/lang/types";
+import { fill, uiStrings, type UiStrings } from "@/lib/lang/ui-strings";
 import type { Beat } from "@/lib/model/beats";
 import { toPlainText } from "@/lib/model/plain-text";
 import {
@@ -153,6 +154,8 @@ export function RestorationCard({ data }: { data: CardData }) {
   // The recordless card's static chrome — notes, section titles, table headers —
   // in the reader's language. English per field where a translation is missing.
   const cs = cardStrings(data.lang);
+  // The fixed lines neither the record store nor the card chrome carries.
+  const t = uiStrings(data.lang);
   const note = data.kind !== "record" ? cs.note[data.kind] : undefined;
 
   const titleFor = (beat: Beat): string => {
@@ -274,9 +277,7 @@ export function RestorationCard({ data }: { data: CardData }) {
         <Prose text={data.beats.THEN} streaming={data.streaming} />
         {ancient?.provenance_class === "MODERN_DISH" && (
           <p style={{ margin: "0 0 0.2rem", color: "var(--ink-soft)", maxWidth: "62ch" }}>
-            There is no older version of this, and we are not going to invent one.
-            Here is what is actually in it, and which of those ingredients only
-            reached India in the last few centuries.
+            {t.cardModernNote}
           </p>
         )}
         {ancient && (
@@ -285,7 +286,7 @@ export function RestorationCard({ data }: { data: CardData }) {
                 as it describes them. The version you can cook is its own
                 section below, the same way a dish with no record gets one — an
                 ancient dish was the only kind that had lost it. */}
-            <IngredientTable record={ancient} loc={loc} labels={labels} />
+            <IngredientTable record={ancient} loc={loc} labels={labels} t={t} />
             {ancient.provenance_class !== "MODERN_DISH" && (
               <>
                 <Method record={ancient} loc={loc} labels={labels} />
@@ -329,11 +330,13 @@ export function RestorationCard({ data }: { data: CardData }) {
         ) : (
           <ModernRecipe text={data.beats.RESTORE_TODAY} streaming={data.streaming} cs={cs} />
         )}
-        {ancient?.make_today_notes && <MakeTodayNotes notes={ancient.make_today_notes} />}
+        {ancient?.make_today_notes && <MakeTodayNotes notes={ancient.make_today_notes} t={t} />}
       </Beat>
       )}
 
-      {drawer && ancient && <SourceDrawer record={ancient} onClose={() => setDrawer(false)} />}
+      {drawer && ancient && (
+        <SourceDrawer record={ancient} t={t} onClose={() => setDrawer(false)} />
+      )}
     </article>
   );
 }
@@ -478,10 +481,12 @@ function IngredientTable({
   record,
   loc,
   labels,
+  t,
 }: {
   record: CorpusRecord;
   loc: LocalizedCard | null;
   labels: LocalizedLabels;
+  t: UiStrings;
 }) {
   if (!record.ingredients.length) return null;
   // Localized rows are validated index-aligned with the record, so index maps
@@ -527,8 +532,8 @@ function IngredientTable({
   ];
 
   const silences = [
-    withQuantity ? null : "no quantities",
-    withFunction ? null : "no note on what each ingredient was doing",
+    withQuantity ? null : t.cardNoQuantities,
+    withFunction ? null : t.cardNoFunction,
   ].filter(Boolean);
 
   return (
@@ -588,7 +593,7 @@ function IngredientTable({
       {/* Said once, quietly, rather than repeated down a column. */}
       {silences.length > 0 && (
         <p style={{ margin: "0.6rem 0 0", fontSize: "0.82rem", color: "var(--ink-muted)" }}>
-          This source lists the ingredients with {silences.join(" and ")}.
+          {fill(t.cardSilences, { silences: silences.join(` ${t.cardAnd} `) })}
         </p>
       )}
     </div>
@@ -914,20 +919,26 @@ function ModernRecipe({
  * way to iodised salt and charcoal to LPG, and both were public-health gains —
  * telling a reader to reverse those would be advice that harms them.
  */
-function MakeTodayNotes({ notes }: { notes: NonNullable<CorpusRecord["make_today_notes"]> }) {
+function MakeTodayNotes({
+  notes,
+  t,
+}: {
+  notes: NonNullable<CorpusRecord["make_today_notes"]>;
+  t: UiStrings;
+}) {
   if (notes.keep.length === 0 && notes.techniques.length === 0) return null;
   return (
     <div style={{ marginTop: "1.1rem", maxWidth: "62ch" }}>
       {notes.keep.length > 0 && (
         <>
           <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
-            Keep these as the record has them
+            {t.cardKeepHeading}
           </div>
           <ul style={{ margin: "0 0 1rem", paddingLeft: "1.1rem" }}>
             {notes.keep.map((k) => (
               <li key={k.keep} style={{ fontSize: "0.9rem", marginBottom: "0.3rem" }}>
                 {k.keep}
-                <span style={{ color: "var(--ink-soft)" }}> — not {k.not}</span>
+                <span style={{ color: "var(--ink-soft)" }}> — {fill(t.cardNotX, { x: k.not })}</span>
               </li>
             ))}
           </ul>
@@ -936,14 +947,14 @@ function MakeTodayNotes({ notes }: { notes: NonNullable<CorpusRecord["make_today
       {notes.techniques.length > 0 && (
         <>
           <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
-            Doing it in a modern kitchen
+            {t.cardModernKitchen}
           </div>
-          {notes.techniques.map((t) => (
-            <div key={t.archaic} style={{ marginBottom: "0.7rem" }}>
-              <div style={{ fontSize: "0.9rem" }}>{t.modern}</div>
-              {t.keep && (
+          {notes.techniques.map((tech) => (
+            <div key={tech.archaic} style={{ marginBottom: "0.7rem" }}>
+              <div style={{ fontSize: "0.9rem" }}>{tech.modern}</div>
+              {tech.keep && (
                 <div style={{ fontSize: "0.84rem", color: "var(--ink-soft)", marginTop: "0.2rem" }}>
-                  Keep {t.keep}
+                  {fill(t.cardKeepX, { x: tech.keep })}
                 </div>
               )}
             </div>
@@ -951,7 +962,7 @@ function MakeTodayNotes({ notes }: { notes: NonNullable<CorpusRecord["make_today
         </>
       )}
       <p style={{ margin: "0.4rem 0 0", fontSize: "0.8rem", color: "var(--ink-muted)" }}>
-        The record gives a method but not amounts, so quantities are yours to judge.
+        {t.cardQuantitiesYours}
       </p>
     </div>
   );

@@ -54,7 +54,11 @@ export function Message({ message }: { message: ChatMessage }) {
         />
       ) : message.mode === "indianize" ? (
         <IndianisationCard
-          data={{ beats: message.beats ?? {}, streaming: Boolean(message.streaming) }}
+          data={{
+            beats: message.beats ?? {},
+            streaming: Boolean(message.streaming),
+            lang: message.lang,
+          }}
         />
       ) : (
         <ProseTurn message={message} />

@@ -48,7 +48,8 @@ function systemPrompt(name: string): string {
   );
 }
 
-type Table = Partial<Record<SupportedLang, unknown>>;
+type Strings = Record<string, unknown>;
+type Table = Partial<Record<SupportedLang, Strings>>;
 
 function existing(path: string): Table {
   try {
@@ -56,6 +57,15 @@ function existing(path: string): Table {
   } catch {
     return {};
   }
+}
+
+/** The top-level keys of `source` that `have` does not carry yet. */
+function missing(source: Strings, have: Strings | undefined): Strings {
+  const out: Strings = {};
+  for (const [k, v] of Object.entries(source)) {
+    if (!have || !(k in have)) out[k] = v;
+  }
+  return out;
 }
 
 async function main() {
@@ -70,14 +80,17 @@ async function main() {
 
   for (const job of JOBS) {
     const path = join(DIR, job.out);
-    // Incremental: keep languages already translated so a retry only fills the
-    // gaps and a transient failure never drops a good one.
+    // Incremental, per key: a language already on disk is only asked for the
+    // keys it lacks, so adding a string to the English table translates that
+    // string and leaves every reviewed translation exactly as it was. A
+    // transient failure never drops a good one either.
     const table: Table = force ? {} : existing(path);
     console.log(job.out);
 
     for (const lang of LANGS) {
-      if (!force && table[lang]) {
-        console.log(`  skip ${lang} (already present)`);
+      const todo = missing(job.source as Strings, table[lang]);
+      if (Object.keys(todo).length === 0) {
+        console.log(`  skip ${lang} (complete)`);
         continue;
       }
       try {
@@ -85,12 +98,13 @@ async function main() {
           system: systemPrompt(LANG_NAMES[lang]),
           maxTokens: 1600,
           temperature: 0,
-          messages: [{ role: "user", content: JSON.stringify(job.source) }],
+          messages: [{ role: "user", content: JSON.stringify(todo) }],
         });
         const start = raw.indexOf("{");
         const end = raw.lastIndexOf("}");
-        table[lang] = JSON.parse(raw.slice(start, end + 1)) as unknown;
-        console.log(`  ok  ${lang}`);
+        const got = JSON.parse(raw.slice(start, end + 1)) as Strings;
+        table[lang] = { ...(table[lang] ?? {}), ...got };
+        console.log(`  ok  ${lang} (${Object.keys(todo).length} key(s))`);
       } catch {
         failed++;
         console.log(`  FAIL ${lang}`);
