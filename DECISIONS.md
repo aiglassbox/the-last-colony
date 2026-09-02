@@ -558,6 +558,6 @@ time.** The submitter's stated State is what the recipe *is*; the querier's
 Vercel region only chooses which GREEN version to serve, and its absence
 (localhost) degrades to most-recent.
 
-**Model split by job.** Verdict + tagging on `gemini-2.5-flash-lite`
-(classification, cheapest multimodal); image extraction on `gemini-3.6-flash`
+**Model split by job.** Verdict + tagging on `gemini-3.1-flash-lite`
+(classification, lite tier); image extraction on `gemini-3.6-flash`
 (handwriting, regional scripts, already the repo default). Names in env vars.
