@@ -570,3 +570,17 @@ Vercel region only chooses which GREEN version to serve, and its absence
 **Model split by job.** Verdict + tagging on `gemini-3.1-flash-lite`
 (classification, lite tier); image extraction on `gemini-3.6-flash`
 (handwriting, regional scripts, already the repo default). Names in env vars.
+
+**Extraction is a separate call, and the human confirms before anything is
+stored.** `POST /api/submissions/extract` reads the photo on
+`gemini-3.6-flash` and returns fields; the form prefills, the submitter
+corrects, and `POST /api/submissions` stores their confirmed words as
+`submission` with what the model read kept beside it as `extracted`. Nothing
+the model read is ever stored as the submitter's words unconfirmed. The
+verdict runs over the confirmed text, not the raw reading — and it sees the
+photo, in both modes, because a served community card carries it.
+
+**The verdict runs in `after()`, not inline.** The 201 is flushed first; a
+verdict that outlives the platform timeout can no longer become a failed
+response the form retries as a duplicate. A lost verdict leaves the doc
+`pending` for a `/pantry` re-run.
