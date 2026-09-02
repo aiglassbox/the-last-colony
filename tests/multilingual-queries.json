@@ -6,8 +6,16 @@
     { "q": "দোসা", "lang": "bn", "expect": "dosa", "why": "Bengali native script for dosa" },
     { "q": "ದೋಸೆ", "lang": "kn", "expect": "dosa", "why": "Kannada native script for dosa" },
     { "q": "ખીચડી", "lang": "gu", "expect": "khichdi", "why": "Gujarati native script for khichdi" },
-    { "q": "पोहा", "lang": "mr", "expect": "poha", "why": "Marathi native script for poha" },
+    { "q": "पोहे कसे बनवायचे", "lang": "mr", "expect": "poha", "why": "Marathi sentence for poha; a bare Devanagari dish word flips between hi and mr, so the fixture carries Marathi grammar" },
     { "q": "ఉప్మా", "lang": "te", "expect": "upma", "why": "Telugu native script for upma" },
-    { "q": "asdfgh", "lang": "en", "expect": null, "why": "junk must still decline, not guess" }
+    { "q": "asdfgh", "lang": "en", "expect": null, "why": "junk must still decline, not guess" },
+    { "q": "how to make taal?", "lang": "en", "expect": null, "english": "taal", "why": "the reported bug: English sentence, Bengali dish name is a loanword. taal is not in the corpus, so declines" },
+    { "q": "taal recipe", "lang": "en", "expect": null, "english": "taal", "why": "dish name kept as typed, never glossed to 'palm fruit'" },
+    { "q": "taal kivabe banabo", "lang": "bn", "expect": null, "why": "romanized Bengali sentence; taal must not become dal (expect null catches the dal gloss via retrieval)" },
+    { "q": "dosa kivabe banabo", "lang": "bn", "expect": "dosa", "why": "romanized Bengali sentence naming a corpus dish" },
+    { "q": "how do I make rasam at home", "lang": "en", "expect": "rasam", "why": "English sentence, Tamil dish name" },
+    { "q": "give me the recipe for modak", "lang": "en", "expect": "modak", "why": "English sentence, Marathi dish name" },
+    { "q": "give me a recipe for shukto", "lang": "en", "expect": null, "english": "shukto", "why": "English sentence, Bengali dish not in corpus" },
+    { "q": "recipe of idli batao", "lang": "hi", "expect": "idli", "why": "Hinglish with English scaffolding must stay Hindi" }
   ]
 }

@@ -84,6 +84,15 @@ name in its common spelling ("dosa", not "dhosa" or "dosai"), so "idli kaise
 banti hai" retrieves on "idli" rather than on "how is idli made" — which the
 keyword engine would miss.
 
+**`lang` is the sentence's language; a dish name never sets it.** "how to make
+taal?" was classed Bengali because taal is a Bengali dish, and the whole card
+came back in romanized Bengali. Dish and ingredient names are loanwords in every
+language, so the detector judges only the words around them. English in,
+English out; romanized Bengali in, romanized Bengali out. The same rule keeps
+the dish name as typed: "taal" is never glossed to "palm fruit" or guessed as
+"dal", because a guessed name retrieves the wrong record.
+→ `src/lib/lang/normalize.ts`, `tests/multilingual-queries.json`
+
 **Detection failure degrades to English, never throws.** An unsupported language
 (Urdu, for now), confidence below `CONFIDENCE_THRESHOLD`, malformed JSON, or a
 quota/network error all resolve to the English fallback: reply in English,
