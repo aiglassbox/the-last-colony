@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import type { ChatMessage } from "@/lib/chat/store";
 import { kindOf } from "@/lib/chat/turn";
+import { uiStrings } from "@/lib/lang/ui-strings";
 import { toPlainText } from "@/lib/model/plain-text";
 
 import { IndianisationCard } from "./IndianisationCard";
@@ -171,6 +172,8 @@ function ProseTurn({ message }: { message: ChatMessage }) {
   };
 
   const body = toPlainText(message.text);
+  // The copy control belongs to this turn, so it speaks this turn's language.
+  const t = uiStrings(message.lang);
 
   return (
     <div className="card thread-answer">
@@ -199,10 +202,10 @@ function ProseTurn({ message }: { message: ChatMessage }) {
           type="button"
           onClick={copy}
           className="mono ghost-btn"
-          aria-label="Copy reply"
+          aria-label={t.copyReply}
           style={{ marginTop: "0.7rem" }}
         >
-          {copied ? "Copied" : "Copy"}
+          {copied ? t.copied : t.copy}
         </button>
       )}
     </div>

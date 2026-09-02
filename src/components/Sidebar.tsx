@@ -16,6 +16,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import type { Conversation } from "@/lib/chat/store";
+import { fill, type UiStrings } from "@/lib/lang/ui-strings";
 
 import { Logo } from "./Logo";
 
@@ -50,6 +51,8 @@ export interface SidebarProps {
   onToggleCollapsed: () => void;
   /** Expanded on a narrow viewport — floats over the stage. */
   overlay?: boolean;
+  /** The rail's labels, in the language of the latest reply. */
+  t: UiStrings;
 }
 
 const RECENT_LIMIT = 8;
@@ -67,6 +70,7 @@ export function Sidebar({
   collapsed,
   onToggleCollapsed,
   overlay = false,
+  t,
 }: SidebarProps) {
   const ref = useRef<HTMLElement>(null);
   const router = useRouter();
@@ -106,8 +110,8 @@ export function Sidebar({
             className="rail-open"
             onClick={onToggleCollapsed}
             aria-expanded={false}
-            aria-label="Expand sidebar"
-            title="Expand sidebar"
+            aria-label={t.expandSidebar}
+            title={t.expandSidebar}
           >
             <span className="rail-open__mark">
               <Logo size={40} />
@@ -138,8 +142,8 @@ export function Sidebar({
               className="icon-btn sidebar__toggle"
               onClick={onToggleCollapsed}
               aria-expanded={!collapsed}
-              aria-label={overlay ? "Close menu" : "Collapse sidebar"}
-              title={overlay ? "Close menu" : "Collapse sidebar"}
+              aria-label={overlay ? t.closeMenu : t.collapseSidebar}
+              title={overlay ? t.closeMenu : t.collapseSidebar}
             >
               {overlay ? <X size={19} aria-hidden /> : <PanelLeft size={18} aria-hidden />}
             </button>
@@ -155,21 +159,21 @@ export function Sidebar({
         type="button"
         className="new-thread"
         onClick={onNewConversation}
-        aria-label="New Chat"
-        title="New Chat"
+        aria-label={t.newChat}
+        title={t.newChat}
       >
         <SquarePen size={18} className="new-thread__icon" aria-hidden />
-        <span className="new-thread__text">New Chat</span>
+        <span className="new-thread__text">{t.newChat}</span>
       </button>
 
       {/* Features stays put while the recents underneath it scroll, so the two
           view switches are always reachable. */}
-      <nav className="side-group side-group--features" aria-label="Features">
-        <h2 className="side-group__label">Features</h2>
+      <nav className="side-group side-group--features" aria-label={t.features}>
+        <h2 className="side-group__label">{t.features}</h2>
         <ul className="side-list">
           <li>
             <SideItem
-              label="Chat"
+              label={t.chat}
               icon={<MessageCircle size={18} className="side-item__icon" aria-hidden />}
               active={view === "chat"}
               collapsed={collapsed}
@@ -179,7 +183,7 @@ export function Sidebar({
           </li>
           <li>
             <SideItem
-              label="Add Recipe"
+              label={t.addRecipe}
               icon={<CookingPot size={18} className="side-item__icon" aria-hidden />}
               collapsed={collapsed}
               onClick={() => router.push("/add-recipe")}
@@ -187,7 +191,7 @@ export function Sidebar({
           </li>
           <li>
             <SideItem
-              label="History"
+              label={t.history}
               icon={<History size={18} className="side-item__icon" aria-hidden />}
               active={view === "history"}
               collapsed={collapsed}
@@ -199,7 +203,7 @@ export function Sidebar({
       </nav>
 
       {/* The header stays put with Features above it; only the rows scroll. */}
-      <nav className="side-group side-group--recent" aria-label="Recent conversations">
+      <nav className="side-group side-group--recent" aria-label={t.recentConversations}>
         <h2 className="side-group__label">
           <button
             type="button"
@@ -208,7 +212,7 @@ export function Sidebar({
             aria-expanded={recentOpen}
             aria-controls="recent-list"
           >
-            Recent
+            {t.recent}
             <ChevronDown size={12} className="side-group__chevron" aria-hidden />
           </button>
         </h2>
@@ -218,7 +222,7 @@ export function Sidebar({
           {!collapsed &&
             recentOpen &&
             (recent.length === 0 ? (
-              <p className="side-empty">Nothing yet. Name a dish to begin.</p>
+              <p className="side-empty">{t.recentEmpty}</p>
             ) : (
               <ul className="side-list">
                 {recent.map((c) => (
@@ -233,7 +237,7 @@ export function Sidebar({
                       type="button"
                       className="icon-btn side-row__delete"
                       onClick={() => onDeleteConversation(c.id)}
-                      aria-label={`Delete conversation: ${c.title}`}
+                      aria-label={fill(t.deleteConversation, { title: c.title })}
                     >
                       <Trash2 size={15} aria-hidden />
                     </button>
@@ -245,11 +249,11 @@ export function Sidebar({
       </nav>
 
       <div className="side-group side-group--others">
-        <h2 className="side-group__label">Others</h2>
+        <h2 className="side-group__label">{t.others}</h2>
         <ul className="side-list">
           <li>
             <SideItem
-              label="Setting"
+              label={t.setting}
               icon={<Settings size={18} className="side-item__icon" aria-hidden />}
               collapsed={collapsed}
               onClick={onOpenSettings}

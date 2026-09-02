@@ -1,7 +1,7 @@
 "use client";
 
 import { Menu, SquarePen } from "lucide-react";
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 import { parseCommand } from "@/lib/chat/commands";
 import {
@@ -26,6 +26,7 @@ import type { CorpusRecord } from "@/lib/corpus/types";
 import { deviceId } from "@/lib/device-id";
 import type { LocalizedCard } from "@/lib/lang/localized-card";
 import type { SupportedLang } from "@/lib/lang/types";
+import { uiStrings } from "@/lib/lang/ui-strings";
 import {
   getServerSnapshot as railServerSnapshot,
   getSnapshot as railSnapshot,
@@ -115,6 +116,18 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
   const current = conversations.find((c) => c.id === currentId) ?? null;
   const messages = current?.messages ?? [];
   const isEmpty = messages.length === 0;
+
+  // The page follows the conversation: the chrome is in the language of the
+  // latest finished reply — one whose meta has arrived, so a streaming turn
+  // never flickers the rail back to English — and English when there is none.
+  // A card keeps its own language; this is only the frame around it.
+  const uiLang = [...messages].reverse().find((m) => m.role === "assistant" && m.mode)?.lang;
+  const t = useMemo(() => uiStrings(uiLang), [uiLang]);
+
+  // Screen readers pick pronunciation from the document language.
+  useEffect(() => {
+    document.documentElement.lang = uiLang ?? "en";
+  }, [uiLang]);
 
   // ---- the server mirror --------------------------------------------------
 
@@ -334,7 +347,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
         });
 
         if (!res.ok || !res.body) {
-          const detail = (await res.json().catch(() => ({ error: "Request failed." }))) as {
+          const detail = (await res.json().catch(() => ({ error: t.requestFailed }))) as {
             error?: string;
           };
           patchMessage(conversationId, replyId, (m) => ({ ...m, error: detail.error }));
@@ -406,7 +419,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
         if ((err as Error).name !== "AbortError") {
           patchMessage(conversationId, replyId, (m) => ({
             ...m,
-            error: "Lost the connection. Try again.",
+            error: t.lostConnection,
           }));
         }
       } finally {
@@ -429,7 +442,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
         setBusy(false);
       }
     },
-    [busy, anchor],
+    [busy, anchor, t],
   );
 
   // Deep link from a QR code or permalink, deferred a tick — `send` sets state
@@ -495,7 +508,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
        moment it closes — see `.app--rail-open`. */
     <div className={railCollapsed ? "app" : "app app--rail-open"}>
       <a href="#main" className="skip-link">
-        Skip to content
+        {t.skipToContent}
       </a>
 
       <Sidebar
@@ -517,6 +530,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
         collapsed={railCollapsed}
         onToggleCollapsed={toggleRail}
         overlay={overlay}
+        t={t}
       />
 
       {overlay && (
@@ -532,7 +546,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
             type="button"
             className="topbar__btn"
             onClick={() => setRailCollapsed(false)}
-            aria-label="Open menu"
+            aria-label={t.openMenu}
           >
             <Menu size={20} aria-hidden />
           </button>
@@ -560,7 +574,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
               type="button"
               className="topbar__btn"
               onClick={startNew}
-              aria-label="New Chat"
+              aria-label={t.newChat}
             >
               <SquarePen size={19} aria-hidden />
             </button>
@@ -580,6 +594,8 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                 onSelect={openConversation}
                 onDelete={deleteConversation}
                 onNew={startNew}
+                t={t}
+                lang={uiLang}
               />
             ) : isEmpty && phone ? (
               /* The phone opening screen: headline in the free space, actions
@@ -612,6 +628,8 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                       variant="flat"
                       minHeight={64}
                       inputRef={promptRef}
+                      t={t}
+                      lang={uiLang}
                     />
                   </div>
                 </div>
@@ -637,6 +655,8 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                     placeholder={PROMPT_PLACEHOLDER}
                     inputRef={promptRef}
                     minHeight={72}
+                    t={t}
+                    lang={uiLang}
                   />
                 </section>
               </div>
@@ -658,13 +678,15 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                       onSubmit={submit}
                       onStop={() => abortRef.current?.abort()}
                       busy={busy}
-                      placeholder="Ask a follow-up…"
+                      placeholder={t.followUp}
                       variant="flat"
                       minHeight={72}
                       inputRef={promptRef}
+                      t={t}
+                      lang={uiLang}
                     />
                     <p className="mt-2 text-center text-[0.7rem] text-[var(--ink-muted)]">
-                      Unverified citations are labelled on the card.
+                      {t.unverifiedNote}
                     </p>
                   </div>
                 </div>
@@ -678,6 +700,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
         <SettingsSheet
           onClearConversations={clearAll}
           onClose={() => setSettingsOpen(false)}
+          t={t}
         />
       )}
     </div>
