@@ -209,7 +209,7 @@ export function AddRecipeForm() {
         </label>
 
         <label className="recipe-form__field">
-          Photo (optional — the dish, the handwritten card, or the person)
+          Photo (optional — the dish or the handwritten card; stored with your recipe, not read from)
           <input
             type="file"
             accept="image/jpeg,image/png,image/webp"
