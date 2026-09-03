@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Poppins } from "next/font/google";
 import localFont from "next/font/local";
 
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { MetaPixel } from "@/components/MetaPixel";
 import { VisitTracker } from "@/components/VisitTracker";
 import { siteUrl } from "@/lib/site-url";
@@ -67,11 +68,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${poppins.variable} ${newSpirit.variable}`}>
       <body>
         {children}
-        {/* Both render nothing visible. They are here rather than in a page so
+        {/* All three render nothing visible. They are here rather than in a page so
             that a reader who arrives on a shared dish link is attributed the
             same way as one who arrives on the home page. */}
         <VisitTracker />
         <MetaPixel />
+        <GoogleAnalytics />
       </body>
     </html>
   );
