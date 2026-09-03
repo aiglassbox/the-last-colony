@@ -584,3 +584,19 @@ photo, in both modes, because a served community card carries it.
 verdict that outlives the platform timeout can no longer become a failed
 response the form retries as a duplicate. A lost verdict leaves the doc
 `pending` for a `/pantry` re-run.
+
+**The pantry wears the kitchen's door.** One gate factory, two instances:
+same constant-time compare, same signed 12-hour cookie, same ten-attempt
+budget per five minutes, and the same 404 for "no password configured" and
+"wrong cookie" alike. The pantry has its own password (`ADMIN_PASSWORD`) and
+its own cookie, because it shows submitters' contact details and a kitchen
+session must open nothing there. The auth route is a factory too; the kitchen's
+route shrank to naming its gate.
+
+**A corpus candidate carries no contact and can never claim ATTESTED.** The
+pantry's download is a GREEN submission in the corpus record's shape, for a
+human to incorporate by hand: `MODERN_DISH`, `unverified_seed`, no
+original-language text (rule 2), no photo, and the submitter's contact left
+behind in the store. Humans remain the only writers of corpus files. An
+operator's override is final: `verdict.overridden_at` is stamped, and neither a
+late verdict callback nor a re-run may write over it.
