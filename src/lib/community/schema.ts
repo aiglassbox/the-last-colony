@@ -71,8 +71,6 @@ export interface Extracted {
   language: string;
 }
 
-const EXTRACTED_KEYS = ["recipe_name", "story", "ingredients", "method", "language"] as const;
-
 export interface SubmissionInput {
   display_name: string;
   state: string;
@@ -96,7 +94,7 @@ type Field = {
   required: boolean;
 };
 
-const FIELDS: Field[] = [
+const FIELDS = [
   { key: "display_name", max: 80, required: true },
   { key: "state", max: 60, required: true },
   { key: "city", max: 80, required: false },
@@ -108,9 +106,13 @@ const FIELDS: Field[] = [
   { key: "method", max: 8000, required: true },
   { key: "language", max: 30, required: true },
   { key: "contact", max: 120, required: true },
-];
+] as const satisfies readonly Field[];
 
-const CAP: Record<string, number> = Object.fromEntries(FIELDS.map((f) => [f.key, f.max]));
+type FieldKey = (typeof FIELDS)[number]["key"];
+const EXTRACTED_KEYS = ["recipe_name", "story", "ingredients", "method", "language"] as const satisfies readonly FieldKey[];
+
+// Keyed by the field list itself, so a key that drifts out of FIELDS is a compile error, not a silently uncapped field.
+const CAP = Object.fromEntries(FIELDS.map((f) => [f.key, f.max])) as Record<FieldKey, number>;
 
 /** The photo block, when one is present. The client's own size claim is not trusted. */
 export function validatePhoto(raw: unknown): { ok: true; value: Photo } | { ok: false; error: string } {

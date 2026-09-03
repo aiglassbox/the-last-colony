@@ -1,7 +1,6 @@
 // src/lib/community/extract.ts
 import { GoogleGenAI, Type } from "@google/genai";
 
-import { isSupported } from "../lang/types";
 import { validateExtracted, type Extracted, type Photo } from "./schema";
 
 /**
@@ -23,7 +22,7 @@ const PROMPT = `You transcribe recipes from photos for a community archive of In
 Rules:
 - Transcribe what is written, in the script and language it is written in. Do not translate, do not modernise spellings, do not add ingredients or steps that are not on the card. If a word is unclear, keep your best reading rather than dropping it.
 - If the photo shows only the dish (no text), set is_recipe true only if you can name the dish: put that name in recipe_name and leave ingredients and method empty — the submitter will write them.
-- If the photo shows neither a recipe card nor a dish (a screenshot, a document, a person, a blank page, nonsense text), set is_recipe false and say why in note.
+- If the photo shows neither a recipe card nor a dish (a screenshot, a document, an unrelated person, a blank page, nonsense text), set is_recipe false and say why in note.
 - readable is false when there is text but it is too blurred, dark or cut off to transcribe faithfully; say so in note. A photo with no text at all (the dish itself) is readable.
 - Never invent a story. story is only text on the card about when or why the dish is made — not the recipe itself. Usually it is empty.
 - language: the ISO 639-1 code of the language most of the text is in — one of en, hi, bn, mr, te, ta, gu, kn — or "" if unsure.
@@ -42,8 +41,7 @@ export function parseExtraction(raw: unknown): ExtractResult {
   const r = raw as Record<string, unknown>;
   if (r.is_recipe !== true) return { ok: false, reason: "not_recipe" };
   if (r.readable !== true) return { ok: false, reason: "unreadable" };
-  const language = typeof r.language === "string" && isSupported(r.language) ? r.language : "";
-  const checked = validateExtracted({ ...r, language });
+  const checked = validateExtracted(r);
   if (!checked.ok) return { ok: false, reason: "malformed" };
   const { recipe_name, ingredients, method } = checked.value;
   if (!recipe_name && !ingredients && !method) return { ok: false, reason: "not_recipe" };

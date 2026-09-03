@@ -107,6 +107,21 @@ export function AddRecipeForm() {
     }
   }
 
+  function switchMode(next: Mode) {
+    // The buttons carry disabled={reading}: a read in flight captured this
+    // mode in its closure, and letting it land after a switch would re-attach
+    // the photo and remount the fieldset over whatever was typed since.
+    setMode(next);
+    // The file input moves (top in photo mode, bottom in manual) and so
+    // remounts empty. If no reading landed, drop the photo state with it so
+    // the form holds what the screen shows; a reading that did land stays —
+    // clearing it would drop the audit trail while the fields keep its text.
+    if (!extracted) {
+      setPhoto(null);
+      setPhotoNote("");
+    }
+  }
+
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (busy || reading) return;
@@ -194,10 +209,10 @@ export function AddRecipeForm() {
       </p>
 
       <div className="recipe-form__modes" role="group" aria-label="How would you like to add it?">
-        <button type="button" className="recipe-form__mode" aria-pressed={mode === "manual"} onClick={() => setMode("manual")}>
+        <button type="button" className="recipe-form__mode" aria-pressed={mode === "manual"} onClick={() => switchMode("manual")} disabled={reading}>
           Type it in
         </button>
-        <button type="button" className="recipe-form__mode" aria-pressed={mode === "image"} onClick={() => setMode("image")}>
+        <button type="button" className="recipe-form__mode" aria-pressed={mode === "image"} onClick={() => switchMode("image")} disabled={reading}>
           From a photo
         </button>
       </div>
