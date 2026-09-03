@@ -9,6 +9,7 @@
  */
 import { createHmac } from "node:crypto";
 
+import { toCorpusCandidate } from "../src/lib/community/candidate";
 import { kitchen, pantry } from "../src/lib/dash/auth";
 import { makeGate, passwordMatches } from "../src/lib/dash/gate";
 
@@ -71,6 +72,56 @@ check("passwordMatches: equal", passwordMatches("swordfish", "swordfish"));
 check("passwordMatches: different length", !passwordMatches("sword", "swordfish"));
 check("passwordMatches: same length, different", !passwordMatches("swordfisH", "swordfish"));
 check("passwordMatches: non-string", !passwordMatches(123, "swordfish") && !passwordMatches(undefined, "swordfish"));
+
+// --- the corpus candidate: copy-shape work for a human, never a promotion ----
+const green = {
+  id: "6a98996d7608d2116cde5615",
+  status: "green" as const,
+  created_at: new Date("2026-09-02T21:47:24.958Z"),
+  updated_at: new Date("2026-09-02T21:47:30.000Z"),
+  mode: "image" as const,
+  submission: {
+    display_name: "Aaji Kore",
+    state: "Maharashtra",
+    city: "Mumbai",
+    belongs_to: "grandmother",
+    recipe_name: "Amchi Vada Pav",
+    story: "Monsoon Sundays.",
+    ingredients: "- potatoes\n- pav\n\n- besan",
+    method: "1. Boil.\n2. Mash.\n3) Fry.",
+    language: "mr",
+    consent: { right_to_share: true, public_display: true },
+    contact: "secret@example.com",
+    photo: { data: "aGVsbG8=", mime: "image/jpeg", bytes: 5 },
+  },
+  geo: { country: "IN", region: "MH", city: "Mumbai", timezone: "Asia/Kolkata" },
+  verdict: { card: "GREEN" as const, reasons: [], model: "gemini-3.1-flash-lite", at: new Date("2026-09-02T21:47:29.000Z") },
+  dish: { tag: "vada-pav", aliases: ["vada pav", "wada pav"] },
+};
+const candidate = toCorpusCandidate(green);
+const json = JSON.stringify(candidate);
+
+check("candidate: never ATTESTED", candidate.provenance_class === "MODERN_DISH" && candidate.tier === "modern");
+check(
+  "candidate: no original-language text (rule 2)",
+  candidate.original_text === null && candidate.transliteration === null && candidate.translation === null,
+);
+check("candidate: unverified seed, nobody has checked it", candidate.verification.status === "unverified_seed" && candidate.verification.checked_by === null && candidate.verification.checked_on === null);
+check("candidate: contact never leaves the pantry", !json.includes("contact") && !json.includes("secret@example.com"));
+check("candidate: photo stays in the store", !json.includes("aGVsbG8=") && !json.includes("photo"));
+check(
+  "candidate: ingredients one per line, bullets stripped, blanks dropped",
+  candidate.ingredients.map((i) => i.name).join("|") === "potatoes|pav|besan",
+);
+check("candidate: method steps unnumbered", candidate.method_reconstructed.join("|") === "Boil.|Mash.|Fry.");
+check("candidate: tag drives id and slug", candidate.id === "community-vada-pav-de5615" && candidate.slug === "vada-pav-community-de5615");
+check("candidate: aliases and region carried", candidate.aliases.length === 2 && candidate.region === "Maharashtra");
+check("candidate: attribution in citation, never in locus", candidate.source.locus === null && (candidate.source.citation ?? "").includes("Aaji Kore"));
+check(
+  "candidate: community block carries story, mode and the store id",
+  candidate.community.story === "Monsoon Sundays." && candidate.community.mode === "image" && candidate.community.submission_id === green.id,
+);
+check("candidate: untagged doc still exports", toCorpusCandidate({ ...green, dish: undefined }).slug === "untagged-community-de5615");
 
 if (failed > 0) {
   console.error(`\ncheck-pantry: ${failed} failure(s)`);
