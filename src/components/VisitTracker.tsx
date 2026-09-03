@@ -25,7 +25,8 @@ export function VisitTracker() {
        people checking the graphs each morning is a visible line on them. An
        analytics page that inflates its own traffic is worse than no analytics
        page, because the error is invisible and grows with how much you use it. */
-    if (window.location.pathname.startsWith("/kitchen")) return;
+    const path = window.location.pathname;
+    if (path.startsWith("/kitchen") || path.startsWith("/pantry")) return;
 
     const attribution = captureAttribution();
 
