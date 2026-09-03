@@ -28,3 +28,8 @@ export function normalizeDish(raw: string): string {
     .trim()
     .normalize("NFC");
 }
+
+/** The tag form of a dish name: normalised, spaces to hyphens. What Phase 4 matches on. */
+export function dishTag(name: string): string {
+  return normalizeDish(name).replace(/\s+/g, "-");
+}

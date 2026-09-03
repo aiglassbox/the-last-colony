@@ -14,8 +14,8 @@ import {
   PHOTO_MAX_BYTES,
   MAX_BODY_BYTES,
 } from "../src/lib/community/schema";
-import { normalizeDish } from "../src/lib/community/normalize";
-import { atlasUri } from "../src/lib/community/client";
+import { dishTag, normalizeDish } from "../src/lib/community/normalize";
+import { atlasUri, dailyMax } from "../src/lib/community/client";
 import { parseExtraction } from "../src/lib/community/extract";
 
 let failed = 0;
@@ -240,6 +240,24 @@ check("parseExtraction: unsupported language becomes empty", (() => { const r = 
 check("parseExtraction: non-object is malformed", outcome("nope") === "malformed");
 check("parseExtraction: over-cap field is malformed", outcome({ ...seen, method: "x".repeat(8001) }) === "malformed");
 check("parseExtraction: is_recipe must be literally true", outcome({ ...seen, is_recipe: "true" }) === "not_recipe");
+
+// --- Phase 3: the daily ceiling's knob, pinned offline ------------------------
+delete process.env.SUBMISSION_DAILY_MAX;
+check("dailyMax: unset means 100", dailyMax() === 100);
+process.env.SUBMISSION_DAILY_MAX = "0";
+check("dailyMax: 0 refuses everything", dailyMax() === 0);
+process.env.SUBMISSION_DAILY_MAX = "  250 ";
+check("dailyMax: trimmed number", dailyMax() === 250);
+process.env.SUBMISSION_DAILY_MAX = "abc";
+check("dailyMax: garbage means 100", dailyMax() === 100);
+process.env.SUBMISSION_DAILY_MAX = "-5";
+check("dailyMax: negative means 100", dailyMax() === 100);
+delete process.env.SUBMISSION_DAILY_MAX;
+
+// --- the tag form of a dish name (pipeline and override share it) -------------
+check("dishTag: spaces become hyphens", dishTag("Amchi Vada Pav") === "amchi-vada-pav");
+check("dishTag: Devanagari survives", dishTag("वडा पाव") === "वडा-पाव");
+check("dishTag: punctuation-only is empty", dishTag("!!!") === "");
 
 if (failed > 0) {
   console.error(`\ncheck-submissions: ${failed} failure(s)`);

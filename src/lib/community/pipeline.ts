@@ -1,7 +1,7 @@
 // src/lib/community/pipeline.ts
 import { GoogleGenAI, Type, type Part } from "@google/genai";
 
-import { normalizeDish } from "./normalize";
+import { dishTag, normalizeDish } from "./normalize";
 import type { SubmissionInput } from "./schema";
 
 /**
@@ -94,11 +94,10 @@ export async function moderate(sub: SubmissionInput): Promise<Verdict | null> {
     const parsed = JSON.parse(res.text ?? "") as Omit<Verdict, "model">;
     if (parsed.card !== "GREEN" && parsed.card !== "RED") return null;
 
-    const kebab = (s: unknown) => normalizeDish(String(s ?? "")).replace(/\s+/g, "-");
     // The tag is what Phase 4 matches on. An empty one from the model falls
     // back to the submitter's own name for the dish; if even that normalises
     // to nothing, the verdict is malformed and the doc stays pending.
-    const dish_tag = kebab(parsed.dish_tag) || kebab(sub.recipe_name);
+    const dish_tag = dishTag(String(parsed.dish_tag ?? "")) || dishTag(sub.recipe_name);
     if (!dish_tag) return null;
 
     return {
