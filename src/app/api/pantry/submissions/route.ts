@@ -108,7 +108,9 @@ export async function POST(request: NextRequest) {
       return Response.json({ error: "the verdict call failed; the submission stays as it was" }, { status: 502 });
     }
     const applied = await applyVerdict(id, verdict);
-    if (!applied) return Response.json({ error: "could not write the verdict" }, { status: 503 });
+    if (!applied) {
+      return Response.json({ error: "verdict not written — the store may be down, or an operator override landed first" }, { status: 503 });
+    }
     return Response.json({ ok: true, status: verdict.card === "GREEN" ? "green" : "red", reasons: verdict.reasons });
   }
 

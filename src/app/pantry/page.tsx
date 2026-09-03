@@ -58,9 +58,10 @@ export default async function Pantry(props: PageProps<"/pantry">) {
 
   const params = await props.searchParams;
   const status = asStatus(one(params.status));
-  // Trunc, not just clamp: a fractional page reaches Mongo as a fractional
-  // skip, which throws and reads to the operator as "the store is unreachable".
-  const page = Math.max(0, Math.trunc(Number(one(params.page) ?? 0)) || 0);
+  // Finite, positive, whole: a fractional page or 1e999 reaches Mongo as a
+  // skip it rejects, which reads to the operator as "the store is unreachable".
+  const pageRaw = Number(one(params.page));
+  const page = Number.isFinite(pageRaw) && pageRaw > 0 ? Math.trunc(pageRaw) : 0;
   const id = one(params.id);
 
   const header = (
