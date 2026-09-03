@@ -1,97 +1,40 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
-
 import { cookies } from "next/headers";
 
+import { makeGate, type Gate } from "./gate";
+
+export { passwordMatches } from "./gate";
+
 /**
- * The gate on /kitchen.
+ * The two doors.
  *
- * One shared password, set by whoever runs the project, and no accounts. That
- * is the right size for this: the dashboard is read by three people who already
- * share a Vercel login, and a user table would be more surface than the thing
- * it protects. What it is not is a reason to be sloppy about the parts that are
- * cheap to get right — the comparison is constant-time, the session is a signed
- * token rather than the password echoed back into a cookie, and a wrong guess
- * costs the same 404 as a route that was never configured.
+ * The kitchen: one shared password, read by three people who already share a
+ * Vercel login; a user table would be more surface than the thing it protects.
+ * The pantry: community submissions with the submitters' contact details, so
+ * its own password and its own cookie — a kitchen session opens nothing here.
  *
- * Unset `KITCHEN_PASSWORD` means the dashboard does not exist. It fails closed
- * for the same reason `/api/email-report` does: an analytics page that quietly
- * serves everybody because somebody forgot a variable is worse than no page.
+ * Unset password means the door does not exist. Both fail closed for the same
+ * reason `/api/email-report` does: a page that quietly serves everybody because
+ * somebody forgot a variable is worse than no page.
  */
+export const kitchen = makeGate("kitchen", "KITCHEN_PASSWORD", "KITCHEN_SECRET");
+export const pantry = makeGate("pantry", "ADMIN_PASSWORD", "ADMIN_SECRET");
 
-const COOKIE = "kc_kitchen";
-
-/** Long enough to read the numbers over a morning; short enough that a borrowed laptop forgets. */
-const SESSION_MS = 12 * 60 * 60 * 1000;
-
-export function kitchenPassword(): string | null {
-  const value = process.env.KITCHEN_PASSWORD?.trim();
-  return value ? value : null;
-}
+export type Access = "granted" | "denied" | "unconfigured";
 
 /**
- * The signing key.
- *
- * Derived from the password unless `KITCHEN_SECRET` is set, so the common case
- * is one variable rather than two. The derivation is deliberate in one respect:
- * changing the password invalidates every live session, which is exactly what
- * you want the day somebody leaves.
- */
-function secret(password: string): string {
-  return process.env.KITCHEN_SECRET?.trim() || `kitchen:${password}`;
-}
-
-function sign(value: string, password: string): string {
-  return createHmac("sha256", secret(password)).update(value).digest("hex");
-}
-
-/** Constant-time over equal-length inputs; length alone is not a secret here. */
-function safeEqual(a: string, b: string): boolean {
-  const left = Buffer.from(a);
-  const right = Buffer.from(b);
-  if (left.length !== right.length) return false;
-  return timingSafeEqual(left, right);
-}
-
-export function passwordMatches(supplied: unknown, expected: string): boolean {
-  return typeof supplied === "string" && safeEqual(supplied, expected);
-}
-
-/**
- * A session token: the expiry, and a signature over it.
- *
- * The password itself never goes into the cookie. If it did, every session
- * would be a copy of the credential sitting in a browser jar, readable by
- * anything that gets a moment alone with the device — and rotating it would be
- * the only way to revoke one.
- */
-export function issueToken(password: string): { value: string; maxAge: number } {
-  const expiry = String(Date.now() + SESSION_MS);
-  return { value: `${expiry}.${sign(expiry, password)}`, maxAge: Math.floor(SESSION_MS / 1000) };
-}
-
-export function tokenValid(token: string | undefined, password: string): boolean {
-  if (!token) return false;
-  const [expiry, signature] = token.split(".");
-  if (!expiry || !signature) return false;
-  if (!safeEqual(signature, sign(expiry, password))) return false;
-
-  const at = Number(expiry);
-  return Number.isFinite(at) && at > Date.now();
-}
-
-export const COOKIE_NAME = COOKIE;
-
-/**
- * Whether the caller may read the dashboard.
+ * Whether the caller may pass a door.
  *
  * Returns `"unconfigured"` rather than `false` for a deployment with no
  * password, because the page answers those two cases differently: one shows a
  * login form, the other shows nothing at all.
  */
-export async function kitchenAccess(): Promise<"granted" | "denied" | "unconfigured"> {
-  const password = kitchenPassword();
+export async function access(gate: Gate): Promise<Access> {
+  const password = gate.password();
   if (!password) return "unconfigured";
 
   const jar = await cookies();
-  return tokenValid(jar.get(COOKIE)?.value, password) ? "granted" : "denied";
+  return gate.tokenValid(jar.get(gate.cookie)?.value, password) ? "granted" : "denied";
 }
+
+export const kitchenAccess = (): Promise<Access> => access(kitchen);
+export const pantryAccess = (): Promise<Access> => access(pantry);

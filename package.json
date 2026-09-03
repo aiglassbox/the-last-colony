@@ -20,7 +20,8 @@
     "check:routing": "tsx scripts/check-routing.ts",
     "check:cache": "tsx scripts/check-cache.ts",
     "community:check-submissions": "tsx scripts/check-submissions.ts",
-    "check": "npm run corpus:validate && npm run corpus:check-retrieval && npm run corpus:check-promotion && npm run check:routing && npm run community:check-submissions",
+    "community:check-pantry": "tsx scripts/check-pantry.ts",
+    "check": "npm run corpus:validate && npm run corpus:check-retrieval && npm run corpus:check-promotion && npm run check:routing && npm run community:check-submissions && npm run community:check-pantry",
     "db:migrate": "tsx scripts/db-migrate.ts",
     "report:usage": "tsx scripts/usage-report.ts",
     "email:report": "tsx scripts/email-report.ts"
