@@ -600,3 +600,19 @@ original-language text (rule 2), no photo, and the submitter's contact left
 behind in the store. Humans remain the only writers of corpus files. An
 operator's override is final: `verdict.overridden_at` is stamped, and neither a
 late verdict callback nor a re-run may write over it.
+
+**The model reports the language; the form stopped asking.** "Language you are
+writing in" was a dropdown the submitter answered and nothing trusted. It had
+two failure modes with no correct answer: type English, pick Marathi, and the
+store believes a lie; write Hinglish, and no option on the list is right.
+Neither is a mistake the reader can be blamed for, and both steer Phase 4's
+translation — a submission labelled `en` skips the Hindi translation a Hindi
+reader needs. The verdict model already reads the whole submission, so it names
+the language as part of the same call, gated through `isSupported` so a
+hallucinated code cannot reach the store, and `""` when it cannot tell. The
+prompt judges language, not script: romanized Hindi is `hi`, romanized Marathi
+is `mr`, English carrying borrowed dish names is `en`. It lands in `dish`
+beside the tag and aliases, because `dish` is the model's output block and
+`submission` is verbatim as submitted. Documents written before this carry
+`submission.language`; `candidate.ts` and the pantry read the new field first
+and fall back to the old one.

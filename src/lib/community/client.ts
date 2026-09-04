@@ -40,7 +40,7 @@ export interface SubmissionDoc {
     at: Date;
     overridden_at?: Date;
   };
-  dish?: { tag: string; aliases: string[] };
+  dish?: { tag: string; aliases: string[]; language?: string };
 }
 
 /** What a route hands over. Status and timestamps are the store's to stamp. */
@@ -193,7 +193,7 @@ export async function applyVerdict(id: string, verdict: Verdict): Promise<boolea
           status: verdict.card === "GREEN" ? "green" : "red",
           updated_at: at,
           verdict: { card: verdict.card, reasons: verdict.reasons, model: verdict.model, at },
-          dish: { tag: verdict.dish_tag, aliases: verdict.aliases },
+          dish: { tag: verdict.dish_tag, aliases: verdict.aliases, language: verdict.language },
         },
       },
     );

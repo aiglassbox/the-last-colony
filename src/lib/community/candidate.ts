@@ -93,7 +93,9 @@ export function toCorpusCandidate(doc: StoredSubmission): CorpusCandidate {
       story: s.story,
       state: s.state,
       city: s.city ?? null,
-      language: s.language,
+      // Pre-Phase-4 documents carry the reader's own answer; new ones carry the
+      // model's reading. Drop the fallback when no old document is left in the store.
+      language: doc.dish?.language || (s as { language?: string }).language || "",
       mode: doc.mode,
       submitted_at: doc.created_at.toISOString(),
       verdict_model: doc.verdict?.model ?? null,

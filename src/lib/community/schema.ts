@@ -8,8 +8,6 @@
  * this file is the enforcement.
  */
 
-import { isSupported } from "../lang/types";
-
 export const STATES: string[] = [
   "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
   "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka",
@@ -67,8 +65,6 @@ export interface Extracted {
   story: string;
   ingredients: string;
   method: string;
-  /** ISO 639-1 the model read the card in; "" when unsure or unsupported. */
-  language: string;
 }
 
 export interface SubmissionInput {
@@ -81,7 +77,6 @@ export interface SubmissionInput {
   story: string;
   ingredients: string;
   method: string;
-  language: string;
   consent: { right_to_share: boolean; public_display: boolean };
   /** PII. Admin-route only, never in any served payload. */
   contact: string;
@@ -104,12 +99,11 @@ const FIELDS = [
   { key: "story", max: 4000, required: true },
   { key: "ingredients", max: 4000, required: true },
   { key: "method", max: 8000, required: true },
-  { key: "language", max: 30, required: true },
   { key: "contact", max: 120, required: true },
 ] as const satisfies readonly Field[];
 
 type FieldKey = (typeof FIELDS)[number]["key"];
-const EXTRACTED_KEYS = ["recipe_name", "story", "ingredients", "method", "language"] as const satisfies readonly FieldKey[];
+const EXTRACTED_KEYS = ["recipe_name", "story", "ingredients", "method"] as const satisfies readonly FieldKey[];
 
 // Keyed by the field list itself, so a key that drifts out of FIELDS is a compile error, not a silently uncapped field.
 const CAP = Object.fromEntries(FIELDS.map((f) => [f.key, f.max])) as Record<FieldKey, number>;
@@ -133,7 +127,7 @@ export function validateExtracted(raw: unknown): { ok: true; value: Extracted } 
   if (typeof raw !== "object" || raw === null) return { ok: false, errors: ["extracted must be an object"] };
   const input = raw as Record<string, unknown>;
   const errors: string[] = [];
-  const out: Extracted = { recipe_name: "", story: "", ingredients: "", method: "", language: "" };
+  const out: Extracted = { recipe_name: "", story: "", ingredients: "", method: "" };
   for (const key of EXTRACTED_KEYS) {
     const value = input[key];
     if (value === undefined || value === null) continue;
@@ -148,9 +142,6 @@ export function validateExtracted(raw: unknown): { ok: true; value: Extracted } 
     }
     out[key] = trimmed;
   }
-  // The doc promise on `Extracted.language` ("" when unsure or unsupported)
-  // is kept here, at the boundary, not only in the model's parser.
-  if (out.language && !isSupported(out.language)) out.language = "";
   return errors.length > 0 ? { ok: false, errors } : { ok: true, value: out };
 }
 
@@ -198,9 +189,6 @@ export function validateSubmission(
   }
   if (out.belongs_to === "other" && typeof out.belongs_to_other !== "string") {
     errors.push("belongs_to_other is required when belongs_to is other");
-  }
-  if (typeof out.language === "string" && !isSupported(out.language)) {
-    errors.push("language must be one of the supported codes");
   }
 
   const consent = raw.consent as { right_to_share?: unknown; public_display?: unknown } | undefined;

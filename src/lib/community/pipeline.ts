@@ -1,6 +1,7 @@
 // src/lib/community/pipeline.ts
 import { GoogleGenAI, Type, type Part } from "@google/genai";
 
+import { isSupported } from "../lang/types";
 import { dishTag, normalizeDish } from "./normalize";
 import type { SubmissionInput } from "./schema";
 
@@ -26,6 +27,7 @@ export interface Verdict {
   reasons: string[];
   dish_tag: string;
   aliases: string[];
+  language: string;
   model: string;
 }
 
@@ -46,7 +48,9 @@ Otherwise issue "GREEN". A submitter's own name, state, city, language, and the 
 
 Also name the dish:
 - dish_tag: the canonical dish name in lowercase Latin kebab-case, e.g. "vada-pav"
-- aliases: common spellings and romanizations a reader might type, including the name in its original script, e.g. ["vada pav", "wada pav", "vada pao", "वडा पाव"]`;
+- aliases: common spellings and romanizations a reader might type, including the name in its original script, e.g. ["vada pav", "wada pav", "vada pao", "वडा पाव"]
+- language: the ISO 639-1 code of the language most of the submission is written in — one of en, hi, bn, mr, te, ta, gu, kn — or "" if it is none of those or you are unsure
+- judge the language, not the script. An Indian language written in Latin letters is still that language: "aloo ko boil karke mash kar lo" is hi, not en, and romanized Marathi is mr. English carrying a few borrowed dish or ingredient names is still en.`;
 
 export async function moderate(sub: SubmissionInput): Promise<Verdict | null> {
   const key = process.env.GEMINI_API_KEY;
@@ -57,7 +61,6 @@ export async function moderate(sub: SubmissionInput): Promise<Verdict | null> {
     `Recipe name: ${sub.recipe_name}`,
     `State: ${sub.state}${sub.city ? `, ${sub.city}` : ""}`,
     `Belongs to: ${sub.belongs_to}${sub.belongs_to_other ? ` (${sub.belongs_to_other})` : ""}`,
-    `Language: ${sub.language}`,
     `Story: ${sub.story}`,
     `Ingredients: ${sub.ingredients}`,
     `Method: ${sub.method}`,
@@ -85,8 +88,9 @@ export async function moderate(sub: SubmissionInput): Promise<Verdict | null> {
             reasons: { type: Type.ARRAY, items: { type: Type.STRING } },
             dish_tag: { type: Type.STRING },
             aliases: { type: Type.ARRAY, items: { type: Type.STRING } },
+            language: { type: Type.STRING },
           },
-          required: ["card", "reasons", "dish_tag", "aliases"],
+          required: ["card", "reasons", "dish_tag", "aliases", "language"],
         },
       },
     });
@@ -100,6 +104,8 @@ export async function moderate(sub: SubmissionInput): Promise<Verdict | null> {
     const dish_tag = dishTag(String(parsed.dish_tag ?? "")) || dishTag(sub.recipe_name);
     if (!dish_tag) return null;
 
+    const language = isSupported(String(parsed.language ?? "")) ? String(parsed.language) : "";
+
     return {
       card: parsed.card,
       reasons: Array.isArray(parsed.reasons) ? parsed.reasons.map(String).slice(0, 8) : [],
@@ -107,6 +113,7 @@ export async function moderate(sub: SubmissionInput): Promise<Verdict | null> {
       aliases: Array.isArray(parsed.aliases)
         ? [...new Set(parsed.aliases.map((a) => normalizeDish(String(a))))].filter(Boolean).slice(0, 12)
         : [],
+      language,
       model,
     };
   } catch (error) {

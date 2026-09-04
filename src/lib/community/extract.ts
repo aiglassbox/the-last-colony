@@ -25,7 +25,6 @@ Rules:
 - If the photo shows neither a recipe card nor a dish (a screenshot, a document, an unrelated person, a blank page, nonsense text), set is_recipe false and say why in note.
 - readable is false when there is text but it is too blurred, dark or cut off to transcribe faithfully; say so in note. A photo with no text at all (the dish itself) is readable.
 - Never invent a story. story is only text on the card about when or why the dish is made — not the recipe itself. Usually it is empty.
-- language: the ISO 639-1 code of the language most of the text is in — one of en, hi, bn, mr, te, ta, gu, kn — or "" if unsure.
 - Keep ingredients one per line and method as numbered or line-separated steps, exactly as far as the card gives them.`;
 
 export type ExtractResult =
@@ -72,10 +71,9 @@ export async function extractRecipe(photo: Photo): Promise<ExtractResult | null>
             story: { type: Type.STRING },
             ingredients: { type: Type.STRING },
             method: { type: Type.STRING },
-            language: { type: Type.STRING },
             note: { type: Type.STRING },
           },
-          required: ["is_recipe", "readable", "recipe_name", "story", "ingredients", "method", "language", "note"],
+          required: ["is_recipe", "readable", "recipe_name", "story", "ingredients", "method", "note"],
         },
       },
     });

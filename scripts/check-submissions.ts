@@ -55,7 +55,6 @@ for (const field of [
   "story",
   "ingredients",
   "method",
-  "language",
   "contact",
 ] as const) {
   const broken: Record<string, unknown> = { ...good };
@@ -148,7 +147,19 @@ check(
 // --- enum fields are lists, not free text ----------------------------------
 check("rejects a state not on the list", !validateSubmission({ ...good, state: "Narnia" }).ok);
 check("rejects a belongs_to not on the list", !validateSubmission({ ...good, belongs_to: "whoever" }).ok);
-check("rejects an unsupported language code", !validateSubmission({ ...good, language: "xx" }).ok);
+// A submission with no language key validates: the model owns the field now.
+const noLang = { ...good };
+delete (noLang as Record<string, unknown>).language;
+check("validates without a language field", validateSubmission(noLang).ok === true);
+
+// A client-supplied language is ignored rather than stored, so a caller cannot
+// mislabel a submission and steer which translation is skipped later.
+const withLang = { ...good, language: "bn" };
+const out = validateSubmission(withLang);
+check(
+  "a client-supplied language is dropped",
+  out.ok === true && !("language" in (out.value as unknown as Record<string, unknown>)),
+);
 check(
   "other needs belongs_to_other",
   !validateSubmission({ ...good, belongs_to: "other" }).ok &&
@@ -211,7 +222,6 @@ check("manual mode refuses extracted", !validateSubmission({ ...good, extracted:
 check("extracted fields must be strings", !validateExtracted({ ...read, method: ["1. knead"] }).ok);
 check("extracted shares the field caps", !validateExtracted({ ...read, method: "x".repeat(8001) }).ok);
 check("extracted tolerates missing fields", (() => { const e = validateExtracted({}); return e.ok && e.value.method === ""; })());
-check("extracted blanks an unsupported language at the boundary", (() => { const e = validateExtracted({ language: "xx" }); return e.ok && e.value.language === ""; })());
 check("validatePhoto rejects nothing", !validatePhoto(undefined).ok);
 check("validatePhoto measures bytes", (() => { const p = validatePhoto(photoOk); return p.ok && p.value.bytes === 5; })());
 
@@ -231,12 +241,11 @@ const outcome = (raw: unknown): string => {
   return r.ok ? "ok" : r.reason;
 };
 const kept = parseExtraction(seen);
-check("parseExtraction: keeps a good read, trimmed", kept.ok && kept.value.recipe_name === "Amchi Vada Pav" && kept.value.language === "mr");
+check("parseExtraction: keeps a good read, trimmed", kept.ok && kept.value.recipe_name === "Amchi Vada Pav");
 check("parseExtraction: not a recipe", outcome({ ...seen, is_recipe: false }) === "not_recipe");
 check("parseExtraction: unreadable", outcome({ ...seen, readable: false }) === "unreadable");
 check("parseExtraction: nothing read is not a recipe", outcome({ ...seen, recipe_name: "", ingredients: "", method: "" }) === "not_recipe");
 check("parseExtraction: dish-only photo keeps the name", outcome({ ...seen, ingredients: "", method: "" }) === "ok");
-check("parseExtraction: unsupported language becomes empty", (() => { const r = parseExtraction({ ...seen, language: "ur" }); return r.ok && r.value.language === ""; })());
 check("parseExtraction: non-object is malformed", outcome("nope") === "malformed");
 check("parseExtraction: over-cap field is malformed", outcome({ ...seen, method: "x".repeat(8001) }) === "malformed");
 check("parseExtraction: is_recipe must be literally true", outcome({ ...seen, is_recipe: "true" }) === "not_recipe");

@@ -186,12 +186,12 @@ export default async function Pantry(props: PageProps<"/pantry">) {
 /** Submitted words beside what the model read; verdict, contact and geo in the side panel; the photo below. */
 function Detail({ doc }: { doc: StoredSubmission }) {
   const s = doc.submission;
-  const rows: Array<[string, string, string | undefined]> = [
+  const rows: Array<[string, string | null, string | null | undefined]> = [
     ["Recipe name", s.recipe_name, doc.extracted?.recipe_name],
     ["Story", s.story, doc.extracted?.story],
     ["Ingredients", s.ingredients, doc.extracted?.ingredients],
     ["Method", s.method, doc.extracted?.method],
-    ["Language", s.language, doc.extracted?.language],
+    ["Language", doc.dish?.language || (s as { language?: string }).language || null, null],
   ];
   const geo = [doc.geo.country, doc.geo.region, doc.geo.city, doc.geo.timezone].filter(Boolean).join(" · ");
 
@@ -222,7 +222,7 @@ function Detail({ doc }: { doc: StoredSubmission }) {
               {rows.map(([label, sent, read]) => (
                 <tr key={label}>
                   <td>{label}</td>
-                  <td className="p-pre">{sent}</td>
+                  <td className="p-pre">{sent ?? "—"}</td>
                   {doc.extracted ? <td className="p-pre p-muted">{read || "—"}</td> : null}
                 </tr>
               ))}
