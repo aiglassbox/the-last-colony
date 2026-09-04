@@ -16,8 +16,11 @@ import { retrieveForDish } from "../src/lib/retrieval/retrieve";
 
 interface Case {
   q: string;
+  /** The language the reply must be authored in. Asserted, not just printed. */
   lang: string;
   expect: string | null;
+  /** The dish name the detector must hand retrieval, when it matters. */
+  english?: string;
   why?: string;
 }
 
@@ -26,7 +29,7 @@ async function main() {
   const cases = (JSON.parse(readFileSync(path, "utf8")) as { cases: Case[] }).cases;
 
   const misses: Array<{ c: Case; got: string | null }> = [];
-  const wrongs: Array<{ c: Case; got: string | null; english: string }> = [];
+  const wrongs: Array<{ c: Case; got: string | null; english: string; lang: string }> = [];
   let pass = 0;
 
   for (const c of cases) {
@@ -34,10 +37,16 @@ async function main() {
     const result = await retrieveForDish(n.english);
     const got = result.empty ? null : result.records[0].slug;
 
-    if (got === c.expect) {
+    // A wrong reply language is a wrong card: the whole turn is authored in it.
+    const langWrong = n.lang !== c.lang;
+    const englishWrong = c.english !== undefined && n.english !== c.english;
+
+    if (langWrong || englishWrong) {
+      wrongs.push({ c, got, english: n.english, lang: n.lang });
+    } else if (got === c.expect) {
       pass++;
     } else if (c.expect === null || (got !== null && got !== c.expect)) {
-      wrongs.push({ c, got, english: n.english });
+      wrongs.push({ c, got, english: n.english, lang: n.lang });
     } else {
       misses.push({ c, got });
     }
@@ -52,10 +61,10 @@ async function main() {
     console.log();
   }
   if (wrongs.length) {
-    console.log(`  WRONG (${wrongs.length}) — returned the wrong dish:`);
+    console.log(`  WRONG (${wrongs.length}) — wrong dish or wrong language:`);
     for (const w of wrongs)
       console.log(
-        `    "${w.c.q}" (${w.c.lang}) → english="${w.english}", expected ${w.c.expect ?? "nothing"}, got ${w.got ?? "nothing"}${w.c.why ? `\n        ${w.c.why}` : ""}`,
+        `    "${w.c.q}" → lang=${w.lang} (expected ${w.c.lang}), english="${w.english}"${w.c.english ? ` (expected "${w.c.english}")` : ""}, expected ${w.c.expect ?? "nothing"}, got ${w.got ?? "nothing"}${w.c.why ? `\n        ${w.c.why}` : ""}`,
       );
     console.log();
   }

@@ -243,6 +243,7 @@ export async function POST(request: NextRequest) {
           kind: null,
           top_score: 0,
           records: [],
+          ...(uiLang && { lang: uiLang }),
         });
         emit({
           type: "text",
@@ -269,6 +270,7 @@ export async function POST(request: NextRequest) {
           kind: retrieval.empty ? null : ("record" satisfies TurnKind),
           top_score: retrieval.top_score,
           records: retrieval.records,
+          ...(uiLang && { lang: uiLang }),
         });
         emit({
           type: "error",
@@ -646,6 +648,7 @@ export async function POST(request: NextRequest) {
               kind: "foreign" satisfies TurnKind,
               top_score: retrieval.top_score,
               records: [],
+              ...(uiLang && { lang: uiLang }),
             });
             return new MarkerParser(INDIANIZE_BEATS);
           }, () => {
@@ -943,6 +946,7 @@ export async function POST(request: NextRequest) {
               // The dish on screen is unchanged by a turn that rendered nothing,
               // so the carried records stay carried.
               records: auditRecords,
+              ...(uiLang && { lang: uiLang }),
             });
           }
           emit({ type: "text", text });

@@ -84,6 +84,15 @@ name in its common spelling ("dosa", not "dhosa" or "dosai"), so "idli kaise
 banti hai" retrieves on "idli" rather than on "how is idli made" — which the
 keyword engine would miss.
 
+**`lang` is the sentence's language; a dish name never sets it.** "how to make
+taal?" was classed Bengali because taal is a Bengali dish, and the whole card
+came back in romanized Bengali. Dish and ingredient names are loanwords in every
+language, so the detector judges only the words around them. English in,
+English out; romanized Bengali in, romanized Bengali out. The same rule keeps
+the dish name as typed: "taal" is never glossed to "palm fruit" or guessed as
+"dal", because a guessed name retrieves the wrong record.
+→ `src/lib/lang/normalize.ts`, `tests/multilingual-queries.json`
+
 **Detection failure degrades to English, never throws.** An unsupported language
 (Urdu, for now), confidence below `CONFIDENCE_THRESHOLD`, malformed JSON, or a
 quota/network error all resolve to the English fallback: reply in English,
@@ -526,3 +535,68 @@ real public-health gains that must never be told to "reverse."
 5. **No communal or ethnic framing** — colonial economic policy is documented
    history; attributing dietary change to a religious or ethnic community is
    not, and the prompt is instructed to decline it outright.
+
+---
+
+## Community submissions (Add Your Recipe) — settled 2026-09-01
+
+**Deterministic tag-match at query time, not embeddings.** The AI pipeline
+normalizes each submission's dish name into a canonical tag plus alias
+spellings once, at ingestion; retrieval does a token match against those or
+nothing. Pinecone embedding of submissions and Atlas Search were considered
+and rejected: nearest-neighbour serving is what the retrieval gates exist to
+prevent, and Atlas Search is proprietary lock-in ahead of a planned GCP
+migration. A missed spelling falls through to the existing AI fallback — the
+status quo, not a regression.
+→ `docs/superpowers/specs/2026-09-01-add-your-recipe-design.md`
+
+**AI moderates (GREEN/RED), operator outranks it.** No human approval queue —
+one structured model call issues the verdict and the dish tag; GREEN goes live
+immediately. A separate fail-closed admin route (`/pantry`, `ADMIN_PASSWORD`)
+can override per doc and download GREEN submissions as corpus candidates.
+RED submissions stay in the DB, rejected but never deleted.
+
+**Atlas free tier is the test home, photos and all.** Photos live base64 on
+the document (client-compressed, ~500 KB cap) rather than Vercel Blob —
+one store to migrate to GCP later, 512 MB ceiling accepted for the test
+phase. Access goes through one thin module so the store swaps behind one file.
+Fail-soft when `ATLAS_*` is unset, same posture as `db()`.
+
+**Form location outranks edge geo on the record; edge geo picks at query
+time.** The submitter's stated State is what the recipe *is*; the querier's
+Vercel region only chooses which GREEN version to serve, and its absence
+(localhost) degrades to most-recent.
+
+**Model split by job.** Verdict + tagging on `gemini-3.1-flash-lite`
+(classification, lite tier); image extraction on `gemini-3.6-flash`
+(handwriting, regional scripts, already the repo default). Names in env vars.
+
+**Extraction is a separate call, and the human confirms before anything is
+stored.** `POST /api/submissions/extract` reads the photo on
+`gemini-3.6-flash` and returns fields; the form prefills, the submitter
+corrects, and `POST /api/submissions` stores their confirmed words as
+`submission` with what the model read kept beside it as `extracted`. Nothing
+the model read is ever stored as the submitter's words unconfirmed. The
+verdict runs over the confirmed text, not the raw reading — and it sees the
+photo, in both modes, because a served community card carries it.
+
+**The verdict runs in `after()`, not inline.** The 201 is flushed first; a
+verdict that outlives the platform timeout can no longer become a failed
+response the form retries as a duplicate. A lost verdict leaves the doc
+`pending` for a `/pantry` re-run.
+
+**The pantry wears the kitchen's door.** One gate factory, two instances:
+same constant-time compare, same signed 12-hour cookie, same ten-attempt
+budget per five minutes, and the same 404 for "no password configured" and
+"wrong cookie" alike. The pantry has its own password (`ADMIN_PASSWORD`) and
+its own cookie, because it shows submitters' contact details and a kitchen
+session must open nothing there. The auth route is a factory too; the kitchen's
+route shrank to naming its gate.
+
+**A corpus candidate carries no contact and can never claim ATTESTED.** The
+pantry's download is a GREEN submission in the corpus record's shape, for a
+human to incorporate by hand: `MODERN_DISH`, `unverified_seed`, no
+original-language text (rule 2), no photo, and the submitter's contact left
+behind in the store. Humans remain the only writers of corpus files. An
+operator's override is final: `verdict.overridden_at` is stamped, and neither a
+late verdict callback nor a re-run may write over it.

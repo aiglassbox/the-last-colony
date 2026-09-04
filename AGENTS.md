@@ -112,3 +112,13 @@ A miss is a corpus gap; a wrong ancestor is a campaign risk.
 `BRIEF_PROMPT` in `src/lib/model/system-prompt.ts` is Part 2 of the campaign
 brief, verbatim, so that drift is a one-line diff. Put additions in
 `OUTPUT_CONTRACT` beneath it rather than editing the brief text in place.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

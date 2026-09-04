@@ -232,7 +232,14 @@ const INDIANISATION_CARD = readFileSync(
   join(import.meta.dirname, "..", "src", "components", "IndianisationCard.tsx"),
   "utf8",
 );
-const CARD_BODY = INDIANISATION_CARD.replace(/\{\/\*[\s\S]*?\*\/\}/g, "");
+// The copy itself now lives in the localised UI strings (`fusionNote`), so the
+// disclosure is asserted there; the card source is still swept for the
+// sentence that must not come back, since either file could reintroduce it.
+const UI_STRINGS = readFileSync(
+  join(import.meta.dirname, "..", "src", "lib", "lang", "ui-strings.ts"),
+  "utf8",
+);
+const CARD_BODY = INDIANISATION_CARD.replace(/\{\/\*[\s\S]*?\*\/\}/g, "") + "\n" + UI_STRINGS;
 check(
   "the fusion card does not tell the reader the dish is foreign",
   /did not come from India/.test(CARD_BODY),

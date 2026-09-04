@@ -3,6 +3,7 @@
 import { X } from "lucide-react";
 import { useState } from "react";
 
+import type { UiStrings } from "@/lib/lang/ui-strings";
 import { useDrawerExit } from "@/lib/use-drawer-exit";
 
 /**
@@ -19,9 +20,12 @@ import { useDrawerExit } from "@/lib/use-drawer-exit";
 export function SettingsSheet({
   onClearConversations,
   onClose,
+  t,
 }: {
   onClearConversations: () => void;
   onClose: () => void;
+  /** Labels in the language of the latest reply. */
+  t: UiStrings;
 }) {
   const [confirmClear, setConfirmClear] = useState(false);
 
@@ -42,9 +46,9 @@ export function SettingsSheet({
       >
         <div className="modal__head">
           <h2 id="settings-title" className="display m-0 text-xl">
-            Settings
+            {t.settingsTitle}
           </h2>
-          <button type="button" className="icon-btn ml-auto" onClick={requestClose} aria-label="Close">
+          <button type="button" className="icon-btn ml-auto" onClick={requestClose} aria-label={t.close}>
             <X size={18} aria-hidden />
           </button>
         </div>
@@ -64,14 +68,12 @@ export function SettingsSheet({
               requestClose();
             }}
           >
-            {confirmClear ? "Delete every conversation, confirm" : "Clear history"}
+            {confirmClear ? t.clearConfirm : t.clearHistory}
           </button>
 
           {/* Standing, not only once the button is armed. What it costs is
               worth knowing before the first click, not after it. */}
-          <p className="modal__note">
-            Clearing history removes all the chat on this device and there is no undo.
-          </p>
+          <p className="modal__note">{t.clearNote}</p>
         </div>
       </div>
     </>

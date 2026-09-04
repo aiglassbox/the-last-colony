@@ -1,0 +1,305 @@
+import { MongoClient, ObjectId, type Db } from "mongodb";
+
+import type { Geo } from "../events/geo";
+import { dishTag } from "./normalize";
+import type { Verdict } from "./pipeline";
+import type { Extracted, SubmissionInput } from "./schema";
+
+/**
+ * The community store: MongoDB Atlas, reached the same way `db()` reaches
+ * Neon — null when unconfigured, and null is a supported state. A missing
+ * store costs the feature, never the app.
+ *
+ * Free-tier Atlas for the test phase; the plan of record is GCP after
+ * testing, which is why nothing outside `src/lib/community/` may import
+ * the mongodb package — and why the route calls `insertSubmission` and
+ * `applyVerdict` rather than touching a collection: the store swaps behind
+ * this file, and only this file.
+ */
+
+export const SUBMISSIONS = "submissions";
+const DB_NAME = "kranti";
+
+/** The stored shape. `submission` is verbatim; everything else accretes beside it. */
+export interface SubmissionDoc {
+  _id?: ObjectId;
+  status: "pending" | "green" | "red";
+  created_at: Date;
+  updated_at: Date;
+  mode: "manual" | "image";
+  submission: SubmissionInput;
+  /** Image mode: what the model read, before the submitter corrected it.
+   *  Client-supplied and unauthenticated — audit only, never a source of truth. */
+  extracted?: Extracted;
+  /** Audit only. The record's location IS the form's state; on any clash the form wins. */
+  geo: Geo;
+  verdict?: {
+    card: "GREEN" | "RED";
+    reasons: string[];
+    model: string;
+    at: Date;
+    overridden_at?: Date;
+  };
+  dish?: { tag: string; aliases: string[] };
+}
+
+/** What a route hands over. Status and timestamps are the store's to stamp. */
+export type NewSubmission = Pick<SubmissionDoc, "mode" | "submission" | "geo" | "extracted">;
+
+/** A row of the pantry list: no photo bytes, no contact — the detail view is where PII lives. */
+export interface SubmissionSummary {
+  id: string;
+  status: SubmissionDoc["status"];
+  mode: SubmissionDoc["mode"];
+  created_at: Date;
+  recipe_name: string;
+  display_name: string;
+  state: string;
+  dish_tag: string | null;
+  card: "GREEN" | "RED" | null;
+  overridden: boolean;
+  has_photo: boolean;
+}
+
+/** A whole document as the pantry reads it: `_id` becomes a hex `id`. */
+export type StoredSubmission = Omit<SubmissionDoc, "_id"> & { id: string };
+
+export const PAGE_SIZE = 30;
+
+/** A 24-hex id or nothing; `new ObjectId` on anything else throws. */
+function hexId(id: string): ObjectId | null {
+  return /^[0-9a-f]{24}$/i.test(id) ? new ObjectId(id) : null;
+}
+
+/**
+ * Builds the connection string from the three env vars.
+ *
+ * ATLAS_URL is accepted in every shape Atlas hands out: a bare cluster host,
+ * an `mongodb+srv://` string, or a standard `mongodb://host:port,...` string
+ * with its query (ssl, replicaSet, authSource) — that query is kept, because
+ * dropping it breaks the standard form. Credentials always come from their
+ * own vars, so any embedded `user:pass@` is replaced, never trusted — and the
+ * match runs to the last `@` before the path, so a password containing `@`
+ * cannot eat the host.
+ * Exported pure for the check script; `null` when anything is missing.
+ */
+export function atlasUri(
+  url: string | undefined,
+  user: string | undefined,
+  pass: string | undefined,
+): string | null {
+  const u = url?.trim();
+  const usr = user?.trim();
+  const pwd = pass?.trim();
+  if (!u || !usr || !pwd) return null;
+  const m = /^(?:(mongodb(?:\+srv)?):\/\/)?(?:[^/?]*@)?([^/?]+)(?:\/[^?]*)?(?:\?(.*))?$/.exec(u);
+  if (!m) return null;
+  const [, scheme, hosts, query] = m;
+  // No scheme given: SRV unless a port is present, which SRV forbids.
+  const srv = scheme ? scheme === "mongodb+srv" : !/:\d+/.test(hosts);
+  const params = new URLSearchParams(query ?? "");
+  if (!params.has("retryWrites")) params.set("retryWrites", "true");
+  if (!params.has("w")) params.set("w", "majority");
+  return `${srv ? "mongodb+srv" : "mongodb"}://${encodeURIComponent(usr)}:${encodeURIComponent(pwd)}@${hosts}/?${params.toString()}`;
+}
+
+function uri(): string | null {
+  return atlasUri(process.env.ATLAS_URL, process.env.ATLAS_USER, process.env.ATLAS_PASSWORD);
+}
+
+/* Serverless instances are frozen and thawed; a module-level promise on
+   globalThis survives hot reloads in dev and reuse in prod. */
+const g = globalThis as unknown as { _communityClient?: Promise<MongoClient> | null };
+
+export async function communityDb(): Promise<Db | null> {
+  const connection = uri();
+  if (!connection) return null;
+  try {
+    if (!g._communityClient) {
+      g._communityClient = new MongoClient(connection, {
+        serverSelectionTimeoutMS: 5000,
+      }).connect();
+    }
+    const client = await g._communityClient;
+    return client.db(DB_NAME);
+  } catch (error) {
+    console.error("[community] Atlas connection failed:", error);
+    g._communityClient = null; // let the next request retry
+    return null;
+  }
+}
+
+/**
+ * Store-size guard, not a per-reader limit (that is the route's `checkRate`).
+ * The free tier is 512 MB and a photo is up to 500 KB, so an unguarded night
+ * of scripted submissions fills it. Read per call so a test can set it.
+ * `0` refuses everything; unset or unparseable means the default.
+ */
+export function dailyMax(): number {
+  const raw = process.env.SUBMISSION_DAILY_MAX?.trim();
+  const n = raw ? Number(raw) : 100;
+  return Number.isFinite(n) && n >= 0 ? n : 100;
+}
+
+/**
+ * Inserts as `pending` and returns the hex id. Null covers the store being
+ * unavailable, the insert failing, and the daily ceiling — all three are
+ * "not now" to the reader, and the log line says which.
+ */
+export async function insertSubmission(input: NewSubmission): Promise<string | null> {
+  const db = await communityDb();
+  if (!db) return null;
+  try {
+    const col = db.collection<SubmissionDoc>(SUBMISSIONS);
+    const now = new Date();
+    const dayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    // ponytail: count-then-insert can overshoot the ceiling by a request or
+    // two under load; a store-size guard does not need better than that.
+    const today = await col.countDocuments({ created_at: { $gte: dayStart } });
+    if (today >= dailyMax()) {
+      console.error(`[community] daily ceiling reached (${today}/${dailyMax()}); refusing insert`);
+      return null;
+    }
+    const { insertedId } = await col.insertOne({
+      ...input,
+      status: "pending",
+      created_at: now,
+      updated_at: now,
+    });
+    return insertedId.toHexString();
+  } catch (error) {
+    console.error("[community] insert failed:", error);
+    return null;
+  }
+}
+
+/**
+ * Writes the verdict and dish tag beside the submission. False leaves the doc
+ * as it was: pending if the write failed, or exactly as the operator left it
+ * if they have overridden this document — an override is final, and a late
+ * `after()` callback or a re-run must not write over it.
+ */
+export async function applyVerdict(id: string, verdict: Verdict): Promise<boolean> {
+  const _id = hexId(id);
+  if (!_id) return false;
+  const db = await communityDb();
+  if (!db) return false;
+  try {
+    const at = new Date();
+    const result = await db.collection<SubmissionDoc>(SUBMISSIONS).updateOne(
+      { _id, "verdict.overridden_at": { $exists: false } },
+      {
+        $set: {
+          status: verdict.card === "GREEN" ? "green" : "red",
+          updated_at: at,
+          verdict: { card: verdict.card, reasons: verdict.reasons, model: verdict.model, at },
+          dish: { tag: verdict.dish_tag, aliases: verdict.aliases },
+        },
+      },
+    );
+    return result.matchedCount === 1;
+  } catch (error) {
+    console.error("[community] verdict update failed (doc stays as it was):", error);
+    return false;
+  }
+}
+
+export async function listSubmissions(
+  status: SubmissionDoc["status"],
+  page: number,
+): Promise<{ rows: SubmissionSummary[]; total: number } | null> {
+  const db = await communityDb();
+  if (!db) return null;
+  try {
+    const col = db.collection<SubmissionDoc>(SUBMISSIONS);
+    const filter = { status };
+    const [total, docs] = await Promise.all([
+      col.countDocuments(filter),
+      col
+        .find(filter, {
+          projection: {
+            status: 1,
+            mode: 1,
+            created_at: 1,
+            "submission.recipe_name": 1,
+            "submission.display_name": 1,
+            "submission.state": 1,
+            "submission.photo.bytes": 1,
+            "dish.tag": 1,
+            "verdict.card": 1,
+            "verdict.overridden_at": 1,
+          },
+        })
+        .sort({ created_at: -1 })
+        .skip(Math.max(0, page) * PAGE_SIZE)
+        .limit(PAGE_SIZE)
+        .toArray(),
+    ]);
+    return {
+      total,
+      rows: docs.map((d) => ({
+        id: String(d._id),
+        status: d.status,
+        mode: d.mode,
+        created_at: d.created_at,
+        recipe_name: d.submission.recipe_name,
+        display_name: d.submission.display_name,
+        state: d.submission.state,
+        dish_tag: d.dish?.tag ?? null,
+        card: d.verdict?.card ?? null,
+        overridden: Boolean(d.verdict?.overridden_at),
+        has_photo: Boolean(d.submission.photo?.bytes),
+      })),
+    };
+  } catch (error) {
+    console.error("[community] list failed:", error);
+    return null;
+  }
+}
+
+/** The whole document, contact and photo included: the pantry's detail view is the one place for both. */
+export async function getSubmission(id: string): Promise<StoredSubmission | null> {
+  const _id = hexId(id);
+  if (!_id) return null;
+  const db = await communityDb();
+  if (!db) return null;
+  try {
+    const doc = await db.collection<SubmissionDoc>(SUBMISSIONS).findOne({ _id });
+    if (!doc) return null;
+    const { _id: found, ...rest } = doc;
+    return { ...rest, id: String(found) };
+  } catch (error) {
+    console.error("[community] read failed:", error);
+    return null;
+  }
+}
+
+/**
+ * The operator outranks the model. Sets the status and stamps
+ * `verdict.overridden_at`, which `applyVerdict` then refuses to write over —
+ * so neither a late `after()` callback nor a re-run can undo a human decision.
+ * A pending doc gets a verdict skeleton and, if it has no tag yet, one from
+ * the recipe name, so a GREEN override is servable in Phase 4.
+ */
+export async function overrideVerdict(id: string, card: "GREEN" | "RED"): Promise<boolean> {
+  const _id = hexId(id);
+  if (!_id) return false;
+  const db = await communityDb();
+  if (!db) return false;
+  try {
+    const col = db.collection<SubmissionDoc>(SUBMISSIONS);
+    const doc = await col.findOne({ _id }, { projection: { verdict: 1, dish: 1, "submission.recipe_name": 1 } });
+    if (!doc) return false;
+    const now = new Date();
+    const verdict = { ...(doc.verdict ?? { reasons: [], model: "operator", at: now }), card, overridden_at: now };
+    const dish = doc.dish ?? { tag: dishTag(doc.submission.recipe_name), aliases: [] };
+    await col.updateOne(
+      { _id },
+      { $set: { status: card === "GREEN" ? "green" : "red", updated_at: now, verdict, dish } },
+    );
+    return true;
+  } catch (error) {
+    console.error("[community] override failed:", error);
+    return false;
+  }
+}

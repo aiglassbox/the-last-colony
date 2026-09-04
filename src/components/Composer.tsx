@@ -3,6 +3,9 @@
 import { ArrowUp, Mic, Square } from "lucide-react";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
+import type { SupportedLang } from "@/lib/lang/types";
+import type { UiStrings } from "@/lib/lang/ui-strings";
+
 /**
  * The prompt input.
  *
@@ -55,6 +58,10 @@ export interface ComposerProps {
   /** Resting height in px. The reference hero input is tall. */
   minHeight?: number;
   inputRef?: React.RefObject<HTMLTextAreaElement | null>;
+  /** Labels in the language of the latest reply. */
+  t: UiStrings;
+  /** The same language, for dictation; English when there is no reply yet. */
+  lang?: SupportedLang;
 }
 
 export function Composer({
@@ -67,6 +74,8 @@ export function Composer({
   variant = "hero",
   minHeight = 132,
   inputRef,
+  t,
+  lang,
 }: ComposerProps) {
   const internalRef = useRef<HTMLTextAreaElement>(null);
   const ref = inputRef ?? internalRef;
@@ -98,7 +107,9 @@ export function Composer({
     if (!Ctor) return;
 
     const recognition = new Ctor();
-    recognition.lang = "en-IN";
+    // Every supported language has an Indian BCP 47 tag; a reader who was just
+    // answered in Bengali is far more likely to dictate the follow-up in it.
+    recognition.lang = `${lang ?? "en"}-IN`;
     recognition.continuous = false;
     recognition.interimResults = false;
     recognition.onresult = (event) => {
@@ -125,7 +136,7 @@ export function Composer({
   return (
     <div className={variant === "flat" ? "composer composer--flat" : "composer"}>
       <label htmlFor="prompt" className="sr-only">
-        Name a dish
+        {t.nameADish}
       </label>
 
       <textarea
@@ -146,7 +157,7 @@ export function Composer({
             type="button"
             className={listening ? "icon-btn icon-btn--recording" : "icon-btn"}
             onClick={toggleMic}
-            aria-label={listening ? "Stop dictation" : "Dictate a dish"}
+            aria-label={listening ? t.stopDictation : t.dictate}
             aria-pressed={listening}
           >
             <Mic size={18} aria-hidden />
@@ -156,7 +167,7 @@ export function Composer({
         )}
 
         {busy ? (
-          <button type="button" className="send-btn" onClick={onStop} aria-label="Stop generating">
+          <button type="button" className="send-btn" onClick={onStop} aria-label={t.stopGenerating}>
             <Square size={15} fill="currentColor" aria-hidden />
           </button>
         ) : (
@@ -165,7 +176,7 @@ export function Composer({
             className="send-btn"
             onClick={onSubmit}
             disabled={!value.trim()}
-            aria-label="Send"
+            aria-label={t.send}
           >
             <ArrowUp size={19} aria-hidden />
           </button>

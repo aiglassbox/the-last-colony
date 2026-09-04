@@ -1,0 +1,68 @@
+/* The pantry wears the kitchen's shell (kitchen.css); this file is only what
+   the kitchen has no word for. Status pills are plain CSS, not chart colours:
+   the dashboard palette rule in lib/dash/tokens.ts is about adjacent series. */
+
+.p-pill {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--rule);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  vertical-align: middle;
+}
+
+.p-pill--green { border-color: rgba(120, 200, 120, 0.5); color: #9fd89f; }
+.p-pill--red { border-color: rgba(220, 110, 110, 0.5); color: #e8a0a0; }
+.p-pill--pending { color: var(--ink-3); }
+.p-pill--override { border-color: var(--brand); color: var(--brand); }
+
+.p-pre { white-space: pre-wrap; word-break: break-word; }
+.p-muted { color: var(--ink-3); }
+.p-side td { vertical-align: top; }
+
+.p-kv {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 12px;
+  margin: 0 0 12px;
+  font-size: 12.5px;
+}
+.p-kv dt { color: var(--ink-3); }
+.p-kv dd { margin: 0; color: var(--ink-2); }
+
+.p-h3 {
+  margin: 16px 0 4px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.p-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 12px;
+}
+.p-actions .k-button { text-decoration: none; }
+
+.p-photo {
+  display: block;
+  max-width: 100%;
+  max-height: 70vh;
+  border-radius: var(--r);
+}
+
+.p-pager {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 12px;
+  font-size: 12.5px;
+  color: var(--ink-3);
+}

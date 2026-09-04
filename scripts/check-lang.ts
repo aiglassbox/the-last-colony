@@ -9,6 +9,7 @@ import { enFallback, isSupported, type Normalized } from "../src/lib/lang/types"
 import { CONFIDENCE_THRESHOLD, parseNormalizeResponse } from "../src/lib/lang/normalize";
 import { replyInstruction } from "../src/lib/lang/reply-instruction";
 import { EN_LABELS, validateLocalizedCard } from "../src/lib/lang/localized-card";
+import { EN_UI_STRINGS, fill, uiStrings } from "../src/lib/lang/ui-strings";
 import type { CorpusRecord } from "../src/lib/corpus/types";
 
 let pass = 0;
@@ -135,6 +136,30 @@ check("validateLocalizedCard rejects a method-count mismatch", () => {
 check("validateLocalizedCard rejects missing labels", () => {
   const { record } = validRaw;
   assert.equal(validateLocalizedCard(rec, "hi", { record }), null);
+});
+
+// uiStrings — the page chrome table. English is the table itself; a translated
+// language fills every key, keeps the placeholders, and is actually translated.
+check("uiStrings falls back to the English table", () => {
+  assert.deepEqual(uiStrings(undefined), EN_UI_STRINGS);
+  assert.deepEqual(uiStrings("en"), EN_UI_STRINGS);
+});
+
+check("uiStrings for Bengali is translated with every key and placeholder intact", () => {
+  const t = uiStrings("bn");
+  for (const k of Object.keys(EN_UI_STRINGS) as (keyof typeof EN_UI_STRINGS)[]) {
+    assert.ok(t[k].trim(), `bn.${k} is empty`);
+  }
+  assert.notEqual(t.newChat, EN_UI_STRINGS.newChat, "bn table is not translated");
+  assert.match(t.deleteConversation, /\{title\}/);
+  assert.match(t.restorationsOther, /\{n\}/);
+  assert.match(t.messagesOther, /\{n\}/);
+});
+
+check("fill substitutes placeholders and leaves unknown ones", () => {
+  assert.equal(fill("{n} messages", { n: 3 }), "3 messages");
+  assert.equal(fill("Delete: {title}", { title: "Idli" }), "Delete: Idli");
+  assert.equal(fill("{x}", {}), "{x}");
 });
 
 console.log(`\n✓ ${pass} language checks pass\n`);

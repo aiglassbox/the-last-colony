@@ -4,14 +4,24 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
 /**
- * The password prompt.
+ * The password prompt, for either door.
  *
  * `router.refresh()` rather than a hard navigation on success: the page is a
  * server component that reads the cookie, so re-running it on the server with
  * the new cookie in hand is exactly the right amount of work — a full reload
  * would re-download the route for no reason.
  */
-export function LoginForm() {
+export function LoginForm({
+  endpoint = "/api/kitchen/auth",
+  title = "The Kitchen",
+  sub = "The Kranti Cookbook — analytics",
+  inputId = "kitchen-password",
+}: {
+  endpoint?: string;
+  title?: string;
+  sub?: string;
+  inputId?: string;
+}) {
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +33,7 @@ export function LoginForm() {
     setError(null);
 
     try {
-      const response = await fetch("/api/kitchen/auth", {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ password }),
@@ -47,14 +57,14 @@ export function LoginForm() {
   return (
     <div className="k-login">
       <form className="k-login__card" onSubmit={onSubmit}>
-        <h1 className="k-login__title">The Kitchen</h1>
-        <p className="k-login__sub">The Kranti Cookbook — analytics</p>
+        <h1 className="k-login__title">{title}</h1>
+        <p className="k-login__sub">{sub}</p>
 
-        <label className="k-login__label" htmlFor="kitchen-password">
+        <label className="k-login__label" htmlFor={inputId}>
           Password
         </label>
         <input
-          id="kitchen-password"
+          id={inputId}
           className="k-input"
           type="password"
           autoComplete="current-password"

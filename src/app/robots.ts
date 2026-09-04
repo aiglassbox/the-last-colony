@@ -35,6 +35,9 @@ export default function robots(): MetadataRoute.Robots {
         // turning up in a search result and announcing that it exists.
         "/kitchen",
         "/api/kitchen",
+        // The pantry: same reasoning, its own password.
+        "/pantry",
+        "/api/pantry",
       ],
     },
     sitemap: `${siteUrl()}/sitemap.xml`,

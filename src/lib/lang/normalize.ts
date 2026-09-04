@@ -26,6 +26,14 @@ Reply with ONE JSON object and nothing else:
 
 Rules:
 - lang is the ISO 639-1 code: en, hi, bn, mr, te, ta, gu, kn, ur.
+- lang is the language of the SENTENCE, never of the dish. Dish and ingredient
+  names are loanwords in every language and do not set lang: "how to make
+  taal?" and "taal recipe" are English (lang "en") even though taal is a
+  Bengali dish; "taal kivabe banabo" is Bengali (lang "bn") because the words
+  around the dish are Bengali. Only the words around the dish name decide.
+- A language or region named in the message is a word, not a signal:
+  "bengali taal recipe", "marathi puran poli" and "west bengal style shukto"
+  are English (lang "en"). The reader wrote the name in English.
 - script is "native" if the user wrote in a non-Latin script, else "roman".
 - register is "hinglish" for Latin-script Indian-language mixed with English,
   "roman" for a purely romanized single language, "native" for a native script.
@@ -34,9 +42,11 @@ Rules:
   "how is idli made" both become "idli". If several dishes are named, list them
   space-separated ("dosa idli"). If no dish is named (a general cooking
   question), return the key food nouns, or an empty string if there are none.
-  Use the common English/romanized spelling, the one most people would type:
-  "dosa" not "dhosa" or "dosai", "khichdi" not "khichri". Do not invent a
-  variant spelling.
+  Use the common romanized spelling, the one most people would type: "dosa"
+  not "dhosa" or "dosai", "khichdi" not "khichri". Never replace a dish name
+  with a description or a different dish: "taal" stays "taal", not "palm
+  fruit" and not "dal". A dish you do not recognise is returned as typed
+  (romanized if it arrived in native script).
 - confidence is your certainty about lang, 0 to 1.
 - Output the JSON only. No markdown, no code fence, no commentary.`;
 

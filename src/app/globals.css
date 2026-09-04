@@ -2054,3 +2054,128 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* --- Add Your Recipe form ------------------------------------------------ */
+
+.recipe-form {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: var(--s-5) var(--s-4);
+}
+
+.recipe-form__back {
+  display: inline-block;
+  margin-bottom: var(--s-4);
+  color: inherit;
+  opacity: 0.75;
+  text-decoration: none;
+}
+
+.recipe-form__back:hover,
+.recipe-form__back:focus-visible {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+.recipe-form__title {
+  font-size: 1.5rem;
+  margin-bottom: var(--s-2);
+}
+
+.recipe-form__lede,
+.recipe-form__thanks {
+  margin-bottom: var(--s-4);
+  opacity: 0.85;
+}
+
+.recipe-form__errors {
+  margin-bottom: var(--s-4);
+  padding: var(--s-3);
+  border: 1px solid var(--red);
+  border-radius: 8px;
+  color: var(--red);
+  list-style: none;
+}
+
+.recipe-form__field {
+  display: block;
+  margin-bottom: var(--s-4);
+  font-weight: 600;
+}
+
+.recipe-form__field input,
+.recipe-form__field select,
+.recipe-form__field textarea {
+  display: block;
+  width: 100%;
+  margin-top: var(--s-1);
+  padding: var(--s-2);
+  font: inherit;
+  font-weight: 400;
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+}
+
+.recipe-form__note {
+  display: block;
+  margin-top: var(--s-1);
+  font-weight: 400;
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+
+.recipe-form__consent {
+  display: flex;
+  gap: var(--s-2);
+  align-items: flex-start;
+  margin-bottom: var(--s-3);
+  font-weight: 400;
+}
+
+.recipe-form__submit {
+  margin-top: var(--s-3);
+  padding: var(--s-2) var(--s-4);
+  border: none;
+  border-radius: 8px;
+  background: var(--red);
+  color: white;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.recipe-form__submit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.recipe-form__modes {
+  display: flex;
+  gap: var(--s-2);
+  margin-bottom: var(--s-4);
+}
+
+.recipe-form__mode {
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.recipe-form__mode[aria-pressed="true"] {
+  border-color: var(--red);
+  color: var(--red);
+  font-weight: 600;
+}
+
+.recipe-form__fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+}

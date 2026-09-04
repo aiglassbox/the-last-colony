@@ -7,6 +7,7 @@ import { createPortal } from "react-dom";
 import { useDrawerExit } from "@/lib/use-drawer-exit";
 import { trackClient } from "@/lib/analytics";
 import type { CorpusRecord } from "@/lib/corpus/types";
+import type { UiStrings } from "@/lib/lang/ui-strings";
 
 /**
  * The source drawer. Per the brief this is the credibility of the whole
@@ -22,9 +23,12 @@ import type { CorpusRecord } from "@/lib/corpus/types";
 
 export function SourceDrawer({
   record,
+  t,
   onClose,
 }: {
   record: CorpusRecord;
+  /** Labels in the card's language. The record's own text stays as the record has it. */
+  t: UiStrings;
   onClose: () => void;
 }) {
   const verified = record.verification.status === "editor_verified";
@@ -69,7 +73,7 @@ export function SourceDrawer({
         <div className="drawer__head">
           <div>
             <div className="mono" style={{ color: "var(--ink-muted)" }}>
-              Source
+              {t.sourceTitle}
             </div>
             <div id="source-title" className="display" style={{ fontSize: "1.2rem" }}>
               {record.source.text}
@@ -79,7 +83,7 @@ export function SourceDrawer({
             type="button"
             className="icon-btn drawer__close"
             onClick={requestClose}
-            aria-label="Close"
+            aria-label={t.close}
           >
             <X size={18} aria-hidden />
           </button>
@@ -87,24 +91,24 @@ export function SourceDrawer({
 
         <div className="drawer__body">
 
-          <Row label="Author" value={record.source.author} />
-          <Row label="Period" value={record.source.century} />
-          <Row label="Region" value={record.region} />
+          <Row label={t.sourceAuthor} value={record.source.author} />
+          <Row label={t.sourcePeriod} value={record.source.century} />
+          <Row label={t.sourceRegion} value={record.region} />
 
           {verified ? (
             <>
-              <Row label="Locus" value={record.source.locus} />
-              <Row label="Edition" value={record.source.edition} />
-              <Row label="Page" value={record.source.page ? String(record.source.page) : null} />
+              <Row label={t.sourceLocus} value={record.source.locus} />
+              <Row label={t.sourceEdition} value={record.source.edition} />
+              <Row label={t.sourcePage} value={record.source.page ? String(record.source.page) : null} />
               {record.original_text && (
-                <Block label="Original" value={record.original_text} serif />
+                <Block label={t.sourceOriginal} value={record.original_text} serif />
               )}
               {record.transliteration && (
-                <Block label="Transliteration" value={record.transliteration} italic />
+                <Block label={t.sourceTransliteration} value={record.transliteration} italic />
               )}
-              {record.translation && <Block label="Translation" value={record.translation} />}
+              {record.translation && <Block label={t.sourceTranslation} value={record.translation} />}
               <Row
-                label="Checked by"
+                label={t.sourceCheckedBy}
                 value={
                   record.verification.checked_by
                     ? `${record.verification.checked_by}${
@@ -127,15 +131,13 @@ export function SourceDrawer({
               }}
             >
               <div className="mono" style={{ color: "var(--reconstructed)", marginBottom: "0.5rem" }}>
-                Citation not yet verified
+                {t.sourceUnverified}
               </div>
               <p style={{ margin: 0, fontSize: "0.92rem", color: "var(--ink-soft)" }}>
                 {record.verification.note}
               </p>
               <p style={{ margin: "0.7rem 0 0", fontSize: "0.92rem", color: "var(--ink-soft)" }}>
-                Until an editor has read the printed edition, this record shows no verse
-                number, no page and no original-language text. What you see above is the
-                text and period only.
+                {t.sourceUnverifiedNote}
               </p>
             </div>
           )}
@@ -143,7 +145,7 @@ export function SourceDrawer({
           {record.contested_points.length > 0 && (
             <div style={{ marginTop: "1.4rem" }}>
               <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
-                Where scholarship is contested
+                {t.sourceContested}
               </div>
               <ul style={{ margin: 0, paddingLeft: "1.1rem", color: "var(--ink-soft)" }}>
                 {record.contested_points.map((c) => (
@@ -157,7 +159,7 @@ export function SourceDrawer({
 
           <div style={{ marginTop: "1.4rem" }}>
             <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
-              Confidence
+              {t.sourceConfidence}
             </div>
             <div style={{ display: "flex", gap: "1.2rem", flexWrap: "wrap" }}>
               {(["identification", "ingredients", "method"] as const).map((k) => (
@@ -166,7 +168,13 @@ export function SourceDrawer({
                     {Math.round(record.confidence[k] * 100)}%
                   </div>
                   <div className="mono" style={{ color: "var(--ink-muted)" }}>
-                    {k}
+                    {
+                      {
+                        identification: t.sourceIdentification,
+                        ingredients: t.sourceIngredients,
+                        method: t.sourceMethod,
+                      }[k]
+                    }
                   </div>
                 </div>
               ))}

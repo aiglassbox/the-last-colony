@@ -1,6 +1,8 @@
 "use client";
 
-
+import { cardStrings, type CardStrings } from "@/lib/lang/card-strings";
+import type { SupportedLang } from "@/lib/lang/types";
+import { uiStrings } from "@/lib/lang/ui-strings";
 import { toPlainText } from "@/lib/model/plain-text";
 import {
   hasIngredientRows,
@@ -26,10 +28,14 @@ import { Waiting } from "./RestorationCard";
 export interface IndianizationData {
   beats: Partial<Record<string, string>>;
   streaming: boolean;
+  /** The reply's language; the card's fixed lines follow it. */
+  lang?: SupportedLang;
 }
 
 export function IndianisationCard({ data }: { data: IndianizationData }) {
-  const { beats, streaming } = data;
+  const { beats, streaming, lang } = data;
+  const t = uiStrings(lang);
+  const cs = cardStrings(lang);
 
   return (
     <article className="card" style={{ marginTop: "1rem" }}>
@@ -54,7 +60,7 @@ export function IndianisationCard({ data }: { data: IndianizationData }) {
               textTransform: "uppercase",
             }}
           >
-            Our own recipe · not a historical one
+            {t.fusionPill}
           </span>
         </div>
         {/* Said in words as well as on the chip, because the chip is a label
@@ -84,13 +90,12 @@ export function IndianisationCard({ data }: { data: IndianizationData }) {
             color: "var(--ink-soft)",
           }}
         >
-          What follows is ours: a dish built out of Indian ingredients, worked out
-          here rather than taken from any text.
+          {t.fusionNote}
         </p>
       </div>
 
       {(streaming || beats.REBUILD) && (
-        <Section title="The rebuild">
+        <Section title={t.fusionRebuild}>
           <Prose text={beats.REBUILD} streaming={streaming} />
         </Section>
       )}
@@ -102,8 +107,8 @@ export function IndianisationCard({ data }: { data: IndianizationData }) {
           telling of the same thing directly under the rebuild. */}
 
       {(beats.PLATE || (streaming && Boolean(beats.SWAPS))) && (
-        <Section title="Cook it">
-          <Plate text={beats.PLATE} streaming={streaming} />
+        <Section title={t.fusionCook}>
+          <Plate text={beats.PLATE} streaming={streaming} cs={cs} />
         </Section>
       )}
 
@@ -163,7 +168,7 @@ function Prose({ text, streaming }: { text?: string; streaming: boolean }) {
  * Falls back to prose when the model wrote no sections, which is also every
  * line mid-stream before the INGREDIENTS header has arrived.
  */
-function Plate({ text, streaming }: { text?: string; streaming: boolean }) {
+function Plate({ text, streaming, cs }: { text?: string; streaming: boolean; cs: CardStrings }) {
   if (!text) {
     return streaming ? (
       <p style={{ margin: 0, color: "var(--ink-muted)" }}>
@@ -181,10 +186,15 @@ function Plate({ text, streaming }: { text?: string; streaming: boolean }) {
       {ingredients.length > 0 && (
         <>
           <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
-            Ingredients
+            {cs.ingredients}
           </div>
           {hasIngredientRows(ingredients) ? (
-            <IngredientRows rows={parseIngredientRows(ingredients)} />
+            <IngredientRows
+              rows={parseIngredientRows(ingredients)}
+              caption={cs.whyThisOne}
+              ingredientLabel={cs.ingredient}
+              quantityLabel={cs.quantity}
+            />
           ) : (
             <ul style={{ margin: "0 0 0.9rem", paddingLeft: "1.1rem" }}>
               {ingredients.map((i, k) => (
@@ -199,7 +209,7 @@ function Plate({ text, streaming }: { text?: string; streaming: boolean }) {
       {steps.length > 0 && (
         <>
           <div className="mono" style={{ color: "var(--ink-muted)", marginBottom: "0.5rem" }}>
-            Method
+            {cs.method}
           </div>
           <ol style={{ margin: 0, paddingLeft: "1.15rem" }}>
             {steps.map((s, k) => (
