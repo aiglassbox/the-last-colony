@@ -640,3 +640,26 @@ enforcement — every action re-checks its own preconditions — but a button th
 is guaranteed to fail is a bug, not a safety net. Pending deliberately has no
 Mark GREEN: that path is what produces an untagged green document. Rejecting
 junk needs no tag; approving does.
+
+**Seeded rows are honest about being seeded.** The retrieval path could not be
+tested without data, and dummy data proves nothing about matching, so twelve
+real regional dishes were researched from the web and run through the real
+intake pipeline — validator, verdict model, publish — rather than written
+straight into the store. Three rules make them safe to leave in a public
+archive. `display_name` is exactly `Arpit's Agent` on all twelve, so agent rows
+are one filter away from reader rows forever. `belongs_to` is `my own` and
+every story is a sourced regional note, never an invented family memory: this
+archive's whole value is that the stories are true, and a fabricated
+grandmother would be a false personal claim sitting in public. `contact` is on
+`example.invalid`, which RFC 2606 reserves so it can never route anywhere.
+Sources live in the seed script beside each entry, not in the submission — the
+form has no source field and inventing one for twelve rows would be a schema
+change nothing else needs.
+
+**The seed dishes were chosen to be unreachable from `corpus/`.** All eleven
+distinct names score 0.00 against the keyword engine, well under
+`MIN_KEYWORD_SCORE`, so each falls through to the community step instead of
+being answered from a corpus record. This is why the geo scenario is puran poli
+rather than the vada pav the earlier spec used: `vada pav` scores 4.02 against
+the corpus `Vada` record and never reaches the community lookup at all.
+Substituting a dish without re-running that probe silently voids the test.
