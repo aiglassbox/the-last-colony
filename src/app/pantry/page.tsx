@@ -5,6 +5,7 @@ import {
   getSubmission,
   listSubmissions,
   PAGE_SIZE,
+  type PantryView,
   type StoredSubmission,
 } from "@/lib/community/client";
 import { pantryAccess } from "@/lib/dash/auth";
@@ -15,10 +16,10 @@ import { Actions } from "./Actions";
 
 /**
  * The pantry: every community submission, by verdict, with the operator's
- * three powers — override, re-run, download as a corpus candidate.
+ * powers — override, re-run, download as a corpus candidate, and publish.
  *
  * A server component that reads the cookie and then the store directly; state
- * lives in the URL (status, page, id) like the kitchen's, so a link to one
+ * lives in the URL (view, page, id) like the kitchen's, so a link to one
  * submission is shareable between the three people who hold the password.
  *
  * This is the one place `contact` is shown. Nothing here is served to readers.
@@ -26,11 +27,10 @@ import { Actions } from "./Actions";
 
 export const dynamic = "force-dynamic";
 
-const STATUSES = ["pending", "green", "red"] as const;
-type Status = (typeof STATUSES)[number];
+const VIEWS = ["pending", "green", "red", "published"] as const satisfies readonly PantryView[];
 
-function asStatus(value: unknown): Status {
-  return STATUSES.some((s) => s === value) ? (value as Status) : "pending";
+function asView(value: unknown): PantryView {
+  return VIEWS.some((v) => v === value) ? (value as PantryView) : "pending";
 }
 
 function one(value: string | string[] | undefined): string | undefined {
@@ -57,7 +57,7 @@ export default async function Pantry(props: PageProps<"/pantry">) {
   }
 
   const params = await props.searchParams;
-  const status = asStatus(one(params.status));
+  const view = asView(one(params.view));
   // Finite, positive, whole: a fractional page or 1e999 reaches Mongo as a
   // skip it rejects, which reads to the operator as "the store is unreachable".
   const pageRaw = Number(one(params.page));
@@ -82,8 +82,8 @@ export default async function Pantry(props: PageProps<"/pantry">) {
       <div className="kitchen__inner">
         {header}
         <p>
-          <Link href={`/pantry?status=${status}&page=${page}`} prefetch={false}>
-            ← Back to {status}
+          <Link href={`/pantry?view=${view}&page=${page}`} prefetch={false}>
+            ← Back to {view}
           </Link>
         </p>
         {doc ? <Detail doc={doc} /> : <p className="k-caveat">No such submission, or the store is unavailable.</p>}
@@ -91,7 +91,7 @@ export default async function Pantry(props: PageProps<"/pantry">) {
     );
   }
 
-  const list = await listSubmissions(status, page);
+  const list = await listSubmissions(view, page);
   const pages = list ? Math.ceil(list.total / PAGE_SIZE) : 0;
 
   return (
@@ -99,15 +99,15 @@ export default async function Pantry(props: PageProps<"/pantry">) {
       {header}
 
       <nav className="k-tabs" aria-label="Verdict">
-        {STATUSES.map((s) => (
+        {VIEWS.map((v) => (
           <Link
-            key={s}
+            key={v}
             className="k-tab"
-            href={`/pantry?status=${s}`}
-            aria-current={s === status ? "page" : undefined}
+            href={`/pantry?view=${v}`}
+            aria-current={v === view ? "page" : undefined}
             prefetch={false}
           >
-            {s}
+            {v}
           </Link>
         ))}
       </nav>
@@ -120,7 +120,7 @@ export default async function Pantry(props: PageProps<"/pantry">) {
         <section className="k-panel k-span-12">
           <div className="k-panel__head">
             <h2 className="k-panel__title">
-              {status} · {list.total}
+              {view} · {list.total}
             </h2>
           </div>
           <div className="k-panel__body">
@@ -144,10 +144,13 @@ export default async function Pantry(props: PageProps<"/pantry">) {
                     <tr key={r.id}>
                       <td>{ist(r.created_at)}</td>
                       <td>
-                        <Link href={`/pantry?status=${status}&page=${page}&id=${r.id}`} prefetch={false}>
+                        <Link href={`/pantry?view=${view}&page=${page}&id=${r.id}`} prefetch={false}>
                           {r.recipe_name}
                         </Link>
                         {r.overridden ? <span className="p-pill p-pill--override">override</span> : null}
+                        {view === "green" && r.published ? (
+                          <span className="p-pill p-pill--published">published</span>
+                        ) : null}
                       </td>
                       <td>{r.display_name}</td>
                       <td>{r.state}</td>
@@ -162,7 +165,7 @@ export default async function Pantry(props: PageProps<"/pantry">) {
             {pages > 1 ? (
               <nav className="p-pager" aria-label="Pages">
                 {page > 0 ? (
-                  <Link className="k-button" href={`/pantry?status=${status}&page=${page - 1}`} prefetch={false}>
+                  <Link className="k-button" href={`/pantry?view=${view}&page=${page - 1}`} prefetch={false}>
                     ← Newer
                   </Link>
                 ) : null}
@@ -170,7 +173,7 @@ export default async function Pantry(props: PageProps<"/pantry">) {
                   page {page + 1} of {pages}
                 </span>
                 {page + 1 < pages ? (
-                  <Link className="k-button" href={`/pantry?status=${status}&page=${page + 1}`} prefetch={false}>
+                  <Link className="k-button" href={`/pantry?view=${view}&page=${page + 1}`} prefetch={false}>
                     Older →
                   </Link>
                 ) : null}
@@ -186,6 +189,11 @@ export default async function Pantry(props: PageProps<"/pantry">) {
 /** Submitted words beside what the model read; verdict, contact and geo in the side panel; the photo below. */
 function Detail({ doc }: { doc: StoredSubmission }) {
   const s = doc.submission;
+  // The buttons follow the document, not the tab the operator arrived from.
+  // The Green list carries published rows too, and marking one RED here must
+  // change the action set on the very next render — a URL that still says
+  // `view=green` would otherwise keep offering Mark Published on a red doc.
+  const docView: PantryView = doc.status === "green" && doc.published_at ? "published" : doc.status;
   const rows: Array<[string, string | null, string | null | undefined]> = [
     ["Recipe name", s.recipe_name, doc.extracted?.recipe_name],
     ["Story", s.story, doc.extracted?.story],
@@ -253,11 +261,13 @@ function Detail({ doc }: { doc: StoredSubmission }) {
               <dd>{doc.dish?.tag ?? "—"}</dd>
               <dt>Aliases</dt>
               <dd>{doc.dish?.aliases.join(", ") || "—"}</dd>
+              <dt>Published</dt>
+              <dd>{doc.published_at ? ist(doc.published_at) : "no"}</dd>
             </dl>
           ) : (
             <p className="k-empty">No verdict yet — the AI pass failed or has not run.</p>
           )}
-          <Actions id={doc.id} status={doc.status} overridden={Boolean(doc.verdict?.overridden_at)} />
+          <Actions id={doc.id} view={docView} overridden={Boolean(doc.verdict?.overridden_at)} />
 
           <h3 className="p-h3">Contact (never shown to readers)</h3>
           <p className="p-pre">{s.contact}</p>

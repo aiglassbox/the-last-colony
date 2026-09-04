@@ -616,3 +616,27 @@ beside the tag and aliases, because `dish` is the model's output block and
 `submission` is verbatim as submitted. Documents written before this carry
 `submission.language`; `candidate.ts` and the pantry read the new field first
 and fall back to the old one.
+
+**Published is a view over GREEN, not a fourth status.** The model writes
+`status`; a human writes `published_at`. Two authorities, two fields, and a
+published recipe still belongs in Green — the Green list just marks it. Serving
+reads `status: "green"` **and** `published_at` present, so a submission the
+model cleared but nobody reviewed is never on the site. Publishing refuses a
+document with no `dish.tag`, because an untagged document matches nothing and
+would sit in Published where no reader can reach it. Once published, a document
+is closed to the model: `applyVerdict` filters on `published_at: { $exists:
+false }` exactly as it already filters on `verdict.overridden_at`, and a re-run
+is refused with a 409 telling the operator to unpublish first. A move to RED
+unsets `published_at` in the same write — leaving it would keep serving a
+recipe an operator just rejected. Unpublish `$unset`s rather than nulls: the
+verdict guard tests for absence, and a null would block every future verdict on
+that document forever.
+
+**The pantry's buttons follow the document, not the tab.** The action set is
+derived from `status` plus `published_at` on the open submission, so marking a
+recipe RED from the Green tab changes the buttons on the next render instead of
+leaving Mark Published pointing at a rejected document. The store is still the
+enforcement — every action re-checks its own preconditions — but a button that
+is guaranteed to fail is a bug, not a safety net. Pending deliberately has no
+Mark GREEN: that path is what produces an untagged green document. Rejecting
+junk needs no tag; approving does.

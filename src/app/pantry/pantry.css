@@ -19,6 +19,7 @@
 .p-pill--red { border-color: rgba(220, 110, 110, 0.5); color: #e8a0a0; }
 .p-pill--pending { color: var(--ink-3); }
 .p-pill--override { border-color: var(--brand); color: var(--brand); }
+.p-pill--published { border-color: rgba(120, 170, 220, 0.5); color: #a8c8e8; }
 
 .p-pre { white-space: pre-wrap; word-break: break-word; }
 .p-muted { color: var(--ink-3); }

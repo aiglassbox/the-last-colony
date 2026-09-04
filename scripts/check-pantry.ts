@@ -3,15 +3,36 @@
  *
  *   npx tsx scripts/check-pantry.ts
  *
- * Model-free and offline. The token maths is pinned against its own HMAC
- * derivation on purpose: a change there invalidates every live session on
- * both doors, and should show up here before it shows up in a browser.
+ * Model-free and offline, and part of `npm run check`. The token maths is
+ * pinned against its own HMAC derivation on purpose: a change there
+ * invalidates every live session on both doors, and should show up here
+ * before it shows up in a browser.
+ *
+ * A second section below drives the publish gate against Atlas end to end,
+ * but only opt-in — set CHECK_LIVE=1 and load the store's credentials — so
+ * this script and `npm run check` stay offline by default with no Atlas call:
+ *
+ *   CHECK_LIVE=1 npx tsx --env-file=.env scripts/check-pantry.ts
  */
+import { ObjectId } from "mongodb";
 import { createHmac } from "node:crypto";
 
 import { toCorpusCandidate } from "../src/lib/community/candidate";
+import {
+  applyVerdict,
+  communityDb,
+  getSubmission,
+  insertSubmission,
+  overrideVerdict,
+  publishSubmission,
+  SUBMISSIONS,
+  unpublishSubmission,
+} from "../src/lib/community/client";
 import { kitchen, pantry } from "../src/lib/dash/auth";
 import { makeGate, passwordMatches } from "../src/lib/dash/gate";
+import type { Verdict } from "../src/lib/community/pipeline";
+import type { SubmissionInput } from "../src/lib/community/schema";
+import { NO_GEO } from "../src/lib/events/geo";
 
 let failed = 0;
 function check(name: string, pass: boolean): void {
@@ -123,8 +144,91 @@ check(
 );
 check("candidate: untagged doc still exports", toCorpusCandidate({ ...green, dish: undefined }).slug === "untagged-community-de5615");
 
-if (failed > 0) {
-  console.error(`\ncheck-pantry: ${failed} failure(s)`);
-  process.exit(1);
+// --- the live section: the publish gate, driven against Atlas end to end ---
+// Opt-in only. `npm run check` runs this script with neither CHECK_LIVE nor
+// --env-file, so the opt-in check below is false and communityDb() is never
+// even called — zero Atlas calls in the offline gate, by construction rather
+// than by hoping the store happens to be unreachable in CI.
+async function checkPublishGateLive(): Promise<void> {
+  if (process.env.CHECK_LIVE !== "1") {
+    console.log("  skip live pantry checks (set CHECK_LIVE=1 and pass --env-file=.env to run them)");
+    return;
+  }
+  const db = await communityDb();
+  if (!db) {
+    console.error(
+      "check-pantry: CHECK_LIVE=1 but ATLAS_URL/ATLAS_USER/ATLAS_PASSWORD are unset or the store is unreachable — skipping live checks",
+    );
+    return;
+  }
+
+  // The publish gate. Each of these is an invariant the store owns, not the
+  // UI: a button can be removed by a careless edit, a store filter cannot.
+  const scratchInput: SubmissionInput = {
+    display_name: "check-pantry-scratch",
+    state: "Maharashtra",
+    belongs_to: "grandmother",
+    recipe_name: "Scratch Dish",
+    story: "A scratch document created by check-pantry.ts's live block and deleted at the end of it.",
+    ingredients: "test",
+    method: "test",
+    consent: { right_to_share: true, public_display: true },
+    contact: "scratch@example.com",
+  };
+  const scratch = await insertSubmission({ mode: "manual", submission: scratchInput, geo: NO_GEO });
+  if (!scratch) {
+    failed += 1;
+    console.error("  FAIL live: could not insert the scratch submission (daily ceiling, or the store refused the write)");
+    return;
+  }
+  try {
+    check("live: publish refuses a pending document", (await publishSubmission(scratch)) === "not_green");
+    await applyVerdict(scratch, { card: "GREEN", reasons: [], dish_tag: "", aliases: [], language: "en", model: "check" });
+    check("live: publish refuses a green document with no dish tag", (await publishSubmission(scratch)) === "no_tag");
+    await applyVerdict(scratch, { card: "GREEN", reasons: [], dish_tag: "scratch-dish", aliases: [], language: "en", model: "check" });
+    check("live: publish accepts a tagged green document", (await publishSubmission(scratch)) === "ok");
+    const greenVerdict: Verdict = { card: "GREEN", reasons: [], dish_tag: "scratch-dish-2", aliases: [], language: "en", model: "check" };
+    check("live: a published document refuses a new verdict", (await applyVerdict(scratch, greenVerdict)) === false);
+    await overrideVerdict(scratch, "RED");
+    const afterRed = await getSubmission(scratch);
+    check("live: marking red unpublishes", afterRed !== null && afterRed.published_at === undefined);
+    check("live: unpublish removes the field rather than nulling it", afterRed !== null && !("published_at" in afterRed));
+    check("live: publish refuses a red document", (await publishSubmission(scratch)) === "not_green");
+
+    // The takedown driven directly, rather than as a side effect of an
+    // override: the Published view's own button goes through this path.
+    await overrideVerdict(scratch, "GREEN");
+    check("live: a GREEN override makes it publishable again", (await publishSubmission(scratch)) === "ok");
+    check("live: unpublish reports ok", (await unpublishSubmission(scratch)) === "ok");
+    const afterUnpublish = await getSubmission(scratch);
+    check(
+      "live: unpublish leaves no published_at behind",
+      afterUnpublish !== null && !("published_at" in afterUnpublish),
+    );
+    // A fresh ObjectId matches nothing, so this is a read-shaped no-op: it
+    // proves a stale id is told apart from an outage without writing anything.
+    check(
+      "live: unpublish on an absent id is not_found",
+      (await unpublishSubmission(new ObjectId().toHexString())) === "not_found",
+    );
+  } finally {
+    // Store-write safety: this block creates exactly one document, and it
+    // must not survive the run — including when a check above throws. Never
+    // touch anything but the id this block just inserted.
+    await db.collection(SUBMISSIONS).deleteOne({ _id: new ObjectId(scratch) });
+  }
 }
-console.log("\ncheck-pantry: all pantry checks pass");
+
+(async () => {
+  await checkPublishGateLive();
+
+  if (failed > 0) {
+    console.error(`\ncheck-pantry: ${failed} failure(s)`);
+    process.exit(1);
+  }
+  console.log("\ncheck-pantry: all pantry checks pass");
+  // A live run leaves the pooled Mongo client connected, which holds the event
+  // loop open long after the summary prints. Exit explicitly, the way
+  // community-index.ts does, so the script is runnable from a shell and CI.
+  process.exit(0);
+})();

@@ -20,6 +20,11 @@ import type { Extracted, SubmissionInput } from "./schema";
 export const SUBMISSIONS = "submissions";
 const DB_NAME = "kranti";
 
+/** The pantry's four tabs. "published" is a view over green documents — not a
+ *  fifth status stored anywhere — so `listSubmissions` derives its filter
+ *  from it rather than passing it straight through to `status`. */
+export type PantryView = "pending" | "green" | "red" | "published";
+
 /** The stored shape. `submission` is verbatim; everything else accretes beside it. */
 export interface SubmissionDoc {
   _id?: ObjectId;
@@ -41,6 +46,9 @@ export interface SubmissionDoc {
     overridden_at?: Date;
   };
   dish?: { tag: string; aliases: string[]; language?: string };
+  /** Set by an operator in the pantry, never by the model. The serving gate:
+   *  only a green document carrying this is ever matched for a reader. */
+  published_at?: Date;
 }
 
 /** What a route hands over. Status and timestamps are the store's to stamp. */
@@ -59,6 +67,7 @@ export interface SubmissionSummary {
   card: "GREEN" | "RED" | null;
   overridden: boolean;
   has_photo: boolean;
+  published: boolean;
 }
 
 /** A whole document as the pantry reads it: `_id` becomes a hex `id`. */
@@ -187,7 +196,7 @@ export async function applyVerdict(id: string, verdict: Verdict): Promise<boolea
   try {
     const at = new Date();
     const result = await db.collection<SubmissionDoc>(SUBMISSIONS).updateOne(
-      { _id, "verdict.overridden_at": { $exists: false } },
+      { _id, "verdict.overridden_at": { $exists: false }, published_at: { $exists: false } },
       {
         $set: {
           status: verdict.card === "GREEN" ? "green" : "red",
@@ -204,15 +213,80 @@ export async function applyVerdict(id: string, verdict: Verdict): Promise<boolea
   }
 }
 
+/**
+ * The human gate. A model verdict says a submission is not abusive; only an
+ * operator says it may be served. Refuses anything that would put an
+ * unreachable or unreviewed document on the site.
+ */
+export async function publishSubmission(
+  id: string,
+): Promise<"ok" | "not_found" | "not_green" | "no_tag" | "error"> {
+  const _id = hexId(id);
+  if (!_id) return "not_found";
+  const db = await communityDb();
+  if (!db) return "error";
+  try {
+    const col = db.collection<SubmissionDoc>(SUBMISSIONS);
+    const doc = await col.findOne({ _id }, { projection: { status: 1, dish: 1 } });
+    if (!doc) return "not_found";
+    if (doc.status !== "green") return "not_green";
+    // An untagged document matches nothing, so publishing it would put a recipe
+    // in the Published list that no reader can ever reach. Overriding a pending
+    // document to GREEN is how one gets made; re-running the verdict fixes it.
+    if (!doc.dish?.tag) return "no_tag";
+    // Filtered on the status the read just saw, so an override landing between
+    // the two calls loses rather than leaving `published_at` on a red document.
+    const at = new Date();
+    const result = await col.updateOne(
+      { _id, status: "green" },
+      { $set: { published_at: at, updated_at: at } },
+    );
+    return result.matchedCount === 1 ? "ok" : "not_green";
+  } catch (error) {
+    console.error("[community] publish failed:", error);
+    return "error";
+  }
+}
+
+/**
+ * The takedown. Unsets rather than nulls: `applyVerdict`'s guard tests for the
+ * field's absence, so a null left behind would block every future verdict on
+ * this document forever.
+ */
+export async function unpublishSubmission(id: string): Promise<"ok" | "not_found" | "error"> {
+  const _id = hexId(id);
+  if (!_id) return "not_found";
+  const db = await communityDb();
+  if (!db) return "error";
+  try {
+    const result = await db
+      .collection<SubmissionDoc>(SUBMISSIONS)
+      .updateOne({ _id }, { $unset: { published_at: "" }, $set: { updated_at: new Date() } });
+    // Tri-state so the route can tell a stale id from an outage without
+    // reading the whole document — contact and photo bytes included — back
+    // out of the store just to learn that it exists.
+    return result.matchedCount === 1 ? "ok" : "not_found";
+  } catch (error) {
+    console.error("[community] unpublish failed:", error);
+    return "error";
+  }
+}
+
 export async function listSubmissions(
-  status: SubmissionDoc["status"],
+  view: PantryView,
   page: number,
 ): Promise<{ rows: SubmissionSummary[]; total: number } | null> {
   const db = await communityDb();
   if (!db) return null;
   try {
     const col = db.collection<SubmissionDoc>(SUBMISSIONS);
-    const filter = { status };
+    // "published" is a view over green documents, not a fourth status: a
+    // published recipe still belongs in Green, and the Green list marks it
+    // as published.
+    const filter =
+      view === "published"
+        ? { status: "green" as const, published_at: { $exists: true } }
+        : { status: view };
     const [total, docs] = await Promise.all([
       col.countDocuments(filter),
       col
@@ -228,6 +302,7 @@ export async function listSubmissions(
             "dish.tag": 1,
             "verdict.card": 1,
             "verdict.overridden_at": 1,
+            published_at: 1,
           },
         })
         .sort({ created_at: -1 })
@@ -249,6 +324,7 @@ export async function listSubmissions(
         card: d.verdict?.card ?? null,
         overridden: Boolean(d.verdict?.overridden_at),
         has_photo: Boolean(d.submission.photo?.bytes),
+        published: Boolean(d.published_at),
       })),
     };
   } catch (error) {
@@ -293,9 +369,15 @@ export async function overrideVerdict(id: string, card: "GREEN" | "RED"): Promis
     const now = new Date();
     const verdict = { ...(doc.verdict ?? { reasons: [], model: "operator", at: now }), card, overridden_at: now };
     const dish = doc.dish ?? { tag: dishTag(doc.submission.recipe_name), aliases: [] };
+    const status = card === "GREEN" ? "green" : "red";
+    // A move to RED takes the recipe off the site in the same write: leaving
+    // `published_at` behind would keep serving a document an operator just
+    // rejected until the next unrelated write happened to touch it.
     await col.updateOne(
       { _id },
-      { $set: { status: card === "GREEN" ? "green" : "red", updated_at: now, verdict, dish } },
+      card === "RED"
+        ? { $set: { status, updated_at: now, verdict, dish }, $unset: { published_at: "" } }
+        : { $set: { status, updated_at: now, verdict, dish } },
     );
     return true;
   } catch (error) {

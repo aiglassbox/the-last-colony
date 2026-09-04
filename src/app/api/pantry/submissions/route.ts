@@ -1,12 +1,18 @@
 import type { NextRequest } from "next/server";
 
 import { toCorpusCandidate } from "@/lib/community/candidate";
-import { applyVerdict, getSubmission, overrideVerdict } from "@/lib/community/client";
+import {
+  applyVerdict,
+  getSubmission,
+  overrideVerdict,
+  publishSubmission,
+  unpublishSubmission,
+} from "@/lib/community/client";
 import { moderate } from "@/lib/community/pipeline";
 import { pantryAccess } from "@/lib/dash/auth";
 
 /**
- * The pantry's two actions and one export.
+ * The pantry's writes and one export.
  *
  * The list and the detail are server-rendered by the page, which calls the
  * store directly; this route exists for what a render cannot do — write, and
@@ -16,7 +22,9 @@ import { pantryAccess } from "@/lib/dash/auth";
  * POST { id, action: "override", card }   — the operator outranks the model
  * POST { id, action: "rerun" }            — moderate again: a pending doc whose AI pass failed, or any
  *                                           doc the operator wants judged by a newer prompt. Never an
- *                                           overridden one.
+ *                                           overridden or a published one.
+ * POST { id, action: "publish" }          — the human gate: only a tagged GREEN document may be served
+ * POST { id, action: "unpublish" }        — the takedown
  *
  * Behind the same cookie as the page, checked here as well: a route handler is
  * reachable regardless of what any page decided. Every failure of access is
@@ -103,6 +111,9 @@ export async function POST(request: NextRequest) {
     if (doc.verdict?.overridden_at) {
       return Response.json({ error: "overridden by an operator; the model does not get another say" }, { status: 409 });
     }
+    if (doc.published_at) {
+      return Response.json({ error: "published; unpublish before re-running the verdict" }, { status: 409 });
+    }
     const verdict = await moderate(doc.submission);
     if (!verdict) {
       return Response.json({ error: "the verdict call failed; the submission stays as it was" }, { status: 502 });
@@ -114,5 +125,27 @@ export async function POST(request: NextRequest) {
     return Response.json({ ok: true, status: verdict.card === "GREEN" ? "green" : "red", reasons: verdict.reasons });
   }
 
-  return Response.json({ error: "action must be override or rerun" }, { status: 400 });
+  if (body.action === "publish") {
+    const result = await publishSubmission(id);
+    if (result === "ok") return Response.json({ ok: true, status: "published" });
+    if (result === "not_found") return Response.json({ error: "no such submission" }, { status: 404 });
+    if (result === "not_green") {
+      return Response.json({ error: "only a GREEN submission can be published; mark it GREEN first" }, { status: 409 });
+    }
+    if (result === "no_tag") {
+      return Response.json({ error: "this document has no dish tag; re-run the verdict to generate one" }, { status: 409 });
+    }
+    return Response.json({ error: "could not write the publish; the store may be down" }, { status: 503 });
+  }
+
+  if (body.action === "unpublish") {
+    const result = await unpublishSubmission(id);
+    if (result === "not_found") return Response.json({ error: "no such submission" }, { status: 404 });
+    if (result === "error") {
+      return Response.json({ error: "could not write the unpublish; the store may be down" }, { status: 503 });
+    }
+    return Response.json({ ok: true, status: "unpublished" });
+  }
+
+  return Response.json({ error: "action must be override, rerun, publish, or unpublish" }, { status: 400 });
 }
