@@ -40,7 +40,10 @@ export const PHOTO_MAX_BYTES = 500 * 1024;
  * One megabyte leaves room for all of it and none for a flood.
  */
 export const MAX_BODY_BYTES = 1_000_000;
-const PHOTO_MIMES = ["image/jpeg", "image/png", "image/webp"];
+/** The only mimes a photo is ever accepted or served as. Exported so the photo
+ *  route reasserts a stored value against the same list rather than a second
+ *  copy of it — two lists that can drift is the bug. */
+export const PHOTO_MIMES = ["image/jpeg", "image/png", "image/webp"];
 
 /** Decoded size of a base64 string, without allocating the decode. */
 function base64Bytes(data: string): number {

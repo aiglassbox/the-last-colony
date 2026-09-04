@@ -483,3 +483,40 @@ export async function matchCommunity(
     return null;
   }
 }
+
+/**
+ * The photo route's one query: a published green document's photo, and
+ * nothing else — not the whole document (`getSubmission`), which would pull
+ * `contact` and every text field across the wire for a route that serves
+ * bytes to anyone who asks. "Not found" and "store unreachable" are told
+ * apart so the route can 404 one and 503 the other; a malformed id, a missing
+ * document, a red or pending document, and a green-but-unpublished one all
+ * read as `not_found` here — the same body the route gives a missing id, so
+ * it cannot be used to enumerate which documents exist in which state.
+ */
+export async function publishedPhoto(
+  id: string,
+): Promise<
+  | { ok: true; mime: string; data: string }
+  | { ok: false; reason: "not_found" | "unreachable" }
+> {
+  const _id = hexId(id);
+  if (!_id) return { ok: false, reason: "not_found" };
+  const db = await communityDb();
+  if (!db) return { ok: false, reason: "unreachable" };
+  try {
+    const doc = await db
+      .collection<SubmissionDoc>(SUBMISSIONS)
+      .findOne(
+        { _id },
+        { projection: { status: 1, published_at: 1, "submission.photo": 1 }, maxTimeMS: 2000 },
+      );
+    if (!doc || doc.status !== "green" || !doc.published_at || !doc.submission.photo) {
+      return { ok: false, reason: "not_found" };
+    }
+    return { ok: true, mime: doc.submission.photo.mime, data: doc.submission.photo.data };
+  } catch (error) {
+    console.error("[community] photo read failed:", error);
+    return { ok: false, reason: "unreachable" };
+  }
+}

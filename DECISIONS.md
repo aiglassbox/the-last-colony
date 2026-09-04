@@ -688,3 +688,25 @@ line and remove a whole class of silent never-match. The raw region value is
 logged on `community_served` so the guesses can be confirmed against real
 traffic and the losing spellings deleted. A check asserts every value in the map
 is a member of `STATES`, because a typo there is otherwise permanent and silent.
+
+**A community photo is served by URL, published only, and never inlined.** The
+bytes live in the submission document, but a stream payload is persisted to
+`localStorage` and mirrored to the `conversations` collection, so a 500 KB
+base64 string in it would be copied into both. `/api/community/photo/[id]`
+hands the bytes over instead, and the card carries a URL. The route serves a
+document only when it is green **and** carries `published_at`: a pending, red
+or unpublished photo is not public, and it answers with the identical 404 body
+as a missing id so it cannot be used to enumerate which documents exist in
+which state. The stored mime is reasserted against `PHOTO_MIMES` — the same
+list `validatePhoto` uses at intake, exported rather than retyped — because
+that string arrived from a client and this route hands it to a browser as a
+`Content-Type`; `nosniff` goes with it. The response is `immutable`-cached
+forever, which is safe because a document's photo never changes and the id is
+the version.
+
+**The served card is a projection of a projection.** `toCommunityCard` maps
+`CommunityMatch`, which the store query already narrowed, so `contact` is not
+omitted from the card — it was never fetched. That is a structural guarantee
+rather than a remembered rule, and the check walks the serialized payload for
+the substring anyway, because the mistake it exists to catch is a spread added
+later that quietly widens the projection.
