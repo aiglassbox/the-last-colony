@@ -18,6 +18,7 @@ import { communityDb, SUBMISSIONS } from "../src/lib/community/client";
   console.log("created", await col.createIndex({ created_at: -1 }, { name: "created_at_desc" }));
   console.log("created", await col.createIndex({ status: 1, created_at: -1 }, { name: "status_created_at" }));
   console.log("created", await col.createIndex({ status: 1, published_at: -1 }, { name: "published_recent" }));
+  console.log("created", await col.createIndex({ status: 1, published_at: -1, "dish.tag": 1 }, { name: "served_dish" }));
   console.log(
     "indexes now:",
     (await col.indexes()).map((i) => i.name).join(", "),

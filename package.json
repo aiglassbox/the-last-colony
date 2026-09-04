@@ -21,9 +21,10 @@
     "check:cache": "tsx scripts/check-cache.ts",
     "community:check-submissions": "tsx scripts/check-submissions.ts",
     "community:check-pantry": "tsx scripts/check-pantry.ts",
+    "community:check-match": "tsx scripts/check-community-match.ts",
     "community:index": "tsx --env-file=.env scripts/community-index.ts",
     "community:seed": "tsx --env-file=.env scripts/seed-community.ts",
-    "check": "npm run corpus:validate && npm run corpus:check-retrieval && npm run corpus:check-promotion && npm run check:routing && npm run community:check-submissions && npm run community:check-pantry",
+    "check": "npm run corpus:validate && npm run corpus:check-retrieval && npm run corpus:check-promotion && npm run check:routing && npm run community:check-submissions && npm run community:check-pantry && npm run community:check-match",
     "db:migrate": "tsx scripts/db-migrate.ts",
     "report:usage": "tsx scripts/usage-report.ts",
     "email:report": "tsx scripts/email-report.ts"

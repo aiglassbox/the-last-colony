@@ -1,7 +1,8 @@
 import { MongoClient, ObjectId, type Db } from "mongodb";
 
 import type { Geo } from "../events/geo";
-import { dishTag } from "./normalize";
+import { phraseMatches, pickCommunity, type CommunityMatch } from "./match";
+import { dishTag, normalizeDish } from "./normalize";
 import type { Verdict } from "./pipeline";
 import type { Extracted, SubmissionInput } from "./schema";
 
@@ -383,5 +384,102 @@ export async function overrideVerdict(id: string, card: "GREEN" | "RED"): Promis
   } catch (error) {
     console.error("[community] override failed:", error);
     return false;
+  }
+}
+
+/**
+ * The thin Mongo query that feeds `phraseMatches` and `pickCommunity` — the
+ * whole decision lives in `match.ts` as pure functions; this fetches the
+ * candidates and flattens them into the shape those functions read.
+ *
+ * ponytail: in-memory phrase filter over the newest 200 published docs; move
+ * the gate into the query with an aliases-array index if the store outgrows it.
+ */
+export async function matchCommunity(
+  query: string,
+  region: string | null,
+  readerLang: string | null,
+): Promise<{ chosen: CommunityMatch; others: string[]; total: number } | null> {
+  // Normalize before touching Mongo: a reader who typed only punctuation
+  // costs no round trip.
+  const normalizedQuery = normalizeDish(query);
+  if (!normalizedQuery) return null;
+  const db = await communityDb();
+  if (!db) {
+    console.error("[community] match failed: no store");
+    return null;
+  }
+  try {
+    const col = db.collection<SubmissionDoc>(SUBMISSIONS);
+    const docs = await col
+      .find(
+        { status: "green", published_at: { $exists: true }, "dish.tag": { $exists: true, $ne: "" } },
+        {
+          projection: {
+            dish: 1,
+            published_at: 1,
+            created_at: 1,
+            "submission.recipe_name": 1,
+            "submission.display_name": 1,
+            "submission.belongs_to": 1,
+            "submission.belongs_to_other": 1,
+            "submission.state": 1,
+            "submission.city": 1,
+            "submission.story": 1,
+            "submission.ingredients": 1,
+            "submission.method": 1,
+            "submission.photo.mime": 1,
+            "submission.photo.bytes": 1,
+            // Neither submission.contact nor submission.photo.data is
+            // projected here: the first is a member of the public's contact
+            // details, the second is up to 500 KB of base64 served from its
+            // own route.
+          },
+        },
+      )
+      .sort({ published_at: -1 })
+      .maxTimeMS(2000)
+      .limit(200)
+      .toArray();
+
+    const matches: CommunityMatch[] = docs
+      .filter((d) => phraseMatches(normalizedQuery, d.dish?.tag ?? "", d.dish?.aliases ?? []))
+      .map((d) => ({
+        id: String(d._id),
+        state: d.submission.state,
+        language: d.dish?.language || null,
+        published_at: d.published_at as Date,
+        created_at: d.created_at,
+        dish: { tag: d.dish?.tag ?? "", aliases: d.dish?.aliases ?? [] },
+        submission: {
+          recipe_name: d.submission.recipe_name,
+          display_name: d.submission.display_name,
+          belongs_to: d.submission.belongs_to,
+          belongs_to_other: d.submission.belongs_to_other,
+          city: d.submission.city,
+          story: d.submission.story,
+          ingredients: d.submission.ingredients,
+          method: d.submission.method,
+          photo: d.submission.photo ? { mime: d.submission.photo.mime, bytes: d.submission.photo.bytes } : undefined,
+        },
+      }));
+
+    if (!matches.length) return null;
+    const chosen = pickCommunity(matches, region, readerLang);
+    if (!chosen) return null;
+
+    // The other states a reader could have been served, in first-seen order,
+    // excluding the chosen row's own state. Built in code from the match
+    // list — never by a model, which writes no citation here either.
+    const others: string[] = [];
+    for (const m of matches) {
+      if (m.id === chosen.id || m.state === chosen.state || others.includes(m.state)) continue;
+      others.push(m.state);
+    }
+
+    return { chosen, others, total: matches.length };
+  } catch (error) {
+    console.error("[community] match failed:", error);
+    return null;
   }
 }

@@ -663,3 +663,28 @@ being answered from a corpus record. This is why the geo scenario is puran poli
 rather than the vada pav the earlier spec used: `vada pav` scores 4.02 against
 the corpus `Vada` record and never reaches the community lookup at all.
 Substituting a dish without re-running that probe silently voids the test.
+
+**The community match scans, it never compiles a regex.** A stored alias is
+model output living in a document a member of the public submitted, so
+`new RegExp(alias)` would hand that text the regex engine — the one function in
+the serving path a hostile submission can reach. `phraseMatches` walks the
+normalized query with `indexOf` and checks the boundaries by hand: a phrase
+matches when the query equals it, or contains it bounded by string start/end or
+a space. `puran poli` matches, `puran` does not, `puranpoli` does not, and
+`apuran polix` does not. Both sides go through `normalizeDish` and nothing else,
+which is what makes the match deterministic; aliases are re-normalized on read
+even though the pipeline stores them normalized, because a document written
+before that was true must not slip through.
+
+**Three states carry more than one region code.** `geo.region` is ISO 3166-2 and
+`submission.state` is a full name, so a map between them is unavoidable — and
+compared directly, the geo rule would never fire and every reader would silently
+fall through to recency. That is the failure mode this phase most had to avoid:
+it passes every offline test and is still wrong in production. Vendors disagree
+on three of the thirty-six, so all spellings are accepted rather than guessed:
+Odisha as `OR` or `OD`, Uttarakhand as `UT` or `UK`, and Dadra and Nagar Haveli
+and Daman and Diu as `DH`, `DN` or `DD`. Two keys pointing at one name cost a
+line and remove a whole class of silent never-match. The raw region value is
+logged on `community_served` so the guesses can be confirmed against real
+traffic and the losing spellings deleted. A check asserts every value in the map
+is a member of `STATES`, because a typo there is otherwise permanent and silent.

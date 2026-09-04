@@ -162,6 +162,22 @@ async function checkPublishGateLive(): Promise<void> {
     return;
   }
 
+  // Read-only: green documents with no dish tag can never be matched by
+  // Phase 4's serving path. Task 2 stops new ones being published; this
+  // surfaces any that already exist rather than leaving them a mystery.
+  const unmatchable = await db
+    .collection(SUBMISSIONS)
+    .find(
+      { status: "green", $or: [{ "dish.tag": { $exists: false } }, { "dish.tag": "" }] },
+      { projection: { _id: 1 } },
+    )
+    .toArray();
+  console.log(
+    unmatchable.length
+      ? `  unmatchable (green, no dish tag): ${unmatchable.map((d) => String(d._id)).join(", ")}`
+      : "  unmatchable (green, no dish tag): none",
+  );
+
   // The publish gate. Each of these is an invariant the store owns, not the
   // UI: a button can be removed by a careless edit, a store filter cannot.
   const scratchInput: SubmissionInput = {
