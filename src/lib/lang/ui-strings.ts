@@ -118,6 +118,18 @@ export const EN_UI_STRINGS = {
     "than taken from any text.",
   fusionRebuild: "The rebuild",
   fusionCook: "Cook it",
+
+  // Community card: a reader's own family recipe, no corpus record behind it
+  communityHeader: "A reader of this site submitted this recipe.",
+  communityAttribution: "{name} · {relation} · {place}",
+  communityTranslated: "Machine-translated from the original.",
+  communityShowOriginal: "Show original",
+  communityShowTranslation: "Show translation",
+  communityIngredients: "Ingredients",
+  communityMethod: "Method",
+  communityOtherStates: "Readers have also sent this recipe in from {states}.",
+  communityNotRestored: "This is a reader's family recipe, not a restored historical record.",
+  communityPhotoAlt: "{dish}, a family recipe from {state}",
 };
 
 export type UiStrings = Record<keyof typeof EN_UI_STRINGS, string>;

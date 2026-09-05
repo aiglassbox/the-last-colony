@@ -739,3 +739,27 @@ a stranger's contact details to Google.
 unless all four fields come back non-empty. A card showing a recipe with an
 empty method is a recipe with no steps; falling back to the submitter's own
 language is honest, and the reader can still read the ingredients.
+
+**The community card is a fourth component, not a fourth branch of
+`RestorationCard`.** Its payload type has no field for a locus, a provenance
+class, a source record or `contact`, so the card cannot render a source strip
+or a corpus badge even by mistake — there is nothing to wire up. That is the
+whole reason it is a separate file: a variant flag on the existing card would
+have put a historical provenance frame one boolean away from somebody's family
+recipe. `hasRecord()` stays false for the new kind, which is what actually
+gates the badge, and `RESOLUTION` is untouched because a community turn is not
+something the model resolves.
+
+**A community turn clears `activeRecordIds`.** The meta handler forces
+`records: []` rather than trusting an absent field, because otherwise the last
+corpus record still on screen stays active and the reader's next follow-up gets
+answered about it — an ancient citation silently attached to a family recipe.
+The turn also has no beats, so the replay-text builder must fall through to
+`m.text`; giving it a beats-join branch would join an absent array into `""`
+and wipe the turn on reload.
+
+**`community` is both a `TurnMode` and a `TurnKind`, and that is a
+coincidence.** The mode names which component renders; the kind names why. They
+are separate questions — `restoration` mode alone spans three kinds — and they
+merely want the same word here. `turn.ts` says so in a comment, because the
+file exists to keep exactly that distinction from collapsing again.

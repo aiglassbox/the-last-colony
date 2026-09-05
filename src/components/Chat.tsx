@@ -22,6 +22,7 @@ import {
 import { flushSync } from "@/lib/chat/sync";
 import type { TurnKind, TurnMode } from "@/lib/chat/turn";
 import { PROSE, Typewriter } from "@/lib/chat/typewriter";
+import type { CommunityCardData } from "@/lib/community/card";
 import type { CorpusRecord } from "@/lib/corpus/types";
 import { deviceId } from "@/lib/device-id";
 import type { LocalizedCard } from "@/lib/lang/localized-card";
@@ -78,6 +79,8 @@ interface StreamEvent {
   records?: CorpusRecord[];
   lang?: SupportedLang;
   localized?: Record<string, LocalizedCard>;
+  /** Present on a community-mode meta event — drives `CommunityCard`. */
+  community?: CommunityCardData;
   beat?: string;
   text?: string;
   message?: string;
@@ -376,7 +379,11 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
             }
 
             if (evt.type === "meta") {
-              const records = evt.records ?? [];
+              // A community turn carries no corpus records, ever — forced to
+              // `[]` here rather than trusted to an absent `evt.records`, so a
+              // reader's follow-up is never answered about whatever record was
+              // last on screen before their family recipe replaced it.
+              const records = evt.mode === "community" ? [] : (evt.records ?? []);
               patchMessage(conversationId, replyId, (m) => ({
                 ...m,
                 mode: evt.mode ?? "restoration",
@@ -384,6 +391,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                 records,
                 lang: evt.lang,
                 localized: evt.localized,
+                community: evt.community,
               }));
               // Assigned unconditionally, including when empty. Guarding this on
               // `records.length` left the previous dish active through any turn
@@ -427,6 +435,11 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
         patchMessage(conversationId, replyId, (m) => ({
           ...m,
           streaming: false,
+          // A community turn has no beats — it was never typed into the
+          // Typewriter beat by beat, only `community` arrived on `meta` — so
+          // it falls to the `m.text` branch below like every other mode that
+          // is not built from beats. Giving it its own beats-join branch would
+          // join an absent array into "", wiping the turn's text.
           text:
             m.mode === "restoration"
               ? [m.beats?.VERDICT, m.beats?.THEN, m.beats?.WHAT_CHANGED, m.beats?.RESTORE_TODAY]

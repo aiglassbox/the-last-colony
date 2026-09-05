@@ -88,7 +88,11 @@ export interface CardData {
  *
  * Short by design. These sit above the text as labels, not as sentences.
  */
-const TITLES: Record<TurnKind, Record<Beat, string>> = {
+/* Keyed over every kind this card can actually be handed. `community` is
+   absent on purpose: Message.tsx routes that mode to `CommunityCard`, so
+   inventing four titles here would be copy nobody can ever read — and copy
+   somebody would eventually try to translate. */
+const TITLES: Record<Exclude<TurnKind, "community">, Record<Beat, string>> = {
   record: {
     VERDICT: "The verdict",
     THEN: "Then",
@@ -114,6 +118,16 @@ const TITLES: Record<TurnKind, Record<Beat, string>> = {
     RESTORE_TODAY: "Cook it closer",
   },
 };
+
+/**
+ * `TITLES` for any `TurnKind`, including the one this card never receives.
+ * A community turn renders `CommunityCard`, so `gap` stands in and the lookup
+ * stays total — without four invented English titles nobody can ever read, and
+ * that somebody would eventually try to translate.
+ */
+function titleOf(kind: TurnKind, beat: Beat): string {
+  return TITLES[kind === "community" ? "gap" : kind][beat];
+}
 
 /**
  * The localized-label key for each beat heading. Only the `record` kind maps
@@ -156,10 +170,18 @@ export function RestorationCard({ data }: { data: CardData }) {
   const cs = cardStrings(data.lang);
   // The fixed lines neither the record store nor the card chrome carries.
   const t = uiStrings(data.lang);
-  const note = data.kind !== "record" ? cs.note[data.kind] : undefined;
+  // `community` is excluded here too, alongside `record` — this card is never
+  // mounted for one, and `cs.note` only carries the three kinds it can
+  // actually receive without a record of its own.
+  const note =
+    data.kind !== "record" && data.kind !== "community" ? cs.note[data.kind] : undefined;
 
   const titleFor = (beat: Beat): string => {
     if (data.kind === "record") return loc ? labels[RECORD_LABEL[beat]] : TITLES.record[beat];
+    // Unreachable: a community turn renders `CommunityCard`, never this one.
+    if (data.kind === "community") return titleOf(data.kind, beat);
+    // Past both guards `data.kind` is one of the three recordless kinds
+    // `cs.title` is keyed by, which is why this indexes without a cast.
     return cs.title[data.kind][beat as HistoryBeat] ?? TITLES[data.kind][beat];
   };
 
@@ -368,7 +390,7 @@ function Beat({
     <section>
       <div className="beat-head">
         <h3 className="mono" style={{ margin: 0, fontWeight: 400, color: "var(--ink-muted)" }}>
-          {title ?? TITLES[kind][beat]}
+          {title ?? titleOf(kind, beat)}
         </h3>
         {badge && (
           <span className="display" style={{ fontSize: "0.95rem", color: "var(--orange)" }}>

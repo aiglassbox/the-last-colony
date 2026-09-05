@@ -7,6 +7,7 @@ import { kindOf } from "@/lib/chat/turn";
 import { uiStrings } from "@/lib/lang/ui-strings";
 import { toPlainText } from "@/lib/model/plain-text";
 
+import { CommunityCard } from "./CommunityCard";
 import { IndianisationCard } from "./IndianisationCard";
 import { RestorationCard, Waiting } from "./RestorationCard";
 
@@ -40,6 +41,8 @@ export function Message({ message }: { message: ChatMessage }) {
           then the finished answer arrived in one piece. */}
       {!message.mode && message.streaming ? (
         <Thinking />
+      ) : message.mode === "community" && message.community ? (
+        <CommunityCard data={message.community} lang={message.lang} />
       ) : message.mode === "restoration" ? (
         <RestorationCard
           data={{

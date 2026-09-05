@@ -72,7 +72,17 @@
     "fusionPill": "हमारी अपनी रेसिपी · ऐतिहासिक नहीं",
     "fusionNote": "आगे जो दिया गया है वह हमारा अपना है: भारतीय सामग्रियों से तैयार किया गया एक व्यंजन, जिसे किसी पाठ से लेने के बजाय यहाँ विकसित किया गया है।",
     "fusionRebuild": "पुनर्निर्माण",
-    "fusionCook": "इसे पकाएं"
+    "fusionCook": "इसे पकाएं",
+    "communityHeader": "इस साइट के एक पाठक ने यह रेसिपी भेजी है।",
+    "communityAttribution": "{name} · {relation} · {place}",
+    "communityTranslated": "मूल पाठ का मशीन द्वारा अनुवाद किया गया।",
+    "communityShowOriginal": "मूल दिखाएं",
+    "communityShowTranslation": "अनुवाद दिखाएं",
+    "communityIngredients": "सामग्री",
+    "communityMethod": "बनाने की विधि",
+    "communityOtherStates": "पाठकों ने {states} से भी यह रेसिपी भेजी है।",
+    "communityNotRestored": "यह एक पाठक के परिवार की रेसिपी है, न कि कोई पुनर्स्थापित ऐतिहासिक रिकॉर्ड।",
+    "communityPhotoAlt": "{dish}, {state} से एक पारिवारिक रेसिपी"
   },
   "bn": {
     "newChat": "নতুন চ্যাট",
@@ -147,7 +157,17 @@
     "fusionPill": "আমাদের নিজস্ব রেসিপি · এটি কোনো ঐতিহাসিক রেসিপি নয়",
     "fusionNote": "নিচে যা দেওয়া হলো তা আমাদের নিজস্ব: ভারতীয় উপাদান দিয়ে তৈরি একটি পদ, যা কোনো ঐতিহাসিক লেখা থেকে নেওয়া নয় বরং এখানেই তৈরি করা হয়েছে।",
     "fusionRebuild": "পুনর্নির্মাণ",
-    "fusionCook": "রান্না করুন"
+    "fusionCook": "রান্না করুন",
+    "communityHeader": "এই সাইটের একজন পাঠক রেসিপিটি পাঠিয়েছেন।",
+    "communityAttribution": "{name} · {relation} · {place}",
+    "communityTranslated": "মূল লেখা থেকে স্বয়ংক্রিয়ভাবে অনুদিত।",
+    "communityShowOriginal": "মূল লেখাটি দেখুন",
+    "communityShowTranslation": "অনুবাদ দেখুন",
+    "communityIngredients": "উপকরণ",
+    "communityMethod": "প্রস্তুত প্রণালী",
+    "communityOtherStates": "পাঠকরা {states} থেকেও এই রেসিপিটি পাঠিয়েছেন।",
+    "communityNotRestored": "এটি একজন পাঠকের পারিবারিক রেসিপি, এটি কোনো পুনরুদ্ধার করা ঐতিহাসিক রেকর্ড নয়।",
+    "communityPhotoAlt": "{dish}, {state}-এর একটি পারিবারিক রেসিপি"
   },
   "mr": {
     "newChat": "नवीन चॅट",
@@ -222,7 +242,17 @@
     "fusionPill": "आमची स्वतःची रेसिपी · ऐतिहासिक नाही",
     "fusionNote": "पुढे दिलेला पदार्थ आमचा आहे: भारतीय घटकांपासून तयार केलेला हा पदार्थ कोणत्याही ग्रंथातून घेतलेला नसून येथेच विकसित केला गेला आहे.",
     "fusionRebuild": "पुनर्निर्मिती",
-    "fusionCook": "हे शिजवा"
+    "fusionCook": "हे शिजवा",
+    "communityHeader": "या साईटच्या एका वाचक-सदस्याने ही कृती पाठवली आहे.",
+    "communityAttribution": "{name} · {relation} · {place}",
+    "communityTranslated": "मूळ मजकुराचे स्वयंचलित भाषांतर केले आहे.",
+    "communityShowOriginal": "मूळ मजकूर दाखवा",
+    "communityShowTranslation": "भाषांतर दाखवा",
+    "communityIngredients": "साहित्य",
+    "communityMethod": "कृती",
+    "communityOtherStates": "वाचकांनी ही कृती {states} येथूनही पाठवली आहे.",
+    "communityNotRestored": "ही एका वाचकाची कौटुंबिक कृती आहे, कोणताही पुनर्संचयित ऐतिहासिक नोंद नाही.",
+    "communityPhotoAlt": "{dish}, {state} येथील एक कौटुंबिक कृती"
   },
   "te": {
     "newChat": "కొత్త చాట్",
@@ -297,7 +327,17 @@
     "fusionPill": "మా స్వంత వంటకం · ఇది చారిత్రకమైనది కాదు",
     "fusionNote": "కింద ఉన్నది మాది: ఏ గ్రంథం నుండి తీసుకోకుండా, ఇక్కడ భారతీయ పదార్థాలతో స్వయంగా తయారు చేసిన వంటకం.",
     "fusionRebuild": "పునర్నిర్మాణం",
-    "fusionCook": "వండండి"
+    "fusionCook": "వండండి",
+    "communityHeader": "ఈ సైట్ పాఠకులు ఒకరు ఈ వంటకాన్ని సమర్పించారు.",
+    "communityAttribution": "{name} · {relation} · {place}",
+    "communityTranslated": "అసలు వంటకం నుండి యంత్రం ద్వారా అనువదించబడింది.",
+    "communityShowOriginal": "అసలైనది చూపించు",
+    "communityShowTranslation": "అనువాదాన్ని చూపించు",
+    "communityIngredients": "కావలసిన పదార్థాలు",
+    "communityMethod": "తయారీ విధానం",
+    "communityOtherStates": "పాఠకులు ఈ వంటకాన్ని {states} నుండి కూడా పంపారు.",
+    "communityNotRestored": "ఇది పాఠకుల కుటుంబ వంటకం, పునరుద్ధరించబడిన చారిత్రక రికార్డు కాదు.",
+    "communityPhotoAlt": "{dish}, {state} నుండి వచ్చిన కుటుంబ వంటకం"
   },
   "ta": {
     "newChat": "புதிய உரையாடல்",
@@ -372,7 +412,17 @@
     "fusionPill": "எங்களது சொந்த செய்முறை · வரலாற்றுச் சிறப்புமிக்கது அல்ல",
     "fusionNote": "தொடர்ந்து வருவது எங்களது படைப்பு: எந்தவொரு நூலிலிருந்தும் எடுக்கப்படாமல், இந்தியப் பொருட்களைக் கொண்டு இங்கு உருவாக்கப்பட்ட ஒரு உணவு வகை.",
     "fusionRebuild": "மறுருவாக்கம்",
-    "fusionCook": "சமைக்கவும்"
+    "fusionCook": "சமைக்கவும்",
+    "communityHeader": "இந்த தளத்தின் வாசகர் ஒருவர் இந்த செய்முறையை அனுப்பியுள்ளார்.",
+    "communityAttribution": "{name} · {relation} · {place}",
+    "communityTranslated": "அசலிலிருந்து எந்திரத்தால் மொழிபெயர்க்கப்பட்டது.",
+    "communityShowOriginal": "அசலைக் காட்டு",
+    "communityShowTranslation": "மொழிபெயர்ப்பைக் காட்டு",
+    "communityIngredients": "தேவையான பொருட்கள்",
+    "communityMethod": "செய்முறை",
+    "communityOtherStates": "வாசகர்கள் இந்த செய்முறையை {states} இலிருந்தும் அனுப்பியுள்ளனர்.",
+    "communityNotRestored": "இது ஒரு வாசகரின் குடும்ப செய்முறையாகும், மீட்கப்பட்ட வரலாற்றுப் பதிவு அல்ல.",
+    "communityPhotoAlt": "{dish}, {state} ஐச் சேர்ந்த ஒரு குடும்ப செய்முறை"
   },
   "gu": {
     "newChat": "નવી ચેટ",
@@ -447,7 +497,17 @@
     "fusionPill": "અમારી પોતાની વાનગી · ઐતિહાસિક નથી",
     "fusionNote": "આગળ જે છે તે અમારું છે: ભારતીય સામગ્રીઓમાંથી બનાવેલી એક વાનગી, જે કોઈ પુસ્તકમાંથી લેવાને બદલે અહીં તૈયાર કરવામાં આવી છે.",
     "fusionRebuild": "પુનઃનિર્માણ",
-    "fusionCook": "તેને રાંધો"
+    "fusionCook": "તેને રાંધો",
+    "communityHeader": "આ સાઇટના એક વાચકે આ વાનગી મોકલી છે.",
+    "communityAttribution": "{name} · {relation} · {place}",
+    "communityTranslated": "મૂળમાંથી મશીન દ્વારા અનુવાદિત.",
+    "communityShowOriginal": "મૂળ દર્શાવો",
+    "communityShowTranslation": "અનુવાદ દર્શાવો",
+    "communityIngredients": "સામગ્રી",
+    "communityMethod": "રીત",
+    "communityOtherStates": "વાચકોએ આ વાનગી {states} થી પણ મોકલી છે.",
+    "communityNotRestored": "આ વાચકના પરિવારની વાનગી છે, પુનઃસ્થાપિત ઐતિહાસિક રેકોર્ડ નથી.",
+    "communityPhotoAlt": "{dish}, {state} ની પરિવારની વાનગી"
   },
   "kn": {
     "newChat": "ಹೊಸ ಚಾಟ್",
@@ -522,6 +582,16 @@
     "fusionPill": "ನಮ್ಮದೇ ಆದ ಪಾಕವಿಧಾನ · ಐತಿಹಾಸಿಕವಾದದ್ದಲ್ಲ",
     "fusionNote": "ಮುಂದೆ ಬರುವುದು ನಮ್ಮದು: ಭಾರತೀಯ ಪದಾರ್ಥಗಳಿಂದ ತಯಾರಿಸಿದ ಖಾದ್ಯ, ಇದನ್ನು ಯಾವುದೇ ಪಠ್ಯದಿಂದ ತೆಗೆದುಕೊಳ್ಳುವ ಬದಲು ಇಲ್ಲೇ ರೂಪಿಸಲಾಗಿದೆ.",
     "fusionRebuild": "ಮರುನಿರ್ಮಾಣ",
-    "fusionCook": "ಇದನ್ನು ಬೇಯಿಸಿ"
+    "fusionCook": "ಇದನ್ನು ಬೇಯಿಸಿ",
+    "communityHeader": "ಈ ತಾಣದ ಓದುಗರೊಬ್ಬರು ಈ ಪಾಕವಿಧಾನವನ್ನು ಕಳುಹಿಸಿದ್ದಾರೆ.",
+    "communityAttribution": "{name} · {relation} · {place}",
+    "communityTranslated": "ಮೂಲದಿಂದ ಯಂತ್ರ-ಅನುವಾದಿಸಲಾಗಿದೆ.",
+    "communityShowOriginal": "ಮೂಲವನ್ನು ತೋರಿಸಿ",
+    "communityShowTranslation": "ಅನುವಾದವನ್ನು ತೋರಿಸಿ",
+    "communityIngredients": "ಸಾಮಗ್ರಿಗಳು",
+    "communityMethod": "ಮಾಡುವ ವಿಧಾನ",
+    "communityOtherStates": "ಓದುಗರು ಈ ಪಾಕವಿಧಾನವನ್ನು {states} ನಿಂದಲೂ ಕಳುಹಿಸಿದ್ದಾರೆ.",
+    "communityNotRestored": "ಇದು ಓದುಗರೊಬ್ಬರ ಕುಟುಂಬದ ಪಾಕವಿಧಾನ, ಪುನಃಸ್ಥಾಪಿಸಲಾದ ಐತಿಹಾಸಿಕ ದಾಖಲೆಯಲ್ಲ.",
+    "communityPhotoAlt": "{dish}, {state} ನ ಕುಟುಂಬದ ಪಾಕವಿಧಾನ"
   }
 }

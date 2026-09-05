@@ -2,6 +2,7 @@
 
 import { parseCommand } from "@/lib/chat/commands";
 import type { TurnKind, TurnMode } from "@/lib/chat/turn";
+import type { CommunityCardData } from "@/lib/community/card";
 import type { CorpusRecord } from "@/lib/corpus/types";
 import type { LocalizedCard } from "@/lib/lang/localized-card";
 import type { SupportedLang } from "@/lib/lang/types";
@@ -39,6 +40,13 @@ export interface ChatMessage {
   /** Precomputed localized card per record slug, when the turn was non-English.
    *  Persisted so a reloaded thread keeps the localized card. */
   localized?: Record<string, LocalizedCard>;
+  /** Present on community turns — drives `CommunityCard`. No corpus record,
+   *  no locus, no `contact`: the type this comes from has no field for any of
+   *  the three.
+   *  // ponytail: the original text rides along for the show-original toggle,
+   *  // roughly doubling a community turn's stored size; fetch it instead if
+   *  // thread storage gets tight. */
+  community?: CommunityCardData;
   /**
    * What the reader asked for, kept on the reply.
    *
