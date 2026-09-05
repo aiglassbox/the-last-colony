@@ -1,6 +1,7 @@
 import { MongoClient, ObjectId, type Db } from "mongodb";
 
 import type { Geo } from "../events/geo";
+import type { TranslatedFields } from "./card";
 import { phraseMatches, pickCommunity, type CommunityMatch } from "./match";
 import { dishTag, normalizeDish } from "./normalize";
 import type { Verdict } from "./pipeline";
@@ -19,6 +20,12 @@ import type { Extracted, SubmissionInput } from "./schema";
  */
 
 export const SUBMISSIONS = "submissions";
+/** Translations keyed by `{ submission_id, lang }`, kept out of `submissions`
+ *  so the match query's projection stays small instead of carrying up to
+ *  sixteen kilobytes per language into every lookup. Never written to by
+ *  anything that also writes `submissions` — a translation must not alter
+ *  the submission it translates. */
+export const TRANSLATIONS = "submission_translations";
 const DB_NAME = "kranti";
 
 /** The pantry's four tabs. "published" is a view over green documents — not a
@@ -273,6 +280,102 @@ export async function unpublishSubmission(id: string): Promise<"ok" | "not_found
   }
 }
 
+/** The stored shape of one translation. Keyed by `{ submission_id, lang }`,
+ *  unique-indexed in `scripts/community-index.ts` — `saveTranslation` upserts
+ *  on exactly that pair, so publishing twice never duplicates a row. */
+interface TranslationDoc {
+  _id?: ObjectId;
+  submission_id: ObjectId;
+  lang: string;
+  recipe_name: string;
+  story: string;
+  ingredients: string;
+  method: string;
+  model: string;
+  at: Date;
+}
+
+/**
+ * Upserts on `{ submission_id, lang }` — republishing (or a retried job)
+ * overwrites the same row rather than adding a second one. False on a bad id
+ * or any store failure; the caller logs the outcome per language.
+ */
+export async function saveTranslation(id: string, fields: TranslatedFields): Promise<boolean> {
+  const submission_id = hexId(id);
+  if (!submission_id) return false;
+  const db = await communityDb();
+  if (!db) return false;
+  try {
+    const col = db.collection<TranslationDoc>(TRANSLATIONS);
+    await col.updateOne(
+      { submission_id, lang: fields.lang },
+      {
+        $set: {
+          submission_id,
+          lang: fields.lang,
+          recipe_name: fields.recipe_name,
+          story: fields.story,
+          ingredients: fields.ingredients,
+          method: fields.method,
+          model: fields.model,
+          at: new Date(),
+        },
+      },
+      { upsert: true },
+    );
+    return true;
+  } catch (error) {
+    console.error("[community] save translation failed:", error);
+    return false;
+  }
+}
+
+/** One stored translation, or null on a bad id, no row, or any store failure. */
+export async function getTranslation(id: string, lang: string): Promise<TranslatedFields | null> {
+  const submission_id = hexId(id);
+  if (!submission_id) return null;
+  const db = await communityDb();
+  if (!db) return null;
+  try {
+    const doc = await db
+      .collection<TranslationDoc>(TRANSLATIONS)
+      .findOne({ submission_id, lang }, { maxTimeMS: 2000 });
+    if (!doc) return null;
+    return {
+      lang: doc.lang,
+      recipe_name: doc.recipe_name,
+      story: doc.story,
+      ingredients: doc.ingredients,
+      method: doc.method,
+      model: doc.model,
+    };
+  } catch (error) {
+    console.error("[community] get translation failed:", error);
+    return null;
+  }
+}
+
+/** Which languages are already stored for a submission — an empty array on a
+ *  bad id, no rows, or any store failure, never a thrown error. The publish
+ *  job reads this once per publish so it only fills gaps. */
+export async function translatedLangs(id: string): Promise<string[]> {
+  const submission_id = hexId(id);
+  if (!submission_id) return [];
+  const db = await communityDb();
+  if (!db) return [];
+  try {
+    const docs = await db
+      .collection<TranslationDoc>(TRANSLATIONS)
+      .find({ submission_id }, { projection: { lang: 1 } })
+      .maxTimeMS(2000)
+      .toArray();
+    return docs.map((d) => d.lang);
+  } catch (error) {
+    console.error("[community] list translated langs failed:", error);
+    return [];
+  }
+}
+
 export async function listSubmissions(
   view: PantryView,
   page: number,
@@ -399,7 +502,7 @@ export async function matchCommunity(
   query: string,
   region: string | null,
   readerLang: string | null,
-): Promise<{ chosen: CommunityMatch; others: string[]; total: number } | null> {
+): Promise<{ chosen: CommunityMatch; translation: TranslatedFields | null; others: string[]; total: number } | null> {
   // Normalize before touching Mongo: a reader who typed only punctuation
   // costs no round trip.
   const normalizedQuery = normalizeDish(query);
@@ -477,7 +580,15 @@ export async function matchCommunity(
       others.push(m.state);
     }
 
-    return { chosen, others, total: matches.length };
+    // One extra lookup, only on a community hit, only when the reader's
+    // language differs from the row's own — `readerLang` is already null
+    // when detection fell back (pickCommunity treats it the same way), and a
+    // row whose own source is unknown (`chosen.language === null`) never
+    // equals a real reader language, so it is still eligible for translation.
+    const translation =
+      readerLang && readerLang !== chosen.language ? await getTranslation(chosen.id, readerLang) : null;
+
+    return { chosen, translation, others, total: matches.length };
   } catch (error) {
     console.error("[community] match failed:", error);
     return null;

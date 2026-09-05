@@ -5,9 +5,26 @@
  * with nothing behind it.
  *
  *   npx tsx scripts/check-community-match.ts
+ *
+ * A second section below drives translation storage against Atlas end to
+ * end, but only opt-in — set CHECK_LIVE=1 and load the store's credentials —
+ * so this script and `npm run check` stay offline by default with no Atlas
+ * or Gemini call:
+ *
+ *   CHECK_LIVE=1 npx tsx --env-file=.env scripts/check-community-match.ts
  */
+import { ObjectId } from "mongodb";
+
 import { toCommunityCard, type TranslatedFields } from "../src/lib/community/card";
-import { STATES } from "../src/lib/community/schema";
+import {
+  communityDb,
+  getTranslation,
+  insertSubmission,
+  saveTranslation,
+  SUBMISSIONS,
+  translatedLangs,
+  TRANSLATIONS,
+} from "../src/lib/community/client";
 import {
   phraseMatches,
   pickCommunity,
@@ -16,6 +33,9 @@ import {
   type CommunityMatch,
 } from "../src/lib/community/match";
 import { normalizeDish } from "../src/lib/community/normalize";
+import { STATES, type SubmissionInput } from "../src/lib/community/schema";
+import { buildTranslateInput, parseTranslation } from "../src/lib/community/translate";
+import { NO_GEO } from "../src/lib/events/geo";
 
 let failed = 0;
 function check(name: string, pass: boolean): void {
@@ -303,8 +323,175 @@ check(
     toCommunityCard(cardFixture(), [], 7, null).total === 7,
 );
 
-if (failed > 0) {
-  console.error(`\ncheck-community-match: ${failed} failure(s)`);
-  process.exit(1);
+// --- translation at publish: the payload builder ----------------------------
+// Trap: `SubmissionInput` carries `contact` (a member of the public's phone or
+// email), plus `display_name`, `state` and `city` — none of which has any
+// business reaching a third-party translation API. `buildTranslateInput` must
+// be built field by field over exactly the four translatable fields; this
+// walks the object it produces rather than trusting the function's return type.
+const piiSub: SubmissionInput = {
+  display_name: "Leaky Name",
+  state: "Maharashtra",
+  city: "Pune",
+  belongs_to: "grandmother",
+  recipe_name: "Puran Poli",
+  story: "A festival sweet, made every year for Gudi Padwa.",
+  ingredients: "chana dal\njaggery",
+  method: "1. Cook dal.\n2. Mash.",
+  consent: { right_to_share: true, public_display: true },
+  contact: "leaky-contact@example.com",
+};
+const payload = buildTranslateInput(piiSub);
+const payloadJson = JSON.stringify(payload);
+check(
+  "translate: payload has exactly the four translatable keys",
+  Object.keys(payload).sort().join(",") === "ingredients,method,recipe_name,story",
+);
+check("translate: payload carries no contact key", !("contact" in payload));
+check("translate: payload carries no display_name key", !("display_name" in payload));
+check("translate: payload carries no state key", !("state" in payload));
+check("translate: payload carries no city key", !("city" in payload));
+check("translate: serialized payload contains no contact string", !payloadJson.includes("leaky-contact@example.com"));
+check(
+  "translate: serialized payload contains none of display_name/state/city's values",
+  !payloadJson.includes("Leaky Name") && !payloadJson.includes("Pune") && !payloadJson.includes("Maharashtra"),
+);
+
+// --- translation at publish: the response parser -----------------------------
+// A reply missing a field, or one whose value comes back empty, must return
+// null rather than a half-translated record — an empty `method` would render
+// a recipe with no steps.
+const wellFormedReply = {
+  recipe_name: "पूरन पोळी",
+  story: "एक त्योहार की मिठाई, हर साल गुड़ी पड़वा पर बनती है।",
+  ingredients: "चना दाल\nगुड़",
+  method: "1. दाल पकाएं।\n2. मैश करें।",
+};
+const parsed = parseTranslation(wellFormedReply, "hi", "gemini-3.6-flash");
+check(
+  "translate: a well-formed reply parses to TranslatedFields",
+  parsed !== null &&
+    parsed.lang === "hi" &&
+    parsed.model === "gemini-3.6-flash" &&
+    parsed.recipe_name === wellFormedReply.recipe_name &&
+    parsed.story === wellFormedReply.story &&
+    parsed.ingredients === wellFormedReply.ingredients &&
+    parsed.method === wellFormedReply.method,
+);
+check(
+  "translate: a reply missing a field returns null rather than a half-translated record",
+  parseTranslation(
+    { recipe_name: wellFormedReply.recipe_name, story: wellFormedReply.story, ingredients: wellFormedReply.ingredients },
+    "hi",
+    "gemini-3.6-flash",
+  ) === null,
+);
+check(
+  "translate: a reply whose method is empty returns null",
+  parseTranslation({ ...wellFormedReply, method: "" }, "hi", "gemini-3.6-flash") === null,
+);
+check(
+  "translate: a reply whose method is only whitespace returns null",
+  parseTranslation({ ...wellFormedReply, method: "   " }, "hi", "gemini-3.6-flash") === null,
+);
+check("translate: a non-object reply returns null", parseTranslation(null, "hi", "gemini-3.6-flash") === null);
+check(
+  "translate: a reply with a non-string field returns null",
+  parseTranslation({ ...wellFormedReply, story: 12 }, "hi", "gemini-3.6-flash") === null,
+);
+
+// --- translation storage, driven against Atlas end to end -------------------
+// Opt-in only, exactly like check-pantry.ts's live section: `npm run check`
+// runs this script with neither CHECK_LIVE nor --env-file, so communityDb()
+// is never even called here — zero Atlas calls in the offline gate.
+async function checkTranslationStorageLive(): Promise<void> {
+  if (process.env.CHECK_LIVE !== "1") {
+    console.log("  skip live translation checks (set CHECK_LIVE=1 and pass --env-file=.env to run them)");
+    return;
+  }
+  const db = await communityDb();
+  if (!db) {
+    console.error(
+      "check-community-match: CHECK_LIVE=1 but ATLAS_URL/ATLAS_USER/ATLAS_PASSWORD are unset or the store is unreachable — skipping live checks",
+    );
+    return;
+  }
+
+  // A scratch submissions row purely so saveTranslation/getTranslation/
+  // translatedLangs have a real id to key off; translation never reads or
+  // writes anything else on it, and it is deleted below, in a finally, along
+  // with every translation row this block creates for it.
+  const scratchInput: SubmissionInput = {
+    display_name: "check-translate-scratch",
+    state: "Maharashtra",
+    belongs_to: "grandmother",
+    recipe_name: "Scratch Dish",
+    story: "A scratch document created by check-community-match.ts's live block and deleted at the end of it.",
+    ingredients: "test",
+    method: "test",
+    consent: { right_to_share: true, public_display: true },
+    contact: "scratch@example.com",
+  };
+  const scratch = await insertSubmission({ mode: "manual", submission: scratchInput, geo: NO_GEO });
+  if (!scratch) {
+    failed += 1;
+    console.error("  FAIL live: could not insert the scratch submission (daily ceiling, or the store refused the write)");
+    return;
+  }
+  try {
+    const fields: TranslatedFields = {
+      lang: "hi",
+      recipe_name: "स्क्रैच डिश",
+      story: "एक परीक्षण कहानी।",
+      ingredients: "टेस्ट",
+      method: "टेस्ट",
+      model: "check-translate-scratch",
+    };
+    check("live: saveTranslation reports ok", await saveTranslation(scratch, fields));
+    const read = await getTranslation(scratch, "hi");
+    check(
+      "live: getTranslation reads back the same fields",
+      read !== null &&
+        read.lang === fields.lang &&
+        read.recipe_name === fields.recipe_name &&
+        read.story === fields.story &&
+        read.ingredients === fields.ingredients &&
+        read.method === fields.method &&
+        read.model === fields.model,
+    );
+    check("live: translatedLangs lists what is stored", (await translatedLangs(scratch)).join(",") === "hi");
+    check("live: getTranslation for an unstored language returns null", (await getTranslation(scratch, "ta")) === null);
+
+    // Saving the same language twice must not duplicate — the unique index on
+    // { submission_id, lang } backs this, but the check pins the behaviour
+    // directly rather than trusting the index alone.
+    const again: TranslatedFields = { ...fields, recipe_name: "अद्यतन स्क्रैच डिश" };
+    check("live: saving the same language twice reports ok", await saveTranslation(scratch, again));
+    check("live: saving the same language twice does not duplicate", (await translatedLangs(scratch)).length === 1);
+    const reread = await getTranslation(scratch, "hi");
+    check(
+      "live: the second save overwrote the first rather than adding a row",
+      reread !== null && reread.recipe_name === "अद्यतन स्क्रैच डिश",
+    );
+  } finally {
+    // Store-write safety: delete exactly what this block created. The
+    // submissions document is removed here (never updated after the initial
+    // insert), and separately every translation row this block wrote for it —
+    // never anything this block did not itself insert.
+    await db.collection(SUBMISSIONS).deleteOne({ _id: new ObjectId(scratch) });
+    await db.collection(TRANSLATIONS).deleteMany({ submission_id: new ObjectId(scratch) });
+  }
 }
-console.log("\ncheck-community-match: all match checks pass");
+
+(async () => {
+  await checkTranslationStorageLive();
+
+  if (failed > 0) {
+    console.error(`\ncheck-community-match: ${failed} failure(s)`);
+    process.exit(1);
+  }
+  console.log("\ncheck-community-match: all match checks pass");
+  // A live run leaves the pooled Mongo client connected, which holds the
+  // event loop open long after the summary prints. Exit explicitly.
+  process.exit(0);
+})();

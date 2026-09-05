@@ -710,3 +710,32 @@ omitted from the card — it was never fetched. That is a structural guarantee
 rather than a remembered rule, and the check walks the serialized payload for
 the substring anyway, because the mistake it exists to catch is a spread added
 later that quietly widens the projection.
+
+**A community recipe is translated once, at publish, never at request time.** A
+reader typing Tamil can match a recipe written in Marathi, so the text has to
+cross languages somewhere. Doing it on the request would put a model call in
+the serving path and pay for it again on every read; doing it at publish makes
+serving a lookup by unique index. The job runs in `after()` so the operator's
+click flushes first, sequentially rather than eight-at-once, and one language
+failing is never the publish failing — the recipe is already live in its own
+language, and a missing translation falls back exactly as a corpus record falls
+back to English. Translations live in their own collection keyed
+`{ submission_id, lang }`, uniquely indexed and upserted, so republishing fills
+gaps rather than duplicating rows, and the match query's projection stays small
+instead of dragging sixteen kilobytes per language into every lookup. A
+translation never touches the submission it translates.
+
+**The translator sees four fields, never the submission.** `SubmissionInput`
+carries `contact` — a member of the public's phone or email — beside
+`display_name`, `state` and `city`. None of the four needs translating, and
+none may reach a third-party API, so `buildTranslateInput` names the four
+translatable fields one at a time rather than spreading the object. It is
+exported for one reason: an offline check asserts the built payload has no
+`contact`, `display_name`, `state` or `city` key and contains none of their
+values. A `{ ...sub }` added later fails that check instead of quietly shipping
+a stranger's contact details to Google.
+
+**A partial translation is worse than none.** `parseTranslation` returns null
+unless all four fields come back non-empty. A card showing a recipe with an
+empty method is a recipe with no steps; falling back to the submitter's own
+language is honest, and the reader can still read the ingredients.

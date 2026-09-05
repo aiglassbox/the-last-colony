@@ -1,4 +1,4 @@
-import type { NextRequest } from "next/server";
+import { after, type NextRequest } from "next/server";
 
 import { toCorpusCandidate } from "@/lib/community/candidate";
 import {
@@ -6,10 +6,14 @@ import {
   getSubmission,
   overrideVerdict,
   publishSubmission,
+  saveTranslation,
+  translatedLangs,
   unpublishSubmission,
 } from "@/lib/community/client";
 import { moderate } from "@/lib/community/pipeline";
+import { translateSubmission } from "@/lib/community/translate";
 import { pantryAccess } from "@/lib/dash/auth";
+import { SUPPORTED_LANGS, type SupportedLang } from "@/lib/lang/types";
 
 /**
  * The pantry's writes and one export.
@@ -127,7 +131,51 @@ export async function POST(request: NextRequest) {
 
   if (body.action === "publish") {
     const result = await publishSubmission(id);
-    if (result === "ok") return Response.json({ ok: true, status: "published" });
+    if (result === "ok") {
+      /* `after`, not `await`: the operator's click flushes before translation
+         runs, the same pattern POST /api/submissions uses for the verdict.
+         The recipe is already live in its original language; a missing
+         translation falls back exactly as a corpus record falls back to
+         English when a localization is missing — one language's failure is
+         never the publish's failure. Republishing (or a retried job) only
+         fills gaps: translatedLangs is read once, up front. */
+      after(async () => {
+        const doc = await getSubmission(id);
+        if (!doc) {
+          console.error(`[community] translate: submission ${id} not found after publish`);
+          return;
+        }
+        const source = doc.dish?.language ?? "";
+        let targets: readonly SupportedLang[];
+        if (source === "") {
+          // The model could not tell what language this submission is
+          // written in (the store's "" for an unrecognised script or
+          // mixture). No language is then safe to leave untranslated, so all
+          // eight run, English included — an explicit branch, not a
+          // comparison that happens to fall through.
+          targets = SUPPORTED_LANGS;
+        } else {
+          targets = SUPPORTED_LANGS.filter((lang) => lang !== source);
+        }
+        const already = await translatedLangs(id);
+        // Sequential, not parallel: eight concurrent calls against the same
+        // submission is how a quota gets spent on one publish.
+        for (const lang of targets) {
+          if (already.includes(lang)) {
+            console.log(`[community] translate ${id} -> ${lang}: already stored`);
+            continue;
+          }
+          const translated = await translateSubmission(doc.submission, lang);
+          if (!translated) {
+            console.error(`[community] translate ${id} -> ${lang}: failed`);
+            continue;
+          }
+          const saved = await saveTranslation(id, translated);
+          console.log(`[community] translate ${id} -> ${lang}: ${saved ? "saved" : "save failed"}`);
+        }
+      });
+      return Response.json({ ok: true, status: "published" });
+    }
     if (result === "not_found") return Response.json({ error: "no such submission" }, { status: 404 });
     if (result === "not_green") {
       return Response.json({ error: "only a GREEN submission can be published; mark it GREEN first" }, { status: 409 });
