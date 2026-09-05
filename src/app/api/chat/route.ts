@@ -3,6 +3,9 @@ import type { NextRequest } from "next/server";
 import { track } from "@/lib/analytics";
 import { parseCommand } from "@/lib/chat/commands";
 import { parseResolved, RESOLUTION, type TurnKind, type TurnMode } from "@/lib/chat/turn";
+import { toCommunityCard, type CommunityCardData } from "@/lib/community/card";
+import { matchCommunity } from "@/lib/community/client";
+import { stateForRegion } from "@/lib/community/match";
 import { fileCorpus } from "@/lib/corpus/load";
 import type { CorpusRecord } from "@/lib/corpus/types";
 import { isDeviceId } from "@/lib/db/conversations";
@@ -128,6 +131,125 @@ const PLAIN_WORDS =
   "The worked examples above use palak paneer. They show a shape, not a sentence " +
   "to hand back. If the reader has named palak paneer, that is the one dish whose " +
   "verdict you must write from scratch.";
+
+/**
+ * What `serveCommunity` needs beyond the match itself, bundled so its own
+ * signature stays short. `geo` and `device` are exactly what every other
+ * event this turn writes already carries; `rawRegion` is logged as its own
+ * field rather than trusted to `geo.region` because `geoProps` drops a null
+ * region entirely, and the point of logging it at all is to see that null
+ * (or an unmapped code) in production — see `REGION_TO_STATE` in
+ * `src/lib/community/match.ts`.
+ */
+interface CommunityContext {
+  geo: Record<string, string>;
+  device: string | null;
+  label: string;
+  rawRegion: string | null;
+}
+
+/**
+ * A compact plain-text rendering of a served recipe: the dish name, who sent
+ * it and from where, then ingredients and method as lines. This is never
+ * shown on screen — `CommunityCard` draws the whole turn from the `meta`
+ * event's `community` payload, and `Message.tsx` renders that card instead of
+ * `message.text` for a community turn — so its only job is to be what a
+ * follow-up replays to the model: the text a reply turn's history carries
+ * back in, the same way every other turn's `message.text` is.
+ */
+function communityText(card: CommunityCardData): string {
+  const place = card.city ? `${card.city}, ${card.state}` : card.state;
+  return (
+    `${card.recipe_name}, sent in by ${card.display_name} (${card.belongs_to}) from ${place}.\n\n` +
+    `Ingredients:\n${card.ingredients.join("\n")}\n\n` +
+    `Method:\n${card.method.join("\n")}`
+  );
+}
+
+/**
+ * The one insertion point for a reader's own family recipe: a corpus miss
+ * that a published community submission answers. Emits a full community
+ * turn — `meta`, then `text`, then `done`, in that order — and returns true;
+ * or returns false having emitted nothing at all and fired no analytics.
+ *
+ * `lookup`'s three ways of declining — an empty match list, a null store
+ * (unset env, or a connection failure `communityDb()` already caught), and a
+ * thrown error from the query itself (Atlas has shown `ReplicaSetNoPrimary`
+ * on this machine) — all collapse to the identical `null` return from
+ * `matchCommunity`, which is the one thing this function actually branches
+ * on. The try/catch below is a second guard on top of that, so a lookup that
+ * does throw — an injected one in the offline fixtures, or a future one —
+ * still costs nothing but this one turn rather than the request.
+ *
+ * `lookup` defaults to the real store query and takes that shape only so
+ * `scripts/check-community-match.ts` can drive all three fall-through paths
+ * with no Atlas call at all, pinning that each one leaves `emit` uncalled.
+ */
+export async function serveCommunity(
+  query: string,
+  region: string | null,
+  readerLang: string | null,
+  emit: (obj: unknown) => void,
+  ctx: CommunityContext,
+  lookup: typeof matchCommunity = matchCommunity,
+): Promise<boolean> {
+  let found: Awaited<ReturnType<typeof matchCommunity>>;
+  try {
+    found = await lookup(query, region, readerLang);
+  } catch (error) {
+    console.error("[community] serve failed:", error);
+    return false;
+  }
+  if (!found) return false;
+
+  const { chosen, translation, others, total } = found;
+  const card = toCommunityCard(chosen, others, total, translation);
+
+  // Which of the three rules in `pickCommunity` (src/lib/community/match.ts)
+  // actually chose this row, for the analytics event below. Re-derived here
+  // rather than threaded out of that function — a pure function this task
+  // does not touch — because each outcome is a simple comparison against
+  // what it already computed: rule 1 wins outright whenever the row's own
+  // state matches the reader's mapped region, rule 2 only when it does not
+  // but the row's language matches the reader's, and rule 3 (recency)
+  // whenever neither does.
+  const mappedState = stateForRegion(region);
+  const rule =
+    mappedState && chosen.state === mappedState
+      ? "state"
+      : readerLang && chosen.language === readerLang
+        ? "language"
+        : "recency";
+
+  // A community hit is not a corpus gap: `no_original_found` is the
+  // corpus-roadmap log and stays reserved for a dish nobody has answered at
+  // all, so this is the only event a community turn adds beyond the
+  // `dish_queried` (hit: false) already fired for every turn above.
+  track("community_served", {
+    ...ctx.geo,
+    device_id: ctx.device,
+    query: ctx.label,
+    dish_tag: chosen.dish.tag,
+    served_state: chosen.state,
+    matches: total,
+    rule,
+    region: ctx.rawRegion,
+    reader_lang: readerLang,
+    translated: Boolean(translation),
+  });
+
+  emit({
+    type: "meta",
+    mode: "community" satisfies TurnMode,
+    kind: "community" satisfies TurnKind,
+    records: [],
+    community: card,
+    ...(readerLang && { lang: readerLang }),
+  });
+  emit({ type: "text", text: communityText(card) });
+  emit({ type: "done" });
+  return true;
+}
 
 export async function POST(request: NextRequest) {
   // Ahead of the body read: a turn that will be refused should not spend the
@@ -652,6 +774,21 @@ export async function POST(request: NextRequest) {
             });
             return new MarkerParser(INDIANIZE_BEATS);
           }, () => {
+            // A published community submission for this exact dish may
+            // exist, and it is not looked up here: this callback runs
+            // synchronously, mid-stream from inside `push` above, and
+            // returns a replacement parser — it cannot await the Atlas query
+            // `serveCommunity` makes. Serving one on a namesake withdrawal
+            // would mean prefetching a community match on every corpus hit,
+            // on the chance the completion goes on to withdraw the record,
+            // which is why this phase has exactly one insertion point (the
+            // corpus-miss branch above) rather than two. Probed for "vada
+            // pav" against the corpus Vada record (Task 8 Step 1, three
+            // runs): retrieval itself declined the query as ambiguous
+            // between Vada and Pav Bhaji before any record reached the
+            // model, so this callback never ran and no community lookup was
+            // possible regardless — see `.superpowers/sdd/progress.md`.
+            //
             // The named dish is a modern namesake of this record, so the record
             // is not its ancestor: the badge, source strip and Then leave with
             // it, and the audit below must not treat it as evidence.
@@ -683,6 +820,33 @@ export async function POST(request: NextRequest) {
           });
         } else {
           // ---- Corpus miss: the model decides the turn ----------------------
+
+          // A dish the corpus holds no record for may still be one a
+          // reader's own family already sent in. Checked first, before the
+          // carried records are gathered and before the resolve prompt is
+          // built: a community hit costs no prompt construction and no
+          // model call. A miss costs only the Pinecone round trip
+          // `retrieveForDish` already spent fetching candidates above,
+          // because the vector fallback lives inside retrieval — moving
+          // this lookup earlier would put an Atlas query inside
+          // `retrieve.ts`, which knows only about the corpus, and mixing two
+          // stores in one module is a worse trade than one wasted call on a
+          // miss.
+          // ponytail: the vector fallback already ran; reorder only if that
+          // call shows up in latency.
+          const communityLang = normalized && !normalized.fell_back ? normalized.lang : null;
+          if (
+            await serveCommunity(label, geo.region ?? null, communityLang, emit, {
+              geo,
+              device,
+              label,
+              rawRegion: geo.region ?? null,
+            })
+          ) {
+            controller.close();
+            return;
+          }
+
           const carried = (
             await Promise.all((body.activeRecordIds ?? []).map((id) => fileCorpus.byId(id)))
           ).filter((r): r is CorpusRecord => Boolean(r));

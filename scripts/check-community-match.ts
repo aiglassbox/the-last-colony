@@ -15,11 +15,13 @@
  */
 import { ObjectId } from "mongodb";
 
+import { serveCommunity } from "../src/app/api/chat/route";
 import { toCommunityCard, type TranslatedFields } from "../src/lib/community/card";
 import {
   communityDb,
   getTranslation,
   insertSubmission,
+  matchCommunity,
   saveTranslation,
   SUBMISSIONS,
   translatedLangs,
@@ -400,6 +402,63 @@ check(
   parseTranslation({ ...wellFormedReply, story: 12 }, "hi", "gemini-3.6-flash") === null,
 );
 
+// --- serveCommunity: the fall-through must emit nothing ---------------------
+// Task 8's whole risk is a reader with no community match seeing anything
+// different from today's fallback. `serveCommunity` (src/app/api/chat/route.ts)
+// only ever branches on whether its `lookup` (matchCommunity in production)
+// returns a match; every way that function can decline — an empty match
+// list, a null store, and a thrown Mongo error — collapses to the same
+// `null`, so a stub standing in for each is enough to drive all three paths
+// with no Atlas call at all. The requirement pinned here is the strongest
+// one in this task: false is returned, `emit` is called zero times, and
+// nothing escapes as an exception.
+async function checkServeCommunityFallsThrough(): Promise<void> {
+  const scenarios: Array<[string, typeof matchCommunity]> = [
+    ["an empty match list", async () => null],
+    ["a null store", async () => null],
+    [
+      "a thrown Mongo error",
+      async () => {
+        throw new Error("ReplicaSetNoPrimary");
+      },
+    ],
+  ];
+
+  for (const [name, lookup] of scenarios) {
+    const events: unknown[] = [];
+    const infoLines: string[] = [];
+    const realInfo = console.info;
+    console.info = (...args: unknown[]) => {
+      infoLines.push(args.map(String).join(" "));
+    };
+
+    let result = true;
+    let threw = false;
+    try {
+      result = await serveCommunity(
+        "asdfgh",
+        null,
+        null,
+        (obj) => events.push(obj),
+        { geo: {}, device: null, label: "asdfgh", rawRegion: null },
+        lookup,
+      );
+    } catch {
+      threw = true;
+    } finally {
+      console.info = realInfo;
+    }
+
+    check(`serveCommunity (${name}): returns false`, result === false);
+    check(`serveCommunity (${name}): emits nothing`, events.length === 0);
+    check(`serveCommunity (${name}): no exception escapes`, !threw);
+    check(
+      `serveCommunity (${name}): fires no analytics`,
+      infoLines.every((l) => !l.includes("community_served")),
+    );
+  }
+}
+
 // --- translation storage, driven against Atlas end to end -------------------
 // Opt-in only, exactly like check-pantry.ts's live section: `npm run check`
 // runs this script with neither CHECK_LIVE nor --env-file, so communityDb()
@@ -484,6 +543,7 @@ async function checkTranslationStorageLive(): Promise<void> {
 }
 
 (async () => {
+  await checkServeCommunityFallsThrough();
   await checkTranslationStorageLive();
 
   if (failed > 0) {

@@ -763,3 +763,50 @@ coincidence.** The mode names which component renders; the kind names why. They
 are separate questions — `restoration` mode alone spans three kinds — and they
 merely want the same word here. `turn.ts` says so in a comment, because the
 file exists to keep exactly that distinction from collapsing again.
+
+**`COMMUNITY` does not join `ProvenanceClass`.** A published family recipe is
+not a corpus record wearing a new badge; it is served from a different store
+entirely, by a different path, and the type it flows through says so.
+`ProvenanceClass` (`src/lib/corpus/types.ts`) is the vocabulary the validator
+and every record renderer trust to decide whether a badge, a source strip or
+original-language text may render — adding `COMMUNITY` to it would drag all
+three into accepting a record they exist to refuse, and every future exhaustive
+switch over `ProvenanceClass` would need a community-shaped case that is never
+actually a provenance class. The card is a new `TurnMode`/`TurnKind` pair
+(`"community"`) with its own component instead, and `hasRecord()` stays false
+for it — the one function that actually gates a badge never has to learn about
+a store it was never written to know exists.
+
+**The corpus miss is the only insertion point; the namesake withdrawal stays
+out on purpose.** A reader's family recipe can only reach the screen from the
+branch that already has no record to show — the corpus-hit branch is a passing
+path with its own harness coverage, and Task 8's job was to add a second way to
+answer, not to touch the first. Inside the hit branch, a completion can still
+withdraw its own record mid-stream by declaring `§NO_ANCESTOR§` (`vada pav` is
+a namesake of the corpus `Vada` record, not its descendant): the callback that
+handles that is synchronous, called from inside `push` while a chunk is being
+parsed, and returns a replacement parser — it cannot `await` the Atlas query a
+community lookup needs. Serving one there would mean prefetching a community
+match on every corpus hit, on the chance a completion later withdraws the
+record, which is a cost paid on every restoration to cover a case that mostly
+never happens. Probed live for `vada pav` (Task 8 Step 1, three runs against the
+real model): retrieval itself never reaches that branch for this query.
+`retrieveForDish`'s `isAmbiguous` guard declines it before any record is shown,
+because it explains half of "vada pav" and pav bhaji explains the other half
+with no record owning the whole phrase — so the corpus-miss resolver classifies
+it directly as `MODE: MODERN` and the namesake callback never runs at all. The
+architectural limit is still real for any dish that *does* reach the record
+branch by name; `vada pav` itself just is not one of them. See
+`.superpowers/sdd/progress.md`.
+
+**The match query filters a phrase gate in memory over the newest 200
+published documents, not in Mongo.** `phraseMatches` needs "is this normalized
+query the tag, or does it contain a full alias on token boundaries", which is
+not a shape a Mongo index can answer directly without an aliases-array index
+built for exactly that query. Two hundred published recipes is comfortably
+above what this feature will hold before the store itself needs revisiting, and
+running the gate in code keeps the whole matching decision — region map,
+phrase gate, three-rule pick — in one set of pure, offline-testable functions
+in `match.ts` rather than splitting it between a query shape and application
+code. The ceiling is marked `ponytail` at the query site: past 200 published
+recipes, move the gate into the query with an aliases-array index.

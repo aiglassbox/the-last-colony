@@ -51,6 +51,11 @@ const CUSTOM_EVENTS: Record<AnalyticsEvent, string> = {
   source_drawer_opened: "SourceDrawerOpened",
   card_shared: "CardShared",
   qr_entry: "QrEntry",
+  // Fired only from `track()` on the server (`serveCommunity` in
+  // `src/app/api/chat/route.ts`), never from `trackClient`, so this pixel
+  // name is never actually sent — required only because `CUSTOM_EVENTS` is
+  // exhaustive over `AnalyticsEvent`.
+  community_served: "CommunityServed",
 };
 
 /** Fire-and-forget. Absent pixel, blocked pixel and thrown pixel are all no-ops. */

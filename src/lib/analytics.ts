@@ -28,6 +28,7 @@ export type AnalyticsEvent =
   | "dish_restored"
   | "no_original_found"
   | "turn_resolved"
+  | "community_served"
   | "swap_requested"
   | "source_drawer_opened"
   | "card_shared"
