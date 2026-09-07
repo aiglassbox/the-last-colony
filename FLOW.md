@@ -102,10 +102,16 @@ api/chat/route.ts
   │   │     HIT  → emits its own meta{mode:"community", kind:"community",
   │   │              records:[], community: card} + text + done, and the
   │   │              route returns here — nothing below this bullet runs.
-  │   │              The `text` event is communityText(card), a plain-text
-  │   │              rendering never shown on screen (CommunityCard draws
-  │   │              the turn from `meta.community`) — its only job is to be
-  │   │              what a follow-up's replayed history carries back in.
+  │   │              The `text` event is communityText(card) — one line
+  │   │              naming the dish and its state, never shown on screen
+  │   │              (CommunityCard draws the turn from `meta.community`).
+  │   │              Its only job is continuity: a follow-up replays history
+  │   │              as the model's own prior words, and the submitter's
+  │   │              ingredients and method are deliberately NOT in it. A
+  │   │              submitter controls thousands of characters of `method`,
+  │   │              so replaying it verbatim in the assistant's voice let a
+  │   │              published recipe prime every later turn. The reader's
+  │   │              card still carries the whole recipe; the model does not.
   │   │     MISS → matchCommunity returned null (no store, no matches, or a
   │   │              caught query error) → fall through
   │   │
@@ -755,8 +761,10 @@ client → GET /api/community/photo/[id]
   ├─ mime reasserted against PHOTO_MIMES — not trusted from storage: it
   │     arrived from a client at submission time, and this route hands it
   │     to a browser as Content-Type now                → 404 if not listed
-  └─ 200, bytes decoded from base64, Cache-Control: immutable forever (a
-        document's photo never changes and the id is the version)
+  └─ 200, bytes decoded from base64, Cache-Control: public, max-age=3600
+        (the bytes never change, but whether they may be served does: an
+        operator's unpublish or Mark RED has to reach a reader who already
+        loaded the photo, so an hour is the takedown lag)
 ```
 
 ---

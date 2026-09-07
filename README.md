@@ -297,8 +297,9 @@ submitted in Marathi with no added latency. A translation that fails for one
 language is logged and skipped; the recipe stays live in its own language, the
 same fallback a corpus record uses when a localization is missing. A photo is
 never part of that payload — it is served from `/api/community/photo/[id]`,
-published documents only, cached `immutable` forever because the id is the
-photo's own version.
+published documents only, cached for an hour. Not longer, and not `immutable`:
+the bytes never change, but whether they may be served does, and an operator's
+"Remove from Published" has to reach a reader who already loaded the photo.
 
 ### When the dish isn't in the corpus
 

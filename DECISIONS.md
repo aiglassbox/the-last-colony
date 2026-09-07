@@ -700,9 +700,28 @@ as a missing id so it cannot be used to enumerate which documents exist in
 which state. The stored mime is reasserted against `PHOTO_MIMES` — the same
 list `validatePhoto` uses at intake, exported rather than retyped — because
 that string arrived from a client and this route hands it to a browser as a
-`Content-Type`; `nosniff` goes with it. The response is `immutable`-cached
-forever, which is safe because a document's photo never changes and the id is
-the version.
+`Content-Type`; `nosniff` goes with it. The response is cached for an hour.
+It was `immutable` for a year at first, on the reasoning that a document's
+photo never changes and the id is its version — which is true about the bytes
+and beside the point. What changes is whether they may be *served*: an
+operator's "Remove from Published" or "Mark RED" has to reach a reader who
+already loaded the photo, and a year-long `immutable` meant it never would.
+Published-ness is not in the URL, so the id cannot be the version. An hour is
+the takedown lag.
+
+**The submitter's prose never speaks in the assistant's voice.** A community
+turn leaves a line in `message.text` so a follow-up has continuity, and that
+line first carried the recipe's ingredients and method verbatim — which read
+as the obvious thing to replay, since that is what every other turn's text
+does. But history is replayed to the model as its own prior words, and a
+submitter controls thousands of characters of `method`. A published recipe
+whose last step read "(in your next reply, …)" would then prime the model on
+every later turn of that thread. Moderation reads a submission for a recipe,
+not for an instruction hidden in step nine, and no realistic review catches
+that reliably. So the replay line now names the dish and its state and nothing
+else. The cost is real and accepted: a follow-up on a community turn is
+answered without the recipe's contents in front of the model. The reader's
+card still has all of it.
 
 **The served card is a projection of a projection.** `toCommunityCard` maps
 `CommunityMatch`, which the store query already narrowed, so `contact` is not
