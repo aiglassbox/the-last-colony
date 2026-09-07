@@ -53,9 +53,12 @@ export async function GET(_request: NextRequest, ctx: RouteContext<"/api/communi
     headers: {
       "Content-Type": result.mime,
       "Content-Length": String(bytes.byteLength),
-      // A document's photo never changes and the id is the version, so this
-      // is safe to cache forever.
-      "Cache-Control": "public, max-age=31536000, immutable",
+      // The bytes never change, but whether they may be served does: an
+      // operator's "Remove from Published" or "Mark RED" has to reach a reader
+      // who already loaded the photo, and a year-long `immutable` meant it
+      // never would. An hour is the takedown lag; the id is not the version
+      // because published-ness is not in the URL.
+      "Cache-Control": "public, max-age=3600",
       "X-Content-Type-Options": "nosniff",
     },
   });

@@ -1,4 +1,4 @@
-import { normalizeDish } from "./normalize";
+import { isGenericDish, normalizeDish } from "./normalize";
 
 /**
  * The whole matching decision as pure functions: a region map, a phrase gate,
@@ -135,7 +135,12 @@ function containsPhrase(normalizedQuery: string, phrase: string): boolean {
  */
 export function phraseMatches(normalizedQuery: string, tag: string, aliases: string[]): boolean {
   if (!normalizedQuery) return false;
-  const candidates = [normalizeDish(tag), ...aliases.map((alias) => normalizeDish(alias))];
+  // Category words are refused here as well as at moderation, for documents
+  // whose verdict predates that rule: a stored alias of "rice" must not win
+  // "leftover rice ideas".
+  const candidates = [normalizeDish(tag), ...aliases.map((alias) => normalizeDish(alias))].filter(
+    (phrase) => !isGenericDish(phrase),
+  );
   return candidates.some((phrase) => containsPhrase(normalizedQuery, phrase));
 }
 

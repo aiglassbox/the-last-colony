@@ -2,7 +2,7 @@
 import { GoogleGenAI, Type, type Part } from "@google/genai";
 
 import { isSupported } from "../lang/types";
-import { dishTag, normalizeDish } from "./normalize";
+import { dishTag, isGenericDish, normalizeDish } from "./normalize";
 import type { SubmissionInput } from "./schema";
 
 /**
@@ -101,8 +101,16 @@ export async function moderate(sub: SubmissionInput): Promise<Verdict | null> {
     // The tag is what Phase 4 matches on. An empty one from the model falls
     // back to the submitter's own name for the dish; if even that normalises
     // to nothing, the verdict is malformed and the doc stays pending.
-    const dish_tag = dishTag(String(parsed.dish_tag ?? "")) || dishTag(sub.recipe_name);
-    if (!dish_tag) return null;
+    //
+    // A tag that is only category words is treated as no tag: "chicken curry"
+    // would match every query with those words in it. The doc stays pending
+    // and the log says why, so the operator can see it rather than publish it.
+    const tagged = dishTag(String(parsed.dish_tag ?? "")) || dishTag(sub.recipe_name);
+    const dish_tag = isGenericDish(normalizeDish(tagged)) ? "" : tagged;
+    if (!dish_tag) {
+      console.error(`[community] no usable dish tag (generic or empty: ${JSON.stringify(tagged)})`);
+      return null;
+    }
 
     const language = isSupported(String(parsed.language ?? "")) ? String(parsed.language) : "";
 
@@ -111,7 +119,9 @@ export async function moderate(sub: SubmissionInput): Promise<Verdict | null> {
       reasons: Array.isArray(parsed.reasons) ? parsed.reasons.map(String).slice(0, 8) : [],
       dish_tag,
       aliases: Array.isArray(parsed.aliases)
-        ? [...new Set(parsed.aliases.map((a) => normalizeDish(String(a))))].filter(Boolean).slice(0, 12)
+        ? [...new Set(parsed.aliases.map((a) => normalizeDish(String(a))))]
+            .filter((a) => a && !isGenericDish(a))
+            .slice(0, 12)
         : [],
       language,
       model,

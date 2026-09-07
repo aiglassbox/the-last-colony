@@ -34,7 +34,7 @@ import {
   REGION_TO_STATE,
   type CommunityMatch,
 } from "../src/lib/community/match";
-import { normalizeDish } from "../src/lib/community/normalize";
+import { isGenericDish, normalizeDish } from "../src/lib/community/normalize";
 import { STATES, type SubmissionInput } from "../src/lib/community/schema";
 import { buildTranslateInput, parseTranslation } from "../src/lib/community/translate";
 import { NO_GEO } from "../src/lib/events/geo";
@@ -64,6 +64,21 @@ check("'puranpoli' (no space) does not match the tag", !matchesQuery("puranpoli"
 check("'holige' (an alias) matches", matchesQuery("holige"));
 check("'apuran polix' does not match (not on token boundaries)", !matchesQuery("apuran polix"));
 check("empty string does not match", !matchesQuery(""));
+
+// A category word is never a match, whether it arrived as a tag or an alias,
+// and whichever script it is in — "rice" would otherwise answer every corpus
+// miss with the word in it.
+const generic = (query: string, t: string, a: string[]) => phraseMatches(normalizeDish(query), t, a);
+check("alias 'rice' does not win 'jeera rice'", !generic("how to make jeera rice", "nanis-rice", ["rice"]));
+check("the real name still wins", generic("nanis rice", "nanis-rice", ["rice"]));
+check("tag 'chicken curry' does not win 'chicken curry recipe'", !generic("chicken curry recipe", "chicken-curry", []));
+check("'chettinad chicken' is a name, not a category", generic("chettinad chicken", "chettinad-chicken", []));
+check("Devanagari 'चावल' alias does not win", !generic("चावल कैसे बनाएं", "nanis-rice", ["चावल"]));
+check("isGenericDish: 'dal' is generic", isGenericDish("dal"));
+check("isGenericDish: 'dalma' is not", !isGenericDish("dalma"));
+check("isGenericDish: 'chicken curry' is generic", isGenericDish("chicken curry"));
+check("isGenericDish: 'sol kadhi' is not", !isGenericDish("sol kadhi"));
+check("isGenericDish: empty is not", !isGenericDish(""));
 
 // Seed entry 12: a Devanagari row tagged thalipith, aliases in Latin and
 // Devanagari. Pin the real shape rather than trusting it.

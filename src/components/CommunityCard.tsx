@@ -97,8 +97,8 @@ export function CommunityCard({
       {data.photo_url && (
         <div className="community-card__photo">
           {/* eslint-disable-next-line @next/next/no-img-element -- a route that already
-              serves immutable, cache-forever bytes; next/image would re-fetch and
-              re-encode a photo whose id is its version */}
+              serves the bytes with its own cache policy; next/image would re-fetch and
+              re-encode a photo the store already sized */}
           <img
             src={data.photo_url}
             loading="lazy"
