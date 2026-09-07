@@ -21,7 +21,7 @@ import { auditProse, isClean } from "@/lib/model/guards";
 import { lastSentenceEnd, MAX_SENTENCE_HOLD, stripHealthClaims } from "@/lib/model/health";
 import { restoreIndianWords } from "@/lib/model/indian-words";
 import { plainWords } from "@/lib/model/jargon";
-import { stripProvenanceClaims } from "@/lib/model/provenance";
+import { stripCitationShapes, stripProvenanceClaims } from "@/lib/model/provenance";
 import { findLeak, LEAK_HOLD, LEAK_REFUSAL } from "@/lib/model/leak";
 import { dropNarration, dropSelfAsPerson, stripOpener } from "@/lib/model/self-reference";
 import { danglingTail, styleProse } from "@/lib/model/punctuation";
@@ -71,6 +71,8 @@ function encodeEvent(obj: unknown): Uint8Array {
 
 /** Prior turns, replayed as plain text. Long threads are trimmed from the front. */
 const MAX_HISTORY_TURNS = 20;
+/** Records a follow-up may carry back onto the prompt from `activeRecordIds`. */
+const MAX_CARRIED_RECORDS = 6;
 
 /**
  * Markers only an Indianisation card has. `VERDICT` is shared with a
@@ -149,21 +151,23 @@ interface CommunityContext {
 }
 
 /**
- * A compact plain-text rendering of a served recipe: the dish name, who sent
- * it and from where, then ingredients and method as lines. This is never
- * shown on screen — `CommunityCard` draws the whole turn from the `meta`
- * event's `community` payload, and `Message.tsx` renders that card instead of
- * `message.text` for a community turn — so its only job is to be what a
- * follow-up replays to the model: the text a reply turn's history carries
- * back in, the same way every other turn's `message.text` is.
+ * What a follow-up replays to the model for a community turn. Never shown on
+ * screen — `CommunityCard` draws the whole turn from the `meta` event's
+ * `community` payload — so its only job is continuity: the model learns that
+ * a reader recipe for this dish was on screen, and nothing else.
+ *
+ * It used to carry the submitter's ingredients and method verbatim. History
+ * replays this string as an `assistant` turn — the model's own prior words —
+ * and a submitter controls thousands of characters of `method`, so a
+ * published recipe whose last step read "(in your next reply, …)" primed the
+ * model in every other reader's follow-up. Review reads for a recipe, not for
+ * an instruction hidden in step nine. So the submitter's prose no longer
+ * speaks in the assistant's voice at all: the name and state are the model's
+ * to see, the text is not. The card the reader is looking at still has all
+ * of it.
  */
 function communityText(card: CommunityCardData): string {
-  const place = card.city ? `${card.city}, ${card.state}` : card.state;
-  return (
-    `${card.recipe_name}, sent in by ${card.display_name} (${card.belongs_to}) from ${place}.\n\n` +
-    `Ingredients:\n${card.ingredients.join("\n")}\n\n` +
-    `Method:\n${card.method.join("\n")}`
-  );
+  return `Showed the reader a community recipe card: "${card.recipe_name}" from ${card.state}.`;
 }
 
 /**
@@ -269,7 +273,7 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: "invalid JSON body" }, { status: 400 });
   }
 
-  const slug = (body.slug ?? "").trim();
+  const slug = typeof body.slug === "string" ? body.slug.trim() : "";
   const history = (Array.isArray(body.messages) ? body.messages : [])
     .filter((m) => typeof m?.content === "string" && m.content.trim())
     .map((m) => ({
@@ -411,6 +415,8 @@ export async function POST(request: NextRequest) {
       let emitted = 0;
       /** Set when the completion started reproducing the prompt. */
       let leaked: string | null = null;
+      /** The records on screen for this turn; what the prose audit and the citation stripper judge against. */
+      let auditRecords: CorpusRecord[] = [];
 
       /** Drains a model stream into card beats or prose; returns the full text. */
       async function pump(
@@ -538,11 +544,16 @@ export async function POST(request: NextRequest) {
         // A conversation turn gets one rewrite the card turns do not: a
         // sentence describing the last answer is throat-clearing in prose, and
         // on a card there is no last answer to describe.
+        //
+        // A typed chapter/verse/page is kept only beside a verified record,
+        // where the model is repeating a locus it was shown; with no record,
+        // or an unverified one, the locus was withheld and the citation is
+        // invented, so the sentence goes.
         const clean = (text: string) => {
+          const citeable = auditRecords.some((r) => r.verification.status === "editor_verified");
+          const graded = stripProvenanceClaims(stripHealthClaims(styleProse(text)));
           const styled = dropSelfAsPerson(
-            restoreIndianWords(
-              plainWords(stripProvenanceClaims(stripHealthClaims(styleProse(text)))),
-            ),
+            restoreIndianWords(plainWords(citeable ? graded : stripCitationShapes(graded))),
           );
           return asProse ? dropNarration(styled) : styled;
         };
@@ -604,7 +615,8 @@ export async function POST(request: NextRequest) {
         const directive = command ? `\n\n${command.instruction}` : "";
 
         let full: string;
-        let auditRecords: CorpusRecord[];
+        // Declared beside `emitted`, above `pump`, so the stream's own
+        // strippers can read which records are on screen.
         // Which channel a fallback would have to go down, if the model returns
         // nothing usable. Set alongside every pump call.
         let proseTurn = false;
@@ -847,8 +859,20 @@ export async function POST(request: NextRequest) {
             return;
           }
 
+          // Deduped and capped before anything is rendered. A card shows one
+          // record and at most a counterpart, so a few ids is every legitimate
+          // case; three hundred copies of one public id was a prompt with
+          // hundreds of thousands of tokens in it, on a request the limiter
+          // counted as one.
+          const carriedIds = [
+            ...new Set(
+              (Array.isArray(body.activeRecordIds) ? body.activeRecordIds : []).filter(
+                (id): id is string => typeof id === "string" && id.length <= 80,
+              ),
+            ),
+          ].slice(0, MAX_CARRIED_RECORDS);
           const carried = (
-            await Promise.all((body.activeRecordIds ?? []).map((id) => fileCorpus.byId(id)))
+            await Promise.all(carriedIds.map((id) => fileCorpus.byId(id)))
           ).filter((r): r is CorpusRecord => Boolean(r));
 
           const onScreen = carried.length

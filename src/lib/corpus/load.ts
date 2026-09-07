@@ -46,6 +46,9 @@ async function fetchIndexedRecord(slug: string): Promise<CorpusRecord | null> {
 
 const CORPUS_DIR = resolve(process.cwd(), "corpus");
 
+/** What an index id or a corpus slug looks like. Checked before any network fetch. */
+const INDEX_SLUG = /^[a-z0-9-]{1,80}$/;
+
 function readJsonDir(dir: string): Array<[string, unknown]> {
   let entries: string[];
   try {
@@ -140,6 +143,11 @@ export const fileCorpus: CorpusRepository = {
     // A card built from the index carries an index slug, and its Permalink and
     // Share links point back here. Without this fallback those links 404 on
     // exactly the dishes the index just made findable.
+    //
+    // Only for something shaped like one, though. Every id in the index and
+    // every slug in the corpus is lowercase, digits and hyphens; anything else
+    // is a 404 that was about to cost a Pinecone read.
+    if (!INDEX_SLUG.test(slug)) return null;
     return fetchIndexedRecord(slug);
   },
   async searchKeyword(query, limit) {

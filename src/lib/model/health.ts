@@ -80,16 +80,37 @@ const BODY_CLAIM = [
   String.raw`\b(?:sits?|feels?)\s+lighter\s+(?:in|on)\s+(?:the|your)\s+(?:stomach|belly|gut)\b`,
 ].join("|");
 
-// ponytail: English-lexical guard. A health claim written in Hindi or Tamil
-// script does not match these patterns, so the non-English defence is the
-// in-language prompt rule in reply-instruction.ts ("no health claims … in
-// {lang}"), verified by `npm run guards:check-multilingual` — not a
-// per-language banned-phrase list, which would be an unbounded, low-confidence
-// net that guards worse than an eval. English replies still pass through here.
-/** Both nets, as one source, so `guards.ts` audits exactly what this strips. */
-export const HEALTH_CLAIM_SOURCE = `${VERDICT_CLAIM}|${BODY_CLAIM}`;
+// ponytail: English-lexical guard, plus a floor for the other scripts. The
+// non-English defence is still the in-language prompt rule in
+// reply-instruction.ts ("no health claims … in {lang}"), verified by
+// `npm run guards:check-multilingual` — a full per-language banned-phrase list
+// would be an unbounded, low-confidence net that guards worse than an eval.
+// What is here is only the handful of nouns the highest-stakes claim cannot be
+// made without: digestion, immunity, and the "healthy"/"nutritious" verdict
+// words. A sentence carrying one is dropped whole (`survives` counts Latin
+// letters, so a cut Indic sentence never survives), which is the right
+// failure for a claim about a body.
+//
+// Stems, bounded on the left only. These languages inflect by suffix — হজমে,
+// செரிமானத்திற்கு, पाचनशक्ति — so a closing boundary would miss the forms a
+// sentence actually uses; the opening one keeps "अपाचन" from firing on पाचन.
+const INDIC_CLAIM =
+  String.raw`(?<![\p{L}\p{M}])(?:` +
+  [
+    "पाचन", "हाजम", "हजम", "सेहतमंद", "स्वास्थ्यवर्धक", "पौष्टिक", "रोग प्रतिरोधक", // Hindi
+    "पचन", "आरोग्यदायी", "आरोग्यासाठी", "आरोग्यवर्धक", // Marathi
+    "হজম", "স্বাস্থ্যকর", "পুষ্টিকর", "রোগ প্রতিরোধ", // Bengali
+    "செரிமான", "ஆரோக்கிய", "சத்தான", "நோய் எதிர்ப்பு", // Tamil
+    "జీర్ణ", "ఆరోగ్యకర", "పోషక", "రోగనిరోధక", // Telugu
+    "ಜೀರ್ಣ", "ಆರೋಗ್ಯಕರ", "ಪೌಷ್ಟಿಕ", "ರೋಗನಿರೋಧಕ", // Kannada
+    "પાચન", "તંદુરસ્ત", "પૌષ્ટિક", "રોગપ્રતિકારક", // Gujarati
+  ].join("|") +
+  String.raw`)`;
 
-const CLAIM = new RegExp(HEALTH_CLAIM_SOURCE, "gi");
+/** All three nets, as one source, so `guards.ts` audits exactly what this strips. */
+export const HEALTH_CLAIM_SOURCE = `${VERDICT_CLAIM}|${BODY_CLAIM}|${INDIC_CLAIM}`;
+
+const CLAIM = new RegExp(HEALTH_CLAIM_SOURCE, "giu");
 
 /** A sentence whose predicate lost its complement, or that lost its point. */
 const STUMP = /\b(?:is|are|was|were|be|been|being|becomes?|became|feels?|seems?|tastes?|makes? it|renders? it)\s*[.,;:!?]/i;
@@ -134,9 +155,13 @@ function survives(sentence: string): boolean {
   return sentence.replace(/[^A-Za-z]/g, "").length >= 12;
 }
 
-/** Splits on sentence ends, keeping the terminator and the space after it. */
+/**
+ * Splits on sentence ends, keeping the terminator and the space after it. The
+ * danda (।) is a full stop in the Devanagari and Bengali replies, and without
+ * it a whole Hindi paragraph was one sentence to the strippers.
+ */
 export function splitSentences(text: string): string[] {
-  return text.split(/(?<=[.!?])(?=\s)/);
+  return text.split(/(?<=[.!?।])(?=\s)/);
 }
 
 /**
@@ -145,7 +170,7 @@ export function splitSentences(text: string): string[] {
  * and a swap row ends without punctuation.
  */
 export function lastSentenceEnd(text: string): number {
-  const m = /[\s\S]*(?:[.!?]["')\]]?(?=\s)|\n)/.exec(text);
+  const m = /[\s\S]*(?:[.!?।]["')\]]?(?=\s)|\n)/.exec(text);
   return m ? m[0].length : 0;
 }
 

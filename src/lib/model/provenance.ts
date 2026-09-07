@@ -40,6 +40,60 @@ import { splitSentences } from "./health";
 export const PROVENANCE_CLASS_SOURCE = String.raw`\b(?:attested|reconstructed|inferred)\b`;
 
 /**
+ * A chapter/verse/page shape the model was told never to type. The Latin half
+ * is the original audit net; the second half is the same words in the
+ * supported scripts, as stems bounded on the left only (`\b` is ASCII-only,
+ * and these languages inflect by suffix: अध्यायात, অধ্যায়ে). Shared with the
+ * audit, as the class names are, and used with the `u` flag.
+ */
+export const CITATION_SHAPE_SOURCE =
+  String.raw`\b(?:adhy[āa]ya|chapter|verse|v\.\s*\d|p{1,2}\.\s*\d|page\s+\d|folio)\b` +
+  String.raw`|(?<![\p{L}\p{M}])(?:` +
+  [
+    "अध्याय", "श्लोक", "पृष्ठ", // Hindi, Marathi
+    "অধ্যায়", "শ্লোক", "পৃষ্ঠা", // Bengali
+    "அத்தியாய", "பக்கம்", // Tamil
+    "అధ్యాయ", "శ్లోక", "పేజీ", // Telugu
+    "ಅಧ್ಯಾಯ", "ಶ್ಲೋಕ", "ಪುಟ", // Kannada
+    "અધ્યાય", "શ્લોક", "પૃષ્ઠ", // Gujarati
+  ].join("|") +
+  String.raw`)`;
+
+const CITATION_SHAPE = new RegExp(CITATION_SHAPE_SOURCE, "iu");
+
+/**
+ * Removes sentences that cite a chapter, verse or page.
+ *
+ * The audit has always logged these and the reader has always seen them. The
+ * badge and source strip render the real locus from the record, but a
+ * sentence in prose saying "Adhyāya 13, verse 47" is a citation the reader
+ * cannot check, and for an unverified record it was invented — the locus is
+ * withheld from the model on exactly those turns. So beside a verified record
+ * the sentence stays (the model is repeating what it was shown); with no
+ * record, or an unverified one, it goes whole. There is no word-level cut: a
+ * sentence built around a reference has nothing left without it.
+ */
+export function stripCitationShapes(text: string): string {
+  if (!CITATION_SHAPE.test(text)) return text;
+
+  const lead = /^\s*/.exec(text)?.[0] ?? "";
+  const sentences = splitSentences(text);
+  const kept: string[] = [];
+  let firstKept = -1;
+
+  for (let i = 0; i < sentences.length; i++) {
+    if (CITATION_SHAPE.test(sentences[i])) continue;
+    if (firstKept < 0) firstKept = i;
+    kept.push(sentences[i]);
+  }
+
+  const joined = kept.join("");
+  if (firstKept <= 0) return joined.trim() ? joined : "";
+  const body = lead + joined.replace(/^\s+/, "");
+  return body.trim() ? body : "";
+}
+
+/**
  * A sentence whose whole job is grading the record. Matched anywhere in the
  * sentence rather than at its start, because the clause arrives mid-sentence
  * about as often as it opens one.

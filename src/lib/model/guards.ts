@@ -2,7 +2,7 @@ import type { CorpusRecord } from "@/lib/corpus/types";
 
 import { HEALTH_CLAIM_SOURCE } from "./health";
 import { labTerms } from "./jargon";
-import { PROVENANCE_CLASS_SOURCE } from "./provenance";
+import { CITATION_SHAPE_SOURCE, PROVENANCE_CLASS_SOURCE } from "./provenance";
 
 /**
  * Post-hoc checks on generated prose.
@@ -24,9 +24,11 @@ import { PROVENANCE_CLASS_SOURCE } from "./provenance";
 const CLASS_WORDS = new RegExp(PROVENANCE_CLASS_SOURCE, "gi");
 /** Words that assert certainty a not-yet-verified record cannot support. */
 const CERTAINTY_WORDS = /\b(attested|proven|confirmed|documented|verified)\b/gi;
-/** A chapter/verse/page shape the model was told never to type. */
-const CITATION_SHAPE =
-  /\b(adhy[āa]ya|chapter|verse|v\.\s*\d|p{1,2}\.\s*\d|page\s+\d|folio)\b/gi;
+/**
+ * A chapter/verse/page shape the model was told never to type. Shares its
+ * source with `stripCitationShapes`, so what the one removes the other reports.
+ */
+const CITATION_SHAPE = new RegExp(CITATION_SHAPE_SOURCE, "giu");
 /**
  * A verdict on the reader's health, where rule 4 allows only a named axis.
  *
@@ -35,7 +37,7 @@ const CITATION_SHAPE =
  * neither knew "aids digestion", so a claim that reached a card was not merely
  * unstripped, it was unlogged as well. What the one removes, the other reports.
  */
-const HEALTH_WORDS = new RegExp(HEALTH_CLAIM_SOURCE, "gi");
+const HEALTH_WORDS = new RegExp(HEALTH_CLAIM_SOURCE, "giu");
 /**
  * Attribution with nothing behind it. Harmless beside a record, because the
  * source strip renders the real one; on an empty card it is a citation the
