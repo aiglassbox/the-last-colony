@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import Link from "next/link";
 
 import { suppress } from "@/lib/email/track";
+import { checkRate, clientKeyFromHeaders } from "@/lib/rate-limit";
 
 /**
  * GET /unsubscribe?t=<tid>
@@ -19,6 +21,20 @@ import { suppress } from "@/lib/email/track";
 
 export const dynamic = "force-dynamic";
 
+/**
+ * Nobody unsubscribes twenty times in five minutes. A scanner walking every
+ * link in a batch, or a script with a list of tids, does — and each of those
+ * was an unauthenticated insert. Refused requests get the "could not complete"
+ * copy, which is the honest answer: nothing was recorded.
+ */
+const MAX_UNSUBSCRIBES = 20;
+
+/** Outside the component: the React compiler treats `Date.now()` in render as impure. */
+async function withinRate(): Promise<boolean> {
+  const key = `unsubscribe:${clientKeyFromHeaders(await headers())}`;
+  return checkRate(key, Date.now(), MAX_UNSUBSCRIBES).ok;
+}
+
 export const metadata: Metadata = {
   title: "Unsubscribed — The Kranti Cookbook",
   robots: { index: false, follow: false },
@@ -29,7 +45,7 @@ export default async function Unsubscribe(props: PageProps<"/unsubscribe">) {
   const raw = params.t;
   const tid = typeof raw === "string" ? raw : null;
 
-  const recorded = await suppress(tid);
+  const recorded = (await withinRate()) ? await suppress(tid) : false;
 
   return (
     <main className="mx-auto max-w-2xl px-5 py-24 text-[var(--ink)]">

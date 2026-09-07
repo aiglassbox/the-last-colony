@@ -2,6 +2,7 @@ import { after, NextResponse, type NextRequest } from "next/server";
 
 import { destinationFor } from "@/lib/email/destinations";
 import { logEvent } from "@/lib/email/track";
+import { checkRate, clientKey } from "@/lib/rate-limit";
 
 /**
  * GET /r?c=<code>&t=<tid>
@@ -15,6 +16,9 @@ import { logEvent } from "@/lib/email/track";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+/** A reader clicks a few links in a mail; a script clicks thousands. */
+const MAX_CLICKS = 60;
 
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get("c");
@@ -34,9 +38,16 @@ export async function GET(request: NextRequest) {
    * would be invisible. `after` is the Next 16 API for exactly this — the
    * reader waits on nothing, and the write is still guaranteed a chance to run.
    */
-  after(async () => {
-    await logEvent({ kind: "click", tid, code, headers: request.headers });
-  });
+  // The redirect is always served; only the row is withheld. Without this,
+  // every hit was an unauthenticated insert, and a loop with a browser-like
+  // user agent both filled the table and put whoever's tid it carried on the
+  // follow-up list.
+  const rate = checkRate(`click:${clientKey(request)}`, Date.now(), MAX_CLICKS);
+  if (rate.ok) {
+    after(async () => {
+      await logEvent({ kind: "click", tid, code, headers: request.headers });
+    });
+  }
 
   return NextResponse.redirect(destination, {
     status: 302,

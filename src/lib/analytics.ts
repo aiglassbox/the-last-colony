@@ -36,6 +36,17 @@ export type AnalyticsEvent =
 
 export type EventProps = Record<string, string | number | boolean | null>;
 
+/**
+ * Paths no third-party tag may load on, and the first-party visit beacon skips.
+ *
+ * `/kitchen` and `/pantry` so the dashboards do not appear in their own
+ * numbers (AGENTS.md, "Reading the numbers"). `/unsubscribe` because its URL
+ * carries the per-recipient token, and a page-view sent with the full URL
+ * hands that token to Google and Meta — the same leak `/r` closes with a
+ * no-referrer header. One predicate, so the three trackers cannot drift.
+ */
+export const UNTRACKED_PATH = /^\/(kitchen|pantry|unsubscribe)(\/|$)/;
+
 export function track(event: AnalyticsEvent, props: EventProps = {}): void {
   const payload = { event, ...props };
 
@@ -95,13 +106,14 @@ export function trackClient(event: AnalyticsEvent, props: EventProps = {}): void
      the join is exact rather than probabilistic. Null when storage is off,
      which is a device that will not be counted twice either. */
   const device = deviceId();
-  const enriched: EventProps = {
-    ...getAttribution(),
-    ...(device ? { device_id: device } : {}),
-    ...props,
-  };
+  const attributed: EventProps = { ...getAttribution(), ...props };
 
-  trackPixel(event, enriched);
+  // The pixel gets the campaign markers and the event's own props, never the
+  // device id. That id is the only key to the thread mirror — anyone holding
+  // it can read every conversation filed under it — so it stays first-party.
+  trackPixel(event, attributed);
+
+  const enriched: EventProps = device ? { device_id: device, ...attributed } : attributed;
 
   void fetch("/api/track", {
     method: "POST",

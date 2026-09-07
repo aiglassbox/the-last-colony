@@ -22,7 +22,7 @@ import { stripHealthClaims } from "../src/lib/model/health";
 import { condenseRows } from "../src/lib/model/history";
 import { restoreIndianWords } from "../src/lib/model/indian-words";
 import { labTerms, plainWords } from "../src/lib/model/jargon";
-import { stripProvenanceClaims } from "../src/lib/model/provenance";
+import { stripCitationShapes, stripProvenanceClaims } from "../src/lib/model/provenance";
 import { danglingTail, styleProse } from "../src/lib/model/punctuation";
 import { isCategoryOnly, parseIngredientRows } from "../src/lib/model/recipe-beat";
 import { dropNarration, dropSelfAsPerson, stripOpener } from "../src/lib/model/self-reference";
@@ -752,6 +752,88 @@ check(
   "a word that only looks like one stays",
   stripOpener("Indeed millets need more water than rice does."),
   "Indeed millets need more water than rice does.",
+);
+
+// --- citations in prose ---------------------------------------------------
+// The audit always logged a typed chapter/verse; the reader always saw it.
+// With no verified record beside it, the sentence goes whole.
+
+console.log("Citations in prose");
+
+check(
+  "a chapter-and-verse sentence is dropped",
+  stripCitationShapes("Roast the rava slowly. Chapter 3, verse 12 of the text gives cowpea. Serve hot."),
+  "Roast the rava slowly. Serve hot.",
+);
+check(
+  "adhyāya is a citation",
+  stripCitationShapes("This is from Adhyāya 13, verse 47. Roast it slowly."),
+  "Roast it slowly.",
+);
+// `splitSentences` cuts at "v." like any full stop, so the verse number lands
+// in a sentence of its own and survives. Pinned as the known ceiling of the
+// abbreviation-blind splitter, not as desired behaviour.
+check(
+  "residual: an abbreviated verse number survives the split",
+  stripCitationShapes("This is from Adhyāya 13, v. 47. Roast it slowly."),
+  "47. Roast it slowly.",
+);
+check(
+  "a Devanagari citation is dropped",
+  stripCitationShapes("रवा धीरे भूनें। अध्याय 13, श्लोक 47 में यह है। गरम परोसें।"),
+  "रवा धीरे भूनें। गरम परोसें।",
+);
+check(
+  "a Tamil citation is dropped",
+  stripCitationShapes("மெதுவாக வறுக்கவும். அத்தியாயம் 3, பக்கம் 12 இல் உள்ளது. சூடாக பரிமாறவும்."),
+  "மெதுவாக வறுக்கவும். சூடாக பரிமாறவும்.",
+);
+check(
+  "a page number in a cooking sense is not a citation",
+  stripCitationShapes("Turn the page of the dosa when the edges lift."),
+  "Turn the page of the dosa when the edges lift.",
+);
+check(
+  "nothing to strip is untouched",
+  stripCitationShapes("Roast the rava slowly.\nServe hot."),
+  "Roast the rava slowly.\nServe hot.",
+);
+
+// --- health claims, other scripts -----------------------------------------
+// A floor, not a net: the nouns the claim cannot be made without. The
+// sentence is dropped whole.
+
+console.log("Health claims in other scripts");
+
+check(
+  "Hindi digestion claim dropped, the rest kept",
+  stripHealthClaims("रागी में ज्यादा रेशा है। यह पाचन के लिए अच्छा है। इसे धीरे भूनें।"),
+  "रागी में ज्यादा रेशा है। इसे धीरे भूनें।",
+);
+check(
+  "Tamil health verdict dropped",
+  stripHealthClaims("கேழ்வரகில் நார்ச்சத்து அதிகம். இது ஆரோக்கியமான உணவு."),
+  "கேழ்வரகில் நார்ச்சத்து அதிகம்.",
+);
+check(
+  "Bengali digestion claim dropped",
+  stripHealthClaims("ডালে প্রোটিন বেশি। এটি হজমে সাহায্য করে।"),
+  "ডালে প্রোটিন বেশি।",
+);
+check(
+  "a Hindi sentence with no claim is untouched",
+  stripHealthClaims("रागी में गेहूं से ज्यादा रेशा और लोहा है।"),
+  "रागी में गेहूं से ज्यादा रेशा और लोहा है।",
+);
+check(
+  "an inflected form is still caught",
+  stripHealthClaims("இது செரிமானத்திற்கு நல்லது. மெதுவாக வறுக்கவும்."),
+  "மெதுவாக வறுக்கவும்.",
+);
+check(
+  "a stem inside a longer word does not fire",
+  stripHealthClaims("अपाचन एक शब्द है, बस भूनें।"),
+  "अपाचन एक शब्द है, बस भूनें।",
 );
 
 // --- report ---------------------------------------------------------------

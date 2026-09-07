@@ -3,6 +3,8 @@
 import Script from "next/script";
 import { usePathname } from "next/navigation";
 
+import { UNTRACKED_PATH } from "@/lib/analytics";
+
 /**
  * Google Analytics 4, via gtag.js.
  *
@@ -15,9 +17,10 @@ import { usePathname } from "next/navigation";
  * already fires a page_view on client-side navigation; sending one as well
  * would count every dish twice.
  *
- * The admin routes are skipped so the dashboards do not appear in their own
- * numbers (AGENTS.md, "Reading the numbers"). An operator arrives at /kitchen
- * or /pantry by typing the URL — a hard load — so the script is never loaded
+ * `UNTRACKED_PATH` is skipped so the dashboards do not appear in their own
+ * numbers and the unsubscribe token never reaches a page-view. An operator
+ * arrives at /kitchen or /pantry by typing the URL, and a reader at
+ * /unsubscribe from a mail link — hard loads — so the script is never loaded
  * there in the first place.
  */
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
@@ -29,7 +32,7 @@ export function GoogleAnalytics() {
   const pathname = usePathname();
 
   if (!GA_ID || !GA_ID_PATTERN.test(GA_ID)) return null;
-  if (pathname.startsWith("/kitchen") || pathname.startsWith("/pantry")) return null;
+  if (UNTRACKED_PATH.test(pathname)) return null;
 
   return (
     <>

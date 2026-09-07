@@ -7,6 +7,7 @@ import type { CorpusRecord } from "@/lib/corpus/types";
 import type { LocalizedCard } from "@/lib/lang/localized-card";
 import type { SupportedLang } from "@/lib/lang/types";
 
+import { pruneConversations } from "./shape";
 import { fetchConversations, scheduleSync } from "./sync";
 
 /**
@@ -225,7 +226,9 @@ export async function hydrateFromServer(): Promise<void> {
   if (typeof window === "undefined") return;
   if (getSnapshot().conversations.some((c) => c.messages.length > 0)) return;
 
-  const remote = await fetchConversations();
+  // Shaped like ours or dropped: a row is whatever was once posted under this
+  // device id, and the server has already rebuilt its records from the corpus.
+  const remote = pruneConversations(await fetchConversations());
   if (!remote.length) return;
 
   state = { conversations: remote, currentId: remote[0].id };

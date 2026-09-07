@@ -5,6 +5,7 @@
   "description": "The Great Indian Food Restoration — a discovery machine for pre-colonial Indian recipes.",
   "scripts": {
     "dev": "next dev",
+    "prepare": "git config core.hooksPath scripts/git-hooks || exit 0",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -18,6 +19,7 @@
     "localize:corpus": "tsx scripts/localize-corpus.ts",
     "localize:ui": "tsx scripts/localize-ui.ts",
     "check:routing": "tsx scripts/check-routing.ts",
+    "check:mirror": "tsx scripts/check-mirror.ts",
     "check:cache": "tsx scripts/check-cache.ts",
     "community:check-submissions": "tsx scripts/check-submissions.ts",
     "community:check-pantry": "tsx scripts/check-pantry.ts",
@@ -26,7 +28,7 @@
     "community:seed": "tsx --env-file=.env scripts/seed-community.ts",
     "community:backfill-translations": "tsx --env-file=.env scripts/backfill-translations.ts",
     "check:system": "tsx --env-file=.env scripts/check-system.ts",
-    "check": "npm run corpus:validate && npm run corpus:check-retrieval && npm run corpus:check-promotion && npm run check:routing && npm run community:check-submissions && npm run community:check-pantry && npm run community:check-match",
+    "check": "npm run corpus:validate && npm run corpus:check-retrieval && npm run corpus:check-promotion && npm run check:routing && npm run check:mirror && npm run community:check-submissions && npm run community:check-pantry && npm run community:check-match",
     "db:migrate": "tsx scripts/db-migrate.ts",
     "report:usage": "tsx scripts/usage-report.ts",
     "email:report": "tsx scripts/email-report.ts"

@@ -46,5 +46,9 @@ export const DESTINATIONS: Record<string, string> = {
  * who should find that out.
  */
 export function destinationFor(code: string | null): string {
-  return (code && DESTINATIONS[code]) || `${siteUrl()}/`;
+  // Own keys only. `DESTINATIONS["constructor"]` is a function and truthy, and
+  // `NextResponse.redirect` threw on it — the one branch this file promised
+  // not to have.
+  const known = code !== null && Object.hasOwn(DESTINATIONS, code) ? DESTINATIONS[code] : null;
+  return known || `${siteUrl()}/`;
 }
