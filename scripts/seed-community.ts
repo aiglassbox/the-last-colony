@@ -32,6 +32,7 @@ import {
   type SubmissionDoc,
 } from "../src/lib/community/client";
 import { moderate } from "../src/lib/community/pipeline";
+import { translateMissing } from "../src/lib/community/publish-translations";
 import { validateSubmission } from "../src/lib/community/schema";
 import { NO_GEO } from "../src/lib/events/geo";
 
@@ -272,6 +273,12 @@ async function main(): Promise<void> {
     if (verdict.card === "GREEN") {
       const p = await publishSubmission(id);
       published = p === "ok" ? "yes" : p;
+      // The seam this script fell through once: publishing here calls the
+      // store directly, so the pantry route's `after()` translation job never
+      // runs. Twelve recipes went live with no translations at all and it only
+      // surfaced when a reader asked for one in Hindi. Same function the route
+      // calls, so a seeded row is translated exactly like an operator's.
+      if (p === "ok") await translateMissing(id, () => {});
     }
     results.push({
       name: e.recipe_name,
