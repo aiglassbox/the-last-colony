@@ -5,6 +5,8 @@
  *   npm run community:seed             # insert what is missing, moderate, publish
  *   npm run community:seed -- --dry    # print what it would do, touch nothing
  *   npm run community:seed -- --retag  # only if the trio's tags disagree
+ *   npm run community:seed -- --reverdict  # re-ask the model to name each row,
+ *                                          # after a change to the tag/alias prompt
  *
  * Every read and write is filtered on display_name === "Arpit's Agent". This
  * script cannot touch a reader's submission and never deletes anything.
@@ -29,6 +31,7 @@ import {
   insertSubmission,
   publishSubmission,
   SUBMISSIONS,
+  unpublishSubmission,
   type SubmissionDoc,
 } from "../src/lib/community/client";
 import { moderate } from "../src/lib/community/pipeline";
@@ -177,6 +180,7 @@ const CONTACT = "arpits-agent@example.invalid";
 
 const dry = process.argv.includes("--dry");
 const retag = process.argv.includes("--retag");
+const reverdict = process.argv.includes("--reverdict");
 
 /** The identity of a seeded row: the trio shares a name and differs by state. */
 const key = (recipe_name: string, state: string) => `${recipe_name} :: ${state}`;
@@ -207,6 +211,11 @@ async function main(): Promise<void> {
 
   if (retag) {
     await retagTrio(col, MINE);
+    process.exit(0);
+  }
+
+  if (reverdict) {
+    await reverdictAgentRows(col, MINE);
     process.exit(0);
   }
 
@@ -330,6 +339,99 @@ async function retagTrio(
     console.log(`  rewriting ${String(d._id)} (${d.submission.state}): ${d.dish?.tag} → ${winner}`);
     await col.updateOne({ _id: d._id, ...mine }, { $set: { "dish.tag": winner, updated_at: new Date() } });
   }
+}
+
+/**
+ * Ask the model to name each agent row again, so rows tagged before a prompt
+ * change pick up what it now asks for.
+ *
+ * Written for one: the alias instruction gained short forms, because the gate
+ * asks whether the reader's words CONTAIN a stored alias, so "litti" could
+ * never reach a row whose only aliases were "litti chokha" and the Devanagari
+ * of the same. Aliases stay the model's to write — hand-adding them from the
+ * tag's own tokens would have produced "kadhi" for sol kadhi, which is a
+ * different dish, and "chokha" and "bath" and "bele", which are components.
+ *
+ * The recipe text is not touched, so every stored translation stays valid and
+ * `translateMissing` skips all of them without a model call. The cost is one
+ * verdict per row and nothing else.
+ *
+ * A row must be unpublished before `applyVerdict` will write (a published
+ * document is closed to the model, by design), so each row goes
+ * unpublish -> verdict -> publish and is republished only on GREEN. A verdict
+ * that comes back RED, or fails, leaves the row exactly as it was and says so:
+ * a surprise on seed data is a finding to read, not a change to make quietly.
+ */
+async function reverdictAgentRows(
+  col: Collection<SubmissionDoc>,
+  mine: { "submission.display_name": string },
+): Promise<void> {
+  const rows = await col.find(mine).sort({ created_at: 1 }).toArray();
+  console.log(`${rows.length} agent row(s).
+`);
+
+  if (dry) {
+    for (const d of rows) {
+      console.log(`  ${d.submission.recipe_name} · ${d.submission.state}`);
+      console.log(`      tag ${d.dish?.tag ?? "—"}  aliases ${JSON.stringify(d.dish?.aliases ?? [])}`);
+    }
+    console.log(`
+--dry: nothing was written. A real run costs ${rows.length} verdict call(s).`);
+    return;
+  }
+
+  let changed = 0;
+  let skipped = 0;
+  for (const d of rows) {
+    const id = String(d._id);
+    const label = `${d.submission.recipe_name} · ${d.submission.state}`;
+    const before = JSON.stringify(d.dish?.aliases ?? []);
+
+    const verdict = await moderate(d.submission);
+    if (!verdict) {
+      skipped += 1;
+      console.log(`  SKIP ${label} — the verdict call failed; row untouched`);
+      await sleep(1200);
+      continue;
+    }
+    if (verdict.card !== "GREEN") {
+      skipped += 1;
+      console.log(`  SKIP ${label} — came back ${verdict.card}: ${verdict.reasons.join("; ")}`);
+      console.log("       row left published and unchanged; decide this one by hand");
+      await sleep(1200);
+      continue;
+    }
+
+    const wasPublished = Boolean(d.published_at);
+    if (wasPublished) await unpublishSubmission(id);
+    const applied = await applyVerdict(id, verdict);
+    if (!applied) {
+      // An operator override is final; the model does not get another say.
+      console.log(`  SKIP ${label} — the store refused the verdict (an operator override?)`);
+      skipped += 1;
+      if (wasPublished) await publishSubmission(id);
+      await sleep(1200);
+      continue;
+    }
+    if (wasPublished) {
+      const p = await publishSubmission(id);
+      if (p !== "ok") console.log(`  WARN ${label} — republish returned ${p}`);
+      // Fills nothing when the text is unchanged: every stored language is
+      // skipped without a model call.
+      else await translateMissing(id, () => {});
+    }
+
+    const after = JSON.stringify(verdict.aliases);
+    changed += before === after ? 0 : 1;
+    console.log(`  ${label}`);
+    console.log(`      tag ${verdict.dish_tag}`);
+    console.log(`      was ${before}`);
+    console.log(`      now ${after}${before === after ? "   (unchanged)" : ""}`);
+    await sleep(1200);
+  }
+
+  console.log(`
+${changed} row(s) changed aliases, ${skipped} skipped.`);
 }
 
 void main();
