@@ -2,6 +2,7 @@ import { ImageResponse } from "next/og";
 
 import { fileCorpus } from "@/lib/corpus/load";
 import type { CorpusRecord } from "@/lib/corpus/types";
+import { checkRate, clientKey } from "@/lib/rate-limit";
 
 /**
  * The 1080×1350 share card — how the campaign travels on Independence Day.
@@ -12,15 +13,15 @@ import type { CorpusRecord } from "@/lib/corpus/types";
  * generated. The headline comes from the record's own editorial verdict, which
  * makes it as defensible as the corpus is.
  *
- * Half the turns have no record — a modern dish, a foreign dish, a corpus gap —
- * and those cards had no share at all, which is most of the product unable to
- * travel. `/api/share/turn` renders the same layout from what the card is
- * already showing, passed in the query string.
- *
- * That is not a hole in the rule above. The rule is about provenance: a text, a
- * verse, a period, a class. A turn card claims none of those. It states plainly
- * that the dish has no ancient original, and its footer says so where a record
- * card would name its source.
+ * Records only. There used to be a `/api/share/turn` variant that painted the
+ * same layout from query-string text, for the half of turns that carry no
+ * record. Its footer — the slots a record card fills with `source.text` and
+ * the provenance label — was readable from the URL too, so anyone could mint a
+ * branded first-party image asserting an attested citation for a modern dish.
+ * The share buttons that built those URLs were withdrawn, which left the
+ * endpoint with no caller but that one. It is gone; an unknown slug is a 404.
+ * If turn sharing returns, render from stored turn state by id, or sign the
+ * query at emit time — and never read the footer from the request.
  *
  * Satori supports flexbox only — no CSS grid.
  */
@@ -93,51 +94,28 @@ function fromRecord(record: CorpusRecord, counterpart: CorpusRecord | null): Car
   };
 }
 
-/** Anything arriving in a URL is untrusted, and this one paints a branded image. */
-function clamp(value: string | null, max: number): string {
-  return (value ?? "").replace(/\s+/g, " ").trim().slice(0, max);
-}
-
-function fromParams(params: URLSearchParams): CardCopy | null {
-  const dish = clamp(params.get("dish"), 60);
-  const headlineText = clamp(params.get("verdict"), 140);
-  if (!dish || !headlineText) return null;
-
-  const list = (key: string, max = 5) =>
-    (params.get(key) ?? "")
-      .split("|")
-      .map((s) => clamp(s, 120))
-      .filter(Boolean)
-      .slice(0, max);
-
-  return {
-    dishLine: dish,
-    headline: headlineText,
-    then: list("then"),
-    now: list("now"),
-    thenLabel: clamp(params.get("thenLabel"), 18) || "Then",
-    nowLabel: clamp(params.get("nowLabel"), 18) || "Now",
-    steps: list("steps", 7),
-    footerTitle: clamp(params.get("note"), 48) || "No older version",
-    footerNote: clamp(params.get("kind"), 48) || "Not drawn from a text",
-  };
-}
+/** A crawler fetches a card once per URL and caches it; a loop does not. */
+const MAX_RENDERS = 60;
 
 export async function GET(request: Request, ctx: RouteContext<"/api/share/[slug]">) {
   const { slug } = await ctx.params;
 
-  let copy: CardCopy | null;
-  if (slug === "turn") {
-    copy = fromParams(new URL(request.url).searchParams);
-  } else {
-    const record = await fileCorpus.bySlug(slug);
-    if (!record) return new Response("Not found", { status: 404 });
-    const counterpart = record.modern_counterpart_id
-      ? await fileCorpus.byId(record.modern_counterpart_id)
-      : null;
-    copy = fromRecord(record, counterpart);
+  // Every distinct URL is a full Satori render, and an unknown slug used to be
+  // a Pinecone read on top.
+  const rate = checkRate(`share:${clientKey(request)}`, Date.now(), MAX_RENDERS);
+  if (!rate.ok) {
+    return new Response("Too many requests", {
+      status: 429,
+      headers: { "Retry-After": String(rate.retryAfter) },
+    });
   }
-  if (!copy) return new Response("Not found", { status: 404 });
+
+  const record = await fileCorpus.bySlug(slug);
+  if (!record) return new Response("Not found", { status: 404 });
+  const counterpart = record.modern_counterpart_id
+    ? await fileCorpus.byId(record.modern_counterpart_id)
+    : null;
+  const copy: CardCopy = fromRecord(record, counterpart);
 
   // 1080×1350 is fixed, so something has to yield when the card is full. The
   // headline does: it is the loudest element and the one with the most slack.
