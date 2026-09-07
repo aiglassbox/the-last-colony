@@ -91,21 +91,11 @@ export function CommunityCard({
         </div>
       )}
 
-      {/* After the attribution and before the story: a real kitchen photo is
-          the strongest trust signal on the page. The aspect-ratio box holds
-          the layout still while the lazy-loaded image is still in flight. */}
-      {data.photo_url && (
-        <div className="community-card__photo">
-          {/* eslint-disable-next-line @next/next/no-img-element -- a route that already
-              serves the bytes with its own cache policy; next/image would re-fetch and
-              re-encode a photo the store already sized */}
-          <img
-            src={data.photo_url}
-            loading="lazy"
-            alt={fill(t.communityPhotoAlt, { dish: shown.recipeName, state: data.state })}
-          />
-        </div>
-      )}
+      {/* The submitter's photo is deliberately not rendered. `photo_url` is
+          still on the payload and `/api/community/photo/[id]` still serves it,
+          published-only, so bringing it back is this block again and nothing
+          else — but an unreviewed image from a stranger sits on the page under
+          this site's name, and the moderation pass reads text. */}
 
       <div className="community-card__body" lang={shown.lang}>
         <p className="community-card__story">{shown.story}</p>
