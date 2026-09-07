@@ -78,6 +78,15 @@ const CASES: Case[] = [
   { q: "thalipeeth", region: "MH", tier: "community", lang: "en", state: "Maharashtra", tag: "thalipith", why: "romanized, English reader" },
   { q: "थालीपीठ कैसे बनाते हैं", region: "MH", tier: "community", lang: "hi", state: "Maharashtra", tag: "thalipith", why: "Hindi reader — a stored translation should serve" },
 
+  // The route must hand the lookup the DISH NAME, not the reader's own words.
+  // While it passed `label`, the community tier answered only when the typed
+  // text happened to contain a stored alias — so these three missed and fell
+  // through to the model, which then wrote a "no record yet" card for a dish
+  // a reader had already sent in.
+  { q: "लिटी चोखा", region: "BR", tier: "community", lang: "hi", state: "Bihar", tag: "litti-chokha", why: "misspelt Devanagari — one ट, not the लिट्टी conjunct that is stored" },
+  { q: "मला आर्टिसन ब्रेडची रेसिपी द्या", region: "MH", tier: "community", lang: "mr", state: "Maharashtra", tag: "artisan-bread", why: "a whole Marathi sentence, not a bare name" },
+  { q: "litti chokha kaise banate hain", region: "BR", tier: "community", lang: "hi", state: "Bihar", tag: "litti-chokha", why: "Hinglish sentence around the name" },
+
   // --- Tier 3: no record, no submission — the model answers ------------------
   { q: "pizza", region: "MH", tier: "fallback", lang: "en", why: "foreign, Indianisation card" },
   { q: "asdfgh", region: "MH", tier: "fallback", lang: "en", why: "nonsense, prose fallback" },

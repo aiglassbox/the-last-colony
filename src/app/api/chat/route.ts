@@ -847,8 +847,18 @@ export async function POST(request: NextRequest) {
           // ponytail: the vector fallback already ran; reorder only if that
           // call shows up in latency.
           const communityLang = normalized && !normalized.fell_back ? normalized.lang : null;
+          // The DISH NAME, not the reader's own words. `label` is what they
+          // typed and it is what the analytics event logs, but matching on it
+          // meant the community tier only answered when their literal text
+          // happened to contain a stored alias: "litti chokha" worked, the
+          // Devanagari spelled exactly as stored worked, and "लिटी चोखा"
+          // (one ट, not two) or "मला आर्टिसन ब्रेडची रेसिपी द्या" — a whole
+          // sentence — did not. `normalized.english` is the same string the
+          // corpus engine above already searched on, so both tiers now answer
+          // the same question about the same words.
+          const communityQuery = normalized?.english ?? label;
           if (
-            await serveCommunity(label, geo.region ?? null, communityLang, emit, {
+            await serveCommunity(communityQuery, geo.region ?? null, communityLang, emit, {
               geo,
               device,
               label,
