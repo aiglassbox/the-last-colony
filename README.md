@@ -268,9 +268,23 @@ Atlas only — never a corpus file, never Pinecone — and serves a submission
 only when it is `green` **and** an operator has published it. Matching is
 deterministic, not semantic: the reader's normalized query must equal, or
 contain as a whole phrase on token boundaries, the dish's tag or one of its
-aliases (`phraseMatches`, `src/lib/community/match.ts`) — the same
+aliases (`matchedPhrase`, `src/lib/community/match.ts`) — the same
 decline-rather-than-guess discipline as the gates above, over a store that
-never runs a scoring model of its own.
+never runs a scoring model of its own. Two forms of the question are tried:
+the dish name the language step resolved to, which is what gets through a
+sentence or a misspelling, and the reader's own words, which is what reaches
+an alias stored in their own script. A trailing English plural is folded off
+both sides for matching only, so "brownie" reaches a row named "brownies".
+
+BM25 was prototyped here and rejected on measurement rather than principle —
+see `DECISIONS.md`. It matched nothing the exact rule did not, and admitted
+component words like `chhena` and `pav` that the exact rule refuses.
+
+A query can name two published dishes, and then `pickDish` declines rather
+than guessing: a name nested inside another loses to the longer, more specific
+one, but two unrelated names fall through to the model. It is keyed on the
+dish tag, so several submissions of the same dish are one dish, not an
+ambiguity.
 
 When more than one published recipe answers the same dish name, three rules
 pick one, each filtering what the last left:
@@ -295,11 +309,16 @@ row in `submission_translations`, keyed `{ submission_id, lang }`. Serving is
 then a lookup, not a model call — a reader typing Tamil can be served a recipe
 submitted in Marathi with no added latency. A translation that fails for one
 language is logged and skipped; the recipe stays live in its own language, the
-same fallback a corpus record uses when a localization is missing. A photo is
-never part of that payload — it is served from `/api/community/photo/[id]`,
-published documents only, cached for an hour. Not longer, and not `immutable`:
-the bytes never change, but whether they may be served does, and an operator's
-"Remove from Published" has to reach a reader who already loaded the photo.
+same fallback a corpus record uses when a localization is missing.
+
+**The card does not show the submitter's photo.** `/api/community/photo/[id]`
+still serves it, published documents only and cached for an hour — not
+`immutable`, because the bytes never change but whether they may be served
+does, and an operator's "Remove from Published" has to reach a reader who
+already loaded it. The card simply does not render it: an unreviewed image
+from a stranger would sit on the page under this site's name, and the
+moderation pass reads text. `photo_url` stays on the payload, so putting it
+back is one block in `CommunityCard.tsx`.
 
 ### When the dish isn't in the corpus
 

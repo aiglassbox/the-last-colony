@@ -302,15 +302,39 @@ isResolve (retrieval.empty && !slug)
               │     (ponytail: in-memory phrase filter over that page — an
               │     aliases-array index is the upgrade if the store outgrows it)
               │
-              ├─ phraseMatches(normalizedQuery, dish.tag, dish.aliases)
+              ├─ TWO query forms are tried against every document: the dish
+              │     name the language step resolved to, and the reader's own
+              │     words. Each reaches rows the other cannot — the resolved
+              │     name gets through a sentence or a misspelling ("मला
+              │     आर्टिसन ब्रेडची रेसिपी द्या", "लिटी चोखा"), the raw words
+              │     reach an alias stored in the reader's own script ("ब्राउनी",
+              │     which resolves to "brownie" and so misses "brownies").
+              │
+              ├─ matchedPhrase(normalizedQuery, dish.tag, dish.aliases)
               │     (src/lib/community/match.ts) — in memory, over the page
               │     above. The normalized query must EQUAL, or CONTAIN as a
               │     phrase bounded by string start/end or a space, the tag or
-              │     one alias. Walked with indexOf and explicit boundary
-              │     checks, never a constructed RegExp — a stored alias is
-              │     model output from a document a member of the public
-              │     submitted, and new RegExp(alias) would hand that text the
-              │     regex engine.
+              │     one alias; it returns the LONGEST name that matched, which
+              │     the ambiguity gate below needs. Walked with indexOf and
+              │     explicit boundary checks, never a constructed RegExp — a
+              │     stored alias is model output from a document a member of
+              │     the public submitted, and new RegExp(alias) would hand
+              │     that text the regex engine.
+              │     Both sides pass through foldPlurals first, so "brownie"
+              │     reaches a row named "brownies". Matching only — the stored
+              │     tag keeps its own spelling for listing and display.
+              │
+              ├─ pickDish(...)  — the ambiguity gate (match.ts)
+              │     A query can contain two stored names. When one sits INSIDE
+              │     the other ("vada" in "vada pav") the longer is the more
+              │     specific claim and wins. When they are unrelated ("misal
+              │     pav and litti chokha"), or equal, the query names two
+              │     dishes and this DECLINES — the turn falls through to the
+              │     model rather than serving whichever was published last.
+              │     Keyed on dish.tag, never on the document: three people
+              │     submitting puran poli is three rows and ONE dish, and
+              │     keying on documents would decline the geo trio the whole
+              │     feature exists for.
               │
               └─ pickCommunity(matches, region, readerLang)  (match.ts)
                     three rules, each filtering what the last left; only the

@@ -869,3 +869,46 @@ so the gap it leaves is meant to be repaired later. It is idempotent, skipping a
 stored language with no model call, which is what makes a retry after a partial
 run nearly free — and that mattered, because the first real run lost the network
 half way through and had to be resumed.
+
+**The community match stayed exact, and BM25 was tried and rejected on
+evidence.** The obvious move, when the tier kept missing dishes readers had
+plainly named, was to point `Bm25Index` at the community rows — the repo
+already has a proven dish-name engine with phonetic folding, an unknown-token
+veto and an ambiguity gate, all defended by 137 hand-checked queries. It was
+prototyped against the real published rows and it lost.
+
+BM25 matched nothing containment did not already match, failed the one case
+containment failed (`brownie` against a row named `brownies`), and
+*reintroduced* the component-word false positives `isGenericDish` exists to
+block: `chhena` scored 2.21 onto the chhena poda dessert and `pav` scored 2.56
+onto misal pav, both well above `MIN_KEYWORD_SCORE`. Four assumptions do not
+carry across. Term statistics need documents longer than a tag and three model
+written aliases. The unknown-token veto means something because the corpus
+vocabulary is closed and curated; the community vocabulary is whatever
+strangers submitted. The threshold is fitted to 31 records and the harness
+holding it never touches a community row. And the fuzziness it would buy is
+already delivered upstream — the language step resolves "लिटी" and "लिट्टी"
+to the same English before matching begins — while its ranking is unused,
+because the pick is state then language then recency, not relevance.
+
+Underneath: the corpus is the authority and must be REACHABLE, so fuzziness is
+worth its risks and three gates contain them. The community match decides
+whether to put a stranger's recipe on screen claiming it answers this dish.
+Missing there is graceful — the model answers, as it did before the feature
+existed. Matching wrongly is not. Exactness is the property, not a limitation.
+
+**What the community tier needed instead was two things the corpus does not.**
+`foldPlurals` drops a trailing English `s` from both sides at match time, so
+"brownie" reaches a row named "brownies" — one letter had made a recipe
+unreachable. It is deliberately outside `normalizeDish`, which also builds the
+stored, displayed tag: this is a matching detail, not a naming one.
+
+And an ambiguity gate, which the tier had none of — a query naming two
+published dishes silently served whichever was published last. `pickDish`
+compares NESTING, not length: a name inside another ("vada" in "vada pav") is a
+qualifier being made precise and the longer wins, while two unrelated or
+equal-length names decline. Length alone was the first design and it failed on
+live data — "misal pav" beside "litti chokha" is not a tie, so it picked the
+longer one. It is keyed on `dish.tag` rather than the document, because three
+submissions of puran poli are one dish, and keying on documents would decline
+the geo trio the feature was built for.
