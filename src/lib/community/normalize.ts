@@ -60,6 +60,31 @@ const GENERIC_WORDS = new Set(
   ].map(normalizeDish),
 );
 
+/**
+ * One more fold, applied to BOTH sides at match time and nowhere else: a
+ * trailing English plural `s` comes off each token.
+ *
+ * The gate asks whether the reader's words contain a stored name, so "brownie"
+ * could never reach a row whose name is "brownies" — one letter, and the
+ * recipe is unreachable. Folding both sides makes them the same string.
+ *
+ * Deliberately not inside `normalizeDish`: that function also builds the tag
+ * that gets stored and shown, and a dish submitted as "Brownies" should still
+ * be stored, listed and displayed as brownies. This is a matching detail, not
+ * a naming one.
+ *
+ * Only Latin plurals, and only where dropping the letter is safe: a token of
+ * three characters or fewer keeps its `s` ("bas" is not a plural of "ba"), and
+ * so does one ending in "ss". Every Indian script is untouched — no Devanagari,
+ * Tamil or Bengali token ends in an ASCII `s`.
+ */
+export function foldPlurals(normalized: string): string {
+  return normalized
+    .split(" ")
+    .map((t) => (t.length > 3 && t.endsWith("s") && !t.endsWith("ss") ? t.slice(0, -1) : t))
+    .join(" ");
+}
+
 /** True when a normalised name is nothing but category words — "rice", "chicken curry". */
 export function isGenericDish(normalized: string): boolean {
   const tokens = normalized.split(" ").filter(Boolean);

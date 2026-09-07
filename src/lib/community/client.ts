@@ -2,7 +2,7 @@ import { MongoClient, ObjectId, type Db } from "mongodb";
 
 import type { Geo } from "../events/geo";
 import type { TranslatedFields } from "./card";
-import { phraseMatches, pickCommunity, type CommunityMatch } from "./match";
+import { matchedPhrase, pickCommunity, pickDish, type CommunityMatch } from "./match";
 import { dishTag, normalizeDish } from "./normalize";
 import type { Verdict } from "./pipeline";
 import type { Extracted, SubmissionInput } from "./schema";
@@ -499,14 +499,26 @@ export async function overrideVerdict(id: string, card: "GREEN" | "RED"): Promis
  * the gate into the query with an aliases-array index if the store outgrows it.
  */
 export async function matchCommunity(
-  query: string,
+  /**
+   * Every form of the reader's question worth matching, tried against each
+   * document until one hits. The route passes two: the dish name the language
+   * step resolved to, and the reader's own words.
+   *
+   * Both are needed and neither is enough. The resolved name is what reaches
+   * a dish through a sentence or a misspelling — "मला आर्टिसन ब्रेडची रेसिपी
+   * द्या" and "लिटी चोखा" only ever match as "artisan bread" and "litti
+   * chokha". The reader's own words are what reach an alias stored in their
+   * script: "ब्राउनी" is an alias of the brownies row, but the language step
+   * resolves it to "brownie", and "brownie" is not "brownies".
+   */
+  queries: string[],
   region: string | null,
   readerLang: string | null,
 ): Promise<{ chosen: CommunityMatch; translation: TranslatedFields | null; others: string[]; total: number } | null> {
   // Normalize before touching Mongo: a reader who typed only punctuation
   // costs no round trip.
-  const normalizedQuery = normalizeDish(query);
-  if (!normalizedQuery) return null;
+  const normalizedQueries = [...new Set(queries.map(normalizeDish))].filter(Boolean);
+  if (!normalizedQueries.length) return null;
   const db = await communityDb();
   if (!db) {
     console.error("[community] match failed: no store");
@@ -545,9 +557,23 @@ export async function matchCommunity(
       .limit(200)
       .toArray();
 
-    const matches: CommunityMatch[] = docs
-      .filter((d) => phraseMatches(normalizedQuery, d.dish?.tag ?? "", d.dish?.aliases ?? []))
-      .map((d) => ({
+    // How well each document's own names are named by the reader, taking the
+    // best of the query forms. Zero is "not this dish".
+    const strengths = docs.map((d) => {
+      const named = normalizedQueries
+        .map((q) => matchedPhrase(q, d.dish?.tag ?? "", d.dish?.aliases ?? []))
+        .reduce((a, b) => (b.length > a.length ? b : a), "");
+      return { doc: d, tag: d.dish?.tag ?? "", phrase: named };
+    });
+
+    // One dish, or none. A query naming two different dishes equally well is
+    // declined rather than answered with whichever was published last.
+    const dish = pickDish(strengths);
+    if (!dish) return null;
+
+    const matches: CommunityMatch[] = strengths
+      .filter((s) => s.phrase !== "" && s.tag === dish)
+      .map(({ doc: d }) => ({
         id: String(d._id),
         state: d.submission.state,
         language: d.dish?.language || null,

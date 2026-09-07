@@ -1,4 +1,4 @@
-import { isGenericDish, normalizeDish } from "./normalize";
+import { foldPlurals, isGenericDish, normalizeDish } from "./normalize";
 
 /**
  * The whole matching decision as pure functions: a region map, a phrase gate,
@@ -133,15 +133,73 @@ function containsPhrase(normalizedQuery: string, phrase: string): boolean {
  * stores them pre-normalized (`pipeline.ts`), because a document written
  * before that was true must not slip through unnormalized.
  */
-export function phraseMatches(normalizedQuery: string, tag: string, aliases: string[]): boolean {
-  if (!normalizedQuery) return false;
+export function matchedPhrase(normalizedQuery: string, tag: string, aliases: string[]): string {
+  if (!normalizedQuery) return "";
   // Category words are refused here as well as at moderation, for documents
   // whose verdict predates that rule: a stored alias of "rice" must not win
   // "leftover rice ideas".
   const candidates = [normalizeDish(tag), ...aliases.map((alias) => normalizeDish(alias))].filter(
     (phrase) => !isGenericDish(phrase),
   );
-  return candidates.some((phrase) => containsPhrase(normalizedQuery, phrase));
+  const query = foldPlurals(normalizedQuery);
+  let longest = "";
+  for (const phrase of candidates) {
+    const folded = foldPlurals(phrase);
+    if (folded.length > longest.length && containsPhrase(query, folded)) longest = folded;
+  }
+  return longest;
+}
+
+/** Whether this dish is named at all. `matchedPhrase` is the same question, with which name answered it. */
+export function phraseMatches(normalizedQuery: string, tag: string, aliases: string[]): boolean {
+  return matchedPhrase(normalizedQuery, tag, aliases) !== "";
+}
+
+/**
+ * Which dish the reader named, when the words they typed name more than one.
+ *
+ * The gate matches a stored name anywhere inside the query, so a query can
+ * contain two of them. Two cases, and only one is a problem. "vada pav" naming
+ * both a `vada` row and a `vada pav` row is not ambiguous — the longer name is
+ * the more specific claim and it wins. "misal pav and vada pav" naming two
+ * unrelated dishes equally well is ambiguous, and serving whichever was
+ * published most recently would be a guess wearing a reader's family name.
+ *
+ * Keyed on the dish TAG, never on the document. Three people submitting puran
+ * poli is three rows and one dish; keying on documents would read the geo trio
+ * as a three-way ambiguity and decline the case the whole feature was built
+ * for.
+ */
+export function pickDish(matches: Array<{ tag: string; phrase: string }>): string | null {
+  const best = new Map<string, string>();
+  for (const m of matches) {
+    if (!m.phrase) continue;
+    const held = best.get(m.tag);
+    if (!held || m.phrase.length > held.length) best.set(m.tag, m.phrase);
+  }
+  if (!best.size) return null;
+
+  let leaderTag = "";
+  let leaderPhrase = "";
+  for (const [tag, phrase] of best) {
+    if (phrase.length > leaderPhrase.length) {
+      leaderTag = tag;
+      leaderPhrase = phrase;
+    }
+  }
+
+  // Length alone is not specificity — it only means that when one name sits
+  // INSIDE the other. "vada" inside "vada pav" is a qualifier being made more
+  // precise, so the longer wins. "misal pav" beside "litti chokha" is two
+  // dishes that happen to differ in length, and picking the longer would be a
+  // coin toss dressed up as a rule. Two names of equal length are a tie for
+  // the same reason.
+  for (const [tag, phrase] of best) {
+    if (tag === leaderTag) continue;
+    if (phrase.length >= leaderPhrase.length) return null;
+    if (!containsPhrase(leaderPhrase, phrase)) return null;
+  }
+  return leaderTag;
 }
 
 /**

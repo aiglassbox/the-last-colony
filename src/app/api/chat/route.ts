@@ -190,7 +190,8 @@ function communityText(card: CommunityCardData): string {
  * with no Atlas call at all, pinning that each one leaves `emit` uncalled.
  */
 export async function serveCommunity(
-  query: string,
+  /** Every form of the question worth matching — see `matchCommunity`. */
+  queries: string[],
   region: string | null,
   readerLang: string | null,
   emit: (obj: unknown) => void,
@@ -199,7 +200,7 @@ export async function serveCommunity(
 ): Promise<boolean> {
   let found: Awaited<ReturnType<typeof matchCommunity>>;
   try {
-    found = await lookup(query, region, readerLang);
+    found = await lookup(queries, region, readerLang);
   } catch (error) {
     console.error("[community] serve failed:", error);
     return false;
@@ -847,18 +848,21 @@ export async function POST(request: NextRequest) {
           // ponytail: the vector fallback already ran; reorder only if that
           // call shows up in latency.
           const communityLang = normalized && !normalized.fell_back ? normalized.lang : null;
-          // The DISH NAME, not the reader's own words. `label` is what they
-          // typed and it is what the analytics event logs, but matching on it
-          // meant the community tier only answered when their literal text
-          // happened to contain a stored alias: "litti chokha" worked, the
-          // Devanagari spelled exactly as stored worked, and "लिटी चोखा"
-          // (one ट, not two) or "मला आर्टिसन ब्रेडची रेसिपी द्या" — a whole
-          // sentence — did not. `normalized.english` is the same string the
-          // corpus engine above already searched on, so both tiers now answer
-          // the same question about the same words.
-          const communityQuery = normalized?.english ?? label;
+          // Both forms, because each reaches rows the other cannot. The
+          // resolved dish name is what gets through a sentence or a
+          // misspelling — "मला आर्टिसन ब्रेडची रेसिपी द्या" and "लिटी चोखा"
+          // only ever match as "artisan bread" and "litti chokha". The
+          // reader's own words are what reach an alias stored in their own
+          // script — "ब्राउनी" is an alias of the brownies row, but the
+          // language step resolves it to "brownie", and "brownie" is not
+          // "brownies". Matching on either one alone loses a whole class of
+          // reader; `label` also stays the analytics event's `query`, which
+          // should always be what was actually typed.
+          const communityQueries = [normalized?.english, label].filter(
+            (q): q is string => Boolean(q),
+          );
           if (
-            await serveCommunity(communityQuery, geo.region ?? null, communityLang, emit, {
+            await serveCommunity(communityQueries, geo.region ?? null, communityLang, emit, {
               geo,
               device,
               label,

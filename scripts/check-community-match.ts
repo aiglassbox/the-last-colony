@@ -30,6 +30,7 @@ import {
 import {
   phraseMatches,
   pickCommunity,
+  pickDish,
   stateForRegion,
   REGION_TO_STATE,
   type CommunityMatch,
@@ -74,6 +75,46 @@ check("the real name still wins", generic("nanis rice", "nanis-rice", ["rice"]))
 check("tag 'chicken curry' does not win 'chicken curry recipe'", !generic("chicken curry recipe", "chicken-curry", []));
 check("'chettinad chicken' is a name, not a category", generic("chettinad chicken", "chettinad-chicken", []));
 check("Devanagari 'चावल' alias does not win", !generic("चावल कैसे बनाएं", "nanis-rice", ["चावल"]));
+// --- plurals fold on both sides, and only where it is safe ------------------
+const plural = (query: string, tag: string, aliases: string[] = []) =>
+  phraseMatches(normalizeDish(query), tag, aliases);
+check("a singular query finds a plural name", plural("brownie", "brownies", ["brownies"]));
+check("a plural query finds a singular name", plural("samosas", "samosa", ["samosa"]));
+check("the plural query still finds the plural name", plural("brownies", "brownies", ["brownies"]));
+check("a short token keeps its s ('bas' is not a plural)", !plural("ba", "bas", ["bas"]));
+check("a double-s ending is not folded", !plural("dos", "doss", ["doss"]));
+check("folding does not make two different dishes equal", !plural("poha", "pohas ideas", ["dhokla"]));
+check("Devanagari is untouched by the fold", plural("ब्राउनी", "brownies", ["ब्राउनी"]));
+
+// --- the ambiguity gate: keyed on the dish, not the document ----------------
+// Three submissions of one dish is the geo trio, not a three-way ambiguity.
+check(
+  "several rows of ONE dish resolve to that dish",
+  pickDish([
+    { tag: "puran-poli", phrase: "puran poli" },
+    { tag: "puran-poli", phrase: "puran poli" },
+    { tag: "puran-poli", phrase: "puran poli" },
+  ]) === "puran-poli",
+);
+check(
+  "a name nested inside a longer one loses to it",
+  pickDish([{ tag: "vada", phrase: "vada" }, { tag: "vada-pav", phrase: "vada pav" }]) === "vada-pav",
+);
+check(
+  "two unrelated dishes decline, however their lengths compare",
+  pickDish([{ tag: "misal-pav", phrase: "misal pav" }, { tag: "litti-chokha", phrase: "litti chokha" }]) === null,
+);
+check(
+  "two dishes sharing one name decline rather than pick either",
+  pickDish([{ tag: "misal-pav", phrase: "misal pav" }, { tag: "other-misal", phrase: "misal pav" }]) === null,
+);
+check("nothing named at all declines", pickDish([{ tag: "misal-pav", phrase: "" }]) === null);
+check("an empty list declines", pickDish([]) === null);
+check(
+  "an unnamed row cannot spoil a real one",
+  pickDish([{ tag: "misal-pav", phrase: "misal pav" }, { tag: "shukto", phrase: "" }]) === "misal-pav",
+);
+
 check("isGenericDish: 'dal' is generic", isGenericDish("dal"));
 check("isGenericDish: 'dalma' is not", !isGenericDish("dalma"));
 check("isGenericDish: 'chicken curry' is generic", isGenericDish("chicken curry"));
@@ -451,7 +492,7 @@ async function checkServeCommunityFallsThrough(): Promise<void> {
     let threw = false;
     try {
       result = await serveCommunity(
-        "asdfgh",
+        ["asdfgh"],
         null,
         null,
         (obj) => events.push(obj),
