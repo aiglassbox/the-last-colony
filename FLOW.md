@@ -93,7 +93,21 @@ api/chat/route.ts
   │   │     unverified records have locus/translation stripped
   │   └─ provider.streamText(SYSTEM_PROMPT, ...) → BeatParser
   │
-  │   CORPUS MISS (isResolve) — model decides the turn kind
+  │   CORPUS MISS (isResolve) — community, then the model, decides the turn
+  │   │
+  │   ├─ serveCommunity(label, region, lang)  (api/chat/route.ts)
+  │   │     checked FIRST — before the carried records are gathered and
+  │   │     before the resolve prompt below is built, so a hit costs no
+  │   │     prompt construction and no model call. Match mechanics in §3.
+  │   │     HIT  → emits its own meta{mode:"community", kind:"community",
+  │   │              records:[], community: card} + text + done, and the
+  │   │              route returns here — nothing below this bullet runs.
+  │   │              The `text` event is communityText(card), a plain-text
+  │   │              rendering never shown on screen (CommunityCard draws
+  │   │              the turn from `meta.community`) — its only job is to be
+  │   │              what a follow-up's replayed history carries back in.
+  │   │     MISS → matchCommunity returned null (no store, no matches, or a
+  │   │              caught query error) → fall through
   │   │
   │   ├─ build <on_screen> (carried records) + <semantic_candidates> block
   │   ├─ prompt instructs model to open with MODE: REPLY|INDIANISE|MODERN|RESTORE
@@ -256,10 +270,79 @@ retrieveForDish(query)
 Anything that declines logs `no_original_found` with a `[corpus-gap]`
 prefix — that log is the corpus-expansion roadmap.
 
-When retrieval declines *and* there's no semantic candidate either, the
-`/api/chat` corpus-miss path injects the whole swap table
-(`<component_swaps>`) instead, so the answer becomes a **component
-restoration** rather than an apology.
+Before the model gets a turn at all, a corpus miss checks whether a reader's
+own family already sent this dish in. This is the retrieval tier added since
+community submissions shipped: corpus record → **published community
+submission** → model. It is the only insertion point — inside the corpus-hit
+branch, a completion can still withdraw its own record mid-stream
+(`§NO_ANCESTOR§`, a modern-namesake match, see §2's `pump`), but that
+callback runs synchronously, mid-parse, and cannot `await` an Atlas query, so
+a community lookup never runs there; probing a hit into that branch would
+mean paying for one on every corpus hit to cover a case that mostly never
+happens.
+
+```
+isResolve (retrieval.empty && !slug)
+  │
+  └─ serveCommunity(label, region, readerLang)   (api/chat/route.ts)
+        │
+        └─ matchCommunity(query, region, readerLang)  (src/lib/community/client.ts)
+              │
+              ├─ normalizeDish(query) empty?  → decline, no Atlas round trip
+              │
+              ├─ Atlas: submissions where status:"green" AND published_at
+              │     exists AND dish.tag exists/non-empty, sorted
+              │     published_at desc, maxTimeMS 2000, limit 200
+              │     (ponytail: in-memory phrase filter over that page — an
+              │     aliases-array index is the upgrade if the store outgrows it)
+              │
+              ├─ phraseMatches(normalizedQuery, dish.tag, dish.aliases)
+              │     (src/lib/community/match.ts) — in memory, over the page
+              │     above. The normalized query must EQUAL, or CONTAIN as a
+              │     phrase bounded by string start/end or a space, the tag or
+              │     one alias. Walked with indexOf and explicit boundary
+              │     checks, never a constructed RegExp — a stored alias is
+              │     model output from a document a member of the public
+              │     submitted, and new RegExp(alias) would hand that text the
+              │     regex engine.
+              │
+              └─ pickCommunity(matches, region, readerLang)  (match.ts)
+                    three rules, each filtering what the last left; only the
+                    third chooses (matches already sort published_at desc,
+                    so "the first survivor" is always "the most recent"):
+                      1. stateForRegion(region) — Vercel's
+                         x-vercel-ip-country-region mapped through
+                         REGION_TO_STATE to a full state name — narrows to
+                         rows whose submission.state matches
+                      2. narrows further to rows whose dish.language matches
+                         the reader's detected language (skipped entirely
+                         when detection fell back, rather than guess one)
+                      3. most recently published
+```
+
+`lookup`'s three ways of declining — an empty match list, a null store (unset
+env, or a connection failure `communityDb()` already caught), and a thrown
+error from the query itself — all collapse to the same `null` return from
+`matchCommunity`, the only thing `serveCommunity` branches on.
+
+A chosen row picks up one more thing before it becomes a card: if the
+reader's language differs from the row's own `dish.language`, `matchCommunity`
+does a second lookup, `getTranslation(chosen.id, readerLang)` — a stored
+document, never a model call; translation happens once, at publish (§12).
+`toCommunityCard` (`src/lib/community/card.ts`) puts that translation on top
+when present and keeps the submitter's own words in `translated_from`, so the
+card's "show original" needs no fetch.
+
+A community hit adds exactly one analytics event beyond the `dish_queried`
+(`hit: false`) already fired for every turn: `community_served`, carrying
+which of the three rules actually chose the row, the match count, and the raw
+(unmapped) region string — logged so a wrong or missing `REGION_TO_STATE`
+entry shows up in production traffic instead of staying invisible.
+
+When retrieval declines *and* there's no community hit either, *and* there's
+no semantic candidate either, the `/api/chat` corpus-miss path injects the
+whole swap table (`<component_swaps>`) instead, so the answer becomes a
+**component restoration** rather than an apology.
 
 ---
 
@@ -485,11 +568,206 @@ readReport(sql) + formatReport()   (src/lib/email/report.ts — shared)
 
 ---
 
+## 10. Community submission flow — `POST /api/submissions`
+
+Independent of the conversation thread; the intake side of the community tier
+§2/§3 serve from. Two calls, image mode only makes the first.
+
+```
+client (Add Your Recipe form, image mode) → POST /api/submissions/extract { photo }
+  │
+  ├─ rate-limit check ("extract:"+clientKey, MAX_EXTRACTS=3 per window)   → 429
+  ├─ content-length precheck against MAX_BODY_BYTES                       → 413
+  ├─ validatePhoto(photo)                                                 → 400
+  └─ extractRecipe(photo)  (src/lib/community/extract.ts, gemini-3.6-flash)
+        null (no key, or the call failed/threw)         → 503
+        {ok:false, reason: not_recipe|unreadable|malformed} → 422
+        {ok:true, value}                                → 200 { ok:true, extracted }
+        Stores nothing. The form prefills from `extracted`; the submitter
+        corrects it before anything reaches the next call.
+
+client → POST /api/submissions  { mode, submission, extracted? }
+  │
+  ├─ rate-limit check ("submit:"+clientKey, MAX_SUBMITS=3 per five minutes)
+  │     → 429. Three per window is a person filling in a form, not a loop —
+  │     this endpoint spends model tokens per call, so it gets neither the
+  │     beacon's allowance nor the chat routes' shared budget.
+  ├─ content-length precheck against MAX_BODY_BYTES, before the body is
+  │     read — the one legitimately large field is the photo, and its cap
+  │     is known; a missing/unparseable length is refused too, since a
+  │     chunked body is the one shape that could bypass the cap    → 413
+  ├─ validateSubmission(body)                                       → 400
+  ├─ insertSubmission({ mode, submission, extracted?, geo })
+  │     (src/lib/community/client.ts) → hex id, or null on a store outage
+  │     or the daily insert ceiling (SUBMISSION_DAILY_MAX, default 100,
+  │     count-then-insert — ponytail: can overshoot by a request or two
+  │     under load)                                                 → 503
+  ├─ 201 { ok:true } returned immediately — the verdict is never in the
+  │     response: GREEN and RED both answer the same 201, so a spammer who
+  │     can read the verdict cannot tune against it
+  │
+  └─ after(): moderate(submission)  (src/lib/community/pipeline.ts)
+        one structured gemini-3.1-flash-lite call, given the CONFIRMED text
+        (never the raw `extracted` reading) and the photo — a served card
+        carries both, so the moderator sees everything a reader will
+        → { card: GREEN|RED, reasons[], dish_tag, aliases[], language } | null
+        → applyVerdict(id, verdict)  (client.ts)
+              writes status + dish{tag,aliases,language}, UNLESS the
+              document already carries verdict.overridden_at or
+              published_at — either guard leaves the doc exactly as it was
+        null (no key, call failed) → doc stays "pending" for a /pantry
+              re-run; `after()` rather than `await` means a verdict that
+              outlives the platform timeout can no longer turn the 201 into
+              a failed response the form would retry as a duplicate
+```
+
+---
+
+## 11. Pantry moderation & publish flow — `POST /api/pantry/submissions`
+
+Behind the same gate factory as `/kitchen` (`pantryAccess()`), its own
+password (`ADMIN_PASSWORD`) and cookie, because the pantry shows submitters'
+contact details and a kitchen session must open nothing here. Checked in the
+route handler itself, not only the page, since a route is reachable
+regardless of what a page decided.
+
+```
+operator → POST /api/pantry/submissions { id, action, card? }
+  │
+  ├─ pantryAccess() !== "granted"          → 404 (identical body whether no
+  │     password is configured or the cookie is wrong)
+  ├─ id not 24-hex                          → 400
+  │
+  ├─ action:"override" { card:GREEN|RED }
+  │     overrideVerdict(id, card)  (client.ts) — the operator outranks the
+  │       model: stamps verdict.overridden_at, which applyVerdict and any
+  │       future re-run both refuse to write over from then on
+  │     card===RED also $unsets published_at in the same write, so a
+  │       rejection takes the recipe off the site immediately
+  │
+  ├─ action:"rerun"
+  │     refused (409) if verdict.overridden_at or published_at is set — an
+  │       override is final, and a published doc must be unpublished first
+  │     else: moderate(submission) again, applyVerdict(id, verdict) —
+  │       AWAITED, not after(): the operator is watching and wants the answer
+  │
+  ├─ action:"publish"
+  │     publishSubmission(id)  (client.ts) — the human gate: only a TAGGED
+  │       GREEN document may ever be served
+  │       refuses: not_found / not_green (mark GREEN first) / no_tag (an
+  │         untagged document matches nothing, so publishing it would put a
+  │         recipe in Published that no reader can ever reach)
+  │       ok → $set published_at=now, filtered on status:"green" at write
+  │         time, so a status change landing between the read and the
+  │         write loses rather than leaving published_at on a red document
+  │     → after(): translateMissing(id)  (§12) — the click's 200 flushes
+  │         first; one language failing never fails the publish
+  │
+  └─ action:"unpublish"
+        unpublishSubmission(id)  (client.ts) — $unsets published_at, never
+          nulls it: applyVerdict's override guard tests for absence, and a
+          null left behind would block every future verdict on that
+          document forever
+
+GET ?id=&download=1
+  │
+  ├─ pantryAccess() !== "granted"           → 404 (checked separately, same gate)
+  ├─ id not 24-hex, or download≠"1"        → 400
+  ├─ getSubmission(id) null                 → 404
+  ├─ doc.status !== "green"                 → 409 (only GREEN is a candidate)
+  └─ toCorpusCandidate(doc)  (src/lib/community/candidate.ts)
+        a GREEN submission reshaped into the corpus record's own shape, for
+        a human to incorporate by hand: MODERN_DISH, unverified_seed, no
+        original-language text, no photo, contact left behind in the store
+        → JSON attachment; RFC 5987 filename carries a non-ASCII slug,
+          a stripped-ASCII fallback covers the plain filename param
+```
+
+---
+
+## 12. Community translation flow — publish-time, not request-time
+
+```
+translateMissing(id)  (src/lib/community/publish-translations.ts)
+  │  ONE job, THREE callers: the pantry route's "publish" action (in
+  │  after()), scripts/seed-community.ts, and scripts/backfill-translations.ts
+  │  — so publishing and translating cannot drift apart the way they once
+  │  did, when the seed script called publishSubmission() directly and
+  │  twelve seeded recipes went live with zero translations, unnoticed until
+  │  a reader asked for one in Hindi
+  │
+  ├─ getSubmission(id) null (bad id, OR the store is unreachable) → counted
+  │     as FAILED, not skipped — a mid-run Atlas outage once reported
+  │     "0 written, 0 failed" for every remaining document, indistinguishable
+  │     from a clean pass
+  │
+  ├─ source = doc.dish.language ?? ""
+  │     ""   (model could not tell what the submission is written in)
+  │            → translate into every SUPPORTED_LANGS entry, English included
+  │     else → every SUPPORTED_LANGS entry EXCEPT source
+  │
+  ├─ translatedLangs(id) — languages already stored; skipped rather than
+  │     redone, so republishing (or a retried job) only fills gaps
+  │
+  └─ for each remaining target language, SEQUENTIALLY (never parallel —
+        eight concurrent calls against one submission is how a quota gets
+        spent on a single publish):
+          translateSubmission(submission, lang)  (translate.ts)
+            one gemini-3.6-flash structured call; buildTranslateInput sends
+            ONLY recipe_name, story, ingredients, method — never `{...sub}`,
+            so contact, display_name, state and city never reach the model
+            null on any failure (missing key, timeout, malformed reply) →
+              logged, counted failed, skipped
+          parseTranslation() — all four fields must come back non-empty,
+            else null: a partial translation is worse than none, since an
+            empty method is a recipe with no steps
+          saveTranslation(id, fields)  (client.ts) — upserts on
+            {submission_id, lang}, so a retried job never duplicates a row;
+            never writes to `submissions`, so a translation cannot alter the
+            submission it translates
+
+── at request time ──────────────────────────────────────────
+matchCommunity (§3) calls getTranslation(id, lang) — a stored lookup, never a
+model call — only when the reader's detected language differs from the row's
+own; toCommunityCard puts it on top and keeps the original in translated_from.
+```
+
+---
+
+## 13. Community photo route — `GET /api/community/photo/[id]`
+
+The one route that hands over a submission's photo bytes; everything else
+about a submission stays out of the wire until this is asked for.
+
+```
+client → GET /api/community/photo/[id]
+  │
+  ├─ id not 24-hex                        → 404 (not 400 — the id space is
+  │     not a reader's business)
+  ├─ publishedPhoto(id)  (src/lib/community/client.ts)
+  │     one projected query: {status:1, published_at:1, "submission.photo":1}
+  │     ok only when status==="green" AND published_at is set AND a photo
+  │     exists — a pending, red, or green-but-unpublished document reads as
+  │     the IDENTICAL not_found a missing id gives, so the route cannot be
+  │     used to enumerate which documents exist in which state
+  │     store unreachable → a distinct "unreachable" reason           → 503
+  │     anything else not ok                                          → 404
+  ├─ mime reasserted against PHOTO_MIMES — not trusted from storage: it
+  │     arrived from a client at submission time, and this route hands it
+  │     to a browser as Content-Type now                → 404 if not listed
+  └─ 200, bytes decoded from base64, Cache-Control: immutable forever (a
+        document's photo never changes and the id is the version)
+```
+
+---
+
 ## How the pipelines connect — summary
 
 - **Corpus validation** (§1) gates everything else; it must pass before dev/deploy is trusted.
 - **The chat request** (§2) is the spine. It calls into **retrieval** (§3) synchronously, and retrieval calls into the **pipeline bridge** (§6) only as a last-resort candidate source, never a direct hit.
+- **Community serving** (§2, §3) is the tier retrieval and the model both sit around: on every corpus miss, `serveCommunity` is checked before a resolve prompt is built or a model is called, so the answering order is corpus record → published community submission → model. A hit is the cheapest of the three — no prompt, no completion — and it is the *only* insertion point: the corpus-hit branch's own mid-stream record withdrawal (`§NO_ANCESTOR§`) cannot await the Atlas query a community lookup needs, so it never attempts one.
 - **Indianisation** (§4) is a mode *of* the chat request, not a separate pipeline — it shares the same route, streaming machinery, and card infrastructure, swapping only the prompt block and marker set.
-- **Swap** (§5) is the one flow that doesn't touch retrieval or turn-mode routing at all — it's corpus lookup + optional model prose, independent of the conversation thread.
-- **Conversation persistence** (§8) and **email tracking** (§9) are both write-through-to-Postgres side channels that degrade to no-ops if `DATABASE_URL` is unset — neither can ever block or break the chat/redirect/pixel response they're attached to.
-- **The pipeline package's own sync/query loop** (§7) is currently the *only* fully-built path to the 199-record corpus, and the app reaches it through exactly one narrow, read-only bridge. Everything else in `pipeline/` (eval, gold-set tooling) is offline tooling that never runs in the request path.
+- **Swap** (§5) and the community intake/moderation/photo flows (§10–§13) don't touch retrieval or turn-mode routing at all — corpus lookup plus optional model prose for swap, Atlas reads and writes for community, both independent of the conversation thread. The one place community *does* join the conversation thread is the single check inside the chat request itself (§2, §3).
+- **Community submission** (§10) and **moderation/publish** (§11) are two calls apart on purpose: intake never blocks on a human, and nothing an operator does re-runs unless the document is neither overridden nor published. **Translation** (§12) is a third, later step again — publish-time, not request-time or submit-time — so serving a matched row is always a stored-document lookup, never a model call.
+- **Conversation persistence** (§8) and **email tracking** (§9) are both write-through-to-Postgres side channels that degrade to no-ops if `DATABASE_URL` is unset — neither can ever block or break the chat/redirect/pixel response they're attached to. The community store (§10–§13) takes the same fail-soft posture against `ATLAS_*` being unset, and a community lookup failing inside the chat request (§2) costs one turn, never the request, for the identical reason.
+- **The pipeline package's own sync/query loop** (§7) is currently the *only* fully-built path to the 199-record corpus, and the app reaches it through exactly one narrow, read-only bridge. Everything else in `pipeline/` (eval, gold-set tooling) is offline tooling that never runs in the request path. The community store (§10–§13) is a second, unrelated database — MongoDB Atlas, not Postgres, not Pinecone — reached only from `src/lib/community/`.

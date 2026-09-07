@@ -810,3 +810,43 @@ phrase gate, three-rule pick — in one set of pure, offline-testable functions
 in `match.ts` rather than splitting it between a query shape and application
 code. The ceiling is marked `ponytail` at the query site: past 200 published
 recipes, move the gate into the query with an aliases-array index.
+
+**A bare dish name is English; a native script always sets the language.**
+`lang` is the sentence's language and a dish name never sets it — that rule was
+already recorded above, and it held for every example it was written against,
+because every one of them had words *around* the dish. A message that is
+*only* a multi-word dish name has no such words, and the detector fell back to
+the dish's language of origin: "misal pav" came back `mr`, "litti chokha" `hi`,
+"bisi bele bath" `kn`. Single-word names were never affected, because
+`normalize` short-circuits a lone ASCII word to English without a model call at
+all, which is why this survived so long unnoticed. The consequence was a reader
+typing English getting a Marathi-chromed card, and — once community recipes
+carried translations — the Marathi *translation* of a recipe they had asked for
+in English.
+
+The prompt now decides in a fixed order rather than by two rules that competed:
+strip the dish name and see what is left; if any words remain they alone set
+the language, whatever script the name itself was in ("how to make ডোসা" is
+`en`); if nothing remains, a non-Latin script sets the language ("थालीपीठ" is
+`hi`); if nothing remains and the name is in Latin letters, it is `en`. Both
+wrong orderings were caught by `tests/multilingual-queries.json` before
+shipping — the first over-corrected bare Devanagari names to English, the
+second broke an English sentence containing a Bengali-script dish — so the
+controls that caught each one are now cases in that file.
+
+**One translation job, every publish path.** The loop that fills a submission's
+missing languages lived inline in the pantry route's `after()` callback, which
+made "publishing" and "translating" the same act *only* for a publish that went
+through that one route. `scripts/seed-community.ts` calls `publishSubmission()`
+in the store directly, so twelve seeded recipes went live with no translations
+at all, and nobody noticed until a reader asked for one in Hindi and got
+English. It is now `translateMissing(id)` in `publish-translations.ts` with
+three callers — the route, the seeder, and a backfill script — so the two
+cannot drift apart by route again.
+
+`npm run community:backfill-translations` closes gaps after the fact, and it is
+not a one-off: a single language failing at publish is deliberately not fatal,
+so the gap it leaves is meant to be repaired later. It is idempotent, skipping a
+stored language with no model call, which is what makes a retry after a partial
+run nearly free — and that mattered, because the first real run lost the network
+half way through and had to be resumed.
