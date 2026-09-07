@@ -31,6 +31,26 @@ Rules:
   taal?" and "taal recipe" are English (lang "en") even though taal is a
   Bengali dish; "taal kivabe banabo" is Bengali (lang "bn") because the words
   around the dish are Bengali. Only the words around the dish name decide.
+- Decide lang in this order, and stop at the first step that answers:
+  STEP 1. Strip the dish name out of the message and look at what is LEFT. If
+  any words remain, they alone set lang, whatever script the dish name itself
+  was in. "kaise banate hain" is Hindi, so "misal pav kaise banate hain" is hi;
+  "kashi banvaychi" is Marathi, so "puran poli kashi banvaychi" is mr; "kivabe
+  banabo" is Bengali, so "taal kivabe banabo" is bn; "how to make" is English,
+  so "how to make ডোসা" is en even though the dish is in Bengali script.
+  STEP 2. Nothing is left — the message was only the dish name. Now the script
+  decides, because choosing a script is itself writing in a language: "इडली" is
+  hi, "இட்லி" is ta, "থালীপীঠ" is bn, "थालीपीठ" is hi. Never answer "en" for a
+  bare name in a non-Latin script.
+  STEP 3. Nothing is left and the name is in Latin letters. Then lang is "en",
+  however many words the name runs to: "misal pav", "puran poli", "sol kadhi",
+  "litti chokha", "bisi bele bath" and "vada pav" are all en. A dish name is a
+  loanword and cannot set lang by itself; someone typing only the name of a
+  Maharashtrian dish in Latin letters has not written a sentence in Marathi.
+- Only lang-bearing words that are NOT part of the dish name set lang. Compare:
+  "puran poli" is en, "puran poli kashi karaychi" is mr, "misal pav kaise
+  banate hain" is hi, "taal kivabe banabo" is bn. The dish name is identical in
+  each pair; the words around it are the whole signal.
 - A language or region named in the message is a word, not a signal:
   "bengali taal recipe", "marathi puran poli" and "west bengal style shukto"
   are English (lang "en"). The reader wrote the name in English.

@@ -32,6 +32,17 @@
     { "q": "dhokla kevi rite banavay", "lang": "gu", "expect": null, "why": "romanized Gujarati; dhokla is not in the corpus" },
     { "q": "dosa hege madodu", "lang": "kn", "expect": "dosa", "why": "romanized Kannada" },
     { "q": "dosa ela cheyali", "lang": "te", "expect": "dosa", "why": "romanized Telugu" },
-    { "q": "بریانی کیسے بنتی ہے", "lang": "en", "expect": null, "english": "biryani", "why": "Urdu is detected but deferred: English reply, translated dish name kept for retrieval" }
+    { "q": "بریانی کیسے بنتی ہے", "lang": "en", "expect": null, "english": "biryani", "why": "Urdu is detected but deferred: English reply, translated dish name kept for retrieval" },
+
+    { "q": "misal pav", "lang": "en", "expect": null, "english": "misal pav", "why": "a bare multi-word dish name is English: no words around it to judge, and the name is a loanword. Single-word names never reach the model (the ASCII short-circuit), so multi-word ones are where this broke — the detector answered mr" },
+    { "q": "puran poli", "lang": "en", "expect": null, "english": "puran poli", "why": "same, Marathi dish" },
+    { "q": "sol kadhi", "lang": "en", "expect": null, "english": "sol kadhi", "why": "same, Konkani/Maharashtrian dish" },
+    { "q": "litti chokha", "lang": "en", "expect": null, "english": "litti chokha", "why": "same, Bihari dish — was answering hi" },
+    { "q": "bisi bele bath", "lang": "en", "expect": null, "english": "bisi bele bath", "why": "same, Kannada dish — was answering kn" },
+    { "q": "vada pav", "lang": "en", "expect": null, "english": "vada pav", "why": "same, and retrieval declines it as ambiguous between Vada and Pav Bhaji, so the corpus expectation is null" },
+    { "q": "misal pav kaise banate hain", "lang": "hi", "expect": null, "english": "misal pav", "why": "the control for the rule above: identical dish name, Hindi words around it, so lang is hi. Guards against over-correcting every romanized sentence to English" },
+    { "q": "bisi bele bath hege madodu", "lang": "kn", "expect": null, "english": "bisi bele bath", "why": "the same control in Kannada" },
+    { "q": "थालीपीठ", "lang": "hi", "expect": null, "why": "the boundary on the bare-name rule: it is about Latin letters only. A native script always sets lang, because choosing the script is itself writing in the language. Over-correcting this to en was the first attempt's regression. No `english` assertion: the model romanizes it thalipith or thalipeeth run to run, and the stored dish carries both as aliases, so either retrieves" },
+    { "q": "ಇಡ್ಲಿ", "lang": "kn", "expect": "idli", "why": "the same boundary in Kannada script" }
   ]
 }
