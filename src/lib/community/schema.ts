@@ -45,6 +45,37 @@ export const MAX_BODY_BYTES = 1_000_000;
  *  copy of it — two lists that can drift is the bug. */
 export const PHOTO_MIMES = ["image/jpeg", "image/png", "image/webp"];
 
+/**
+ * The email shape rule, and the one normalisation `validateSubmission`
+ * performs on any field: trimmed and lowercased, at most 120 characters,
+ * exactly one `@` with something before it, at least one `.` after it, no
+ * whitespace. Not RFC 5322 and not meant to be — the code arriving is the
+ * real test, and a stricter regex only refuses real addresses. Lowercasing
+ * is required, not cosmetic: the OTP document, the consume match and the
+ * stored contact must agree on one spelling.
+ *
+ * Lives here rather than in otp-rules.ts because the form imports this file
+ * client-side and otp-rules.ts imports node:crypto.
+ */
+export function normalizeEmail(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const email = raw.trim().toLowerCase();
+  if (!email || email.length > 120 || /\s/.test(email)) return null;
+  const at = email.indexOf("@");
+  if (at < 1 || at !== email.lastIndexOf("@")) return null;
+  if (!email.slice(at + 1).includes(".")) return null;
+  return email;
+}
+
+/**
+ * The verification proof the submit must carry: the 64 hex characters the
+ * verify route handed out. Validated beside `validateSubmission`, not inside
+ * it, so the seed and scratch scripts that bypass OTP keep validating.
+ */
+export function validateProof(raw: unknown): string | null {
+  return typeof raw === "string" && /^[0-9a-f]{64}$/.test(raw) ? raw : null;
+}
+
 /** Decoded size of a base64 string, without allocating the decode. */
 function base64Bytes(data: string): number {
   const padding = data.endsWith("==") ? 2 : data.endsWith("=") ? 1 : 0;
@@ -192,6 +223,15 @@ export function validateSubmission(
   }
   if (out.belongs_to === "other" && typeof out.belongs_to_other !== "string") {
     errors.push("belongs_to_other is required when belongs_to is other");
+  }
+
+  // The contact is the address a code was sent to. The route consumes the
+  // verification by this exact string, so it must be the same spelling the
+  // send route wrote — lowercase.
+  if (typeof out.contact === "string") {
+    const email = normalizeEmail(out.contact);
+    if (email) out.contact = email;
+    else errors.push("contact must be an email address");
   }
 
   const consent = raw.consent as { right_to_share?: unknown; public_display?: unknown } | undefined;
