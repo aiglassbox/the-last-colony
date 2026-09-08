@@ -2,20 +2,24 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { BELONGS_TO, PHOTO_MAX_BYTES, STATES, type Extracted, type Photo } from "@/lib/community/schema";
 
 /**
- * The submission form, two ways in. The server's validateSubmission is the
- * boundary; everything here is convenience mirroring it, so a field the API
- * would refuse is refused before the round trip.
+ * One form. The server's validateSubmission is the boundary; everything here
+ * is convenience mirroring it, so a field the API would refuse is refused
+ * before the round trip.
  *
- * "From a photo" reads the card first and prefills; the submitter corrects
- * before anything is stored as their words. The envelope the server gets
- * says what happened, not which button was pressed: a reading that landed
- * makes it image mode, a failed reading followed by typing is manual mode
- * with a photo attached.
+ * A photo is offered first and is optional. Attach one and we read it and
+ * prefill; attach nothing and the same fields are typed by hand. The envelope
+ * the server gets says what actually happened, not what was offered: a
+ * reading that landed makes it image mode, everything else — no photo, or a
+ * photo we could not read — is manual mode.
+ *
+ * A reading never overwrites words already typed. It fills the fields the
+ * submitter left blank and leaves the rest alone, while `extracted` keeps the
+ * model's reading verbatim for the pantry to show beside what was confirmed.
  */
 
 /** Downscale + JPEG-encode so the payload fits the server's photo cap. */
@@ -36,15 +40,12 @@ async function compressImage(file: File): Promise<Photo | null> {
   return null;
 }
 
-type Mode = "manual" | "image";
-
 const READ_FAILED: Record<string, string> = {
-  not_recipe: "We couldn't find a recipe or a dish in that photo. Try another, or type it in.",
-  unreadable: "The writing is too blurred or dark to read. Try a clearer photo, or type it in.",
+  not_recipe: "We couldn't find a recipe or a dish in that photo. Try another, or just fill the fields in below.",
+  unreadable: "The writing is too blurred or dark to read. Try a clearer photo, or just fill the fields in below.",
 };
 
 export function AddRecipeForm() {
-  const [mode, setMode] = useState<Mode>("manual");
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [reading, setReading] = useState(false);
@@ -52,9 +53,12 @@ export function AddRecipeForm() {
   const [belongsTo, setBelongsTo] = useState("grandmother");
   const [photo, setPhoto] = useState<Photo | null>(null);
   const [photoNote, setPhotoNote] = useState("");
-  /** What the reading returned. The recipe fieldset remounts with it as defaults. */
+  /** The reading, verbatim, as sent to the server. Never merged with typing. */
   const [extracted, setExtracted] = useState<Extracted | null>(null);
+  /** What the fieldset remounts with: the reading, minus anything already typed. */
+  const [defaults, setDefaults] = useState<Extracted | null>(null);
   const [extractKey, setExtractKey] = useState(0);
+  const formRef = useRef<HTMLFormElement>(null);
 
   async function readPhoto(p: Photo) {
     setPhotoNote("Reading your photo…");
@@ -66,11 +70,26 @@ export function AddRecipeForm() {
       });
       const payload = await res.json().catch(() => null);
       if (res.ok && payload?.extracted) {
-        setExtracted(payload.extracted as Extracted);
+        const read = payload.extracted as Extracted;
+        setExtracted(read);
+        // The fieldset is uncontrolled and remounts on extractKey, so a naive
+        // prefill would wipe a story someone typed before reaching up to
+        // attach the photo. Take the reading only where they left a blank.
+        const typed = new FormData(formRef.current ?? undefined);
+        const keep = (name: keyof Extracted) => String(typed.get(name) ?? "").trim() || read[name];
+        setDefaults({
+          recipe_name: keep("recipe_name"),
+          story: keep("story"),
+          ingredients: keep("ingredients"),
+          method: keep("method"),
+        });
         setExtractKey((k) => k + 1);
         setPhotoNote("Read from your photo — check every field below before submitting. Empty ones need your words.");
       } else if (res.status === 422) {
-        setPhotoNote(READ_FAILED[String(payload?.error)] ?? "We couldn't read that photo. Try another, or type it in.");
+        setPhotoNote(
+          READ_FAILED[String(payload?.error)] ??
+            "We couldn't read that photo. Try another, or just fill the fields in below.",
+        );
       } else if (res.status === 429) {
         setPhotoNote(`Too many tries — wait ${payload?.retryAfter ?? 60}s, or type it in.`);
       } else {
@@ -86,6 +105,8 @@ export function AddRecipeForm() {
     setPhotoNote("");
     setPhoto(null);
     // A reading belongs to the photo it came from; a new photo starts clean.
+    // `defaults` is left alone — it is already merged into the mounted fields,
+    // and clearing it would drop the previous reading out from under them.
     setExtracted(null);
     if (!file) return;
     // The input stays disabled from the first byte of compression to the end
@@ -99,25 +120,9 @@ export function AddRecipeForm() {
         return;
       }
       setPhoto(compressed);
-      if (mode === "image") await readPhoto(compressed);
-      else setPhotoNote(`Attached (${Math.round(compressed.bytes / 1024)}KB).`);
+      await readPhoto(compressed);
     } finally {
       setReading(false);
-    }
-  }
-
-  function switchMode(next: Mode) {
-    // The buttons carry disabled={reading}: a read in flight captured this
-    // mode in its closure, and letting it land after a switch would re-attach
-    // the photo and remount the fieldset over whatever was typed since.
-    setMode(next);
-    // The file input moves (top in photo mode, bottom in manual) and so
-    // remounts empty. If no reading landed, drop the photo state with it so
-    // the form holds what the screen shows; a reading that did land stays —
-    // clearing it would drop the audit trail while the fields keep its text.
-    if (!extracted) {
-      setPhoto(null);
-      setPhotoNote("");
     }
   }
 
@@ -181,21 +186,6 @@ export function AddRecipeForm() {
     );
   }
 
-  const photoField = (
-    <label className="recipe-form__field">
-      {mode === "image"
-        ? "Photo of the handwritten card or the dish. We read the recipe from it; you check every field before it is submitted."
-        : "Photo (optional — the dish or the handwritten card; stored with your recipe, not read from)"}
-      <input
-        type="file"
-        accept="image/jpeg,image/png,image/webp"
-        disabled={reading}
-        onChange={(e) => onPickPhoto(e.target.files?.[0])}
-      />
-      {photoNote && <span className="recipe-form__note">{photoNote}</span>}
-    </label>
-  );
-
   return (
     <main className="recipe-form">
       {/* The rail lives on the chat page only, so this page carries its own
@@ -204,16 +194,9 @@ export function AddRecipeForm() {
       <h1 className="recipe-form__title">Add Your Recipe</h1>
       <p className="recipe-form__lede">
         A family recipe, in your words. What you write is shown as you wrote it.
+        Start from a photo of the handwritten card if you have one — or fill it
+        in yourself.
       </p>
-
-      <div className="recipe-form__modes" role="group" aria-label="How would you like to add it?">
-        <button type="button" className="recipe-form__mode" aria-pressed={mode === "manual"} onClick={() => switchMode("manual")} disabled={reading}>
-          Type it in
-        </button>
-        <button type="button" className="recipe-form__mode" aria-pressed={mode === "image"} onClick={() => switchMode("image")} disabled={reading}>
-          From a photo
-        </button>
-      </div>
 
       {errors.length > 0 && (
         <ul className="recipe-form__errors" role="alert">
@@ -223,8 +206,19 @@ export function AddRecipeForm() {
         </ul>
       )}
 
-      <form onSubmit={onSubmit}>
-        {mode === "image" && photoField}
+      <form ref={formRef} onSubmit={onSubmit}>
+        <label className="recipe-form__field">
+          Photo of the handwritten card or the dish (optional). We read the
+          recipe from it and fill in what you have left blank; you check every
+          field before it is submitted.
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            disabled={reading}
+            onChange={(e) => onPickPhoto(e.target.files?.[0])}
+          />
+          {photoNote && <span className="recipe-form__note">{photoNote}</span>}
+        </label>
 
         <label className="recipe-form__field">
           Your name (real or family nickname)
@@ -262,30 +256,28 @@ export function AddRecipeForm() {
           </label>
         )}
 
-        {/* Remounted with the reading as defaults when one lands; untouched otherwise. */}
+        {/* Remounted when a reading lands, with typed words preserved; untouched otherwise. */}
         <fieldset key={extractKey} className="recipe-form__fieldset">
           <label className="recipe-form__field">
             Recipe name (any language, any script)
-            <input name="recipe_name" required maxLength={120} defaultValue={extracted?.recipe_name ?? ""} />
+            <input name="recipe_name" required maxLength={120} defaultValue={defaults?.recipe_name ?? ""} />
           </label>
 
           <label className="recipe-form__field">
             The story — when it is made, why it matters
-            <textarea name="story" required maxLength={4000} rows={4} defaultValue={extracted?.story ?? ""} />
+            <textarea name="story" required maxLength={4000} rows={4} defaultValue={defaults?.story ?? ""} />
           </label>
 
           <label className="recipe-form__field">
             Ingredients
-            <textarea name="ingredients" required maxLength={4000} rows={4} defaultValue={extracted?.ingredients ?? ""} />
+            <textarea name="ingredients" required maxLength={4000} rows={4} defaultValue={defaults?.ingredients ?? ""} />
           </label>
 
           <label className="recipe-form__field">
             Method
-            <textarea name="method" required maxLength={8000} rows={6} defaultValue={extracted?.method ?? ""} />
+            <textarea name="method" required maxLength={8000} rows={6} defaultValue={defaults?.method ?? ""} />
           </label>
         </fieldset>
-
-        {mode === "manual" && photoField}
 
         <label className="recipe-form__field">
           Contact (email or phone — never shown publicly, used only to reach you about this recipe)

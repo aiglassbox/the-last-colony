@@ -578,7 +578,33 @@ corrects, and `POST /api/submissions` stores their confirmed words as
 `submission` with what the model read kept beside it as `extracted`. Nothing
 the model read is ever stored as the submitter's words unconfirmed. The
 verdict runs over the confirmed text, not the raw reading — and it sees the
-photo, in both modes, because a served community card carries it.
+photo whenever one is attached, so the moderator sees everything that was
+stored, not only the half that is text.
+
+**One form, with the photo as an optional shortcut through it — not a mode.**
+The form used to open on a two-button picker: "Type it in" or "From a photo",
+each rendering the file input in a different place. The picker was asking a
+question the submitter could not yet answer — you do not know whether the
+model can read your grandmother's handwriting until it tries — and answering
+it wrong meant backing out and starting again. So the modes are gone. There is
+one form, the photo sits at the top of it, and it is optional: attach one and
+the fields fill themselves, attach nothing and you type the same fields by
+hand. A failed reading is no longer a wrong turn, just a note above fields
+that were always there.
+
+`mode` survives in the payload because it records what *happened*, not what
+was offered: a reading that landed is `image`, no photo or an unreadable one
+is `manual`. `validateSubmission` is unchanged and still enforces that an
+`image` submission carries both the reading and the photo it came from.
+
+**A reading fills blanks; it never overwrites typing.** The recipe fieldset is
+uncontrolled and remounts on `extractKey` when a reading lands, so the obvious
+prefill would erase a story someone typed before scrolling up to attach the
+photo — silent data loss on a form with no draft saving. The remount now takes
+the reading only where the submitter left a blank. The merge is kept out of
+`extracted`, which stays the model's reading verbatim: the two states answer
+different questions, and folding a submitter's typing into `extracted` would
+make the pantry's side-by-side a lie about what the model produced.
 
 **The verdict runs in `after()`, not inline.** The 201 is flushed first; a
 verdict that outlives the platform timeout can no longer become a failed

@@ -440,17 +440,35 @@ does for Neon — an unset `ATLAS_URL`/`ATLAS_USER`/`ATLAS_PASSWORD`, or an
 unreachable cluster, fail-softs the whole feature rather than the app: the
 form shows unavailable, the API answers 503, retrieval simply loses one tier.
 
-### Two ways in
+### One form, and the photo is a shortcut through it
 
-`AddRecipeForm` (`src/app/add-recipe/AddRecipeForm.tsx`) offers "Type it in"
-or "From a photo." A photo is downscaled and JPEG-compressed client-side to
-fit the 500KB cap before anything is sent. In photo mode, `POST
-/api/submissions/extract` reads it on `SUBMISSION_EXTRACT_MODEL` (handwriting
-and regional scripts need the full-quality tier) and returns fields that
-prefill the form; the submitter corrects every one before anything is stored.
-What the model read is kept beside what the submitter confirmed, as
-`extracted`, for the pantry to show both — nothing the model reads becomes the
-submitter's own words without that confirmation.
+`AddRecipeForm` (`src/app/add-recipe/AddRecipeForm.tsx`) is a single form with
+no mode picker. **The photo is optional and sits at the top**, offered as the
+fastest way to fill the fields rather than as a separate way in — attach the
+handwritten card and the fields below fill themselves; attach nothing and the
+same fields are typed by hand. Both paths end at the same four required fields
+and the same consent checkboxes.
+
+A photo is downscaled and JPEG-compressed client-side to fit the 500KB cap
+before anything is sent. `POST /api/submissions/extract` then reads it on
+`SUBMISSION_EXTRACT_MODEL` (handwriting and regional scripts need the
+full-quality tier) and returns fields that prefill the form; the submitter
+corrects every one before anything is stored. What the model read is kept
+beside what the submitter confirmed, as `extracted`, for the pantry to show
+both — nothing the model reads becomes the submitter's own words without that
+confirmation.
+
+**A reading never overwrites words already typed.** The recipe fieldset is
+uncontrolled and remounts on a reading, so a plain prefill would erase a story
+someone wrote before scrolling back up to attach the photo. The reading fills
+only the fields left blank. `extracted` still carries the model's reading
+verbatim — the merge decides what is *shown*, never what is *recorded* as the
+model's work.
+
+`mode` is written from what happened, not from what was offered: a reading
+that landed makes it `image`, and no photo or an unreadable one makes it
+`manual`. That is why `validateSubmission` still has two modes to enforce
+while the form has only one shape.
 
 `validateSubmission` (`src/lib/community/schema.ts`) is the trust boundary —
 the form's required/optional split is convenience, this is the enforcement.

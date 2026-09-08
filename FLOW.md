@@ -601,10 +601,11 @@ readReport(sql) + formatReport()   (src/lib/email/report.ts — shared)
 ## 10. Community submission flow — `POST /api/submissions`
 
 Independent of the conversation thread; the intake side of the community tier
-§2/§3 serve from. Two calls, image mode only makes the first.
+§2/§3 serve from. Two calls; the form makes the first only when a photo is
+attached, which is optional.
 
 ```
-client (Add Your Recipe form, image mode) → POST /api/submissions/extract { photo }
+client (Add Your Recipe form, photo attached) → POST /api/submissions/extract { photo }
   │
   ├─ rate-limit check ("extract:"+clientKey, MAX_EXTRACTS=3 per window)   → 429
   ├─ content-length precheck against MAX_BODY_BYTES                       → 413
@@ -613,7 +614,8 @@ client (Add Your Recipe form, image mode) → POST /api/submissions/extract { ph
         null (no key, or the call failed/threw)         → 503
         {ok:false, reason: not_recipe|unreadable|malformed} → 422
         {ok:true, value}                                → 200 { ok:true, extracted }
-        Stores nothing. The form prefills from `extracted`; the submitter
+        Stores nothing. The form prefills the fields left blank from
+        `extracted` — typing already there is kept — and the submitter
         corrects it before anything reaches the next call.
 
 client → POST /api/submissions  { mode, submission, extracted? }
@@ -638,8 +640,10 @@ client → POST /api/submissions  { mode, submission, extracted? }
   │
   └─ after(): moderate(submission)  (src/lib/community/pipeline.ts)
         one structured gemini-3.1-flash-lite call, given the CONFIRMED text
-        (never the raw `extracted` reading) and the photo — a served card
-        carries both, so the moderator sees everything a reader will
+        (never the raw `extracted` reading) and the photo when one is
+        attached, so the moderator sees everything that was stored. A
+        `manual` doc carries a photo when one was attached but could not be
+        read; `mode` records what happened, not what the form offered.
         → { card: GREEN|RED, reasons[], dish_tag, aliases[], language } | null
         → applyVerdict(id, verdict)  (client.ts)
               writes status + dish{tag,aliases,language}, UNLESS the
