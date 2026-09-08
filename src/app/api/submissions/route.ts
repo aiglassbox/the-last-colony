@@ -2,8 +2,9 @@
 import { after, type NextRequest } from "next/server";
 
 import { applyVerdict, insertSubmission } from "@/lib/community/client";
+import { consumeVerification, releaseVerification } from "@/lib/community/otp";
 import { moderate } from "@/lib/community/pipeline";
-import { MAX_BODY_BYTES, validateSubmission } from "@/lib/community/schema";
+import { MAX_BODY_BYTES, validateProof, validateSubmission } from "@/lib/community/schema";
 import { geoFrom } from "@/lib/events/geo";
 import { checkRate, clientKey } from "@/lib/rate-limit";
 
@@ -52,14 +53,32 @@ export async function POST(request: NextRequest) {
   const checked = validateSubmission(body);
   if (!checked.ok) return Response.json({ errors: checked.errors }, { status: 400 });
 
+  // The proof is an envelope field like `mode`: validated beside the
+  // submission, never stored in it.
+  const proof = validateProof((body as { proof?: unknown }).proof);
+  if (!proof) return Response.json({ errors: ["proof is required"] }, { status: 400 });
+
+  // Spent before the insert, so two submissions racing on one verification
+  // produce one recipe. Released below if the insert then fails, so a retry
+  // does not cost a new code.
+  const verified = await consumeVerification(checked.value.contact, proof);
+  if (!verified.ok) {
+    if (verified.reason === "error") return Response.json({ error: "unavailable" }, { status: 503 });
+    return Response.json({ error: "not_verified" }, { status: 403 });
+  }
+
   const id = await insertSubmission({
     mode: checked.mode,
     submission: checked.value,
     // Spread, not `extracted: undefined` — the driver would store a null.
     ...(checked.extracted && { extracted: checked.extracted }),
     geo: geoFrom(request.headers),
+    contact_verified_at: verified.verified_at,
   });
-  if (!id) return Response.json({ error: "unavailable" }, { status: 503 });
+  if (!id) {
+    await releaseVerification(checked.value.contact, proof);
+    return Response.json({ error: "unavailable" }, { status: 503 });
+  }
 
   /* `after`, not `await`: the reader waits on nothing, and a verdict that
      outlives the platform timeout can no longer become a failed response the
