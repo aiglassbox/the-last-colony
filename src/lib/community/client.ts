@@ -46,6 +46,9 @@ export interface SubmissionDoc {
   extracted?: Extracted;
   /** Audit only. The record's location IS the form's state; on any clash the form wins. */
   geo: Geo;
+  /** When the contact address proved it could read mail, by OTP. Absent on
+   *  seed and scratch documents, which bypass the form. */
+  contact_verified_at?: Date;
   verdict?: {
     card: "GREEN" | "RED";
     reasons: string[];
@@ -60,7 +63,7 @@ export interface SubmissionDoc {
 }
 
 /** What a route hands over. Status and timestamps are the store's to stamp. */
-export type NewSubmission = Pick<SubmissionDoc, "mode" | "submission" | "geo" | "extracted">;
+export type NewSubmission = Pick<SubmissionDoc, "mode" | "submission" | "geo" | "extracted" | "contact_verified_at">;
 
 /** A row of the pantry list: no photo bytes, no contact — the detail view is where PII lives. */
 export interface SubmissionSummary {

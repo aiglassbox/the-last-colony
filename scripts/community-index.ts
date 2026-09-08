@@ -7,6 +7,7 @@
  * of `npm run check` because it needs the store.
  */
 import { communityDb, SUBMISSIONS, TRANSLATIONS } from "../src/lib/community/client";
+import { OTP_CODES } from "../src/lib/community/otp";
 
 (async () => {
   const db = await communityDb();
@@ -29,6 +30,19 @@ import { communityDb, SUBMISSIONS, TRANSLATIONS } from "../src/lib/community/cli
   console.log(
     "translation indexes now:",
     (await tcol.indexes()).map((i) => i.name).join(", "),
+  );
+
+  const ocol = db.collection(OTP_CODES);
+  console.log("created", await ocol.createIndex({ email: 1 }, { name: "email", unique: true }));
+  // An hour after the last touch: a verified document must outlive its
+  // five-minute code by the fifteen-minute hold, with room to spare.
+  // Re-running this script is idempotent, but re-tuning is not: createIndex
+  // with the same name and a different expireAfterSeconds throws
+  // IndexOptionsConflict — changing the hour later needs collMod instead.
+  console.log("created", await ocol.createIndex({ updated_at: 1 }, { name: "ttl", expireAfterSeconds: 3600 }));
+  console.log(
+    "otp indexes now:",
+    (await ocol.indexes()).map((i) => i.name).join(", "),
   );
   process.exit(0);
 })();
