@@ -15,6 +15,24 @@ import { canConsume, decideSend, decideVerify, newCode, OTP, type OtpDoc } from 
  */
 
 export const OTP_CODES = "otp_codes";
+/**
+ * The day's send counter — one document per UTC day, `_id` the day itself.
+ *
+ * Its own collection, not a row in `otp_codes`: that one is unique on `email`
+ * and Mongo reads a missing field as null, so only one address-less document
+ * could ever exist there; and its TTL runs from `updated_at` an hour after the
+ * last touch, which would delete a day's count mid-morning and hand the day a
+ * second full allowance.
+ */
+export const OTP_DAILY = "otp_daily";
+
+/** `_id` is "YYYY-MM-DD" UTC, so today's counter is found without a query. */
+interface DailyDoc {
+  _id: string;
+  /** Codes handed to Resend today; a send that never left is given back. */
+  sends: number;
+  updated_at: Date;
+}
 
 const FROM = "Kranti Cookbook <noreply@kranticookbook.com>";
 const RESEND_URL = "https://api.resend.com/emails";
@@ -27,6 +45,31 @@ function apiKey(): string | null {
 async function codes(): Promise<Collection<OtpDoc> | null> {
   const db = await communityDb();
   return db ? db.collection<OtpDoc>(OTP_CODES) : null;
+}
+
+async function days(): Promise<Collection<DailyDoc> | null> {
+  const db = await communityDb();
+  return db ? db.collection<DailyDoc>(OTP_DAILY) : null;
+}
+
+/** The UTC day, the same boundary `insertSubmission` counts against.
+ *  `toISOString` is UTC by definition, so this is `Date.UTC(y, m, d)` spelt
+ *  as the key it becomes. */
+function utcDay(now: Date): string {
+  return now.toISOString().slice(0, 10);
+}
+
+/**
+ * Blast-radius ceiling on codes sent per UTC day across everybody — not a
+ * per-person limit, which is the cooldown and the cap in `otp-rules.ts`. It
+ * sits under Resend's own hundred a day so our refusal comes first, with
+ * headroom left for the day's other mail. Read per call so a test can set it.
+ * `0` refuses every send; unset or unparseable means the default.
+ */
+export function otpDailyMax(): number {
+  const raw = process.env.OTP_DAILY_MAX?.trim();
+  const n = raw ? Number(raw) : 90;
+  return Number.isFinite(n) && n >= 0 ? n : 90;
 }
 
 /** Logs which of the two fail-closed causes tripped a guard, so a dead form
@@ -74,7 +117,8 @@ export type SendResult =
 /**
  * Writes the new code first and sends second, and rolls the write back if
  * the mail never left: a person must not be charged a send, or start a
- * cooldown, for an email they did not get.
+ * cooldown, for an email they did not get. The day's counter is spent and
+ * rolled back on exactly the same two paths, for the same reason.
  *
  * ponytail: read-decide-replace is not atomic, so two sends landing together
  * can both pass the cooldown; the per-IP limiter is the real ceiling there.
@@ -86,7 +130,8 @@ export type SendResult =
 export async function sendCode(email: string, now = new Date()): Promise<SendResult> {
   const key = apiKey();
   const col = await codes();
-  if (!key || !col) {
+  const daily = await days();
+  if (!key || !col || !daily) {
     logGuardMiss(key, col);
     return { ok: false, status: 503 };
   }
@@ -96,10 +141,39 @@ export async function sendCode(email: string, now = new Date()): Promise<SendRes
     const decision = decideSend(existing, email, code, key, now);
     if (!decision.ok) return { ok: false, status: 429, reason: decision.reason, retryAfter: decision.retryAfter };
 
+    // The day's budget is spent here: after the per-address decision, so a
+    // cooldown or cap refusal costs nothing from it, and before the code is
+    // written, so an exhausted day charges nobody a cooldown for mail that
+    // was never going to go out. $inc and read back the value the write
+    // produced, so two sends racing for the last slot get two different
+    // numbers and only one of them is under the ceiling. A throw here lands
+    // in the outer catch and refuses: an uncountable day sends nothing —
+    // including the one case that is not a real fault, two sends racing to
+    // create the day's very first document, where one gets a duplicate key on
+    // `_id` and is told to try again a moment later.
+    const day = utcDay(now);
+    const max = otpDailyMax();
+    const today = await daily.findOneAndUpdate(
+      { _id: day },
+      { $inc: { sends: 1 }, $set: { updated_at: now } },
+      { upsert: true, returnDocument: "after" },
+    );
+    if (!today) {
+      console.error("[otp] daily counter unreadable; refusing send");
+      return { ok: false, status: 503 };
+    }
+    if (today.sends > max) {
+      // Its own line, so an exhausted day greps apart from a Resend outage.
+      console.error(`[otp] daily ceiling reached (${today.sends}/${max}); refusing send`);
+      return { ok: false, status: 503 };
+    }
+
     await col.replaceOne({ email }, decision.doc, { upsert: true });
     if (!(await deliver(email, code, key))) {
       if (existing) await col.replaceOne({ email }, existing);
       else await col.deleteOne({ email });
+      // Given back with the code, and for the same reason: no mail left.
+      await daily.updateOne({ _id: day }, { $inc: { sends: -1 }, $set: { updated_at: now } });
       return { ok: false, status: 503 };
     }
     return { ok: true, expiresIn: OTP.lifeMs / 1000, resendIn: OTP.cooldownMs / 1000 };

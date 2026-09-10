@@ -619,6 +619,45 @@ its own cookie, because it shows submitters' contact details and a kitchen
 session must open nothing there. The auth route is a factory too; the kitchen's
 route shrank to naming its gate.
 
+**A recipe is submitted by an address that just read a code — settled
+2026-09-08.** The contact field was "email or phone", free text, unverified.
+It is now an email, and the submit carries a proof that this browser entered
+the six-digit code sent to it. Resend delivers the mail (free tier, one POST,
+no SDK); the state — hashed code, expiry, send window, wrong tries,
+verification, proof, consumption — is one document per email in `otp_codes`,
+beside `submissions` in Atlas, because a submission could not land without
+Atlas anyway. Every rule is a pure function in `otp-rules.ts` over that
+document and a clock, so `scripts/check-otp.ts` walks a whole life of an
+address offline. The numbers: five-minute code, three-minute resend cooldown,
+three sends per email per five minutes, three wrong tries lock the code,
+fifteen-minute hold, one submission per verification, three sends and fifteen
+guesses per IP per window. The cooldown makes that per-email cap a backstop
+rather than a budget: with three minutes between sends only two fit inside a
+five-minute window, so nobody reaches three. It stays because it is the rule
+that holds if the cooldown is ever shortened. No session, no cookie, no phone,
+no dev bypass: without `RESEND_API_KEY` the send route answers 503 and the form
+cannot submit. The code is hashed with the Resend key rather than a new secret,
+because it is a secret the feature already cannot run without.
+
+**And a global ceiling on the day's codes — settled 2026-09-10.** The rules
+above are all per address, and the only thing standing between a script and
+Resend's free hundred a day was the per-IP limiter, which cannot hold that
+line: it keys on a forwarding header the client sets, and it counts in memory
+on one instance, so neither the key nor the count is ours. Spent, every send
+answers 503 and the form reads "unavailable" to everyone until midnight with
+nothing in the log to say why. `OTP_DAILY_MAX` (default 90, under Resend's 100
+so our refusal comes first) counts against one document per UTC day in
+`otp_daily` — its own collection, because `otp_codes` is unique on `email` and
+expires an hour after its last touch, which would delete a live count. The
+count is spent after the per-address decision and before the mail leaves, and
+given back beside the code when delivery fails, so neither a cooldown refusal
+nor an email that never arrived costs the day anything. It exists to bound the
+blast radius and make the refusal ours and legible, not to limit people, and it
+is deliberately global: no per-person allowance is attached to it, because the
+cooldown and the cap are already the per-person rules and a daily allowance
+would need a per-person identity this feature does not have.
+→ `.docs/specs/2026-09-08-email-otp-design.md`
+
 **A corpus candidate carries no contact and can never claim ATTESTED.** The
 pantry's download is a GREEN submission in the corpus record's shape, for a
 human to incorporate by hand: `MODERN_DISH`, `unverified_seed`, no

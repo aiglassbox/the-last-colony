@@ -190,7 +190,7 @@ export function AddRecipeForm() {
       // A 503 keeps the verification if the server managed to release it, and
       // silently spends it if that release failed too. Either way the retry
       // is the same button, and a spent one comes back as the 403 above.
-      else setErrors(["Submissions are unavailable right now. Your recipe was not lost — please try later."]);
+      else setErrors(["Submissions are unavailable right now. Your recipe was not lost — please try later. You may need to verify your email again."]);
     } finally {
       setBusy(false);
     }

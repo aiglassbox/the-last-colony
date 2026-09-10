@@ -478,6 +478,27 @@ checkboxes are required. `POST /api/submissions` is rate-limited to three
 submissions per five-minute window per client and refuses a body over 1MB
 before it is even read.
 
+**The contact is a verified email.** The block above the consent boxes sends
+a six-digit code through Resend (`POST /api/otp/send`), takes it back
+(`POST /api/otp/verify`), and hands the form a proof that the submit must
+carry; `POST /api/submissions` spends that proof before it inserts, so two
+submissions racing on one proof produce one recipe. A write that commits and
+then reports failure — a driver throw as much as a genuine refusal — releases
+the proof again, so a retry can land a second recipe on it; duplicates were
+already possible before this feature and moderation catches them. A code
+lives five minutes, a resend waits three minutes, three wrong tries lock it,
+and a verification holds for fifteen minutes — the form says so, and tells
+people to fill the recipe in first. Every rule is a pure function in
+`src/lib/community/otp-rules.ts` checked offline by `scripts/check-otp.ts`;
+the state is one document per email in `otp_codes`, with the code stored as
+an HMAC keyed by `RESEND_API_KEY`. Without that key the send route answers
+503 and nothing can be submitted. `npm run community:index` creates the two
+indexes `otp_codes` needs — a unique one on `email`, without which two
+simultaneous first sends can create two documents and the wrong one may be
+read back, and the TTL expiry index — before any new environment can rely on
+this store; the offline suite cannot check either, since both need the store
+itself.
+
 ### Moderation
 
 A single structured call (`moderate`, `src/lib/community/pipeline.ts`, on

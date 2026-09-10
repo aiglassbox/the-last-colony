@@ -6,6 +6,9 @@
  *
  * Offline: the rules are pure functions over a document and `now`, and the
  * hash key is a parameter, so nothing here needs an env var or the store.
+ * `otpDailyMax` is the one import that reaches otp.ts, and therefore the
+ * mongodb package — reading a knob opens no connection, exactly as
+ * check-submissions.ts already pins `dailyMax` from client.ts.
  */
 import {
   canConsume,
@@ -18,6 +21,7 @@ import {
   OTP,
   type OtpDoc,
 } from "../src/lib/community/otp-rules";
+import { otpDailyMax } from "../src/lib/community/otp";
 import { normalizeEmail, validateProof, validateSubmission } from "../src/lib/community/schema";
 
 let failed = 0;
@@ -138,6 +142,23 @@ check("consume: never verified", !canConsume(d1, "a@b.com", proof, at(70)));
 check("consume: only once", !canConsume({ ...verified, consumed_at: at(65) }, "a@b.com", proof, at(70)));
 check("consume: a proof of another length does not throw", !canConsume(verified, "a@b.com", "short", at(70)));
 check("consume: no document", !canConsume(null, "a@b.com", proof, at(70)));
+
+// --- the day's ceiling, the same knob conventions as SUBMISSION_DAILY_MAX ------
+// It bounds the blast radius on Resend's allowance rather than limiting a
+// person, so the default sits under the provider's own hundred a day and our
+// refusal comes first.
+delete process.env.OTP_DAILY_MAX;
+check("otpDailyMax: unset means 90", otpDailyMax() === 90);
+check("otpDailyMax: the default leaves headroom under Resend's 100 a day", otpDailyMax() < 100);
+process.env.OTP_DAILY_MAX = "0";
+check("otpDailyMax: 0 refuses every send", otpDailyMax() === 0);
+process.env.OTP_DAILY_MAX = "  250 ";
+check("otpDailyMax: trimmed number", otpDailyMax() === 250);
+process.env.OTP_DAILY_MAX = "abc";
+check("otpDailyMax: garbage means 90", otpDailyMax() === 90);
+process.env.OTP_DAILY_MAX = "-5";
+check("otpDailyMax: negative means 90", otpDailyMax() === 90);
+delete process.env.OTP_DAILY_MAX;
 
 if (failed > 0) {
   console.error(`\ncheck-otp: ${failed} failure(s)`);

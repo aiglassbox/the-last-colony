@@ -601,8 +601,9 @@ readReport(sql) + formatReport()   (src/lib/email/report.ts — shared)
 ## 10. Community submission flow — `POST /api/submissions`
 
 Independent of the conversation thread; the intake side of the community tier
-§2/§3 serve from. Two calls; the form makes the first only when a photo is
-attached, which is optional.
+§2/§3 serve from. Four calls; the form makes the first only when a photo is
+attached, which is optional, and the two in the middle are the email
+verification Submit waits on.
 
 ```
 client (Add Your Recipe form, photo attached) → POST /api/submissions/extract { photo }
@@ -618,7 +619,42 @@ client (Add Your Recipe form, photo attached) → POST /api/submissions/extract 
         `extracted` — typing already there is kept — and the submitter
         corrects it before anything reaches the next call.
 
-client → POST /api/submissions  { mode, submission, extracted? }
+client → POST /api/otp/send  { email }
+  │
+  ├─ rate-limit check ("otp-send:"+clientKey, 3 per five minutes)       → 429
+  ├─ content-length over 1 KB                                           → 413
+  ├─ normalizeEmail(email)  (schema.ts: trimmed, lowercased, one @,
+  │     a dot after it, no whitespace, ≤120)                            → 400
+  └─ sendCode(email)  (src/lib/community/otp.ts)
+        no RESEND_API_KEY, or no store                                  → 503
+        decideSend(existing doc, now)  (otp-rules.ts)
+          under 3 minutes since the last send → 429 { error: "cooldown", retryAfter }
+          3 sends already in the open 5-minute window → 429 { error: "cap", retryAfter }
+          The cooldown makes that cap a backstop, not a budget: 3 minutes
+          apart, only two sends fit in a five-minute window, so nobody
+          reaches three. It holds if the cooldown is ever shortened.
+        replaceOne the document (new hash, expiry now+5 min, attempts 0,
+          sends+1 or a new window; verified_at/proof/consumed_at gone)
+        one POST to api.resend.com/emails, plain text, 8 s timeout
+          failure → the replace is rolled back                          → 503
+        → 200 { ok, expiresIn: 300, resendIn: 180 }  (seconds on the wire:
+          the 5-minute life and the 3-minute cooldown, for the form's clocks)
+
+client → POST /api/otp/verify  { email, code }
+  │
+  ├─ rate-limit check ("otp-verify:"+clientKey, 15 per five minutes)    → 429
+  ├─ content-length over 1 KB                                           → 413
+  ├─ email shape, code /^\d{6}$/                                        → 400
+  └─ verifyCode(email, code)
+        decideVerify(doc, code, now)
+          no doc, expired, or already verified → 410 { error: "expired" }
+          attempts ≥ 3 → 410 { error: "locked" }
+          hash mismatch → $inc attempts; 400 { error: "wrong_code", attemptsLeft }
+            or 410 { error: "locked" } when that was the third
+          match → $set verified_at + proof (filtered on "not yet verified")
+        → 200 { ok, proof, holdMinutes: 15 }
+
+client → POST /api/submissions  { mode, submission, extracted?, proof }
   │
   ├─ rate-limit check ("submit:"+clientKey, MAX_SUBMITS=3 per five minutes)
   │     → 429. Three per window is a person filling in a form, not a loop —
@@ -629,11 +665,21 @@ client → POST /api/submissions  { mode, submission, extracted? }
   │     is known; a missing/unparseable length is refused too, since a
   │     chunked body is the one shape that could bypass the cap    → 413
   ├─ validateSubmission(body)                                       → 400
-  ├─ insertSubmission({ mode, submission, extracted?, geo })
-  │     (src/lib/community/client.ts) → hex id, or null on a store outage
+  │     contact must be an email; it is lowercased (the one normalisation)
+  ├─ validateProof(body.proof)  (64 hex)                            → 400
+  ├─ consumeVerification(contact, proof)  (otp.ts)
+  │     canConsume: right email, right proof, verified_at within 15 min,
+  │     not consumed → $set consumed_at (filtered on "not consumed", so
+  │     two submits on one proof land one recipe)
+  │     store unreachable → 503; otherwise no match → 403 { error: "not_verified" }
+  ├─ insertSubmission({ mode, submission, extracted?, geo, contact_verified_at })
+  │     (src/lib/community/client.ts) — the submission document is written
+  │     with contact_verified_at on it. → hex id, or null on a store outage
   │     or the daily insert ceiling (SUBMISSION_DAILY_MAX, default 100,
   │     count-then-insert — ponytail: can overshoot by a request or two
   │     under load)                                                 → 503
+  │     the insert failing → releaseVerification($unset consumed_at) on the
+  │     OTP document, so the retry needs no new code
   ├─ 201 { ok:true } returned immediately — the verdict is never in the
   │     response: GREEN and RED both answer the same 201, so a spammer who
   │     can read the verdict cannot tune against it

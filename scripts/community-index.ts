@@ -7,7 +7,7 @@
  * of `npm run check` because it needs the store.
  */
 import { communityDb, SUBMISSIONS, TRANSLATIONS } from "../src/lib/community/client";
-import { OTP_CODES } from "../src/lib/community/otp";
+import { OTP_CODES, OTP_DAILY } from "../src/lib/community/otp";
 
 (async () => {
   const db = await communityDb();
@@ -43,6 +43,21 @@ import { OTP_CODES } from "../src/lib/community/otp";
   console.log(
     "otp indexes now:",
     (await ocol.indexes()).map((i) => i.name).join(", "),
+  );
+
+  // The day's send counter. No lookup index: `_id` is the UTC day, so today's
+  // document is found by its key. The TTL is only housekeeping — and it runs
+  // from the last write, so it must outlast the longest gap between two sends
+  // inside one day, which is a whole day. An hour, the code documents' figure,
+  // would delete a live count and hand that day a second full allowance.
+  // Seven days clears that by a wide margin and keeps a week to read back.
+  // Re-tuning is not idempotent: the same name with a different
+  // expireAfterSeconds throws IndexOptionsConflict — use collMod.
+  const dcol = db.collection(OTP_DAILY);
+  console.log("created", await dcol.createIndex({ updated_at: 1 }, { name: "ttl", expireAfterSeconds: 604800 }));
+  console.log(
+    "otp daily indexes now:",
+    (await dcol.indexes()).map((i) => i.name).join(", "),
   );
   process.exit(0);
 })();
