@@ -72,10 +72,71 @@ check("survives a code fence around the JSON", () => {
   assert.equal(n.english, "khichdi");
 });
 
+// parseNormalizeResponse — scope, the off-topic gate's only input
+//
+// Every one of these asserts the same property from a different direction: the
+// gate fails open. "other" is the one string that refuses a reader, so anything
+// short of the detector saying it plainly has to come back "food".
+const withScope = (scope: string) =>
+  `{"lang":"en","script":"roman","register":"roman","confidence":0.9,"english":"","scope":"${scope}"}`;
+
+check("an explicit other is the only thing that refuses", () => {
+  assert.equal(parseNormalizeResponse(withScope("other"), "history of world war 1").scope, "other");
+});
+
+check("an explicit food is food", () => {
+  assert.equal(parseNormalizeResponse(withScope("food"), "how long do I roast it").scope, "food");
+});
+
+check("a missing scope field is food", () => {
+  const n = parseNormalizeResponse(
+    '{"lang":"en","script":"roman","register":"roman","confidence":0.9,"english":"dosa"}',
+    "dosa",
+  );
+  assert.equal(n.scope, "food");
+});
+
+check("an unrecognised scope value is food", () => {
+  assert.equal(parseNormalizeResponse(withScope("OTHER"), "x").scope, "food");
+  assert.equal(parseNormalizeResponse(withScope("offtopic"), "x").scope, "food");
+});
+
+check("malformed JSON is food, so an outage cannot refuse anyone", () => {
+  assert.equal(parseNormalizeResponse("not json at all", "dosa").scope, "food");
+  assert.equal(enFallback("dosa").scope, "food");
+});
+
+// The topic judgement is independent of the language judgement: `confidence`
+// grades `lang` and nothing else, so a weak detection must not quietly turn an
+// off-topic message back into an answerable one.
+check("scope survives the language fallback", () => {
+  const weak = `{"lang":"hi","script":"native","register":"native","confidence":${
+    CONFIDENCE_THRESHOLD - 0.1
+  },"english":"","scope":"other"}`;
+  const n = parseNormalizeResponse(weak, "कुछ");
+  assert.equal(n.fell_back, true);
+  assert.equal(n.lang, "en");
+  assert.equal(n.scope, "other");
+});
+
+check("scope survives an unsupported language", () => {
+  const urdu =
+    '{"lang":"ur","script":"native","register":"native","confidence":0.95,"english":"","scope":"other"}';
+  assert.equal(parseNormalizeResponse(urdu, "کچھ").scope, "other");
+});
+
+// The refusal the route emits without calling a model. Localized like the rest
+// of the chrome, English until `localize:ui` fills the other seven.
+check("the off-topic refusal asks for a dish", () => {
+  assert.match(EN_UI_STRINGS.offTopic, /dish/);
+  assert.equal(uiStrings(undefined).offTopic, EN_UI_STRINGS.offTopic);
+  assert.equal(uiStrings("hi").offTopic.length > 0, true);
+});
+
 // replyInstruction
 const mk = (over: Partial<Normalized>): Normalized => ({
   lang: "hi", script: "native", register: "native", confidence: 0.9,
-  english: "idli", fell_back: false, ...over,
+  english: "idli", fell_back: false, scope: "food", ...over,
 });
 
 check("instruction names the target language", () => {

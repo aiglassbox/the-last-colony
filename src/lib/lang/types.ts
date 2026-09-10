@@ -44,6 +44,15 @@ export function isSupported(code: string): code is SupportedLang {
  * authored in. On low confidence or an unsupported language, `lang` is "en" and
  * `english` is the original string unchanged.
  */
+/**
+ * Whether the message is about food at all.
+ *
+ * Not the same question as "does it name a dish". "how long do I roast it" names
+ * no dish and is squarely food; "give me the history of world war 1" names no
+ * dish either, and answering it is the bug this exists to close.
+ */
+export type QueryScope = "food" | "other";
+
 export interface Normalized {
   lang: SupportedLang;
   /** The writing system the user used. */
@@ -56,6 +65,14 @@ export interface Normalized {
   english: string;
   /** True when detection was too weak or the language is unsupported. */
   fell_back: boolean;
+  /**
+   * What the message is about. Only "other" refuses a turn, so every uncertain
+   * path resolves to "food": a malformed reply, an exhausted quota, a network
+   * failure and a missing key all land in `enFallback`, and a default of
+   * "other" there would refuse every reader the moment the detector went down.
+   * The gate fails open by construction, not by a check somewhere.
+   */
+  scope: QueryScope;
 }
 
 /** The safe result: reply in English, retrieve on the untranslated string. */
@@ -67,5 +84,6 @@ export function enFallback(original: string): Normalized {
     confidence: 1,
     english: original,
     fell_back: true,
+    scope: "food",
   };
 }

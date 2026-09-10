@@ -135,10 +135,52 @@ export function collapseGloss(text: string): string {
   return out;
 }
 
+/**
+ * Product names that contain a word this file otherwise rewrites.
+ *
+ * A shop's product name is a proper noun and the reader has to be able to type
+ * it into a search box, so it is one of the "compounds worth protecting" the
+ * note above sets aside. Left alone, the bare pass turns Single Origin Lakadong
+ * Turmeric Powder into "Single Origin Lakadong haldi", which is the right
+ * English word for the wrong purpose: the shop has never heard of it.
+ *
+ * Deliberately not the whole catalogue. Only the names that actually collide
+ * with an entry in BARE belong here, and the sourcing section of the system
+ * prompt is where the full list lives.
+ */
+const PROTECTED = [
+  "Single Origin Lakadong Turmeric Powder",
+  "Salem Haldi (Ground Turmeric)",
+  "Besan Flour (Gram Flour)",
+];
+
 export function restoreBareWord(text: string): string {
   let out = text;
   for (const [pattern, indian] of BARE) out = out.replace(pattern, indian);
   return out;
+}
+
+/**
+ * Hide the protected product names, run `pass`, then put them back.
+ *
+ * Both passes have to be covered and not just the bare one: "Salem Haldi
+ * (Ground Turmeric)" is exactly the shape `collapseGloss` exists to collapse,
+ * so left unmasked it loses its English half to the gloss pass before the bare
+ * pass ever sees it.
+ *
+ * The token is bracketed and hyphenated so that no pattern in either list can
+ * match inside it, and no completion produces one by accident.
+ */
+function aroundProtected(text: string, pass: (s: string) => string): string {
+  const held: string[] = [];
+  let out = text;
+  for (const name of PROTECTED) {
+    if (!out.includes(name)) continue;
+    out = out.split(name).join("[[held-" + held.length + "]]");
+    held.push(name);
+  }
+  out = pass(out);
+  return held.reduce((s, name, i) => s.split("[[held-" + i + "]]").join(name), out);
 }
 
 /**
@@ -147,5 +189,5 @@ export function restoreBareWord(text: string): string {
  * into "ghee (ghee)" and then collapsed by luck.
  */
 export function restoreIndianWords(text: string): string {
-  return restoreBareWord(collapseGloss(text));
+  return aroundProtected(text, (t) => restoreBareWord(collapseGloss(t)));
 }

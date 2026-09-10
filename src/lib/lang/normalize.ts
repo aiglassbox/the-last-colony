@@ -1,5 +1,5 @@
 import { activeProvider } from "@/lib/model/provider";
-import { enFallback, isSupported, type Normalized } from "./types";
+import { enFallback, isSupported, type Normalized, type QueryScope } from "./types";
 
 /**
  * Detect the language of a dish query and translate it to English.
@@ -22,7 +22,7 @@ English, Hindi, Bengali, Marathi, Telugu, Tamil, Gujarati, Kannada, or Urdu —
 in native script, romanized (Latin letters), or mixed Hinglish.
 
 Reply with ONE JSON object and nothing else:
-{"lang":"<iso639-1>","script":"native|roman","register":"native|hinglish|roman","confidence":0..1,"english":"<the query in English>"}
+{"lang":"<iso639-1>","script":"native|roman","register":"native|hinglish|roman","confidence":0..1,"english":"<the query in English>","scope":"food|other"}
 
 Rules:
 - lang is the ISO 639-1 code: en, hi, bn, mr, te, ta, gu, kn, ur.
@@ -68,6 +68,18 @@ Rules:
   fruit" and not "dal". A dish you do not recognise is returned as typed
   (romanized if it arrived in native script).
 - confidence is your certainty about lang, 0 to 1.
+- scope is what the message is ABOUT, and it is a separate question from
+  whether a dish is named. "food" covers anything this kitchen answers: a
+  dish, an ingredient, a cooking method, a quantity or ratio, a substitution,
+  equipment, a shop or where to buy something, what a reply said, and the
+  reader asking what this project is or who is answering. A message with no
+  dish in it is still "food" when it is a cooking question: "how long do I
+  roast it", "is that ratio by weight", "what oil instead", "you got that
+  wrong", "who are you" and "what can you do" are all food.
+  "other" is only for a message that is about something else entirely, where
+  answering it would mean leaving food behind: "give me the history of world
+  war 1", "write me a python script", "who won the election", "solve this
+  equation". If you are not sure, answer "food".
 - Output the JSON only. No markdown, no code fence, no commentary.`;
 
 /**
@@ -95,19 +107,24 @@ export function parseNormalizeResponse(
   const confidence = typeof obj.confidence === "number" ? obj.confidence : 0;
   const english =
     typeof obj.english === "string" && obj.english.trim() ? obj.english.trim() : original;
+  // Only the exact string refuses a turn. A missing field, a typo, a
+  // translated word, anything at all: food. See `QueryScope`.
+  const scope: QueryScope = obj.scope === "other" ? "other" : "food";
 
   // Unsupported language (Urdu included) or weak detection: English fallback,
   // but keep the model's English translation if it produced one — a usable
-  // English query still beats retrieving on Urdu script.
+  // English query still beats retrieving on Urdu script. `scope` survives too:
+  // `confidence` grades the language, never the topic, and a question about
+  // world war 1 is off topic whichever language it failed to be.
   if (!isSupported(lang) || confidence < threshold) {
-    return { ...enFallback(original), english };
+    return { ...enFallback(original), english, scope };
   }
 
   const script = obj.script === "native" ? "native" : "roman";
   const register =
     obj.register === "native" ? "native" : obj.register === "hinglish" ? "hinglish" : "roman";
 
-  return { lang, script, register, confidence, english, fell_back: false };
+  return { lang, script, register, confidence, english, fell_back: false, scope };
 }
 
 export async function normalize(query: string): Promise<Normalized> {
@@ -118,6 +135,13 @@ export async function normalize(query: string): Promise<Normalized> {
   // English dish name ("dosa", "khichdi"); skip the call. Anything longer may be
   // Hinglish ("idli kaise banti hai"), which must be detected so the reply can
   // mirror it, so it goes through the model.
+  //
+  // No model runs here, so `scope` is never judged for a one-word query and
+  // `enFallback` leaves it "food". A one-word off-topic message ("bitcoin",
+  // "hitler") therefore misses the cheap gate and falls to MODE: DECLINE on
+  // the resolver. That is the deliberate trade: paying a temp-0 call on every
+  // "dosa" to catch a rarer shape costs more, and more latency, than the
+  // backstop it would replace.
   if (/^[a-z]+$/i.test(trimmed)) {
     return { ...enFallback(trimmed), fell_back: false, register: "roman" };
   }

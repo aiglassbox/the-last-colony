@@ -44,15 +44,34 @@ export function hasRecord(kind: TurnKind): boolean {
 }
 
 /** What the model declares on a corpus miss, before it is mapped to a turn. */
-export type Resolved = "indianise" | "modern" | "restore" | "reply";
+export type Resolved = "indianise" | "modern" | "restore" | "reply" | "decline";
 
-/** How a resolved turn renders, and the reason the card states for it. */
+/**
+ * How a resolved turn renders, and the reason the card states for it.
+ *
+ * `decline` renders exactly like `reply`, and that is the point: a refusal is
+ * prose, never a card. The two are separate resolutions anyway because they are
+ * different events — one is an answer, the other is a turn we chose not to
+ * spend, and the analytics that tell a corpus gap from a non sequitur cannot
+ * read them as the same thing.
+ */
 export const RESOLUTION: Record<Resolved, { mode: TurnMode; kind: TurnKind | null }> = {
   indianise: { mode: "indianize", kind: "foreign" },
   modern: { mode: "restoration", kind: "modern" },
   restore: { mode: "restoration", kind: "gap" },
   reply: { mode: "conversation", kind: null },
+  decline: { mode: "conversation", kind: null },
 };
+
+/**
+ * The mode words, in one place.
+ *
+ * The route builds the declaration line and parses it back, and those two lived
+ * as separate hand-written regexes that had already drifted once. A word added
+ * to the union but missing from a parser leaves the literal "MODE: DECLINE"
+ * line in the reply, rendered to the reader as text.
+ */
+export const MODE_LINE = /MODE:\s*(INDIANISE|MODERN|RESTORE|REPLY|DECLINE)/i;
 
 /** A card-shaped opening: the model went straight into the markers. */
 const CARD_SHAPED = /§\s*(VERDICT|THEN|WHAT_CHANGED|RESTORE_TODAY|REBUILD|SWAPS|PLATE)\s*§/i;
@@ -71,12 +90,13 @@ const CARD_SHAPED = /§\s*(VERDICT|THEN|WHAT_CHANGED|RESTORE_TODAY|REBUILD|SWAPS
  * and the source of most of its wrong answers.
  */
 export function parseResolved(head: string): Resolved {
-  const m = /MODE:\s*(INDIANISE|MODERN|RESTORE|REPLY)/i.exec(head);
+  const m = MODE_LINE.exec(head);
   const word = m?.[1].toUpperCase();
   if (word === "INDIANISE") return "indianise";
   if (word === "MODERN") return "modern";
   if (word === "REPLY") return "reply";
   if (word === "RESTORE") return "restore";
+  if (word === "DECLINE") return "decline";
   return CARD_SHAPED.test(head) ? "restore" : "reply";
 }
 
