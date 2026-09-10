@@ -12,7 +12,6 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 
 import type { Conversation } from "@/lib/chat/store";
 import { fill, type UiStrings } from "@/lib/lang/ui-strings";
@@ -72,7 +71,6 @@ export function Sidebar({
   t,
 }: SidebarProps) {
   const ref = useRef<HTMLElement>(null);
-  const router = useRouter();
   const [recentOpen, setRecentOpen] = useState(true);
 
   // While floating, Escape puts it away — the same expectation any overlay sets.
@@ -178,17 +176,6 @@ export function Sidebar({
               collapsed={collapsed}
               onClick={() => onViewChange("chat")}
               current
-            />
-          </li>
-          <li>
-            <SideItem
-              label={t.addRecipe}
-              /* The drawn pot from the form comp, in place of the lucide one —
-                 the only illustrated mark on the rail. Decorative: the row is
-                 named by its label. */
-              icon={<span className="side-item__art" aria-hidden />}
-              collapsed={collapsed}
-              onClick={() => router.push("/add-recipe")}
             />
           </li>
           <li>
