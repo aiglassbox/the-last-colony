@@ -6,7 +6,8 @@ import { db } from "@/lib/db/client";
 import { formatReport, readReport } from "@/lib/email/report";
 
 /**
- * GET /api/email-report?token=<EMAIL_REPORT_TOKEN>&sent=2000[&tokens=1]
+ * GET /api/email-report?sent=2000[&tokens=1]
+ *   Authorization: Bearer <EMAIL_REPORT_TOKEN>   (or ?token=… from a browser tab)
  *
  * The campaign's numbers, for whoever cannot get at a connection string.
  *
@@ -50,7 +51,14 @@ export async function GET(request: NextRequest) {
 
   // A wrong token gets the same 404 as an unconfigured route, so probing cannot
   // even establish that a report exists here.
-  if (!tokenMatches(request.nextUrl.searchParams.get("token"), expected)) return denied();
+  //
+  // The header is read first. A token in the query string lands in browser
+  // history, request logs and wherever the URL gets pasted; `?token=` stays
+  // for the browser-tab reader the header comment describes, and a terminal
+  // can send `Authorization: Bearer <token>` instead.
+  const bearer = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim() || null;
+  const supplied = bearer ?? request.nextUrl.searchParams.get("token");
+  if (!tokenMatches(supplied, expected)) return denied();
 
   const sql = db();
   if (!sql) {

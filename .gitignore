@@ -7,6 +7,10 @@ next-env.d.ts
 .env
 .env.local
 .DS_Store
+# Next, tsx and the Mongo driver all write connection errors — hosts included — to logs.
+*.log
+# Per-user Claude Code permissions; the shared .claude/launch.json stays tracked.
+.claude/settings.local.json
 
 # --- pipeline/ -------------------------------------------------------------
 # The retrieval engine is a second npm package inside this repo: its own
@@ -21,7 +25,11 @@ pipeline/data/raw/
 # Generated authoring sheets — regenerate with npm run make-today
 pipeline/data/make-today-sheet.md
 .vercel
-.env*
+# Every real env file, at any depth. The two examples are tracked on purpose,
+# and a plain `.env*` also swallowed any new example file silently.
+.env.*
+!.env.example
+!pipeline/.env.example
 
 EXPLANATION.md
 LOCAL_AGENTS.md

@@ -1,7 +1,8 @@
 // src/lib/community/pipeline.ts
 import { GoogleGenAI, Type, type Part } from "@google/genai";
 
-import { dishTag, normalizeDish } from "./normalize";
+import { isSupported } from "../lang/types";
+import { dishTag, isGenericDish, normalizeDish } from "./normalize";
 import type { SubmissionInput } from "./schema";
 
 /**
@@ -26,6 +27,7 @@ export interface Verdict {
   reasons: string[];
   dish_tag: string;
   aliases: string[];
+  language: string;
   model: string;
 }
 
@@ -46,7 +48,12 @@ Otherwise issue "GREEN". A submitter's own name, state, city, language, and the 
 
 Also name the dish:
 - dish_tag: the canonical dish name in lowercase Latin kebab-case, e.g. "vada-pav"
-- aliases: common spellings and romanizations a reader might type, including the name in its original script, e.g. ["vada pav", "wada pav", "vada pao", "वडा पाव"]`;
+- aliases: common spellings and romanizations a reader might type, including the name in its original script, e.g. ["vada pav", "wada pav", "vada pao", "वडा पाव"]
+- include the SHORT form when people commonly say it on its own, in both scripts: "litti" and "लिट्टी" for litti chokha, "misal" for misal pav, "undhiyu" for undhiyu. A reader who types half the name must still find the dish — the match asks whether their words contain one of these, so a name they never type in full is a name they never find.
+- include BOTH the singular and the plural when English uses them, in every script you list: "brownie" and "brownies", "samosa" and "samosas". A reader typing one must not miss a recipe stored under the other — the match asks whether their words contain a stored form, so "brownie" does not reach a row whose only alias is "brownies".
+- but never shorten to a word that names a category or a component rather than this dish: not "pav", "dal", "curry", "rice", "chokha" on its own, and not "kadhi" for sol kadhi — kadhi is a different dish. If the short form would name something else, or would match questions that have nothing to do with this recipe, leave it out. A missing alias costs one reader's search; a wrong one answers everybody's.
+- language: the ISO 639-1 code of the language most of the submission is written in — one of en, hi, bn, mr, te, ta, gu, kn — or "" if it is none of those or you are unsure
+- judge the language, not the script. An Indian language written in Latin letters is still that language: "aloo ko boil karke mash kar lo" is hi, not en, and romanized Marathi is mr. English carrying a few borrowed dish or ingredient names is still en.`;
 
 export async function moderate(sub: SubmissionInput): Promise<Verdict | null> {
   const key = process.env.GEMINI_API_KEY;
@@ -57,7 +64,6 @@ export async function moderate(sub: SubmissionInput): Promise<Verdict | null> {
     `Recipe name: ${sub.recipe_name}`,
     `State: ${sub.state}${sub.city ? `, ${sub.city}` : ""}`,
     `Belongs to: ${sub.belongs_to}${sub.belongs_to_other ? ` (${sub.belongs_to_other})` : ""}`,
-    `Language: ${sub.language}`,
     `Story: ${sub.story}`,
     `Ingredients: ${sub.ingredients}`,
     `Method: ${sub.method}`,
@@ -85,8 +91,9 @@ export async function moderate(sub: SubmissionInput): Promise<Verdict | null> {
             reasons: { type: Type.ARRAY, items: { type: Type.STRING } },
             dish_tag: { type: Type.STRING },
             aliases: { type: Type.ARRAY, items: { type: Type.STRING } },
+            language: { type: Type.STRING },
           },
-          required: ["card", "reasons", "dish_tag", "aliases"],
+          required: ["card", "reasons", "dish_tag", "aliases", "language"],
         },
       },
     });
@@ -97,16 +104,29 @@ export async function moderate(sub: SubmissionInput): Promise<Verdict | null> {
     // The tag is what Phase 4 matches on. An empty one from the model falls
     // back to the submitter's own name for the dish; if even that normalises
     // to nothing, the verdict is malformed and the doc stays pending.
-    const dish_tag = dishTag(String(parsed.dish_tag ?? "")) || dishTag(sub.recipe_name);
-    if (!dish_tag) return null;
+    //
+    // A tag that is only category words is treated as no tag: "chicken curry"
+    // would match every query with those words in it. The doc stays pending
+    // and the log says why, so the operator can see it rather than publish it.
+    const tagged = dishTag(String(parsed.dish_tag ?? "")) || dishTag(sub.recipe_name);
+    const dish_tag = isGenericDish(normalizeDish(tagged)) ? "" : tagged;
+    if (!dish_tag) {
+      console.error(`[community] no usable dish tag (generic or empty: ${JSON.stringify(tagged)})`);
+      return null;
+    }
+
+    const language = isSupported(String(parsed.language ?? "")) ? String(parsed.language) : "";
 
     return {
       card: parsed.card,
       reasons: Array.isArray(parsed.reasons) ? parsed.reasons.map(String).slice(0, 8) : [],
       dish_tag,
       aliases: Array.isArray(parsed.aliases)
-        ? [...new Set(parsed.aliases.map((a) => normalizeDish(String(a))))].filter(Boolean).slice(0, 12)
+        ? [...new Set(parsed.aliases.map((a) => normalizeDish(String(a))))]
+            .filter((a) => a && !isGenericDish(a))
+            .slice(0, 12)
         : [],
+      language,
       model,
     };
   } catch (error) {

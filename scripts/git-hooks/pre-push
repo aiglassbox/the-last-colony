@@ -1,0 +1,16 @@
+#!/bin/sh
+# Pushes go to github.com/aiglassbox/the-last-colony and nowhere else — the
+# rule in AGENTS.md ("The remote"). Exactly that and no more: the branch is not
+# checked here. Installed by `npm install` through the `prepare` script, which
+# points core.hooksPath at this directory, so a fresh clone gets it.
+#
+# git passes the remote's name and URL; refs come on stdin and are not needed.
+url="$2"
+
+case "$url" in
+  *github.com[:/]aiglassbox/the-last-colony|*github.com[:/]aiglassbox/the-last-colony.git) exit 0 ;;
+esac
+
+echo "pre-push: refusing to push to $url" >&2
+echo "pre-push: the only allowed remote is github.com/aiglassbox/the-last-colony" >&2
+exit 1

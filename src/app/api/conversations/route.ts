@@ -1,5 +1,11 @@
 import type { Conversation } from "@/lib/chat/store";
+import { MAX_CONVERSATION_CHARS, MAX_CONVERSATIONS, pruneConversations } from "@/lib/chat/shape";
+import { fileCorpus } from "@/lib/corpus/load";
+import type { CorpusRecord } from "@/lib/corpus/types";
 import { isDeviceId, listConversations, syncConversations } from "@/lib/db/conversations";
+import { loadLocalized } from "@/lib/lang/localized-store";
+import { isSupported } from "@/lib/lang/types";
+import { checkRate, clientKey } from "@/lib/rate-limit";
 
 /**
  * The conversation mirror.
@@ -15,20 +21,60 @@ import { isDeviceId, listConversations, syncConversations } from "@/lib/db/conve
  */
 export const dynamic = "force-dynamic";
 
-/** A thread carries whole corpus records, so the ceiling has to be generous. */
-const MAX_BODY_BYTES = 4_000_000;
+/** The device's whole set at the per-thread ceiling. `pruneConversations` holds the rest. */
+const MAX_BODY_BYTES = MAX_CONVERSATIONS * MAX_CONVERSATION_CHARS;
+/** Pushes coalesce on a 1.2 s timer, so an active reader sends a few per turn. */
+const MAX_SYNCS = 60;
 
 function deviceIdFrom(request: Request): string | null {
   const id = request.headers.get("x-device-id");
   return isDeviceId(id) ? id : null;
 }
 
+/**
+ * A row is what a device once posted, so its records and localized cards are
+ * that device's claim, not the corpus's. Rebuilt from the corpus by slug before
+ * the client hydrates from them: a stored record that says `editor_verified`
+ * and carries a locus renders exactly what the corpus holds for that slug, or
+ * nothing.
+ */
+async function canonical(conversations: Conversation[]): Promise<Conversation[]> {
+  for (const conversation of conversations) {
+    for (const message of conversation.messages) {
+      if (!message.records?.length) continue;
+      const records = (
+        await Promise.all(
+          message.records.map((r) => (typeof r?.slug === "string" ? fileCorpus.bySlug(r.slug) : null)),
+        )
+      ).filter((r): r is CorpusRecord => r !== null);
+      message.records = records;
+
+      const lang = message.lang;
+      if (message.localized && typeof lang === "string" && isSupported(lang)) {
+        message.localized = Object.fromEntries(
+          records.flatMap((r) => {
+            const card = loadLocalized(r, lang);
+            return card ? [[r.slug, card] as const] : [];
+          }),
+        );
+      } else {
+        delete message.localized;
+      }
+    }
+  }
+  return conversations;
+}
+
 export async function GET(request: Request) {
   const deviceId = deviceIdFrom(request);
   if (!deviceId) return Response.json({ error: "missing or malformed device id" }, { status: 400 });
 
+  const rate = checkRate(`mirror:${clientKey(request)}`, Date.now(), MAX_SYNCS);
+  if (!rate.ok) return Response.json({ conversations: [], error: "slow down" }, { status: 429 });
+
   try {
-    return Response.json({ conversations: await listConversations(deviceId) });
+    const stored = pruneConversations(await listConversations(deviceId));
+    return Response.json({ conversations: await canonical(stored) });
   } catch (error) {
     console.error("[conversations] read failed", error);
     // The device still has its own copy, so this is a degraded mirror and not
@@ -42,6 +88,9 @@ export async function POST(request: Request) {
   const deviceId = deviceIdFrom(request);
   if (!deviceId) return Response.json({ error: "missing or malformed device id" }, { status: 400 });
 
+  const rate = checkRate(`mirror:${clientKey(request)}`, Date.now(), MAX_SYNCS);
+  if (!rate.ok) return Response.json({ error: "slow down" }, { status: 429 });
+
   const raw = await request.text();
   if (raw.length > MAX_BODY_BYTES) {
     return Response.json({ error: "payload too large" }, { status: 413 });
@@ -51,7 +100,7 @@ export async function POST(request: Request) {
   try {
     const body = JSON.parse(raw) as { conversations?: unknown };
     if (!Array.isArray(body.conversations)) throw new Error("conversations must be an array");
-    conversations = body.conversations as Conversation[];
+    conversations = pruneConversations(body.conversations);
   } catch {
     return Response.json({ error: "malformed body" }, { status: 400 });
   }

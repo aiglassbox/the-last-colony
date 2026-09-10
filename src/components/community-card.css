@@ -1,0 +1,101 @@
+/* The community card (Tier 4): a reader's own family recipe, rendered with no
+   corpus authority behind it at all. `.card` (globals.css) already supplies
+   the plate — cream background, ink tokens, radius, shadow, and the ink
+   variables every child here reads. What follows is only this card's own
+   internal layout, kept out of globals.css because nothing else on the site
+   needs it. */
+
+.community-card__head {
+  padding: 1.2rem 1.15rem 1.05rem;
+}
+
+.community-card__eyebrow {
+  margin: 0 0 0.5rem;
+  color: var(--ink-muted);
+}
+
+.community-card__title {
+  margin: 0;
+}
+
+.community-card__attribution {
+  margin: 0.6rem 0 0;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.community-card__translated {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin: 0 1.15rem 1.05rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+/* Reserves its footprint before the image arrives, so the card never jumps as
+   a lazy-loaded photo pops in beneath the fold. */
+.community-card__photo {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+
+.community-card__photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.community-card__body {
+  padding: 1.1rem 1.15rem 0.2rem;
+}
+
+.community-card__story {
+  margin: 0 0 1.1rem;
+  max-width: 62ch;
+  line-height: 1.6;
+  /* Verbatim reader text: no markdown pass, so the line breaks the submitter
+     actually typed are the only structure this paragraph gets. */
+  white-space: pre-wrap;
+}
+
+.community-card__label {
+  margin: 0 0 0.5rem;
+  color: var(--ink-muted);
+}
+
+.community-card__list {
+  margin: 0 0 1.1rem;
+  padding-left: 1.15rem;
+  max-width: 62ch;
+}
+
+.community-card__list li {
+  margin-bottom: 0.3rem;
+  font-size: 0.92rem;
+}
+
+.community-card__other-states {
+  margin: 0;
+  padding: 0.9rem 1.15rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.community-card__footer {
+  margin: 0;
+  padding: 0.9rem 1.15rem 1.1rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+}

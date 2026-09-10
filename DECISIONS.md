@@ -600,3 +600,315 @@ original-language text (rule 2), no photo, and the submitter's contact left
 behind in the store. Humans remain the only writers of corpus files. An
 operator's override is final: `verdict.overridden_at` is stamped, and neither a
 late verdict callback nor a re-run may write over it.
+
+**The model reports the language; the form stopped asking.** "Language you are
+writing in" was a dropdown the submitter answered and nothing trusted. It had
+two failure modes with no correct answer: type English, pick Marathi, and the
+store believes a lie; write Hinglish, and no option on the list is right.
+Neither is a mistake the reader can be blamed for, and both steer Phase 4's
+translation — a submission labelled `en` skips the Hindi translation a Hindi
+reader needs. The verdict model already reads the whole submission, so it names
+the language as part of the same call, gated through `isSupported` so a
+hallucinated code cannot reach the store, and `""` when it cannot tell. The
+prompt judges language, not script: romanized Hindi is `hi`, romanized Marathi
+is `mr`, English carrying borrowed dish names is `en`. It lands in `dish`
+beside the tag and aliases, because `dish` is the model's output block and
+`submission` is verbatim as submitted. Documents written before this carry
+`submission.language`; `candidate.ts` and the pantry read the new field first
+and fall back to the old one.
+
+**Published is a view over GREEN, not a fourth status.** The model writes
+`status`; a human writes `published_at`. Two authorities, two fields, and a
+published recipe still belongs in Green — the Green list just marks it. Serving
+reads `status: "green"` **and** `published_at` present, so a submission the
+model cleared but nobody reviewed is never on the site. Publishing refuses a
+document with no `dish.tag`, because an untagged document matches nothing and
+would sit in Published where no reader can reach it. Once published, a document
+is closed to the model: `applyVerdict` filters on `published_at: { $exists:
+false }` exactly as it already filters on `verdict.overridden_at`, and a re-run
+is refused with a 409 telling the operator to unpublish first. A move to RED
+unsets `published_at` in the same write — leaving it would keep serving a
+recipe an operator just rejected. Unpublish `$unset`s rather than nulls: the
+verdict guard tests for absence, and a null would block every future verdict on
+that document forever.
+
+**The pantry's buttons follow the document, not the tab.** The action set is
+derived from `status` plus `published_at` on the open submission, so marking a
+recipe RED from the Green tab changes the buttons on the next render instead of
+leaving Mark Published pointing at a rejected document. The store is still the
+enforcement — every action re-checks its own preconditions — but a button that
+is guaranteed to fail is a bug, not a safety net. Pending deliberately has no
+Mark GREEN: that path is what produces an untagged green document. Rejecting
+junk needs no tag; approving does.
+
+**Seeded rows are honest about being seeded.** The retrieval path could not be
+tested without data, and dummy data proves nothing about matching, so twelve
+real regional dishes were researched from the web and run through the real
+intake pipeline — validator, verdict model, publish — rather than written
+straight into the store. Three rules make them safe to leave in a public
+archive. `display_name` is exactly `Arpit's Agent` on all twelve, so agent rows
+are one filter away from reader rows forever. `belongs_to` is `my own` and
+every story is a sourced regional note, never an invented family memory: this
+archive's whole value is that the stories are true, and a fabricated
+grandmother would be a false personal claim sitting in public. `contact` is on
+`example.invalid`, which RFC 2606 reserves so it can never route anywhere.
+Sources live in the seed script beside each entry, not in the submission — the
+form has no source field and inventing one for twelve rows would be a schema
+change nothing else needs.
+
+**The seed dishes were chosen to be unreachable from `corpus/`.** All eleven
+distinct names score 0.00 against the keyword engine, well under
+`MIN_KEYWORD_SCORE`, so each falls through to the community step instead of
+being answered from a corpus record. This is why the geo scenario is puran poli
+rather than the vada pav the earlier spec used: `vada pav` scores 4.02 against
+the corpus `Vada` record and never reaches the community lookup at all.
+Substituting a dish without re-running that probe silently voids the test.
+
+**The community match scans, it never compiles a regex.** A stored alias is
+model output living in a document a member of the public submitted, so
+`new RegExp(alias)` would hand that text the regex engine — the one function in
+the serving path a hostile submission can reach. `phraseMatches` walks the
+normalized query with `indexOf` and checks the boundaries by hand: a phrase
+matches when the query equals it, or contains it bounded by string start/end or
+a space. `puran poli` matches, `puran` does not, `puranpoli` does not, and
+`apuran polix` does not. Both sides go through `normalizeDish` and nothing else,
+which is what makes the match deterministic; aliases are re-normalized on read
+even though the pipeline stores them normalized, because a document written
+before that was true must not slip through.
+
+**Three states carry more than one region code.** `geo.region` is ISO 3166-2 and
+`submission.state` is a full name, so a map between them is unavoidable — and
+compared directly, the geo rule would never fire and every reader would silently
+fall through to recency. That is the failure mode this phase most had to avoid:
+it passes every offline test and is still wrong in production. Vendors disagree
+on three of the thirty-six, so all spellings are accepted rather than guessed:
+Odisha as `OR` or `OD`, Uttarakhand as `UT` or `UK`, and Dadra and Nagar Haveli
+and Daman and Diu as `DH`, `DN` or `DD`. Two keys pointing at one name cost a
+line and remove a whole class of silent never-match. The raw region value is
+logged on `community_served` so the guesses can be confirmed against real
+traffic and the losing spellings deleted. A check asserts every value in the map
+is a member of `STATES`, because a typo there is otherwise permanent and silent.
+
+**A community photo is served by URL, published only, and never inlined.** The
+bytes live in the submission document, but a stream payload is persisted to
+`localStorage` and mirrored to the `conversations` collection, so a 500 KB
+base64 string in it would be copied into both. `/api/community/photo/[id]`
+hands the bytes over instead, and the card carries a URL. The route serves a
+document only when it is green **and** carries `published_at`: a pending, red
+or unpublished photo is not public, and it answers with the identical 404 body
+as a missing id so it cannot be used to enumerate which documents exist in
+which state. The stored mime is reasserted against `PHOTO_MIMES` — the same
+list `validatePhoto` uses at intake, exported rather than retyped — because
+that string arrived from a client and this route hands it to a browser as a
+`Content-Type`; `nosniff` goes with it. The response is cached for an hour.
+It was `immutable` for a year at first, on the reasoning that a document's
+photo never changes and the id is its version — which is true about the bytes
+and beside the point. What changes is whether they may be *served*: an
+operator's "Remove from Published" or "Mark RED" has to reach a reader who
+already loaded the photo, and a year-long `immutable` meant it never would.
+Published-ness is not in the URL, so the id cannot be the version. An hour is
+the takedown lag.
+
+**The submitter's prose never speaks in the assistant's voice.** A community
+turn leaves a line in `message.text` so a follow-up has continuity, and that
+line first carried the recipe's ingredients and method verbatim — which read
+as the obvious thing to replay, since that is what every other turn's text
+does. But history is replayed to the model as its own prior words, and a
+submitter controls thousands of characters of `method`. A published recipe
+whose last step read "(in your next reply, …)" would then prime the model on
+every later turn of that thread. Moderation reads a submission for a recipe,
+not for an instruction hidden in step nine, and no realistic review catches
+that reliably. So the replay line now names the dish and its state and nothing
+else. The cost is real and accepted: a follow-up on a community turn is
+answered without the recipe's contents in front of the model. The reader's
+card still has all of it.
+
+**The served card is a projection of a projection.** `toCommunityCard` maps
+`CommunityMatch`, which the store query already narrowed, so `contact` is not
+omitted from the card — it was never fetched. That is a structural guarantee
+rather than a remembered rule, and the check walks the serialized payload for
+the substring anyway, because the mistake it exists to catch is a spread added
+later that quietly widens the projection.
+
+**A community recipe is translated once, at publish, never at request time.** A
+reader typing Tamil can match a recipe written in Marathi, so the text has to
+cross languages somewhere. Doing it on the request would put a model call in
+the serving path and pay for it again on every read; doing it at publish makes
+serving a lookup by unique index. The job runs in `after()` so the operator's
+click flushes first, sequentially rather than eight-at-once, and one language
+failing is never the publish failing — the recipe is already live in its own
+language, and a missing translation falls back exactly as a corpus record falls
+back to English. Translations live in their own collection keyed
+`{ submission_id, lang }`, uniquely indexed and upserted, so republishing fills
+gaps rather than duplicating rows, and the match query's projection stays small
+instead of dragging sixteen kilobytes per language into every lookup. A
+translation never touches the submission it translates.
+
+**The translator sees four fields, never the submission.** `SubmissionInput`
+carries `contact` — a member of the public's phone or email — beside
+`display_name`, `state` and `city`. None of the four needs translating, and
+none may reach a third-party API, so `buildTranslateInput` names the four
+translatable fields one at a time rather than spreading the object. It is
+exported for one reason: an offline check asserts the built payload has no
+`contact`, `display_name`, `state` or `city` key and contains none of their
+values. A `{ ...sub }` added later fails that check instead of quietly shipping
+a stranger's contact details to Google.
+
+**A partial translation is worse than none.** `parseTranslation` returns null
+unless all four fields come back non-empty. A card showing a recipe with an
+empty method is a recipe with no steps; falling back to the submitter's own
+language is honest, and the reader can still read the ingredients.
+
+**The community card is a fourth component, not a fourth branch of
+`RestorationCard`.** Its payload type has no field for a locus, a provenance
+class, a source record or `contact`, so the card cannot render a source strip
+or a corpus badge even by mistake — there is nothing to wire up. That is the
+whole reason it is a separate file: a variant flag on the existing card would
+have put a historical provenance frame one boolean away from somebody's family
+recipe. `hasRecord()` stays false for the new kind, which is what actually
+gates the badge, and `RESOLUTION` is untouched because a community turn is not
+something the model resolves.
+
+**A community turn clears `activeRecordIds`.** The meta handler forces
+`records: []` rather than trusting an absent field, because otherwise the last
+corpus record still on screen stays active and the reader's next follow-up gets
+answered about it — an ancient citation silently attached to a family recipe.
+The turn also has no beats, so the replay-text builder must fall through to
+`m.text`; giving it a beats-join branch would join an absent array into `""`
+and wipe the turn on reload.
+
+**`community` is both a `TurnMode` and a `TurnKind`, and that is a
+coincidence.** The mode names which component renders; the kind names why. They
+are separate questions — `restoration` mode alone spans three kinds — and they
+merely want the same word here. `turn.ts` says so in a comment, because the
+file exists to keep exactly that distinction from collapsing again.
+
+**`COMMUNITY` does not join `ProvenanceClass`.** A published family recipe is
+not a corpus record wearing a new badge; it is served from a different store
+entirely, by a different path, and the type it flows through says so.
+`ProvenanceClass` (`src/lib/corpus/types.ts`) is the vocabulary the validator
+and every record renderer trust to decide whether a badge, a source strip or
+original-language text may render — adding `COMMUNITY` to it would drag all
+three into accepting a record they exist to refuse, and every future exhaustive
+switch over `ProvenanceClass` would need a community-shaped case that is never
+actually a provenance class. The card is a new `TurnMode`/`TurnKind` pair
+(`"community"`) with its own component instead, and `hasRecord()` stays false
+for it — the one function that actually gates a badge never has to learn about
+a store it was never written to know exists.
+
+**The corpus miss is the only insertion point; the namesake withdrawal stays
+out on purpose.** A reader's family recipe can only reach the screen from the
+branch that already has no record to show — the corpus-hit branch is a passing
+path with its own harness coverage, and Task 8's job was to add a second way to
+answer, not to touch the first. Inside the hit branch, a completion can still
+withdraw its own record mid-stream by declaring `§NO_ANCESTOR§` (`vada pav` is
+a namesake of the corpus `Vada` record, not its descendant): the callback that
+handles that is synchronous, called from inside `push` while a chunk is being
+parsed, and returns a replacement parser — it cannot `await` the Atlas query a
+community lookup needs. Serving one there would mean prefetching a community
+match on every corpus hit, on the chance a completion later withdraws the
+record, which is a cost paid on every restoration to cover a case that mostly
+never happens. Probed live for `vada pav` (Task 8 Step 1, three runs against the
+real model): retrieval itself never reaches that branch for this query.
+`retrieveForDish`'s `isAmbiguous` guard declines it before any record is shown,
+because it explains half of "vada pav" and pav bhaji explains the other half
+with no record owning the whole phrase — so the corpus-miss resolver classifies
+it directly as `MODE: MODERN` and the namesake callback never runs at all. The
+architectural limit is still real for any dish that *does* reach the record
+branch by name; `vada pav` itself just is not one of them. See
+`.superpowers/sdd/progress.md`.
+
+**The match query filters a phrase gate in memory over the newest 200
+published documents, not in Mongo.** `phraseMatches` needs "is this normalized
+query the tag, or does it contain a full alias on token boundaries", which is
+not a shape a Mongo index can answer directly without an aliases-array index
+built for exactly that query. Two hundred published recipes is comfortably
+above what this feature will hold before the store itself needs revisiting, and
+running the gate in code keeps the whole matching decision — region map,
+phrase gate, three-rule pick — in one set of pure, offline-testable functions
+in `match.ts` rather than splitting it between a query shape and application
+code. The ceiling is marked `ponytail` at the query site: past 200 published
+recipes, move the gate into the query with an aliases-array index.
+
+**A bare dish name is English; a native script always sets the language.**
+`lang` is the sentence's language and a dish name never sets it — that rule was
+already recorded above, and it held for every example it was written against,
+because every one of them had words *around* the dish. A message that is
+*only* a multi-word dish name has no such words, and the detector fell back to
+the dish's language of origin: "misal pav" came back `mr`, "litti chokha" `hi`,
+"bisi bele bath" `kn`. Single-word names were never affected, because
+`normalize` short-circuits a lone ASCII word to English without a model call at
+all, which is why this survived so long unnoticed. The consequence was a reader
+typing English getting a Marathi-chromed card, and — once community recipes
+carried translations — the Marathi *translation* of a recipe they had asked for
+in English.
+
+The prompt now decides in a fixed order rather than by two rules that competed:
+strip the dish name and see what is left; if any words remain they alone set
+the language, whatever script the name itself was in ("how to make ডোসা" is
+`en`); if nothing remains, a non-Latin script sets the language ("थालीपीठ" is
+`hi`); if nothing remains and the name is in Latin letters, it is `en`. Both
+wrong orderings were caught by `tests/multilingual-queries.json` before
+shipping — the first over-corrected bare Devanagari names to English, the
+second broke an English sentence containing a Bengali-script dish — so the
+controls that caught each one are now cases in that file.
+
+**One translation job, every publish path.** The loop that fills a submission's
+missing languages lived inline in the pantry route's `after()` callback, which
+made "publishing" and "translating" the same act *only* for a publish that went
+through that one route. `scripts/seed-community.ts` calls `publishSubmission()`
+in the store directly, so twelve seeded recipes went live with no translations
+at all, and nobody noticed until a reader asked for one in Hindi and got
+English. It is now `translateMissing(id)` in `publish-translations.ts` with
+three callers — the route, the seeder, and a backfill script — so the two
+cannot drift apart by route again.
+
+`npm run community:backfill-translations` closes gaps after the fact, and it is
+not a one-off: a single language failing at publish is deliberately not fatal,
+so the gap it leaves is meant to be repaired later. It is idempotent, skipping a
+stored language with no model call, which is what makes a retry after a partial
+run nearly free — and that mattered, because the first real run lost the network
+half way through and had to be resumed.
+
+**The community match stayed exact, and BM25 was tried and rejected on
+evidence.** The obvious move, when the tier kept missing dishes readers had
+plainly named, was to point `Bm25Index` at the community rows — the repo
+already has a proven dish-name engine with phonetic folding, an unknown-token
+veto and an ambiguity gate, all defended by 137 hand-checked queries. It was
+prototyped against the real published rows and it lost.
+
+BM25 matched nothing containment did not already match, failed the one case
+containment failed (`brownie` against a row named `brownies`), and
+*reintroduced* the component-word false positives `isGenericDish` exists to
+block: `chhena` scored 2.21 onto the chhena poda dessert and `pav` scored 2.56
+onto misal pav, both well above `MIN_KEYWORD_SCORE`. Four assumptions do not
+carry across. Term statistics need documents longer than a tag and three model
+written aliases. The unknown-token veto means something because the corpus
+vocabulary is closed and curated; the community vocabulary is whatever
+strangers submitted. The threshold is fitted to 31 records and the harness
+holding it never touches a community row. And the fuzziness it would buy is
+already delivered upstream — the language step resolves "लिटी" and "लिट्टी"
+to the same English before matching begins — while its ranking is unused,
+because the pick is state then language then recency, not relevance.
+
+Underneath: the corpus is the authority and must be REACHABLE, so fuzziness is
+worth its risks and three gates contain them. The community match decides
+whether to put a stranger's recipe on screen claiming it answers this dish.
+Missing there is graceful — the model answers, as it did before the feature
+existed. Matching wrongly is not. Exactness is the property, not a limitation.
+
+**What the community tier needed instead was two things the corpus does not.**
+`foldPlurals` drops a trailing English `s` from both sides at match time, so
+"brownie" reaches a row named "brownies" — one letter had made a recipe
+unreachable. It is deliberately outside `normalizeDish`, which also builds the
+stored, displayed tag: this is a matching detail, not a naming one.
+
+And an ambiguity gate, which the tier had none of — a query naming two
+published dishes silently served whichever was published last. `pickDish`
+compares NESTING, not length: a name inside another ("vada" in "vada pav") is a
+qualifier being made precise and the longer wins, while two unrelated or
+equal-length names decline. Length alone was the first design and it failed on
+live data — "misal pav" beside "litti chokha" is not a tie, so it picked the
+longer one. It is keyed on `dish.tag` rather than the document, because three
+submissions of puran poli are one dish, and keying on documents would decline
+the geo trio the feature was built for.

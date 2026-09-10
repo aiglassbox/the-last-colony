@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-import { trackClient } from "@/lib/analytics";
+import { trackClient, UNTRACKED_PATH } from "@/lib/analytics";
 import { captureAttribution, claimVisit, isQrEntry } from "@/lib/attribution";
 
 /**
@@ -25,8 +25,7 @@ export function VisitTracker() {
        people checking the graphs each morning is a visible line on them. An
        analytics page that inflates its own traffic is worse than no analytics
        page, because the error is invisible and grows with how much you use it. */
-    const path = window.location.pathname;
-    if (path.startsWith("/kitchen") || path.startsWith("/pantry")) return;
+    if (UNTRACKED_PATH.test(window.location.pathname)) return;
 
     const attribution = captureAttribution();
 

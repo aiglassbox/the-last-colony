@@ -4,6 +4,7 @@ import Script from "next/script";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 
+import { UNTRACKED_PATH } from "@/lib/analytics";
 import { trackPixelPageView } from "@/lib/meta-pixel";
 
 /**
@@ -57,6 +58,7 @@ export function MetaPixel() {
    * counted twice.
    */
   useEffect(() => {
+    if (UNTRACKED_PATH.test(pathname)) return;
     if (isFirstRender.current) {
       isFirstRender.current = false;
       return;
@@ -65,6 +67,9 @@ export function MetaPixel() {
   }, [pathname]);
 
   if (!PIXEL_ID || !PIXEL_ID_PATTERN.test(PIXEL_ID)) return null;
+  // The GA tag and the visit beacon already skipped these; the pixel did not,
+  // so it fired from the dashboards and from the unsubscribe page's token URL.
+  if (UNTRACKED_PATH.test(pathname)) return null;
 
   return (
     <>

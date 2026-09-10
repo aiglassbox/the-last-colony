@@ -3,6 +3,9 @@ import type { NextRequest } from "next/server";
 import { track } from "@/lib/analytics";
 import { parseCommand } from "@/lib/chat/commands";
 import { parseResolved, RESOLUTION, type TurnKind, type TurnMode } from "@/lib/chat/turn";
+import { toCommunityCard, type CommunityCardData } from "@/lib/community/card";
+import { matchCommunity } from "@/lib/community/client";
+import { stateForRegion } from "@/lib/community/match";
 import { fileCorpus } from "@/lib/corpus/load";
 import type { CorpusRecord } from "@/lib/corpus/types";
 import { isDeviceId } from "@/lib/db/conversations";
@@ -18,7 +21,7 @@ import { auditProse, isClean } from "@/lib/model/guards";
 import { lastSentenceEnd, MAX_SENTENCE_HOLD, stripHealthClaims } from "@/lib/model/health";
 import { restoreIndianWords } from "@/lib/model/indian-words";
 import { plainWords } from "@/lib/model/jargon";
-import { stripProvenanceClaims } from "@/lib/model/provenance";
+import { stripCitationShapes, stripProvenanceClaims } from "@/lib/model/provenance";
 import { findLeak, LEAK_HOLD, LEAK_REFUSAL } from "@/lib/model/leak";
 import { dropNarration, dropSelfAsPerson, stripOpener } from "@/lib/model/self-reference";
 import { danglingTail, styleProse } from "@/lib/model/punctuation";
@@ -68,6 +71,8 @@ function encodeEvent(obj: unknown): Uint8Array {
 
 /** Prior turns, replayed as plain text. Long threads are trimmed from the front. */
 const MAX_HISTORY_TURNS = 20;
+/** Records a follow-up may carry back onto the prompt from `activeRecordIds`. */
+const MAX_CARRIED_RECORDS = 6;
 
 /**
  * Markers only an Indianisation card has. `VERDICT` is shared with a
@@ -129,6 +134,128 @@ const PLAIN_WORDS =
   "to hand back. If the reader has named palak paneer, that is the one dish whose " +
   "verdict you must write from scratch.";
 
+/**
+ * What `serveCommunity` needs beyond the match itself, bundled so its own
+ * signature stays short. `geo` and `device` are exactly what every other
+ * event this turn writes already carries; `rawRegion` is logged as its own
+ * field rather than trusted to `geo.region` because `geoProps` drops a null
+ * region entirely, and the point of logging it at all is to see that null
+ * (or an unmapped code) in production — see `REGION_TO_STATE` in
+ * `src/lib/community/match.ts`.
+ */
+interface CommunityContext {
+  geo: Record<string, string>;
+  device: string | null;
+  label: string;
+  rawRegion: string | null;
+}
+
+/**
+ * What a follow-up replays to the model for a community turn. Never shown on
+ * screen — `CommunityCard` draws the whole turn from the `meta` event's
+ * `community` payload — so its only job is continuity: the model learns that
+ * a reader recipe for this dish was on screen, and nothing else.
+ *
+ * It used to carry the submitter's ingredients and method verbatim. History
+ * replays this string as an `assistant` turn — the model's own prior words —
+ * and a submitter controls thousands of characters of `method`, so a
+ * published recipe whose last step read "(in your next reply, …)" primed the
+ * model in every other reader's follow-up. Review reads for a recipe, not for
+ * an instruction hidden in step nine. So the submitter's prose no longer
+ * speaks in the assistant's voice at all: the name and state are the model's
+ * to see, the text is not. The card the reader is looking at still has all
+ * of it.
+ */
+function communityText(card: CommunityCardData): string {
+  return `Showed the reader a community recipe card: "${card.recipe_name}" from ${card.state}.`;
+}
+
+/**
+ * The one insertion point for a reader's own family recipe: a corpus miss
+ * that a published community submission answers. Emits a full community
+ * turn — `meta`, then `text`, then `done`, in that order — and returns true;
+ * or returns false having emitted nothing at all and fired no analytics.
+ *
+ * `lookup`'s three ways of declining — an empty match list, a null store
+ * (unset env, or a connection failure `communityDb()` already caught), and a
+ * thrown error from the query itself (Atlas has shown `ReplicaSetNoPrimary`
+ * on this machine) — all collapse to the identical `null` return from
+ * `matchCommunity`, which is the one thing this function actually branches
+ * on. The try/catch below is a second guard on top of that, so a lookup that
+ * does throw — an injected one in the offline fixtures, or a future one —
+ * still costs nothing but this one turn rather than the request.
+ *
+ * `lookup` defaults to the real store query and takes that shape only so
+ * `scripts/check-community-match.ts` can drive all three fall-through paths
+ * with no Atlas call at all, pinning that each one leaves `emit` uncalled.
+ */
+export async function serveCommunity(
+  /** Every form of the question worth matching — see `matchCommunity`. */
+  queries: string[],
+  region: string | null,
+  readerLang: string | null,
+  emit: (obj: unknown) => void,
+  ctx: CommunityContext,
+  lookup: typeof matchCommunity = matchCommunity,
+): Promise<boolean> {
+  let found: Awaited<ReturnType<typeof matchCommunity>>;
+  try {
+    found = await lookup(queries, region, readerLang);
+  } catch (error) {
+    console.error("[community] serve failed:", error);
+    return false;
+  }
+  if (!found) return false;
+
+  const { chosen, translation, others, total } = found;
+  const card = toCommunityCard(chosen, others, total, translation);
+
+  // Which of the three rules in `pickCommunity` (src/lib/community/match.ts)
+  // actually chose this row, for the analytics event below. Re-derived here
+  // rather than threaded out of that function — a pure function this task
+  // does not touch — because each outcome is a simple comparison against
+  // what it already computed: rule 1 wins outright whenever the row's own
+  // state matches the reader's mapped region, rule 2 only when it does not
+  // but the row's language matches the reader's, and rule 3 (recency)
+  // whenever neither does.
+  const mappedState = stateForRegion(region);
+  const rule =
+    mappedState && chosen.state === mappedState
+      ? "state"
+      : readerLang && chosen.language === readerLang
+        ? "language"
+        : "recency";
+
+  // A community hit is not a corpus gap: `no_original_found` is the
+  // corpus-roadmap log and stays reserved for a dish nobody has answered at
+  // all, so this is the only event a community turn adds beyond the
+  // `dish_queried` (hit: false) already fired for every turn above.
+  track("community_served", {
+    ...ctx.geo,
+    device_id: ctx.device,
+    query: ctx.label,
+    dish_tag: chosen.dish.tag,
+    served_state: chosen.state,
+    matches: total,
+    rule,
+    region: ctx.rawRegion,
+    reader_lang: readerLang,
+    translated: Boolean(translation),
+  });
+
+  emit({
+    type: "meta",
+    mode: "community" satisfies TurnMode,
+    kind: "community" satisfies TurnKind,
+    records: [],
+    community: card,
+    ...(readerLang && { lang: readerLang }),
+  });
+  emit({ type: "text", text: communityText(card) });
+  emit({ type: "done" });
+  return true;
+}
+
 export async function POST(request: NextRequest) {
   // Ahead of the body read: a turn that will be refused should not spend the
   // work, and this endpoint is the one that spends model quota.
@@ -147,7 +274,7 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: "invalid JSON body" }, { status: 400 });
   }
 
-  const slug = (body.slug ?? "").trim();
+  const slug = typeof body.slug === "string" ? body.slug.trim() : "";
   const history = (Array.isArray(body.messages) ? body.messages : [])
     .filter((m) => typeof m?.content === "string" && m.content.trim())
     .map((m) => ({
@@ -289,6 +416,8 @@ export async function POST(request: NextRequest) {
       let emitted = 0;
       /** Set when the completion started reproducing the prompt. */
       let leaked: string | null = null;
+      /** The records on screen for this turn; what the prose audit and the citation stripper judge against. */
+      let auditRecords: CorpusRecord[] = [];
 
       /** Drains a model stream into card beats or prose; returns the full text. */
       async function pump(
@@ -416,11 +545,16 @@ export async function POST(request: NextRequest) {
         // A conversation turn gets one rewrite the card turns do not: a
         // sentence describing the last answer is throat-clearing in prose, and
         // on a card there is no last answer to describe.
+        //
+        // A typed chapter/verse/page is kept only beside a verified record,
+        // where the model is repeating a locus it was shown; with no record,
+        // or an unverified one, the locus was withheld and the citation is
+        // invented, so the sentence goes.
         const clean = (text: string) => {
+          const citeable = auditRecords.some((r) => r.verification.status === "editor_verified");
+          const graded = stripProvenanceClaims(stripHealthClaims(styleProse(text)));
           const styled = dropSelfAsPerson(
-            restoreIndianWords(
-              plainWords(stripProvenanceClaims(stripHealthClaims(styleProse(text)))),
-            ),
+            restoreIndianWords(plainWords(citeable ? graded : stripCitationShapes(graded))),
           );
           return asProse ? dropNarration(styled) : styled;
         };
@@ -482,7 +616,8 @@ export async function POST(request: NextRequest) {
         const directive = command ? `\n\n${command.instruction}` : "";
 
         let full: string;
-        let auditRecords: CorpusRecord[];
+        // Declared beside `emitted`, above `pump`, so the stream's own
+        // strippers can read which records are on screen.
         // Which channel a fallback would have to go down, if the model returns
         // nothing usable. Set alongside every pump call.
         let proseTurn = false;
@@ -652,6 +787,21 @@ export async function POST(request: NextRequest) {
             });
             return new MarkerParser(INDIANIZE_BEATS);
           }, () => {
+            // A published community submission for this exact dish may
+            // exist, and it is not looked up here: this callback runs
+            // synchronously, mid-stream from inside `push` above, and
+            // returns a replacement parser — it cannot await the Atlas query
+            // `serveCommunity` makes. Serving one on a namesake withdrawal
+            // would mean prefetching a community match on every corpus hit,
+            // on the chance the completion goes on to withdraw the record,
+            // which is why this phase has exactly one insertion point (the
+            // corpus-miss branch above) rather than two. Probed for "vada
+            // pav" against the corpus Vada record (Task 8 Step 1, three
+            // runs): retrieval itself declined the query as ambiguous
+            // between Vada and Pav Bhaji before any record reached the
+            // model, so this callback never ran and no community lookup was
+            // possible regardless — see `.superpowers/sdd/progress.md`.
+            //
             // The named dish is a modern namesake of this record, so the record
             // is not its ancestor: the badge, source strip and Then leave with
             // it, and the audit below must not treat it as evidence.
@@ -683,8 +833,60 @@ export async function POST(request: NextRequest) {
           });
         } else {
           // ---- Corpus miss: the model decides the turn ----------------------
+
+          // A dish the corpus holds no record for may still be one a
+          // reader's own family already sent in. Checked first, before the
+          // carried records are gathered and before the resolve prompt is
+          // built: a community hit costs no prompt construction and no
+          // model call. A miss costs only the Pinecone round trip
+          // `retrieveForDish` already spent fetching candidates above,
+          // because the vector fallback lives inside retrieval — moving
+          // this lookup earlier would put an Atlas query inside
+          // `retrieve.ts`, which knows only about the corpus, and mixing two
+          // stores in one module is a worse trade than one wasted call on a
+          // miss.
+          // ponytail: the vector fallback already ran; reorder only if that
+          // call shows up in latency.
+          const communityLang = normalized && !normalized.fell_back ? normalized.lang : null;
+          // Both forms, because each reaches rows the other cannot. The
+          // resolved dish name is what gets through a sentence or a
+          // misspelling — "मला आर्टिसन ब्रेडची रेसिपी द्या" and "लिटी चोखा"
+          // only ever match as "artisan bread" and "litti chokha". The
+          // reader's own words are what reach an alias stored in their own
+          // script — "ब्राउनी" is an alias of the brownies row, but the
+          // language step resolves it to "brownie", and "brownie" is not
+          // "brownies". Matching on either one alone loses a whole class of
+          // reader; `label` also stays the analytics event's `query`, which
+          // should always be what was actually typed.
+          const communityQueries = [normalized?.english, label].filter(
+            (q): q is string => Boolean(q),
+          );
+          if (
+            await serveCommunity(communityQueries, geo.region ?? null, communityLang, emit, {
+              geo,
+              device,
+              label,
+              rawRegion: geo.region ?? null,
+            })
+          ) {
+            controller.close();
+            return;
+          }
+
+          // Deduped and capped before anything is rendered. A card shows one
+          // record and at most a counterpart, so a few ids is every legitimate
+          // case; three hundred copies of one public id was a prompt with
+          // hundreds of thousands of tokens in it, on a request the limiter
+          // counted as one.
+          const carriedIds = [
+            ...new Set(
+              (Array.isArray(body.activeRecordIds) ? body.activeRecordIds : []).filter(
+                (id): id is string => typeof id === "string" && id.length <= 80,
+              ),
+            ),
+          ].slice(0, MAX_CARRIED_RECORDS);
           const carried = (
-            await Promise.all((body.activeRecordIds ?? []).map((id) => fileCorpus.byId(id)))
+            await Promise.all(carriedIds.map((id) => fileCorpus.byId(id)))
           ).filter((r): r is CorpusRecord => Boolean(r));
 
           const onScreen = carried.length

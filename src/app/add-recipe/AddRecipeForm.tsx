@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { BELONGS_TO, PHOTO_MAX_BYTES, STATES, type Extracted, type Photo } from "@/lib/community/schema";
-import { LANG_NAMES, SUPPORTED_LANGS } from "@/lib/lang/types";
 
 /**
  * The submission form, two ways in. The server's validateSubmission is the
@@ -141,7 +140,6 @@ export function AddRecipeForm() {
       story: field("story"),
       ingredients: field("ingredients"),
       method: field("method"),
-      language: field("language"),
       consent: {
         right_to_share: form.get("right_to_share") === "on",
         public_display: form.get("public_display") === "on",
@@ -284,15 +282,6 @@ export function AddRecipeForm() {
           <label className="recipe-form__field">
             Method
             <textarea name="method" required maxLength={8000} rows={6} defaultValue={extracted?.method ?? ""} />
-          </label>
-
-          <label className="recipe-form__field">
-            Language you are writing in
-            <select name="language" required defaultValue={extracted?.language || "en"}>
-              {SUPPORTED_LANGS.map((code) => (
-                <option key={code} value={code}>{LANG_NAMES[code]}</option>
-              ))}
-            </select>
           </label>
         </fieldset>
 

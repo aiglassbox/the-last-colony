@@ -1,6 +1,7 @@
 import { after, type NextRequest } from "next/server";
 
 import { logEvent } from "@/lib/email/track";
+import { checkRate, clientKey } from "@/lib/rate-limit";
 
 /**
  * GET /px.gif?t=<tid>
@@ -32,12 +33,24 @@ const PIXEL = Buffer.from(
   "base64",
 );
 
+/**
+ * Sized for a send, not a person. Gmail and Outlook image proxies fetch the
+ * pixel on delivery for every recipient of a batch from a handful of
+ * addresses, so a per-caller ceiling that fits one reader would drop most of
+ * a campaign's opens. This one still stops a loop from filling the table.
+ */
+const MAX_OPENS = 600;
+
 export async function GET(request: NextRequest) {
   const tid = request.nextUrl.searchParams.get("t");
 
-  after(async () => {
-    await logEvent({ kind: "open", tid, code: null, headers: request.headers });
-  });
+  // The pixel is always served; only the row is withheld.
+  const rate = checkRate(`open:${clientKey(request)}`, Date.now(), MAX_OPENS);
+  if (rate.ok) {
+    after(async () => {
+      await logEvent({ kind: "open", tid, code: null, headers: request.headers });
+    });
+  }
 
   return new Response(PIXEL, {
     status: 200,

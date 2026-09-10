@@ -6,7 +6,7 @@
  * Idempotent — createIndex is a no-op when the index already exists. Not part
  * of `npm run check` because it needs the store.
  */
-import { communityDb, SUBMISSIONS } from "../src/lib/community/client";
+import { communityDb, SUBMISSIONS, TRANSLATIONS } from "../src/lib/community/client";
 
 (async () => {
   const db = await communityDb();
@@ -17,9 +17,18 @@ import { communityDb, SUBMISSIONS } from "../src/lib/community/client";
   const col = db.collection(SUBMISSIONS);
   console.log("created", await col.createIndex({ created_at: -1 }, { name: "created_at_desc" }));
   console.log("created", await col.createIndex({ status: 1, created_at: -1 }, { name: "status_created_at" }));
+  console.log("created", await col.createIndex({ status: 1, published_at: -1 }, { name: "published_recent" }));
+  console.log("created", await col.createIndex({ status: 1, published_at: -1, "dish.tag": 1 }, { name: "served_dish" }));
   console.log(
     "indexes now:",
     (await col.indexes()).map((i) => i.name).join(", "),
+  );
+
+  const tcol = db.collection(TRANSLATIONS);
+  console.log("created", await tcol.createIndex({ submission_id: 1, lang: 1 }, { name: "submission_lang", unique: true }));
+  console.log(
+    "translation indexes now:",
+    (await tcol.indexes()).map((i) => i.name).join(", "),
   );
   process.exit(0);
 })();

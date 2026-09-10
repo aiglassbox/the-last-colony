@@ -1,7 +1,9 @@
 import { MongoClient, ObjectId, type Db } from "mongodb";
 
 import type { Geo } from "../events/geo";
-import { dishTag } from "./normalize";
+import type { TranslatedFields } from "./card";
+import { matchedPhrase, pickCommunity, pickDish, type CommunityMatch } from "./match";
+import { dishTag, normalizeDish } from "./normalize";
 import type { Verdict } from "./pipeline";
 import type { Extracted, SubmissionInput } from "./schema";
 
@@ -18,7 +20,18 @@ import type { Extracted, SubmissionInput } from "./schema";
  */
 
 export const SUBMISSIONS = "submissions";
+/** Translations keyed by `{ submission_id, lang }`, kept out of `submissions`
+ *  so the match query's projection stays small instead of carrying up to
+ *  sixteen kilobytes per language into every lookup. Never written to by
+ *  anything that also writes `submissions` — a translation must not alter
+ *  the submission it translates. */
+export const TRANSLATIONS = "submission_translations";
 const DB_NAME = "kranti";
+
+/** The pantry's four tabs. "published" is a view over green documents — not a
+ *  fifth status stored anywhere — so `listSubmissions` derives its filter
+ *  from it rather than passing it straight through to `status`. */
+export type PantryView = "pending" | "green" | "red" | "published";
 
 /** The stored shape. `submission` is verbatim; everything else accretes beside it. */
 export interface SubmissionDoc {
@@ -40,7 +53,10 @@ export interface SubmissionDoc {
     at: Date;
     overridden_at?: Date;
   };
-  dish?: { tag: string; aliases: string[] };
+  dish?: { tag: string; aliases: string[]; language?: string };
+  /** Set by an operator in the pantry, never by the model. The serving gate:
+   *  only a green document carrying this is ever matched for a reader. */
+  published_at?: Date;
 }
 
 /** What a route hands over. Status and timestamps are the store's to stamp. */
@@ -59,6 +75,7 @@ export interface SubmissionSummary {
   card: "GREEN" | "RED" | null;
   overridden: boolean;
   has_photo: boolean;
+  published: boolean;
 }
 
 /** A whole document as the pantry reads it: `_id` becomes a hex `id`. */
@@ -187,13 +204,13 @@ export async function applyVerdict(id: string, verdict: Verdict): Promise<boolea
   try {
     const at = new Date();
     const result = await db.collection<SubmissionDoc>(SUBMISSIONS).updateOne(
-      { _id, "verdict.overridden_at": { $exists: false } },
+      { _id, "verdict.overridden_at": { $exists: false }, published_at: { $exists: false } },
       {
         $set: {
           status: verdict.card === "GREEN" ? "green" : "red",
           updated_at: at,
           verdict: { card: verdict.card, reasons: verdict.reasons, model: verdict.model, at },
-          dish: { tag: verdict.dish_tag, aliases: verdict.aliases },
+          dish: { tag: verdict.dish_tag, aliases: verdict.aliases, language: verdict.language },
         },
       },
     );
@@ -204,15 +221,176 @@ export async function applyVerdict(id: string, verdict: Verdict): Promise<boolea
   }
 }
 
+/**
+ * The human gate. A model verdict says a submission is not abusive; only an
+ * operator says it may be served. Refuses anything that would put an
+ * unreachable or unreviewed document on the site.
+ */
+export async function publishSubmission(
+  id: string,
+): Promise<"ok" | "not_found" | "not_green" | "no_tag" | "error"> {
+  const _id = hexId(id);
+  if (!_id) return "not_found";
+  const db = await communityDb();
+  if (!db) return "error";
+  try {
+    const col = db.collection<SubmissionDoc>(SUBMISSIONS);
+    const doc = await col.findOne({ _id }, { projection: { status: 1, dish: 1 } });
+    if (!doc) return "not_found";
+    if (doc.status !== "green") return "not_green";
+    // An untagged document matches nothing, so publishing it would put a recipe
+    // in the Published list that no reader can ever reach. Overriding a pending
+    // document to GREEN is how one gets made; re-running the verdict fixes it.
+    if (!doc.dish?.tag) return "no_tag";
+    // Filtered on the status the read just saw, so an override landing between
+    // the two calls loses rather than leaving `published_at` on a red document.
+    const at = new Date();
+    const result = await col.updateOne(
+      { _id, status: "green" },
+      { $set: { published_at: at, updated_at: at } },
+    );
+    return result.matchedCount === 1 ? "ok" : "not_green";
+  } catch (error) {
+    console.error("[community] publish failed:", error);
+    return "error";
+  }
+}
+
+/**
+ * The takedown. Unsets rather than nulls: `applyVerdict`'s guard tests for the
+ * field's absence, so a null left behind would block every future verdict on
+ * this document forever.
+ */
+export async function unpublishSubmission(id: string): Promise<"ok" | "not_found" | "error"> {
+  const _id = hexId(id);
+  if (!_id) return "not_found";
+  const db = await communityDb();
+  if (!db) return "error";
+  try {
+    const result = await db
+      .collection<SubmissionDoc>(SUBMISSIONS)
+      .updateOne({ _id }, { $unset: { published_at: "" }, $set: { updated_at: new Date() } });
+    // Tri-state so the route can tell a stale id from an outage without
+    // reading the whole document — contact and photo bytes included — back
+    // out of the store just to learn that it exists.
+    return result.matchedCount === 1 ? "ok" : "not_found";
+  } catch (error) {
+    console.error("[community] unpublish failed:", error);
+    return "error";
+  }
+}
+
+/** The stored shape of one translation. Keyed by `{ submission_id, lang }`,
+ *  unique-indexed in `scripts/community-index.ts` — `saveTranslation` upserts
+ *  on exactly that pair, so publishing twice never duplicates a row. */
+interface TranslationDoc {
+  _id?: ObjectId;
+  submission_id: ObjectId;
+  lang: string;
+  recipe_name: string;
+  story: string;
+  ingredients: string;
+  method: string;
+  model: string;
+  at: Date;
+}
+
+/**
+ * Upserts on `{ submission_id, lang }` — republishing (or a retried job)
+ * overwrites the same row rather than adding a second one. False on a bad id
+ * or any store failure; the caller logs the outcome per language.
+ */
+export async function saveTranslation(id: string, fields: TranslatedFields): Promise<boolean> {
+  const submission_id = hexId(id);
+  if (!submission_id) return false;
+  const db = await communityDb();
+  if (!db) return false;
+  try {
+    const col = db.collection<TranslationDoc>(TRANSLATIONS);
+    await col.updateOne(
+      { submission_id, lang: fields.lang },
+      {
+        $set: {
+          submission_id,
+          lang: fields.lang,
+          recipe_name: fields.recipe_name,
+          story: fields.story,
+          ingredients: fields.ingredients,
+          method: fields.method,
+          model: fields.model,
+          at: new Date(),
+        },
+      },
+      { upsert: true },
+    );
+    return true;
+  } catch (error) {
+    console.error("[community] save translation failed:", error);
+    return false;
+  }
+}
+
+/** One stored translation, or null on a bad id, no row, or any store failure. */
+export async function getTranslation(id: string, lang: string): Promise<TranslatedFields | null> {
+  const submission_id = hexId(id);
+  if (!submission_id) return null;
+  const db = await communityDb();
+  if (!db) return null;
+  try {
+    const doc = await db
+      .collection<TranslationDoc>(TRANSLATIONS)
+      .findOne({ submission_id, lang }, { maxTimeMS: 2000 });
+    if (!doc) return null;
+    return {
+      lang: doc.lang,
+      recipe_name: doc.recipe_name,
+      story: doc.story,
+      ingredients: doc.ingredients,
+      method: doc.method,
+      model: doc.model,
+    };
+  } catch (error) {
+    console.error("[community] get translation failed:", error);
+    return null;
+  }
+}
+
+/** Which languages are already stored for a submission — an empty array on a
+ *  bad id, no rows, or any store failure, never a thrown error. The publish
+ *  job reads this once per publish so it only fills gaps. */
+export async function translatedLangs(id: string): Promise<string[]> {
+  const submission_id = hexId(id);
+  if (!submission_id) return [];
+  const db = await communityDb();
+  if (!db) return [];
+  try {
+    const docs = await db
+      .collection<TranslationDoc>(TRANSLATIONS)
+      .find({ submission_id }, { projection: { lang: 1 } })
+      .maxTimeMS(2000)
+      .toArray();
+    return docs.map((d) => d.lang);
+  } catch (error) {
+    console.error("[community] list translated langs failed:", error);
+    return [];
+  }
+}
+
 export async function listSubmissions(
-  status: SubmissionDoc["status"],
+  view: PantryView,
   page: number,
 ): Promise<{ rows: SubmissionSummary[]; total: number } | null> {
   const db = await communityDb();
   if (!db) return null;
   try {
     const col = db.collection<SubmissionDoc>(SUBMISSIONS);
-    const filter = { status };
+    // "published" is a view over green documents, not a fourth status: a
+    // published recipe still belongs in Green, and the Green list marks it
+    // as published.
+    const filter =
+      view === "published"
+        ? { status: "green" as const, published_at: { $exists: true } }
+        : { status: view };
     const [total, docs] = await Promise.all([
       col.countDocuments(filter),
       col
@@ -228,6 +406,7 @@ export async function listSubmissions(
             "dish.tag": 1,
             "verdict.card": 1,
             "verdict.overridden_at": 1,
+            published_at: 1,
           },
         })
         .sort({ created_at: -1 })
@@ -249,6 +428,7 @@ export async function listSubmissions(
         card: d.verdict?.card ?? null,
         overridden: Boolean(d.verdict?.overridden_at),
         has_photo: Boolean(d.submission.photo?.bytes),
+        published: Boolean(d.published_at),
       })),
     };
   } catch (error) {
@@ -293,13 +473,187 @@ export async function overrideVerdict(id: string, card: "GREEN" | "RED"): Promis
     const now = new Date();
     const verdict = { ...(doc.verdict ?? { reasons: [], model: "operator", at: now }), card, overridden_at: now };
     const dish = doc.dish ?? { tag: dishTag(doc.submission.recipe_name), aliases: [] };
+    const status = card === "GREEN" ? "green" : "red";
+    // A move to RED takes the recipe off the site in the same write: leaving
+    // `published_at` behind would keep serving a document an operator just
+    // rejected until the next unrelated write happened to touch it.
     await col.updateOne(
       { _id },
-      { $set: { status: card === "GREEN" ? "green" : "red", updated_at: now, verdict, dish } },
+      card === "RED"
+        ? { $set: { status, updated_at: now, verdict, dish }, $unset: { published_at: "" } }
+        : { $set: { status, updated_at: now, verdict, dish } },
     );
     return true;
   } catch (error) {
     console.error("[community] override failed:", error);
     return false;
+  }
+}
+
+/**
+ * The thin Mongo query that feeds `phraseMatches` and `pickCommunity` — the
+ * whole decision lives in `match.ts` as pure functions; this fetches the
+ * candidates and flattens them into the shape those functions read.
+ *
+ * ponytail: in-memory phrase filter over the newest 200 published docs; move
+ * the gate into the query with an aliases-array index if the store outgrows it.
+ */
+export async function matchCommunity(
+  /**
+   * Every form of the reader's question worth matching, tried against each
+   * document until one hits. The route passes two: the dish name the language
+   * step resolved to, and the reader's own words.
+   *
+   * Both are needed and neither is enough. The resolved name is what reaches
+   * a dish through a sentence or a misspelling — "मला आर्टिसन ब्रेडची रेसिपी
+   * द्या" and "लिटी चोखा" only ever match as "artisan bread" and "litti
+   * chokha". The reader's own words are what reach an alias stored in their
+   * script: "ब्राउनी" is an alias of the brownies row, but the language step
+   * resolves it to "brownie", and "brownie" is not "brownies".
+   */
+  queries: string[],
+  region: string | null,
+  readerLang: string | null,
+): Promise<{ chosen: CommunityMatch; translation: TranslatedFields | null; others: string[]; total: number } | null> {
+  // Normalize before touching Mongo: a reader who typed only punctuation
+  // costs no round trip.
+  const normalizedQueries = [...new Set(queries.map(normalizeDish))].filter(Boolean);
+  if (!normalizedQueries.length) return null;
+  const db = await communityDb();
+  if (!db) {
+    console.error("[community] match failed: no store");
+    return null;
+  }
+  try {
+    const col = db.collection<SubmissionDoc>(SUBMISSIONS);
+    const docs = await col
+      .find(
+        { status: "green", published_at: { $exists: true }, "dish.tag": { $exists: true, $ne: "" } },
+        {
+          projection: {
+            dish: 1,
+            published_at: 1,
+            created_at: 1,
+            "submission.recipe_name": 1,
+            "submission.display_name": 1,
+            "submission.belongs_to": 1,
+            "submission.belongs_to_other": 1,
+            "submission.state": 1,
+            "submission.city": 1,
+            "submission.story": 1,
+            "submission.ingredients": 1,
+            "submission.method": 1,
+            "submission.photo.mime": 1,
+            "submission.photo.bytes": 1,
+            // Neither submission.contact nor submission.photo.data is
+            // projected here: the first is a member of the public's contact
+            // details, the second is up to 500 KB of base64 served from its
+            // own route.
+          },
+        },
+      )
+      .sort({ published_at: -1 })
+      .maxTimeMS(2000)
+      .limit(200)
+      .toArray();
+
+    // How well each document's own names are named by the reader, taking the
+    // best of the query forms. Zero is "not this dish".
+    const strengths = docs.map((d) => {
+      const named = normalizedQueries
+        .map((q) => matchedPhrase(q, d.dish?.tag ?? "", d.dish?.aliases ?? []))
+        .reduce((a, b) => (b.length > a.length ? b : a), "");
+      return { doc: d, tag: d.dish?.tag ?? "", phrase: named };
+    });
+
+    // One dish, or none. A query naming two different dishes equally well is
+    // declined rather than answered with whichever was published last.
+    const dish = pickDish(strengths);
+    if (!dish) return null;
+
+    const matches: CommunityMatch[] = strengths
+      .filter((s) => s.phrase !== "" && s.tag === dish)
+      .map(({ doc: d }) => ({
+        id: String(d._id),
+        state: d.submission.state,
+        language: d.dish?.language || null,
+        published_at: d.published_at as Date,
+        created_at: d.created_at,
+        dish: { tag: d.dish?.tag ?? "", aliases: d.dish?.aliases ?? [] },
+        submission: {
+          recipe_name: d.submission.recipe_name,
+          display_name: d.submission.display_name,
+          belongs_to: d.submission.belongs_to,
+          belongs_to_other: d.submission.belongs_to_other,
+          city: d.submission.city,
+          story: d.submission.story,
+          ingredients: d.submission.ingredients,
+          method: d.submission.method,
+          photo: d.submission.photo ? { mime: d.submission.photo.mime, bytes: d.submission.photo.bytes } : undefined,
+        },
+      }));
+
+    if (!matches.length) return null;
+    const chosen = pickCommunity(matches, region, readerLang);
+    if (!chosen) return null;
+
+    // The other states a reader could have been served, in first-seen order,
+    // excluding the chosen row's own state. Built in code from the match
+    // list — never by a model, which writes no citation here either.
+    const others: string[] = [];
+    for (const m of matches) {
+      if (m.id === chosen.id || m.state === chosen.state || others.includes(m.state)) continue;
+      others.push(m.state);
+    }
+
+    // One extra lookup, only on a community hit, only when the reader's
+    // language differs from the row's own — `readerLang` is already null
+    // when detection fell back (pickCommunity treats it the same way), and a
+    // row whose own source is unknown (`chosen.language === null`) never
+    // equals a real reader language, so it is still eligible for translation.
+    const translation =
+      readerLang && readerLang !== chosen.language ? await getTranslation(chosen.id, readerLang) : null;
+
+    return { chosen, translation, others, total: matches.length };
+  } catch (error) {
+    console.error("[community] match failed:", error);
+    return null;
+  }
+}
+
+/**
+ * The photo route's one query: a published green document's photo, and
+ * nothing else — not the whole document (`getSubmission`), which would pull
+ * `contact` and every text field across the wire for a route that serves
+ * bytes to anyone who asks. "Not found" and "store unreachable" are told
+ * apart so the route can 404 one and 503 the other; a malformed id, a missing
+ * document, a red or pending document, and a green-but-unpublished one all
+ * read as `not_found` here — the same body the route gives a missing id, so
+ * it cannot be used to enumerate which documents exist in which state.
+ */
+export async function publishedPhoto(
+  id: string,
+): Promise<
+  | { ok: true; mime: string; data: string }
+  | { ok: false; reason: "not_found" | "unreachable" }
+> {
+  const _id = hexId(id);
+  if (!_id) return { ok: false, reason: "not_found" };
+  const db = await communityDb();
+  if (!db) return { ok: false, reason: "unreachable" };
+  try {
+    const doc = await db
+      .collection<SubmissionDoc>(SUBMISSIONS)
+      .findOne(
+        { _id },
+        { projection: { status: 1, published_at: 1, "submission.photo": 1 }, maxTimeMS: 2000 },
+      );
+    if (!doc || doc.status !== "green" || !doc.published_at || !doc.submission.photo) {
+      return { ok: false, reason: "not_found" };
+    }
+    return { ok: true, mime: doc.submission.photo.mime, data: doc.submission.photo.data };
+  } catch (error) {
+    console.error("[community] photo read failed:", error);
+    return { ok: false, reason: "unreachable" };
   }
 }

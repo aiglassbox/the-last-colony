@@ -8,7 +8,7 @@ can cook tonight.
 ```bash
 npm install
 cp .env.example .env   # add GEMINI_API_KEY or ANTHROPIC_API_KEY
-npm run check          # validate the corpus, then prove retrieval
+npm run check          # validate the corpus, prove retrieval, check the community intake and match
 npm run dev
 ```
 
@@ -76,25 +76,29 @@ src/lib/lang/      normalize, reply-instruction, and the localized-card store
 src/lib/retrieval/ normalisation, BM25, the threshold and ambiguity gates
 src/lib/model/     system prompt, corpus block, streaming beat parser
 src/lib/chat/      conversation state as an external store, localStorage-backed
-src/app/           chat surface, /dish/[slug], API routes, 1080×1350 share card
+src/lib/community/ the Atlas store, moderation, the deterministic match, translation
+src/app/           chat surface, /dish/[slug], /add-recipe, /pantry, API routes, share card
 tests/             132 hand-checked retrieval queries + multilingual query set
 eval/multilingual/ Path A vs Path B language-retrieval benchmark + recorded report
 ```
 
-### Two kinds of turn
+### Kinds of turn
 
-It is a thread, not a card feed. Every turn is one of two kinds, and the
-**server** decides which — the same place the retrieval gates live, rather than
-a classifier guessing:
+It is a thread, not a card feed. Every turn renders as one of a small set of
+shapes, and the **server** decides which — the same place the retrieval gates
+live, rather than a classifier guessing:
 
 | Turn | When | Renders as |
 |---|---|---|
 | **Restoration** | the message names a dish retrieval can find | the four-beat card |
+| **Community** | the corpus has no record, but a published reader submission does (see "Add Your Recipe" below) | the community card |
 | **Conversation** | anything else, with the current dish carried forward | plain prose |
 
 So "kheer" opens a card, "why did the jaggery go?" is answered against the
-kheer records already on screen, and "what about dosa" swaps the card to dosa.
-Prior turns are replayed to the model, capped at the last 20.
+kheer records already on screen, "what about dosa" swaps the card to dosa, and
+a dish nobody has documented but a reader's own family sent in opens the
+community card instead of declining outright. Prior turns are replayed to the
+model, capped at the last 20.
 
 Threads persist in localStorage and are listed in the history drawer. There is
 no account, and the product does not need one.
@@ -250,10 +254,77 @@ ancestor:
 Anything that declines is logged as `no_original_found` with a `[corpus-gap]`
 prefix. That log is the roadmap for corpus expansion.
 
+### A reader's own recipe: community serving
+
+A corpus miss is checked against one more place before the model is asked to
+decide anything: a published submission from **Add Your Recipe** (below). The
+answering order is corpus record → published community submission → model
+fallback, and the check costs nothing on a corpus hit — `serveCommunity`
+(`src/app/api/chat/route.ts`) only runs inside the corpus-miss branch, before
+the swap table is built or the model is asked to resolve the turn.
+
+The lookup (`matchCommunity`, `src/lib/community/client.ts`) reads MongoDB
+Atlas only — never a corpus file, never Pinecone — and serves a submission
+only when it is `green` **and** an operator has published it. Matching is
+deterministic, not semantic: the reader's normalized query must equal, or
+contain as a whole phrase on token boundaries, the dish's tag or one of its
+aliases (`matchedPhrase`, `src/lib/community/match.ts`) — the same
+decline-rather-than-guess discipline as the gates above, over a store that
+never runs a scoring model of its own. Two forms of the question are tried:
+the dish name the language step resolved to, which is what gets through a
+sentence or a misspelling, and the reader's own words, which is what reaches
+an alias stored in their own script. A trailing English plural is folded off
+both sides for matching only, so "brownie" reaches a row named "brownies".
+
+BM25 was prototyped here and rejected on measurement rather than principle —
+see `DECISIONS.md`. It matched nothing the exact rule did not, and admitted
+component words like `chhena` and `pav` that the exact rule refuses.
+
+A query can name two published dishes, and then `pickDish` declines rather
+than guessing: a name nested inside another loses to the longer, more specific
+one, but two unrelated names fall through to the model. It is keyed on the
+dish tag, so several submissions of the same dish are one dish, not an
+ambiguity.
+
+When more than one published recipe answers the same dish name, three rules
+pick one, each filtering what the last left:
+
+1. the reader's own state, mapped from Vercel's `x-vercel-ip-country-region`
+   header — a submitter's own stated state always outranks this;
+2. failing that, a recipe whose own language (the model's reading of the
+   submission at moderation time, not a form field) matches the reader's;
+3. failing that, the most recently published.
+
+A community turn is its own `TurnMode`/`TurnKind` (`"community"`), and
+`CommunityCard` (`src/components/CommunityCard.tsx`) is its own component, not
+a variant of `RestorationCard`: its payload type has no field for a locus, a
+provenance class, or a submitter's contact, so it cannot render a source strip
+or a corpus badge even by mistake — there is nothing there to wire up.
+
+Translation happens once, at publish, never at request time: when an operator
+publishes a submission, a background job (`translateMissing`,
+`src/lib/community/publish-translations.ts`) translates it into whichever
+supported languages it is not already written in and stores each as its own
+row in `submission_translations`, keyed `{ submission_id, lang }`. Serving is
+then a lookup, not a model call — a reader typing Tamil can be served a recipe
+submitted in Marathi with no added latency. A translation that fails for one
+language is logged and skipped; the recipe stays live in its own language, the
+same fallback a corpus record uses when a localization is missing.
+
+**The card does not show the submitter's photo.** `/api/community/photo/[id]`
+still serves it, published documents only and cached for an hour — not
+`immutable`, because the bytes never change but whether they may be served
+does, and an operator's "Remove from Published" has to reach a reader who
+already loaded it. The card simply does not render it: an unreviewed image
+from a stranger would sit on the page under this site's name, and the
+moderation pass reads text. `photo_url` stays on the payload, so putting it
+back is one block in `CommunityCard.tsx`.
+
 ### When the dish isn't in the corpus
 
-Declining is not the end of the answer. On an empty retrieval the route injects
-the whole swap table as `<component_swaps>`, and the card becomes a component
+Declining is not the end of the answer, and a community match (above) is
+checked first. When neither the corpus nor a published submission answers,
+the route injects the whole swap table as `<component_swaps>`, and the card becomes a component
 restoration rather than an apology — ask for palak paneer and you are told its
 cream can be hung curd or a ground kabuli chana paste, with the ratio attached.
 
@@ -349,6 +420,127 @@ generated.
 
 When you add a dish, add its query variants to `tests/retrieval-queries.json`
 too — including at least one near-miss that must **not** match it.
+
+---
+
+## Add Your Recipe
+
+A fourth source alongside the corpus. `/add-recipe` lets a reader submit a
+family recipe in their own words; `/pantry` is where an operator reviews it
+before it can ever be served. The matching and serving logic that community
+submissions feed lives in `src/lib/community/` and is covered above, under
+"A reader's own recipe: community serving" — this section is the intake and
+review side of the same feature.
+
+Everything here lives in MongoDB Atlas (free tier, database `kranti`), not
+Neon: a separate store behind its own three env vars, reached through one
+module (`src/lib/community/client.ts`) so nothing outside it may import the
+`mongodb` package. `communityDb()` returns `null` exactly like the app's `db()`
+does for Neon — an unset `ATLAS_URL`/`ATLAS_USER`/`ATLAS_PASSWORD`, or an
+unreachable cluster, fail-softs the whole feature rather than the app: the
+form shows unavailable, the API answers 503, retrieval simply loses one tier.
+
+### Two ways in
+
+`AddRecipeForm` (`src/app/add-recipe/AddRecipeForm.tsx`) offers "Type it in"
+or "From a photo." A photo is downscaled and JPEG-compressed client-side to
+fit the 500KB cap before anything is sent. In photo mode, `POST
+/api/submissions/extract` reads it on `SUBMISSION_EXTRACT_MODEL` (handwriting
+and regional scripts need the full-quality tier) and returns fields that
+prefill the form; the submitter corrects every one before anything is stored.
+What the model read is kept beside what the submitter confirmed, as
+`extracted`, for the pantry to show both — nothing the model reads becomes the
+submitter's own words without that confirmation.
+
+`validateSubmission` (`src/lib/community/schema.ts`) is the trust boundary —
+the form's required/optional split is convenience, this is the enforcement.
+State and "belongs to" are closed lists rather than free text, because a typo
+there would be a silent never-match for the geo pick later. Both consent
+checkboxes are required. `POST /api/submissions` is rate-limited to three
+submissions per five-minute window per client and refuses a body over 1MB
+before it is even read.
+
+### Moderation
+
+A single structured call (`moderate`, `src/lib/community/pipeline.ts`, on
+`SUBMISSION_VERDICT_MODEL` — a lite classification tier by default) issues
+GREEN or RED and, in the same call, the dish's canonical tag, its alias
+spellings, and the language most of the submission is written in. It runs in
+`after()`, past the 201 the reader already received, so a verdict that
+outlives the platform timeout can never become a failed response the form
+retries as a duplicate — a lost verdict just leaves the document `pending` for
+an operator to re-run from `/pantry`. There is no approval queue for the
+verdict itself: GREEN or RED is decided by the model with nobody in the loop.
+That is not the same as serving, though — a GREEN document still needs an
+operator's separate publish (below) before a reader can ever be served it. RED
+submissions stay in the store, rejected but never deleted.
+
+### The pantry
+
+`/pantry` is the operator's review desk, behind its own password
+(`ADMIN_PASSWORD`) and its own signed cookie — the same gate factory as
+`/kitchen` (`src/lib/dash/auth.ts`), so a kitchen session opens nothing here
+and vice versa. It has to be separate: the pantry shows submitters' contact
+details, which `/kitchen` never touches. Same fail-closed posture as
+`/kitchen`: an unset password means the page and its API 404 rather than
+serving everyone.
+
+Four tabs — Pending, Green, Red, Published, the last a view over `green`
+documents that also carry `published_at` rather than a fifth stored status.
+Per document, an operator can override the verdict (mark GREEN or RED,
+outranking the model — and an override is final: neither a late verdict
+callback nor a re-run may write over it), re-run the verdict, publish, or
+unpublish. Publishing is refused on anything not GREEN or with no dish tag,
+because an untagged document matches nothing and would sit in Published where
+no reader could ever reach it. The action buttons follow the document's
+actual state rather than the tab the operator is viewing, so marking a recipe
+RED updates what is offered on the next render instead of leaving a stale
+"Mark Published" pointing at a document that was just rejected.
+
+A GREEN submission can be downloaded from the pantry as a corpus candidate —
+JSON in the corpus record's own shape (`toCorpusCandidate`,
+`src/lib/community/candidate.ts`), for a human to incorporate into `corpus/`
+by hand. It is copy-shape work, not a promotion: the candidate is always
+`MODERN_DISH`, `unverified_seed`, carries no original-language text (the same
+rule that governs corpus records), no photo, and the submitter's contact is
+left behind in the store — a corpus file is public.
+
+### Publishing and translation
+
+Publishing (`publishSubmission`) is the human gate: only a GREEN, tagged
+document can be published, and only an operator's click does it. The same
+write starts the background translation job described above
+(`translateMissing`) — one function called three ways: from the pantry route
+right after a publish, from the seed script the same way, and directly from
+`npm run community:backfill-translations`, which closes gaps in documents
+already published — left by a publish path that predates the job, or by one
+language's call failing at publish time.
+
+### Env vars and scripts
+
+New since the corpus-only build, all documented in `.env.example`:
+`ATLAS_URL` / `ATLAS_USER` / `ATLAS_PASSWORD` (the store), `ADMIN_PASSWORD` /
+`ADMIN_SECRET` (the pantry's door), `SUBMISSION_DAILY_MAX` (a store-size guard
+for the free tier — submissions accepted per UTC day across all readers, not a
+per-reader limit), and one model per job — `SUBMISSION_VERDICT_MODEL`,
+`SUBMISSION_EXTRACT_MODEL`, `SUBMISSION_TRANSLATE_MODEL` — because extraction
+and translation need the full-quality tier and moderation does not.
+`NEXT_PUBLIC_GA_ID` (Google Analytics 4) is unrelated to community submissions
+but is also new since this file was last written: same off-by-default posture
+as the Meta Pixel, and `GoogleAnalytics` explicitly skips `/kitchen` and
+`/pantry` so neither dashboard reports on itself.
+
+`npm run community:index` creates the indexes the pantry list and the daily
+ceiling read by (idempotent, run once per environment). `npm run
+community:seed` fills the store with real regional recipes, attributed to
+`Arpit's Agent` and never touching a reader's submission, so retrieval has
+something to serve before any reader has submitted anything. `npm run
+check:system` drives all three answering tiers — corpus, community, model
+fallback — through the real chat route end to end; like
+`corpus:check-multilingual`, it needs a model key and the store, so it stays
+out of `npm run check`. The three checks that are model-free and offline —
+`community:check-submissions`, `community:check-pantry`,
+`community:check-match` — are part of `npm run check`.
 
 ---
 
@@ -474,8 +666,6 @@ closest thing here to personal data and should be asked for on purpose.
   embedded font file and none is shipped, so the card loses the serif display
   face the rest of the product uses. Drop a `.ttf`/`.otf` in and pass it via
   the `fonts` option in `src/app/api/share/[slug]/route.tsx`.
-- **Vector retrieval is a stub.** The interface is in place and threshold
-  discipline is written to cover it; the pgvector implementation is not.
 - **Multilingual: input and reply both live.** A query in any of the eight
   active languages (Hindi, Bengali, Marathi, Telugu, Tamil, Gujarati, Kannada,
   English), in native script or Hinglish, is detected and translated to English
@@ -486,7 +676,14 @@ closest thing here to personal data and should be asked for on purpose.
   in `eval/multilingual/`. Urdu is deferred (right-to-left layout is out of scope
   pending review); it is detected but answered in English, with a line naming the
   supported languages.
-- **Analytics goes to the console.** `track()` is a one-function shim over a
-  real sink.
 - **Eight ancient records await editorial verification** — see above. This is
   a state, not a bug, and the product says so out loud on every card.
+- **The community store is Atlas free tier, photos included, as a deliberate
+  test-phase choice.** The plan of record is a move to GCP after testing;
+  everything that talks to it goes through `src/lib/community/client.ts`, the
+  one file that has to change when it does.
+- **The community match filters its phrase gate in memory, over the newest 200
+  published documents, rather than in the query.** Fine at the size this
+  feature holds today; past 200 published recipes the gate belongs in the
+  query with an aliases-array index. Marked `ponytail` at the query site in
+  `client.ts`.

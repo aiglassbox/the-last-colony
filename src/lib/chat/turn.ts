@@ -13,9 +13,18 @@
  *
  * So the reason is named once, here, and every piece of copy downstream is a
  * lookup on it rather than an inference from flags.
+ *
+ * `"community"` is both a mode and a kind, and that is a coincidence, not a
+ * sign the two questions collapsed back into one. The mode names which
+ * component renders — `CommunityCard`, a surface of its own that a corpus
+ * record can never reach. The kind names why: not the corpus's silence, a
+ * reader's own family sent us theirs. Nothing forces those two questions to
+ * agree — `restoration` mode alone spans three different kinds — they just
+ * happen to want the same word here. Do not read this pair as evidence that
+ * the distinction stopped mattering.
  */
 
-export type TurnMode = "restoration" | "conversation" | "indianize";
+export type TurnMode = "restoration" | "conversation" | "indianize" | "community";
 
 export type TurnKind =
   /** Indian, with an ancient original, and we hold the record. */
@@ -25,7 +34,9 @@ export type TurnKind =
   /** Indian, likely had an older form, not documented by us yet. */
   | "gap"
   /** Not Indian in origin. Nothing to restore, and the corpus is not the point. */
-  | "foreign";
+  | "foreign"
+  /** Indian, no corpus record, but a reader's family sent us theirs. */
+  | "community";
 
 /** Turns that carry a record, and so may show a badge and a source strip. */
 export function hasRecord(kind: TurnKind): boolean {
