@@ -6,6 +6,8 @@ import { useRef, useState } from "react";
 
 import { BELONGS_TO, PHOTO_MAX_BYTES, STATES, type Extracted, type Photo } from "@/lib/community/schema";
 
+import { EmailVerify, type Verified } from "./EmailVerify";
+
 /**
  * One form. The server's validateSubmission is the boundary; everything here
  * is convenience mirroring it, so a field the API would refuse is refused
@@ -20,6 +22,10 @@ import { BELONGS_TO, PHOTO_MAX_BYTES, STATES, type Extracted, type Photo } from 
  * A reading never overwrites words already typed. It fills the fields the
  * submitter left blank and leaves the rest alone, while `extracted` keeps the
  * model's reading verbatim for the pantry to show beside what was confirmed.
+ *
+ * The email is verified inline, by EmailVerify, and Submit stays locked until
+ * it is. The submit carries the verified email and its proof, never the
+ * field's text, so what was verified is what is stored.
  */
 
 /** Downscale + JPEG-encode so the payload fits the server's photo cap. */
@@ -58,6 +64,10 @@ export function AddRecipeForm() {
   /** What the fieldset remounts with: the reading, minus anything already typed. */
   const [defaults, setDefaults] = useState<Extracted | null>(null);
   const [extractKey, setExtractKey] = useState(0);
+  /** The email that proved itself and the proof the submit must carry. */
+  const [verified, setVerified] = useState<Verified | null>(null);
+  /** Bumped to remount EmailVerify from scratch when the submit says the verification lapsed. */
+  const [verifyKey, setVerifyKey] = useState(0);
   const formRef = useRef<HTMLFormElement>(null);
 
   async function readPhoto(p: Photo) {
@@ -128,7 +138,7 @@ export function AddRecipeForm() {
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (busy || reading) return;
+    if (busy || reading || !verified) return;
     setErrors([]);
     const form = new FormData(e.currentTarget);
     const field = (name: string) => String(form.get(name) ?? "").trim();
@@ -149,7 +159,8 @@ export function AddRecipeForm() {
         right_to_share: form.get("right_to_share") === "on",
         public_display: form.get("public_display") === "on",
       },
-      contact: field("contact"),
+      contact: verified.email,
+      proof: verified.proof,
       photo: photo ?? undefined,
     };
 
@@ -167,6 +178,18 @@ export function AddRecipeForm() {
       const payload = await res.json().catch(() => null);
       if (res.status === 400 && Array.isArray(payload?.errors)) setErrors(payload.errors);
       else if (res.status === 429) setErrors([`Too many submissions — try again in ${payload?.retryAfter ?? 60}s.`]);
+      else if (res.status === 403) {
+        setErrors(["Your verification lapsed — verify your email again."]);
+        setVerified(null);
+        setVerifyKey((k) => k + 1);
+      } else if (res.status === 413) {
+        // The payload the server refused is the photo; nothing else here comes
+        // close to the cap. Say so, rather than blaming an outage.
+        setErrors(["That photo is too large to submit — attach a smaller one, or submit without it."]);
+      }
+      // A 503 keeps the verification if the server managed to release it, and
+      // silently spends it if that release failed too. Either way the retry
+      // is the same button, and a spent one comes back as the 403 above.
       else setErrors(["Submissions are unavailable right now. Your recipe was not lost — please try later."]);
     } finally {
       setBusy(false);
@@ -279,10 +302,7 @@ export function AddRecipeForm() {
           </label>
         </fieldset>
 
-        <label className="recipe-form__field">
-          Contact (email or phone — never shown publicly, used only to reach you about this recipe)
-          <input name="contact" required maxLength={120} />
-        </label>
+        <EmailVerify key={verifyKey} onChange={setVerified} />
 
         <label className="recipe-form__consent">
           <input type="checkbox" name="right_to_share" required />
@@ -293,7 +313,7 @@ export function AddRecipeForm() {
           My name, location and recipe may be shown publicly and used by the AI.
         </label>
 
-        <button type="submit" className="recipe-form__submit" disabled={busy || reading}>
+        <button type="submit" className="recipe-form__submit" disabled={busy || reading || !verified}>
           {busy ? "Submitting…" : "Submit recipe"}
         </button>
       </form>

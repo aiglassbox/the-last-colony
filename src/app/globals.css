@@ -2146,7 +2146,8 @@ body {
   cursor: pointer;
 }
 
-.recipe-form__submit:disabled {
+.recipe-form__submit:disabled,
+.recipe-form__button:disabled {
   opacity: 0.6;
   cursor: default;
 }
@@ -2156,4 +2157,54 @@ body {
   margin: 0;
   padding: 0;
   border: none;
+}
+
+.recipe-form__verify {
+  margin-bottom: var(--s-4);
+  padding: var(--s-3);
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  border-radius: 8px;
+}
+
+.recipe-form__verify .recipe-form__lede {
+  margin-bottom: var(--s-3);
+}
+
+.recipe-form__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.recipe-form__button {
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.recipe-form__link {
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* `--red` is the brand green, the same ink as ordinary note copy, so colour
+   alone does not read as an error. It earns its distinction the way
+   `.recipe-form__errors` does: a bordered box, same idiom, same tokens. */
+.recipe-form__note--error {
+  margin-top: var(--s-2);
+  padding: var(--s-2);
+  border: 1px solid var(--red);
+  border-radius: 8px;
+  color: var(--red);
+  opacity: 1;
 }
