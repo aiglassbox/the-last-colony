@@ -16,9 +16,10 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { COMMANDS, parseCommand } from "../src/lib/chat/commands";
-import { kindOf, parseResolved, RESOLUTION, type TurnKind } from "../src/lib/chat/turn";
+import { kindOf, MODE_LINE, parseResolved, RESOLUTION, type TurnKind } from "../src/lib/chat/turn";
 import { namesForeignDish } from "../src/lib/indianization/foreign-dishes";
 import { stripHealthClaims } from "../src/lib/model/health";
+import { auditProse } from "../src/lib/model/guards";
 import { condenseRows } from "../src/lib/model/history";
 import { restoreIndianWords } from "../src/lib/model/indian-words";
 import { labTerms, plainWords } from "../src/lib/model/jargon";
@@ -27,6 +28,7 @@ import { danglingTail, styleProse } from "../src/lib/model/punctuation";
 import { isCategoryOnly, parseIngredientRows } from "../src/lib/model/recipe-beat";
 import { dropNarration, dropSelfAsPerson, stripOpener } from "../src/lib/model/self-reference";
 import { parseSwapRows } from "../src/lib/model/swap-rows";
+import { SYSTEM_PROMPT } from "../src/lib/model/system-prompt";
 import { checkRate, clientKey, RATE_LIMIT } from "../src/lib/rate-limit";
 
 let failures = 0;
@@ -51,6 +53,13 @@ check("explicit RESTORE", parseResolved("MODE: RESTORE\n"), "restore");
 check("explicit MODERN", parseResolved("MODE: MODERN\n"), "modern");
 check("explicit INDIANISE", parseResolved("MODE: INDIANISE\n"), "indianise");
 check("lower case", parseResolved("mode: modern\n"), "modern");
+check("explicit DECLINE", parseResolved("MODE: DECLINE\n"), "decline");
+
+// The route slices the mode line off the front of the stream using the same
+// regex `parseResolved` matches with. When they drift, the literal "MODE: ..."
+// line survives into the reply and is rendered to the reader as text — so the
+// declaration has to be recognised by the shared source, not a second copy.
+check("the shared regex knows every declared mode", MODE_LINE.test("MODE: DECLINE"), true);
 
 // The regression that produced the reported screenshot: an undeclared mode used
 // to default to a restoration card, so any stray prose became a card with a
@@ -85,6 +94,10 @@ check("gap is a card, framed as a gap", RESOLUTION.restore, {
   kind: "gap",
 });
 check("reply is prose and has no kind", RESOLUTION.reply, {
+  mode: "conversation",
+  kind: null,
+});
+check("decline is prose and has no kind", RESOLUTION.decline, {
   mode: "conversation",
   kind: null,
 });
@@ -834,6 +847,99 @@ check(
   "a stem inside a longer word does not fire",
   stripHealthClaims("अपाचन एक शब्द है, बस भूनें।"),
   "अपाचन एक शब्द है, बस भूनें।",
+);
+
+// --- sourcing -------------------------------------------------------------
+
+console.log("\nSourcing");
+
+// The failure this closes: the model, given no shop, named three from memory.
+check(
+  "a brand roll-call is reported",
+  auditProse("Look for brands like Conscious Food, Organic Tattva, or 24 Mantra Organic.", [])
+    .brandRollCalls.length > 0,
+  true,
+);
+check(
+  "so is the singular, and 'such as'",
+  auditProse("Try a brand such as Everest, or any local label.", []).brandRollCalls.length > 0,
+  true,
+);
+// Naming our own shop is the whole point of the section, so the audit must not
+// fire on the answer it is meant to produce.
+check(
+  "naming the shop and a product of ours is clean",
+  auditProse(
+    "Two Brothers India Farms sell Desi Gir Cow Cultured Ghee. Everything else, your kirana.",
+    [],
+  ).brandRollCalls,
+  [],
+);
+check(
+  "ordinary prose about a dish is clean",
+  auditProse("Roast the bajra until it smells like bread, then grind it coarse.", [])
+    .brandRollCalls,
+  [],
+);
+
+// The catalog is a closed world, and the prompt is where it lives. These assert
+// the section is actually present and complete rather than checking prose: a
+// product silently dropped from the list becomes an ingredient the model sends
+// to a kirana, and a stray one becomes a product we do not sell.
+const CATALOGUED = [
+  "Desi Gir Cow Cultured Ghee",
+  "Black Mustard Oil, Cold-Pressed",
+  "Sprouted Ragi Flour (Nachni Satva)",
+  "Waghya Rajma",
+  "Liquid Sugarcane Jaggery (Kaakvi)",
+  "Single Origin Lakadong Turmeric Powder",
+];
+// Compared with runs of whitespace flattened: the prompt is hand-wrapped at
+// about eighty columns, so a product name may straddle a line break.
+const FLAT_PROMPT = SYSTEM_PROMPT.replace(/\s+/g, " ");
+for (const name of CATALOGUED) {
+  check(`the catalog still lists ${name}`, FLAT_PROMPT.includes(name), true);
+}
+check("the shop is named", SYSTEM_PROMPT.includes("Two Brothers India Farms"), true);
+check("the address is exact", SYSTEM_PROMPT.includes("https://twobrothersindiashop.com/"), true);
+// One line, one place. A second copy is a second thing to keep right.
+check(
+  "the address appears once",
+  SYSTEM_PROMPT.split("https://twobrothersindiashop.com/").length - 1,
+  1,
+);
+// Without this sentence the model fills a gap with a plausible-sounding product
+// we do not stock, which is requirement one broken by the brand we wanted.
+check(
+  "the list is stated to be closed",
+  /complete and it is closed/.test(SYSTEM_PROMPT),
+  true,
+);
+check("an unstocked ingredient goes to the kirana", /local kirana/.test(SYSTEM_PROMPT), true);
+
+// A product name is a proper noun the reader types into a search box. The word
+// restorer used to rewrite the English inside one, which is the right word for
+// the wrong purpose: the shop has never heard of "Lakadong haldi".
+check(
+  "a product name survives the word restorer",
+  restoreIndianWords("Buy Single Origin Lakadong Turmeric Powder from the farm."),
+  "Buy Single Origin Lakadong Turmeric Powder from the farm.",
+);
+check(
+  "and so does the one with the gloss already in it",
+  restoreIndianWords("Salem Haldi (Ground Turmeric) is the one."),
+  "Salem Haldi (Ground Turmeric) is the one.",
+);
+// The rule it must not weaken: turmeric in ordinary prose is still haldi.
+check(
+  "loose turmeric is still restored",
+  restoreIndianWords("Add a spoon of turmeric powder at the end."),
+  "Add a spoon of haldi at the end.",
+);
+check(
+  "the mask leaves nothing behind when a name repeats",
+  restoreIndianWords("Salem Haldi (Ground Turmeric), or Salem Haldi (Ground Turmeric) again."),
+  "Salem Haldi (Ground Turmeric), or Salem Haldi (Ground Turmeric) again.",
 );
 
 // --- report ---------------------------------------------------------------

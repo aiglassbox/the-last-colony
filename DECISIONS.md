@@ -578,7 +578,33 @@ corrects, and `POST /api/submissions` stores their confirmed words as
 `submission` with what the model read kept beside it as `extracted`. Nothing
 the model read is ever stored as the submitter's words unconfirmed. The
 verdict runs over the confirmed text, not the raw reading — and it sees the
-photo, in both modes, because a served community card carries it.
+photo whenever one is attached, so the moderator sees everything that was
+stored, not only the half that is text.
+
+**One form, with the photo as an optional shortcut through it — not a mode.**
+The form used to open on a two-button picker: "Type it in" or "From a photo",
+each rendering the file input in a different place. The picker was asking a
+question the submitter could not yet answer — you do not know whether the
+model can read your grandmother's handwriting until it tries — and answering
+it wrong meant backing out and starting again. So the modes are gone. There is
+one form, the photo sits at the top of it, and it is optional: attach one and
+the fields fill themselves, attach nothing and you type the same fields by
+hand. A failed reading is no longer a wrong turn, just a note above fields
+that were always there.
+
+`mode` survives in the payload because it records what *happened*, not what
+was offered: a reading that landed is `image`, no photo or an unreadable one
+is `manual`. `validateSubmission` is unchanged and still enforces that an
+`image` submission carries both the reading and the photo it came from.
+
+**A reading fills blanks; it never overwrites typing.** The recipe fieldset is
+uncontrolled and remounts on `extractKey` when a reading lands, so the obvious
+prefill would erase a story someone typed before scrolling up to attach the
+photo — silent data loss on a form with no draft saving. The remount now takes
+the reading only where the submitter left a blank. The merge is kept out of
+`extracted`, which stays the model's reading verbatim: the two states answer
+different questions, and folding a submitter's typing into `extracted` would
+make the pantry's side-by-side a lie about what the model produced.
 
 **The verdict runs in `after()`, not inline.** The 201 is flushed first; a
 verdict that outlives the platform timeout can no longer become a failed
@@ -592,6 +618,45 @@ budget per five minutes, and the same 404 for "no password configured" and
 its own cookie, because it shows submitters' contact details and a kitchen
 session must open nothing there. The auth route is a factory too; the kitchen's
 route shrank to naming its gate.
+
+**A recipe is submitted by an address that just read a code — settled
+2026-09-08.** The contact field was "email or phone", free text, unverified.
+It is now an email, and the submit carries a proof that this browser entered
+the six-digit code sent to it. Resend delivers the mail (free tier, one POST,
+no SDK); the state — hashed code, expiry, send window, wrong tries,
+verification, proof, consumption — is one document per email in `otp_codes`,
+beside `submissions` in Atlas, because a submission could not land without
+Atlas anyway. Every rule is a pure function in `otp-rules.ts` over that
+document and a clock, so `scripts/check-otp.ts` walks a whole life of an
+address offline. The numbers: five-minute code, three-minute resend cooldown,
+three sends per email per five minutes, three wrong tries lock the code,
+fifteen-minute hold, one submission per verification, three sends and fifteen
+guesses per IP per window. The cooldown makes that per-email cap a backstop
+rather than a budget: with three minutes between sends only two fit inside a
+five-minute window, so nobody reaches three. It stays because it is the rule
+that holds if the cooldown is ever shortened. No session, no cookie, no phone,
+no dev bypass: without `RESEND_API_KEY` the send route answers 503 and the form
+cannot submit. The code is hashed with the Resend key rather than a new secret,
+because it is a secret the feature already cannot run without.
+
+**And a global ceiling on the day's codes — settled 2026-09-10.** The rules
+above are all per address, and the only thing standing between a script and
+Resend's free hundred a day was the per-IP limiter, which cannot hold that
+line: it keys on a forwarding header the client sets, and it counts in memory
+on one instance, so neither the key nor the count is ours. Spent, every send
+answers 503 and the form reads "unavailable" to everyone until midnight with
+nothing in the log to say why. `OTP_DAILY_MAX` (default 90, under Resend's 100
+so our refusal comes first) counts against one document per UTC day in
+`otp_daily` — its own collection, because `otp_codes` is unique on `email` and
+expires an hour after its last touch, which would delete a live count. The
+count is spent after the per-address decision and before the mail leaves, and
+given back beside the code when delivery fails, so neither a cooldown refusal
+nor an email that never arrived costs the day anything. It exists to bound the
+blast radius and make the refusal ours and legible, not to limit people, and it
+is deliberately global: no per-person allowance is attached to it, because the
+cooldown and the cap are already the per-person rules and a daily allowance
+would need a per-person identity this feature does not have.
+→ `.docs/specs/2026-09-08-email-otp-design.md`
 
 **A corpus candidate carries no contact and can never claim ATTESTED.** The
 pantry's download is a GREEN submission in the corpus record's shape, for a

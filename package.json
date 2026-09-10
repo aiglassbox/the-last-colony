@@ -24,11 +24,12 @@
     "community:check-submissions": "tsx scripts/check-submissions.ts",
     "community:check-pantry": "tsx scripts/check-pantry.ts",
     "community:check-match": "tsx scripts/check-community-match.ts",
+    "community:check-otp": "tsx scripts/check-otp.ts",
     "community:index": "tsx --env-file=.env scripts/community-index.ts",
     "community:seed": "tsx --env-file=.env scripts/seed-community.ts",
     "community:backfill-translations": "tsx --env-file=.env scripts/backfill-translations.ts",
     "check:system": "tsx --env-file=.env scripts/check-system.ts",
-    "check": "npm run corpus:validate && npm run corpus:check-retrieval && npm run corpus:check-promotion && npm run check:routing && npm run check:mirror && npm run community:check-submissions && npm run community:check-pantry && npm run community:check-match",
+    "check": "npm run corpus:validate && npm run corpus:check-retrieval && npm run corpus:check-promotion && npm run check:routing && npm run lang:check && npm run check:mirror && npm run community:check-submissions && npm run community:check-pantry && npm run community:check-match && npm run community:check-otp",
     "db:migrate": "tsx scripts/db-migrate.ts",
     "report:usage": "tsx scripts/usage-report.ts",
     "email:report": "tsx scripts/email-report.ts"

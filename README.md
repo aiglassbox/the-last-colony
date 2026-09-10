@@ -440,17 +440,35 @@ does for Neon — an unset `ATLAS_URL`/`ATLAS_USER`/`ATLAS_PASSWORD`, or an
 unreachable cluster, fail-softs the whole feature rather than the app: the
 form shows unavailable, the API answers 503, retrieval simply loses one tier.
 
-### Two ways in
+### One form, and the photo is a shortcut through it
 
-`AddRecipeForm` (`src/app/add-recipe/AddRecipeForm.tsx`) offers "Type it in"
-or "From a photo." A photo is downscaled and JPEG-compressed client-side to
-fit the 500KB cap before anything is sent. In photo mode, `POST
-/api/submissions/extract` reads it on `SUBMISSION_EXTRACT_MODEL` (handwriting
-and regional scripts need the full-quality tier) and returns fields that
-prefill the form; the submitter corrects every one before anything is stored.
-What the model read is kept beside what the submitter confirmed, as
-`extracted`, for the pantry to show both — nothing the model reads becomes the
-submitter's own words without that confirmation.
+`AddRecipeForm` (`src/app/add-recipe/AddRecipeForm.tsx`) is a single form with
+no mode picker. **The photo is optional and sits at the top**, offered as the
+fastest way to fill the fields rather than as a separate way in — attach the
+handwritten card and the fields below fill themselves; attach nothing and the
+same fields are typed by hand. Both paths end at the same four required fields
+and the same consent checkboxes.
+
+A photo is downscaled and JPEG-compressed client-side to fit the 500KB cap
+before anything is sent. `POST /api/submissions/extract` then reads it on
+`SUBMISSION_EXTRACT_MODEL` (handwriting and regional scripts need the
+full-quality tier) and returns fields that prefill the form; the submitter
+corrects every one before anything is stored. What the model read is kept
+beside what the submitter confirmed, as `extracted`, for the pantry to show
+both — nothing the model reads becomes the submitter's own words without that
+confirmation.
+
+**A reading never overwrites words already typed.** The recipe fieldset is
+uncontrolled and remounts on a reading, so a plain prefill would erase a story
+someone wrote before scrolling back up to attach the photo. The reading fills
+only the fields left blank. `extracted` still carries the model's reading
+verbatim — the merge decides what is *shown*, never what is *recorded* as the
+model's work.
+
+`mode` is written from what happened, not from what was offered: a reading
+that landed makes it `image`, and no photo or an unreadable one makes it
+`manual`. That is why `validateSubmission` still has two modes to enforce
+while the form has only one shape.
 
 `validateSubmission` (`src/lib/community/schema.ts`) is the trust boundary —
 the form's required/optional split is convenience, this is the enforcement.
@@ -459,6 +477,27 @@ there would be a silent never-match for the geo pick later. Both consent
 checkboxes are required. `POST /api/submissions` is rate-limited to three
 submissions per five-minute window per client and refuses a body over 1MB
 before it is even read.
+
+**The contact is a verified email.** The block above the consent boxes sends
+a six-digit code through Resend (`POST /api/otp/send`), takes it back
+(`POST /api/otp/verify`), and hands the form a proof that the submit must
+carry; `POST /api/submissions` spends that proof before it inserts, so two
+submissions racing on one proof produce one recipe. A write that commits and
+then reports failure — a driver throw as much as a genuine refusal — releases
+the proof again, so a retry can land a second recipe on it; duplicates were
+already possible before this feature and moderation catches them. A code
+lives five minutes, a resend waits three minutes, three wrong tries lock it,
+and a verification holds for fifteen minutes — the form says so, and tells
+people to fill the recipe in first. Every rule is a pure function in
+`src/lib/community/otp-rules.ts` checked offline by `scripts/check-otp.ts`;
+the state is one document per email in `otp_codes`, with the code stored as
+an HMAC keyed by `RESEND_API_KEY`. Without that key the send route answers
+503 and nothing can be submitted. `npm run community:index` creates the two
+indexes `otp_codes` needs — a unique one on `email`, without which two
+simultaneous first sends can create two documents and the wrong one may be
+read back, and the TTL expiry index — before any new environment can rely on
+this store; the offline suite cannot check either, since both need the store
+itself.
 
 ### Moderation
 

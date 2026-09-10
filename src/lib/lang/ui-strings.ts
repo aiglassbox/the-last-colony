@@ -64,6 +64,16 @@ export const EN_UI_STRINGS = {
     "Name a dish and the thread will be saved here. Nothing leaves the browser, so " +
     "clearing site data clears the history with it.",
   noAnswerYet: "No answer yet.",
+
+  // Canned replies. Written here rather than by the model because the answer is
+  // known before a model is asked: both are cold-start turns with nothing to
+  // retrieve. A canned string also cannot leak the prompt, grow a health claim
+  // or pick up an em dash, so it skips every stripper in `src/lib/model`.
+  askForDish:
+    "Name one Indian dish you eat almost every week, and I will show you what it used to be.",
+  offTopic:
+    "I only hold recipes. Name one Indian dish you eat almost every week, and I will show " +
+    "you what it used to be.",
   messagesOne: "1 message",
   messagesOther: "{n} messages",
 

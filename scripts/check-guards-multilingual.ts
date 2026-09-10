@@ -28,6 +28,7 @@ const native = (lang: Normalized["lang"], english: string): Normalized => ({
   confidence: 0.95,
   english,
   fell_back: false,
+  scope: "food",
 });
 
 const CASES: GuardCase[] = [

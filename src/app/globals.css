@@ -576,6 +576,44 @@ body {
   color: inherit;
 }
 
+/*
+  The drawn pot from the form comp, standing in for a lucide icon on the Add
+  Recipe row — the one illustrated mark on the rail.
+
+  Single-colour line art with a clean alpha channel, so it is masked over
+  `currentColor` rather than drawn as an image, the same idiom as every mark in
+  Logo.tsx. That is what carries it through the row's hover and active states
+  without a second file for each.
+
+  The same 18px box as its lucide neighbours, so all three labels in Features
+  keep one left edge. The artwork is a shade wider than it is tall, so `contain`
+  leaves it just under 18px high — which is invisible, and cheaper than the
+  ragged column a bespoke width would cost.
+
+  The file is 38x36 — twice the box — and its alpha has already been thickened
+  and curved. Both matter, and regenerating this PNG from the comp without them
+  brings back the pale version this replaced.
+
+  The comp's art is fine line work: at 18px its strokes cover a fraction of a
+  pixel, so the mask passed the ink at that fraction of an opacity and it read
+  faint beside two 2px lucide strokes. Two things fix it, and it needs both. The
+  ink is dilated by 2px at 4x before coming down, which is what gives the pot
+  its outline weight; then the alpha is curved, `a' = a^0.3`, which darkens what
+  coverage remains. The curve alone saturates — past about 0.25 it only flattens
+  the mound and leaves the thin outline as pale as it was.
+
+  The cost is the stipple in the mound, which fills to a solid cap. That detail
+  was never legible at this size anyway.
+*/
+.side-item__art {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  background: currentColor;
+  -webkit-mask: url("/brand/recipe-bowl.png") center / contain no-repeat;
+  mask: url("/brand/recipe-bowl.png") center / contain no-repeat;
+}
+
 .side-item__text {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2057,50 +2095,128 @@ body {
 
 /* --- Add Your Recipe form ------------------------------------------------ */
 
+/*
+  The comp: a painted plate with a carved pillar down each side, the fields
+  inside one amber frame with a scooped corner at every turn, and a scooped
+  amber plate for the button that moves you on.
+
+  Both frames are the designer's SVGs used as 9-slice `border-image`, so the
+  corner notches render at their drawn size while the straight edges stretch
+  to whatever the content needs. That is the whole reason there is no wrapper
+  div around either one: the frame is the element's own border.
+*/
+
 .recipe-form {
-  max-width: 640px;
+  max-width: 975px; /* the frame SVG's own width, so at desktop the notches are 1:1 */
   margin: 0 auto;
-  padding: var(--s-5) var(--s-4);
+  padding: var(--s-7) var(--s-4) var(--s-9);
+}
+
+/*
+  The plate. `fixed`, so a long form scrolls over a still painting rather than
+  dragging the pillars up out of frame.
+
+  Only where the viewport is at least as wide as it is tall. The pillars stand
+  hard against the left and right edges of a 16:9 plate, so `cover` on a
+  narrower screen crops both of them away and spends 107KB to show the flat
+  green `html` is already painting. Same reasoning as the four Phad plates
+  above, and the same kind of query.
+*/
+@media (min-aspect-ratio: 1 / 1) {
+  .recipe-form::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: url("/brand/form-plate.jpg") center / cover no-repeat;
+  }
+}
+
+/* The comp's top row: the lede at the left, the way back at the right. */
+.recipe-form__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s-4);
+  margin-bottom: var(--s-5);
 }
 
 .recipe-form__back {
-  display: inline-block;
-  margin-bottom: var(--s-4);
-  color: inherit;
-  opacity: 0.75;
+  flex: none;
+  color: var(--ink);
+  font-size: 1.05rem;
+  font-weight: 600;
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .recipe-form__back:hover,
 .recipe-form__back:focus-visible {
-  opacity: 1;
   text-decoration: underline;
 }
 
 .recipe-form__title {
+  margin: 0 0 var(--s-3);
   font-size: 1.5rem;
-  margin-bottom: var(--s-2);
 }
 
-.recipe-form__lede,
+.recipe-form__lede {
+  max-width: 64ch;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
 .recipe-form__thanks {
-  margin-bottom: var(--s-4);
-  opacity: 0.85;
+  margin: 0;
+}
+
+/* One frame per screen of the comp. `display` is left alone so the browser's
+   own `[hidden]` rule still wins — the screen that is not showing has to stay
+   in the DOM, because these fields are uncontrolled and read at submit. */
+/* The 20px border band is empty apart from the ~2px rule the SVG draws at its
+   outer edge, so border plus padding is what actually sets the comp's 30px
+   from the line to the first word. */
+.recipe-form__box {
+  margin-bottom: var(--s-5);
+  padding: var(--s-3);
+  border: 20px solid transparent;
+  border-image: url("/brand/form-box.svg") 20 / 20px stretch;
+}
+
+.recipe-form__box > :last-child {
+  margin-bottom: 0;
+}
+
+.recipe-form__intro {
+  margin: 0 0 var(--s-4);
+}
+
+.recipe-form__intro strong {
+  font-style: italic;
+  font-weight: 600;
 }
 
 .recipe-form__errors {
   margin-bottom: var(--s-4);
-  padding: var(--s-3);
-  border: 1px solid var(--red);
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--cream);
   border-radius: 8px;
-  color: var(--red);
+  background: var(--ground-wash);
   list-style: none;
 }
 
 .recipe-form__field {
   display: block;
-  margin-bottom: var(--s-4);
+  margin-bottom: var(--s-5);
   font-weight: 600;
+}
+
+/* The comp sets the parenthetical half of a label apart in italic — "City
+   (Optional)", "(any language, any script)". */
+.recipe-form__field em {
+  font-weight: 400;
 }
 
 .recipe-form__field input,
@@ -2108,69 +2224,131 @@ body {
 .recipe-form__field textarea {
   display: block;
   width: 100%;
-  margin-top: var(--s-1);
-  padding: var(--s-2);
+  min-height: 52px;
+  margin-top: var(--s-2);
+  padding: var(--s-3) var(--s-4);
   font: inherit;
   font-weight: 400;
-  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  border: 1px solid var(--line-strong);
   border-radius: 8px;
   background: transparent;
-  color: inherit;
+  color: var(--ink);
+}
+
+.recipe-form__field textarea {
+  min-height: 0;
+  resize: vertical;
+}
+
+.recipe-form__field ::placeholder {
+  color: var(--ink-muted);
+}
+
+/* The comp draws its own chevron, so the native one goes. Amber on the plate,
+   set as a background — which is why `background: transparent` above is a
+   shorthand and this is the longhand that follows it. */
+.recipe-form__field select {
+  appearance: none;
+  padding-right: var(--s-8);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='12' fill='none'%3E%3Cpath d='M2 2.5 10 9.5 18 2.5' stroke='%23F8A81B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--s-4) center;
+}
+
+/* The list itself is drawn by the OS, which only reads `color-scheme` — these
+   keep the options legible where it honours the page's colours instead. */
+.recipe-form__field option {
+  background: var(--ground-2);
+  color: var(--ink);
+}
+
+/*
+  The comp's photo control is one full-width amber plate reading "Select your
+  photo". A file input's own button and filename cannot be styled into that,
+  so the label is the plate and the input inside it is only visually hidden —
+  still focusable, still activated by its label. Hence `:focus-within`: the
+  ring has to be drawn on the plate, since the thing being focused is 1px wide.
+*/
+.recipe-form__file {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  margin-bottom: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border-radius: 8px;
+  background: var(--cream);
+  color: var(--on-cream);
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+}
+
+.recipe-form__file:hover {
+  background: var(--cream-2);
+}
+
+.recipe-form__file:focus-within {
+  outline: 2px solid var(--cream);
+  outline-offset: 2px;
+}
+
+.recipe-form__file:has(input:disabled) {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .recipe-form__note {
   display: block;
-  margin-top: var(--s-1);
+  margin: var(--s-1) 0 0;
   font-weight: 400;
   font-size: 0.85rem;
-  opacity: 0.75;
+  color: var(--ink-soft);
 }
 
 .recipe-form__consent {
   display: flex;
-  gap: var(--s-2);
+  gap: var(--s-3);
   align-items: flex-start;
   margin-bottom: var(--s-3);
   font-weight: 400;
 }
 
-.recipe-form__submit {
-  margin-top: var(--s-3);
-  padding: var(--s-2) var(--s-4);
-  border: none;
-  border-radius: 8px;
-  background: var(--red);
-  color: white;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
+.recipe-form__consent input {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  accent-color: var(--cream);
 }
 
-.recipe-form__submit:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-
-.recipe-form__modes {
+/* Next and Submit: the comp's scooped amber plate, right-aligned under the
+   frame. `fill` on the slice is what paints the middle of it. */
+.recipe-form__actions {
   display: flex;
-  gap: var(--s-2);
-  margin-bottom: var(--s-4);
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--s-4);
 }
 
-.recipe-form__mode {
-  padding: var(--s-2) var(--s-3);
-  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
-  border-radius: 8px;
-  background: transparent;
-  color: inherit;
+.recipe-form__submit {
+  min-width: 196px;
+  padding: var(--s-1) var(--s-5);
+  border: 11px solid transparent;
+  border-image: url("/brand/form-button.svg") 11 fill / 11px stretch;
+  background: none;
+  color: var(--on-cream);
   font: inherit;
+  font-size: 1.35rem;
+  font-weight: 600;
   cursor: pointer;
 }
 
-.recipe-form__mode[aria-pressed="true"] {
-  border-color: var(--red);
-  color: var(--red);
-  font-weight: 600;
+.recipe-form__submit:disabled,
+.recipe-form__button:disabled {
+  opacity: 0.55;
+  cursor: default;
 }
 
 .recipe-form__fieldset {
@@ -2178,4 +2356,83 @@ body {
   margin: 0;
   padding: 0;
   border: none;
+}
+
+/* Inside the frame already, so this earns its separation with a rule rather
+   than a second box drawn inside the first. */
+.recipe-form__verify {
+  margin: var(--s-6) 0 var(--s-5);
+  padding-top: var(--s-5);
+  border-top: 1px solid var(--line);
+}
+
+.recipe-form__verify .recipe-form__lede {
+  margin-bottom: var(--s-4);
+}
+
+.recipe-form__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+}
+
+/* The secondary. The comp names no such button, so it takes the shape the comp
+   does give every other control you touch: an amber outline at the input's own
+   radius. Unmistakably not the amber plate that moves you forward. */
+.recipe-form__button {
+  min-height: 48px;
+  padding: var(--s-2) var(--s-4);
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.recipe-form__button:hover:not(:disabled) {
+  border-color: var(--cream);
+  background: var(--surface);
+}
+
+.recipe-form__link {
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Amber is the page's ordinary ink, so colour alone does not read as an error.
+   It earns its distinction the way `.recipe-form__errors` does: a bordered box
+   on the stepped-down ground, same idiom, same tokens. */
+.recipe-form__note--error {
+  margin-top: var(--s-3);
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--cream);
+  border-radius: 8px;
+  background: var(--ground-wash);
+  color: var(--ink);
+}
+
+/* The notches are a fixed pixel size, not a proportion, so on a phone the
+   drawn 20px corner is a large fraction of the frame — and 40px of border
+   plus padding is a lot of a 375px screen. */
+@media (max-width: 767px) {
+  .recipe-form {
+    padding: var(--s-5) var(--s-3) var(--s-7);
+  }
+
+  .recipe-form__box {
+    border-width: 12px;
+    border-image-width: 12px;
+  }
+
+  .recipe-form__actions .recipe-form__submit {
+    flex: 1;
+    min-width: 0;
+  }
 }

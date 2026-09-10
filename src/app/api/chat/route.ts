@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { track } from "@/lib/analytics";
 import { parseCommand } from "@/lib/chat/commands";
-import { parseResolved, RESOLUTION, type TurnKind, type TurnMode } from "@/lib/chat/turn";
+import { MODE_LINE, parseResolved, RESOLUTION, type TurnKind, type TurnMode } from "@/lib/chat/turn";
 import { toCommunityCard, type CommunityCardData } from "@/lib/community/card";
 import { matchCommunity } from "@/lib/community/client";
 import { stateForRegion } from "@/lib/community/match";
@@ -13,6 +13,7 @@ import { geoProps } from "@/lib/events/geo";
 import { normalize } from "@/lib/lang/normalize";
 import { replyInstruction } from "@/lib/lang/reply-instruction";
 import { loadLocalized } from "@/lib/lang/localized-store";
+import { uiStrings } from "@/lib/lang/ui-strings";
 import { renderIndianizationBlock } from "@/lib/indianization";
 import { BeatParser, INDIANIZE_BEATS, MarkerParser, type StreamingParser } from "@/lib/model/beats";
 import { renderComponentSwaps, renderCorpusBlock, renderRecord } from "@/lib/model/corpus-block";
@@ -300,9 +301,34 @@ export async function POST(request: NextRequest) {
   // the (English) keyword engine sees it. The echoed `label` stays the user's
   // own words; only retrieval reads the translation.
   const normalized = slug ? null : await normalize(query);
+
+  // Off topic, and cheap to know: the detector above is the only model call
+  // this turn is allowed to cost. Everything downstream — BM25, a Pinecone
+  // round trip, the Atlas community lookup, and a resolve call carrying the
+  // whole cached system prompt plus five thousand characters of mode
+  // definitions — used to run in full so the model could write a paragraph
+  // about the second world war and then explain that it only discusses food.
+  //
+  // The topic judgement alone is not enough to refuse on. `normalize` is sent
+  // the message and nothing else (see `normalize.ts`), so it cannot tell a
+  // follow-up from a non sequitur: "is that ratio by weight" is food, but a
+  // context-free classifier has no way to see what "that" is. The structural
+  // half is what makes the gate safe — a follow-up always arrives with a
+  // thread behind it or a card on screen, and a cold turn has neither. So the
+  // refusal is confined to a first message, where nothing can be a follow-up
+  // and nothing is being referred back to.
+  const coldTurn =
+    !history.some((m) => m.role === "assistant") &&
+    !(Array.isArray(body.activeRecordIds) && body.activeRecordIds.length > 0);
+  const offTopic = !slug && normalized!.scope === "other" && coldTurn;
+
+  // An empty query returns EMPTY without touching the network, so the refused
+  // turn skips retrieval by handing it nothing rather than by branching around
+  // it. `retrieval` stays a normal empty result and every reader of it below
+  // keeps working unchanged.
   const retrieval = slug
     ? await retrieveBySlug(slug)
-    : await retrieveForDish(normalized!.english);
+    : await retrieveForDish(offTopic ? "" : normalized!.english);
 
   // Authored in the user's language, appended after the turn instruction the
   // same way PLAIN_WORDS is. A slug entry has no detected language, so it
@@ -351,6 +377,11 @@ export async function POST(request: NextRequest) {
     hit: !retrieval.empty,
     command: command?.slug ?? null,
     provider: provider?.vendor ?? "none",
+    // A refused turn is a miss in the schema and not a corpus gap in fact.
+    // Without this the roadmap question — of the people who named a dish, how
+    // many did we have a record for — quietly starts counting readers who
+    // never named one.
+    off_topic: offTopic,
   });
 
   const stream = new ReadableStream<Uint8Array>({
@@ -372,13 +403,26 @@ export async function POST(request: NextRequest) {
           records: [],
           ...(uiLang && { lang: uiLang }),
         });
+        emit({ type: "text", text: command?.ask ?? uiStrings(uiLang).askForDish });
+        emit({ type: "done" });
+        controller.close();
+        return;
+      }
+
+      // Off topic on a cold turn. The same shape as the exit above and for the
+      // same reason: the answer is known here, so no model is involved. It
+      // renders as prose, not a card — there is no dish, and a card would put a
+      // provenance frame around a refusal.
+      if (offTopic) {
         emit({
-          type: "text",
-          text:
-            command?.ask ??
-            "Name one Indian dish you eat almost every week, and I will show you " +
-              "what it used to be.",
+          type: "meta",
+          mode: "conversation" satisfies TurnMode,
+          kind: null,
+          top_score: 0,
+          records: [],
+          ...(uiLang && { lang: uiLang }),
         });
+        emit({ type: "text", text: uiStrings(uiLang).offTopic });
         emit({ type: "done" });
         controller.close();
         return;
@@ -924,7 +968,7 @@ export async function POST(request: NextRequest) {
             candidateBlock +
             "This message is not in the restored corpus. Put the mode on the FIRST " +
             "line, exactly one of: MODE: REPLY | MODE: INDIANISE | MODE: MODERN | " +
-            "MODE: RESTORE, then the reply on the following lines.\n" +
+            "MODE: RESTORE | MODE: DECLINE, then the reply on the following lines.\n" +
             "- MODE: REPLY — the message is a follow-up you can answer from the dish " +
             "in <on_screen> or from the conversation so far (the turns above): an " +
             "alternative ingredient, a method question, a challenge, a request to go " +
@@ -1003,6 +1047,25 @@ export async function POST(request: NextRequest) {
             "confident it is Indian: use INDIANISE if it is foreign, and REPLY if you " +
             "genuinely do not know. An honest 'I do not know what this is' is a better " +
             "answer than a card about a dish nobody can place.\n" +
+            "- MODE: DECLINE — the message is not about food at all, and answering " +
+            "it would mean leaving the kitchen: a war, an election, a share price, " +
+            "a piece of code, a maths problem, a celebrity. Then one short line in " +
+            "prose, no markers: say plainly that recipes are all you hold and ask " +
+            "for a dish. Do not answer the question first, not even briefly, and do " +
+            "not summarise it before declining — a paragraph about the subject " +
+            "followed by a note that you only discuss food has answered it and then " +
+            "told the reader off for asking.\n" +
+            "  DECLINE is much narrower than REPLY and loses to it in every " +
+            "unclear case. Anything a kitchen touches is REPLY: an ingredient, a " +
+            "method, a quantity, a substitution, a pan or a flame, where to buy " +
+            "something, what an earlier answer said, a challenge to it, and the " +
+            "reader asking what this is or who is answering. A question with no " +
+            "dish in it is still REPLY when it is about cooking — 'how long do I " +
+            "roast it', 'is that by weight', 'what oil instead' all refer to the " +
+            "turns above. History is not off topic either: this project is food " +
+            "history, so how a grain or a crop or a way of eating changed is REPLY. " +
+            "Use DECLINE only when the subject has nothing to do with food, and " +
+            "when in doubt answer as REPLY.\n" +
             "For MODERN and RESTORE, format the §RESTORE_TODAY§ section as: one short " +
             "opening line, then a line reading INGREDIENTS with each ingredient on its " +
             "own line as 'ingredient :: kirana quantity :: why this one', then a line " +
@@ -1043,7 +1106,7 @@ export async function POST(request: NextRequest) {
             if (buf.includes("\n") || buf.length > 60) break;
           }
           const resolved = parseResolved(buf);
-          const m = /MODE:\s*(INDIANISE|MODERN|RESTORE|REPLY)/i.exec(buf);
+          const m = MODE_LINE.exec(buf);
           const remainder = m
             ? buf.slice(m.index + m[0].length).replace(/^[^\n]*\n?/, "")
             : buf;
@@ -1090,7 +1153,9 @@ export async function POST(request: NextRequest) {
                 ? new BeatParser()
                 : null;
           auditRecords = outRecords;
-          proseTurn = resolved === "reply";
+          // A refusal is prose like a follow-up is, so it gets the prose
+          // treatment: no beat parser, and the narration stripper runs over it.
+          proseTurn = resolved === "reply" || resolved === "decline";
           full = await pump(iter, remainder, parser, proseTurn);
         }
 
