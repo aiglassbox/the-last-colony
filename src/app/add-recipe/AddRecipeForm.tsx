@@ -9,9 +9,17 @@ import { BELONGS_TO, PHOTO_MAX_BYTES, STATES, type Extracted, type Photo } from 
 import { EmailVerify, type Verified } from "./EmailVerify";
 
 /**
- * One form. The server's validateSubmission is the boundary; everything here
- * is convenience mirroring it, so a field the API would refuse is refused
- * before the round trip.
+ * One form, shown as the comp's two screens: who you are and the photo, then
+ * the recipe itself. The server's validateSubmission is the boundary;
+ * everything here is convenience mirroring it, so a field the API would refuse
+ * is refused before the round trip.
+ *
+ * Both screens stay mounted — the second is `hidden`, not unmounted — because
+ * the fields are uncontrolled and read with FormData at submit. Unmounting
+ * screen one to show screen two would drop every word typed into it. Screen
+ * one is validated on its own controls before Next advances, so screen two is
+ * never reachable with a hidden required field left empty, which would
+ * otherwise bar the form from submitting with nothing on screen to fix.
  *
  * A photo is offered first and is optional. Attach one and we read it and
  * prefill; attach nothing and the same fields are typed by hand. The envelope
@@ -68,7 +76,10 @@ export function AddRecipeForm() {
   const [verified, setVerified] = useState<Verified | null>(null);
   /** Bumped to remount EmailVerify from scratch when the submit says the verification lapsed. */
   const [verifyKey, setVerifyKey] = useState(0);
+  /** Which of the comp's two screens is showing. Both stay in the DOM. */
+  const [step, setStep] = useState<1 | 2>(1);
   const formRef = useRef<HTMLFormElement>(null);
+  const stepOneRef = useRef<HTMLDivElement>(null);
 
   async function readPhoto(p: Photo) {
     setPhotoNote("Reading your photo…");
@@ -94,7 +105,7 @@ export function AddRecipeForm() {
           method: keep("method"),
         });
         setExtractKey((k) => k + 1);
-        setPhotoNote("Read from your photo — check every field below before submitting. Empty ones need your words.");
+        setPhotoNote("Read from your photo — check every field before submitting. Empty ones need your words.");
       } else if (res.status === 422) {
         setPhotoNote(
           READ_FAILED[String(payload?.error)] ??
@@ -134,6 +145,22 @@ export function AddRecipeForm() {
     } finally {
       setReading(false);
     }
+  }
+
+  /**
+   * Screen one's own controls, checked before it hands over. `reportValidity`
+   * shows the browser's native bubble on the first offender, which is only
+   * possible while the screen is still on show — hence the check here rather
+   * than at submit, where these fields are hidden and a bubble would have
+   * nowhere to point.
+   */
+  function toStepTwo() {
+    const controls = stepOneRef.current?.querySelectorAll<HTMLInputElement>("input, select, textarea");
+    for (const control of controls ?? []) {
+      if (!control.reportValidity()) return;
+    }
+    setErrors([]);
+    setStep(2);
   }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -199,27 +226,39 @@ export function AddRecipeForm() {
   if (sent) {
     return (
       <main className="recipe-form">
-        <Link href="/" className="recipe-form__back">← Back to chat</Link>
-        <h1 className="recipe-form__title">Submitted for review</h1>
-        <p className="recipe-form__thanks">
-          Thank you. Your recipe is in the review queue; if it is published it
-          will carry your name and state exactly as you wrote them.
-        </p>
+        <div className="recipe-form__head">
+          <p className="recipe-form__lede">Submitted for review.</p>
+          <Link href="/" className="recipe-form__back">← Back to chat</Link>
+        </div>
+        <div className="recipe-form__box">
+          <h1 className="recipe-form__title">Submitted for review</h1>
+          <p className="recipe-form__thanks">
+            Thank you. Your recipe is in the review queue; if it is published it
+            will carry your name and state exactly as you wrote them.
+          </p>
+        </div>
       </main>
     );
   }
 
   return (
     <main className="recipe-form">
-      {/* The rail lives on the chat page only, so this page carries its own
-          way back. */}
-      <Link href="/" className="recipe-form__back">← Back to chat</Link>
-      <h1 className="recipe-form__title">Add Your Recipe</h1>
-      <p className="recipe-form__lede">
-        A family recipe, in your words. What you write is shown as you wrote it.
-        Start from a photo of the handwritten card if you have one — or fill it
-        in yourself.
-      </p>
+      {/* The comp opens on the lede, not a title — but a page with no heading
+          has no outline to land on, so the heading is here for the reader who
+          arrives by one. */}
+      <h1 className="sr-only">Add Your Recipe</h1>
+
+      <div className="recipe-form__head">
+        <p className="recipe-form__lede">
+          A family recipe, in your words. What you write is shown as you wrote it.
+          <br />
+          Start from a photo of the handwritten card if you have one — or fill it
+          in yourself.
+        </p>
+        {/* The rail lives on the chat page only, so this page carries its own
+            way back. */}
+        <Link href="/" className="recipe-form__back">← Back to chat</Link>
+      </div>
 
       {errors.length > 0 && (
         <ul className="recipe-form__errors" role="alert">
@@ -230,92 +269,118 @@ export function AddRecipeForm() {
       )}
 
       <form ref={formRef} onSubmit={onSubmit}>
-        <label className="recipe-form__field">
-          Photo of the handwritten card or the dish (optional). We read the
-          recipe from it and fill in what you have left blank; you check every
-          field before it is submitted.
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            disabled={reading}
-            onChange={(e) => onPickPhoto(e.target.files?.[0])}
-          />
-          {photoNote && <span className="recipe-form__note">{photoNote}</span>}
-        </label>
+        <div className="recipe-form__box" ref={stepOneRef} hidden={step !== 1}>
+          <p className="recipe-form__intro">
+            <strong>Upload Photo</strong> of the handwritten card or the dish —
+            optional. We read the recipe from it and fill in what you have left
+            blank; you check every field before it is submitted.
+          </p>
 
-        <label className="recipe-form__field">
-          Your name (real or family nickname)
-          <input name="display_name" required maxLength={80} />
-        </label>
-
-        <label className="recipe-form__field">
-          State
-          <select name="state" required defaultValue="">
-            <option value="" disabled>Choose a state</option>
-            {STATES.map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
-        </label>
-
-        <label className="recipe-form__field">
-          City or town (optional)
-          <input name="city" maxLength={80} />
-        </label>
-
-        <label className="recipe-form__field">
-          This recipe belongs to
-          <select name="belongs_to" value={belongsTo} onChange={(e) => setBelongsTo(e.target.value)}>
-            {BELONGS_TO.map((b) => (
-              <option key={b.value} value={b.value}>{b.label}</option>
-            ))}
-          </select>
-        </label>
-
-        {belongsTo === "other" && (
-          <label className="recipe-form__field">
-            Who? (Nani, Dadi, Badi Amma — your word for them)
-            <input name="belongs_to_other" required maxLength={80} />
+          {/* The native control's own button and filename cannot be styled into
+              the comp's full-width plate, so the label is the plate and the
+              input is only visually hidden — still focusable, still activated
+              by the label, and the focus ring is drawn on the plate around it. */}
+          <label className="recipe-form__file">
+            Select your photo
+            <input
+              type="file"
+              className="sr-only"
+              accept="image/jpeg,image/png,image/webp"
+              disabled={reading}
+              onChange={(e) => onPickPhoto(e.target.files?.[0])}
+            />
           </label>
-        )}
+          {photoNote && <p className="recipe-form__note">{photoNote}</p>}
 
-        {/* Remounted when a reading lands, with typed words preserved; untouched otherwise. */}
-        <fieldset key={extractKey} className="recipe-form__fieldset">
           <label className="recipe-form__field">
-            Recipe name (any language, any script)
-            <input name="recipe_name" required maxLength={120} defaultValue={defaults?.recipe_name ?? ""} />
+            Full Name <em>(real or family nickname)</em>
+            <input name="display_name" required maxLength={80} />
           </label>
 
           <label className="recipe-form__field">
-            The story — when it is made, why it matters
-            <textarea name="story" required maxLength={4000} rows={4} defaultValue={defaults?.story ?? ""} />
+            State
+            <select name="state" required defaultValue="">
+              <option value="" disabled>Select your state</option>
+              {STATES.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
           </label>
 
           <label className="recipe-form__field">
-            Ingredients
-            <textarea name="ingredients" required maxLength={4000} rows={4} defaultValue={defaults?.ingredients ?? ""} />
+            City <em>(Optional)</em>
+            <input name="city" maxLength={80} />
           </label>
 
           <label className="recipe-form__field">
-            Method
-            <textarea name="method" required maxLength={8000} rows={6} defaultValue={defaults?.method ?? ""} />
+            This recipe belongs to
+            <select name="belongs_to" value={belongsTo} onChange={(e) => setBelongsTo(e.target.value)}>
+              {BELONGS_TO.map((b) => (
+                <option key={b.value} value={b.value}>{b.label}</option>
+              ))}
+            </select>
           </label>
-        </fieldset>
 
-        <EmailVerify key={verifyKey} onChange={setVerified} />
+          {belongsTo === "other" && (
+            <label className="recipe-form__field">
+              Who? <em>(Nani, Dadi, Badi Amma — your word for them)</em>
+              <input name="belongs_to_other" required maxLength={80} />
+            </label>
+          )}
+        </div>
 
-        <label className="recipe-form__consent">
-          <input type="checkbox" name="right_to_share" required />
-          I have the right to share this recipe.
-        </label>
-        <label className="recipe-form__consent">
-          <input type="checkbox" name="public_display" required />
-          My name, location and recipe may be shown publicly and used by the AI.
-        </label>
+        <div className="recipe-form__box" hidden={step !== 2}>
+          {/* Remounted when a reading lands, with typed words preserved; untouched otherwise. */}
+          <fieldset key={extractKey} className="recipe-form__fieldset">
+            <label className="recipe-form__field">
+              Recipe name <em>(any language, any script)</em>
+              <input name="recipe_name" required maxLength={120} defaultValue={defaults?.recipe_name ?? ""} />
+            </label>
 
-        <button type="submit" className="recipe-form__submit" disabled={busy || reading || !verified}>
-          {busy ? "Submitting…" : "Submit recipe"}
-        </button>
+            <label className="recipe-form__field">
+              The story <em>— when it is made, why it matters</em>
+              <textarea name="story" required maxLength={4000} rows={4} defaultValue={defaults?.story ?? ""} />
+            </label>
+
+            <label className="recipe-form__field">
+              Ingredients
+              <textarea name="ingredients" required maxLength={4000} rows={4} defaultValue={defaults?.ingredients ?? ""} />
+            </label>
+
+            <label className="recipe-form__field">
+              Method
+              <textarea name="method" required maxLength={8000} rows={6} defaultValue={defaults?.method ?? ""} />
+            </label>
+          </fieldset>
+
+          <EmailVerify key={verifyKey} onChange={setVerified} />
+
+          <label className="recipe-form__consent">
+            <input type="checkbox" name="right_to_share" required />
+            I have the right to share this recipe.
+          </label>
+          <label className="recipe-form__consent">
+            <input type="checkbox" name="public_display" required />
+            My name, location and recipe may be shown publicly and used by the AI.
+          </label>
+        </div>
+
+        <div className="recipe-form__actions">
+          {step === 1 ? (
+            <button type="button" className="recipe-form__submit" onClick={toStepTwo}>
+              Next
+            </button>
+          ) : (
+            <>
+              <button type="button" className="recipe-form__button" onClick={() => setStep(1)}>
+                ← Back
+              </button>
+              <button type="submit" className="recipe-form__submit" disabled={busy || reading || !verified}>
+                {busy ? "Submitting…" : "Submit"}
+              </button>
+            </>
+          )}
+        </div>
       </form>
     </main>
   );

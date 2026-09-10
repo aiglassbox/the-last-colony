@@ -1,0 +1,10 @@
+<!--
+  The primary button plate from the comp — solid amber, a scooped corner at
+  each turn — with the designer's baked-in "Next" lettering removed so one
+  shape carries every label. Used as a 9-slice `border-image` with an 11px
+  slice and the `fill` keyword: the notches keep their drawn size, the edges
+  and the middle stretch to the label.
+-->
+<svg width="218" height="69" viewBox="0 0 218 69" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M207.277 0C207.277 5.50943 211.611 9.97559 216.957 9.97559C217.056 9.97558 217.155 9.97082 217.253 9.96777V58.7539C217.155 58.7509 217.056 58.7471 216.957 58.7471C211.611 58.7471 207.277 63.2131 207.277 68.7227H9.38281C9.38281 63.3153 5.20873 58.9154 0 58.7539V9.96777C5.20865 9.80628 9.38269 5.40721 9.38281 0H207.277Z" fill="#F8A81B"/>
+</svg>
