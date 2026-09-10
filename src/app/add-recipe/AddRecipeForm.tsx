@@ -330,8 +330,10 @@ export function AddRecipeForm() {
         </div>
 
         <div className="recipe-form__box" hidden={step !== 2}>
-          {/* Remounted when a reading lands, with typed words preserved; untouched otherwise. */}
-          <fieldset key={extractKey} className="recipe-form__fieldset">
+          {/* Remounted when a reading lands, with typed words preserved; untouched otherwise.
+              Namespaced, because the counter beside it starts at 0 too and these
+              two are siblings — bare counters made both children key `0`. */}
+          <fieldset key={`extract-${extractKey}`} className="recipe-form__fieldset">
             <label className="recipe-form__field">
               Recipe name <em>(any language, any script)</em>
               <input name="recipe_name" required maxLength={120} defaultValue={defaults?.recipe_name ?? ""} />
@@ -353,7 +355,7 @@ export function AddRecipeForm() {
             </label>
           </fieldset>
 
-          <EmailVerify key={verifyKey} onChange={setVerified} />
+          <EmailVerify key={`verify-${verifyKey}`} onChange={setVerified} />
 
           <label className="recipe-form__consent">
             <input type="checkbox" name="right_to_share" required />
