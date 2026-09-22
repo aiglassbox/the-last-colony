@@ -292,41 +292,43 @@ export function AddRecipeForm() {
           </label>
           {photoNote && <p className="recipe-form__note">{photoNote}</p>}
 
-          <label className="recipe-form__field">
-            Full Name <em>(real or family nickname)</em>
-            <input name="display_name" required maxLength={80} />
-          </label>
-
-          <label className="recipe-form__field">
-            State
-            <select name="state" required defaultValue="">
-              <option value="" disabled>Select your state</option>
-              {STATES.map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
-          </label>
-
-          <label className="recipe-form__field">
-            City <em>(Optional)</em>
-            <input name="city" maxLength={80} />
-          </label>
-
-          <label className="recipe-form__field">
-            This recipe belongs to
-            <select name="belongs_to" value={belongsTo} onChange={(e) => setBelongsTo(e.target.value)}>
-              {BELONGS_TO.map((b) => (
-                <option key={b.value} value={b.value}>{b.label}</option>
-              ))}
-            </select>
-          </label>
-
-          {belongsTo === "other" && (
+          <div className="recipe-form__grid">
             <label className="recipe-form__field">
-              Who? <em>(Nani, Dadi, Badi Amma — your word for them)</em>
-              <input name="belongs_to_other" required maxLength={80} />
+              Full Name <em>(real or family nickname)</em>
+              <input name="display_name" required maxLength={80} />
             </label>
-          )}
+
+            <label className="recipe-form__field">
+              State
+              <select name="state" required defaultValue="">
+                <option value="" disabled>Select your state</option>
+                {STATES.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </label>
+
+            <label className="recipe-form__field">
+              City <em>(Optional)</em>
+              <input name="city" maxLength={80} />
+            </label>
+
+            <label className="recipe-form__field">
+              This recipe belongs to
+              <select name="belongs_to" value={belongsTo} onChange={(e) => setBelongsTo(e.target.value)}>
+                {BELONGS_TO.map((b) => (
+                  <option key={b.value} value={b.value}>{b.label}</option>
+                ))}
+              </select>
+            </label>
+
+            {belongsTo === "other" && (
+              <label className="recipe-form__field">
+                Who? <em>(Nani, Dadi, Badi Amma — your word for them)</em>
+                <input name="belongs_to_other" required maxLength={80} />
+              </label>
+            )}
+          </div>
         </div>
 
         <div className="recipe-form__box" hidden={step !== 2}>
@@ -341,17 +343,17 @@ export function AddRecipeForm() {
 
             <label className="recipe-form__field">
               The story <em>— when it is made, why it matters</em>
-              <textarea name="story" required maxLength={4000} rows={4} defaultValue={defaults?.story ?? ""} />
+              <textarea name="story" required maxLength={4000} rows={3} defaultValue={defaults?.story ?? ""} />
             </label>
 
             <label className="recipe-form__field">
               Ingredients
-              <textarea name="ingredients" required maxLength={4000} rows={4} defaultValue={defaults?.ingredients ?? ""} />
+              <textarea name="ingredients" required maxLength={4000} rows={3} defaultValue={defaults?.ingredients ?? ""} />
             </label>
 
             <label className="recipe-form__field">
               Method
-              <textarea name="method" required maxLength={8000} rows={6} defaultValue={defaults?.method ?? ""} />
+              <textarea name="method" required maxLength={8000} rows={4} defaultValue={defaults?.method ?? ""} />
             </label>
           </fieldset>
 

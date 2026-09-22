@@ -2106,10 +2106,12 @@ body {
   div around either one: the frame is the element's own border.
 */
 
+/* Sized so step one fits a laptop window without scrolling. The notches are
+   sliced at a fixed 20px, so they stay 1:1 at any width. */
 .recipe-form {
-  max-width: 975px; /* the frame SVG's own width, so at desktop the notches are 1:1 */
+  max-width: 860px;
   margin: 0 auto;
-  padding: var(--s-7) var(--s-4) var(--s-9);
+  padding: var(--s-5) var(--s-4) var(--s-6);
 }
 
 /*
@@ -2140,7 +2142,7 @@ body {
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--s-4);
-  margin-bottom: var(--s-5);
+  margin-bottom: var(--s-4);
 }
 
 .recipe-form__back {
@@ -2179,7 +2181,7 @@ body {
    outer edge, so border plus padding is what actually sets the comp's 30px
    from the line to the first word. */
 .recipe-form__box {
-  margin-bottom: var(--s-5);
+  margin-bottom: var(--s-4);
   padding: var(--s-3);
   border: 20px solid transparent;
   border-image: url("/brand/form-box.svg") 20 / 20px stretch;
@@ -2190,7 +2192,7 @@ body {
 }
 
 .recipe-form__intro {
-  margin: 0 0 var(--s-4);
+  margin: 0 0 var(--s-3);
 }
 
 .recipe-form__intro strong {
@@ -2209,8 +2211,21 @@ body {
 
 .recipe-form__field {
   display: block;
-  margin-bottom: var(--s-5);
+  margin-bottom: var(--s-3);
   font-weight: 600;
+}
+
+/* Step one's four short answers, two to a row — half the height of the column
+   they were, and the difference between that screen fitting a laptop or not.
+   The grid's gap does the spacing, so the fields' own margin steps aside. */
+.recipe-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-3) var(--s-4);
+}
+
+.recipe-form__grid .recipe-form__field {
+  margin-bottom: 0;
 }
 
 /* The comp sets the parenthetical half of a label apart in italic — "City
@@ -2224,9 +2239,9 @@ body {
 .recipe-form__field textarea {
   display: block;
   width: 100%;
-  min-height: 52px;
-  margin-top: var(--s-2);
-  padding: var(--s-3) var(--s-4);
+  min-height: 44px;
+  margin-top: var(--s-1);
+  padding: var(--s-2) var(--s-3);
   font: inherit;
   font-weight: 400;
   border: 1px solid var(--line-strong);
@@ -2273,9 +2288,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 56px;
+  min-height: 44px;
   margin-bottom: var(--s-3);
-  padding: var(--s-3) var(--s-4);
+  padding: var(--s-2) var(--s-4);
   border-radius: 8px;
   background: var(--cream);
   color: var(--on-cream);
@@ -2340,7 +2355,7 @@ body {
   background: none;
   color: var(--on-cream);
   font: inherit;
-  font-size: 1.35rem;
+  font-size: 1.2rem;
   font-weight: 600;
   cursor: pointer;
 }
@@ -2361,13 +2376,13 @@ body {
 /* Inside the frame already, so this earns its separation with a rule rather
    than a second box drawn inside the first. */
 .recipe-form__verify {
-  margin: var(--s-6) 0 var(--s-5);
-  padding-top: var(--s-5);
+  margin: var(--s-4) 0 var(--s-3);
+  padding-top: var(--s-4);
   border-top: 1px solid var(--line);
 }
 
 .recipe-form__verify .recipe-form__lede {
-  margin-bottom: var(--s-4);
+  margin-bottom: var(--s-3);
 }
 
 .recipe-form__row {
@@ -2380,7 +2395,7 @@ body {
    does give every other control you touch: an amber outline at the input's own
    radius. Unmistakably not the amber plate that moves you forward. */
 .recipe-form__button {
-  min-height: 48px;
+  min-height: 44px;
   padding: var(--s-2) var(--s-4);
   border: 1px solid var(--line-strong);
   border-radius: 8px;
@@ -2429,6 +2444,10 @@ body {
   .recipe-form__box {
     border-width: 12px;
     border-image-width: 12px;
+  }
+
+  .recipe-form__grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .recipe-form__actions .recipe-form__submit {
