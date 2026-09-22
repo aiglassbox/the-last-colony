@@ -292,81 +292,88 @@ export function AddRecipeForm() {
           </label>
           {photoNote && <p className="recipe-form__note">{photoNote}</p>}
 
-          <div className="recipe-form__grid">
-            <label className="recipe-form__field">
-              Full Name <em>(real or family nickname)</em>
-              <input name="display_name" required maxLength={80} />
-            </label>
+          <label className="recipe-form__field">
+            Full Name <em>(real or family nickname)</em>
+            <input name="display_name" required maxLength={80} />
+          </label>
 
-            <label className="recipe-form__field">
-              State
-              <select name="state" required defaultValue="">
-                <option value="" disabled>Select your state</option>
-                {STATES.map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-            </label>
+          <label className="recipe-form__field">
+            State
+            <select name="state" required defaultValue="">
+              <option value="" disabled>Select your state</option>
+              {STATES.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </label>
 
-            <label className="recipe-form__field">
-              City <em>(Optional)</em>
-              <input name="city" maxLength={80} />
-            </label>
+          <label className="recipe-form__field">
+            City <em>(Optional)</em>
+            <input name="city" maxLength={80} />
+          </label>
 
-            <label className="recipe-form__field">
-              This recipe belongs to
-              <select name="belongs_to" value={belongsTo} onChange={(e) => setBelongsTo(e.target.value)}>
-                {BELONGS_TO.map((b) => (
-                  <option key={b.value} value={b.value}>{b.label}</option>
-                ))}
-              </select>
-            </label>
+          <label className="recipe-form__field">
+            This recipe belongs to
+            <select name="belongs_to" value={belongsTo} onChange={(e) => setBelongsTo(e.target.value)}>
+              {BELONGS_TO.map((b) => (
+                <option key={b.value} value={b.value}>{b.label}</option>
+              ))}
+            </select>
+          </label>
 
-            {belongsTo === "other" && (
-              <label className="recipe-form__field">
-                Who? <em>(Nani, Dadi, Badi Amma — your word for them)</em>
-                <input name="belongs_to_other" required maxLength={80} />
-              </label>
-            )}
-          </div>
+          {belongsTo === "other" && (
+            <label className="recipe-form__field">
+              Who? <em>(Nani, Dadi, Badi Amma — your word for them)</em>
+              <input name="belongs_to_other" required maxLength={80} />
+            </label>
+          )}
         </div>
 
         <div className="recipe-form__box" hidden={step !== 2}>
-          {/* Remounted when a reading lands, with typed words preserved; untouched otherwise.
-              Namespaced, because the counter beside it starts at 0 too and these
-              two are siblings — bare counters made both children key `0`. */}
-          <fieldset key={`extract-${extractKey}`} className="recipe-form__fieldset">
-            <label className="recipe-form__field">
-              Recipe name <em>(any language, any script)</em>
-              <input name="recipe_name" required maxLength={120} defaultValue={defaults?.recipe_name ?? ""} />
-            </label>
+          {/* Two columns on a desktop — the recipe at the left, the person at the
+              right. In one column this screen cannot fit a window: the chrome, the
+              verify block and the consents alone leave no room for the textareas.
+              A wrapper rather than the box itself, because a `display` on the box
+              would outrank the `[hidden]` that keeps this screen off step one. */}
+          <div className="recipe-form__split">
+            {/* Remounted when a reading lands, with typed words preserved; untouched otherwise.
+                Namespaced, because the counter beside it starts at 0 too and these
+                two are siblings — bare counters made both children key `0`. */}
+            <fieldset key={`extract-${extractKey}`} className="recipe-form__fieldset">
+              <label className="recipe-form__field">
+                Recipe name <em>(any language, any script)</em>
+                <input name="recipe_name" required maxLength={120} defaultValue={defaults?.recipe_name ?? ""} />
+              </label>
 
-            <label className="recipe-form__field">
-              The story <em>— when it is made, why it matters</em>
-              <textarea name="story" required maxLength={4000} rows={3} defaultValue={defaults?.story ?? ""} />
-            </label>
+              <label className="recipe-form__field">
+                The story <em>— when it is made, why it matters</em>
+                <textarea name="story" required maxLength={4000} rows={3} defaultValue={defaults?.story ?? ""} />
+              </label>
 
-            <label className="recipe-form__field">
-              Ingredients
-              <textarea name="ingredients" required maxLength={4000} rows={3} defaultValue={defaults?.ingredients ?? ""} />
-            </label>
+              <label className="recipe-form__field">
+                Ingredients
+                <textarea name="ingredients" required maxLength={4000} rows={3} defaultValue={defaults?.ingredients ?? ""} />
+              </label>
 
-            <label className="recipe-form__field">
-              Method
-              <textarea name="method" required maxLength={8000} rows={4} defaultValue={defaults?.method ?? ""} />
-            </label>
-          </fieldset>
+              <label className="recipe-form__field">
+                Method
+                <textarea name="method" required maxLength={8000} rows={3} defaultValue={defaults?.method ?? ""} />
+              </label>
+            </fieldset>
 
-          <EmailVerify key={`verify-${verifyKey}`} onChange={setVerified} />
+            <div>
+              <EmailVerify key={`verify-${verifyKey}`} onChange={setVerified} />
 
-          <label className="recipe-form__consent">
-            <input type="checkbox" name="right_to_share" required />
-            I have the right to share this recipe.
-          </label>
-          <label className="recipe-form__consent">
-            <input type="checkbox" name="public_display" required />
-            My name, location and recipe may be shown publicly and used by the AI.
-          </label>
+              <label className="recipe-form__consent">
+                <input type="checkbox" name="right_to_share" required />
+                I have the right to share this recipe.
+              </label>
+              <label className="recipe-form__consent">
+                <input type="checkbox" name="public_display" required />
+                My name, location and recipe may be shown publicly and used by the AI.
+              </label>
+            </div>
+          </div>
         </div>
 
         <div className="recipe-form__actions">
