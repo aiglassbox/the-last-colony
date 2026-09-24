@@ -2106,10 +2106,28 @@ body {
   div around either one: the frame is the element's own border.
 */
 
+/*
+  Centred both ways: the page is one screen tall, and what is short of that
+  sits in the middle of it rather than hanging off the top edge.
+
+  The middle is reached by an auto margin above the first row and below the
+  last, not by `justify-content`, because those two behave differently when the
+  form is taller than the screen. A centring `justify-content` would push the
+  first row off the top, where no scroll can reach it; auto margins resolve to
+  zero once the free space runs out, so a long step two simply starts at the
+  top and scrolls.
+*/
 .recipe-form {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
   max-width: 975px; /* the frame SVG's own width, so at desktop the notches are 1:1 */
   margin: 0 auto;
-  padding: var(--s-7) var(--s-4) var(--s-9);
+  padding: var(--s-4);
+}
+
+.recipe-form > :last-child {
+  margin-bottom: auto;
 }
 
 /*
@@ -2140,7 +2158,8 @@ body {
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--s-4);
-  margin-bottom: var(--s-5);
+  margin-top: auto; /* the other half of the centring — see `.recipe-form` */
+  margin-bottom: var(--s-3);
 }
 
 .recipe-form__back {
@@ -2179,7 +2198,7 @@ body {
    outer edge, so border plus padding is what actually sets the comp's 30px
    from the line to the first word. */
 .recipe-form__box {
-  margin-bottom: var(--s-5);
+  margin-bottom: var(--s-3);
   padding: var(--s-3);
   border: 20px solid transparent;
   border-image: url("/brand/form-box.svg") 20 / 20px stretch;
@@ -2190,7 +2209,7 @@ body {
 }
 
 .recipe-form__intro {
-  margin: 0 0 var(--s-4);
+  margin: 0 0 var(--s-3);
 }
 
 .recipe-form__intro strong {
@@ -2209,7 +2228,7 @@ body {
 
 .recipe-form__field {
   display: block;
-  margin-bottom: var(--s-5);
+  margin-bottom: var(--s-4);
   font-weight: 600;
 }
 
@@ -2224,9 +2243,9 @@ body {
 .recipe-form__field textarea {
   display: block;
   width: 100%;
-  min-height: 52px;
+  min-height: 48px;
   margin-top: var(--s-2);
-  padding: var(--s-3) var(--s-4);
+  padding: var(--s-2) var(--s-4);
   font: inherit;
   font-weight: 400;
   border: 1px solid var(--line-strong);
@@ -2273,9 +2292,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 56px;
+  min-height: 48px;
   margin-bottom: var(--s-3);
-  padding: var(--s-3) var(--s-4);
+  padding: var(--s-2) var(--s-4);
   border-radius: 8px;
   background: var(--cream);
   color: var(--on-cream);
@@ -2361,13 +2380,41 @@ body {
 /* Inside the frame already, so this earns its separation with a rule rather
    than a second box drawn inside the first. */
 .recipe-form__verify {
-  margin: var(--s-6) 0 var(--s-5);
-  padding-top: var(--s-5);
+  margin: var(--s-4) 0 var(--s-3);
+  padding-top: var(--s-4);
   border-top: 1px solid var(--line);
 }
 
 .recipe-form__verify .recipe-form__lede {
-  margin-bottom: var(--s-4);
+  margin-bottom: var(--s-3);
+}
+
+/* Step two, side by side where there is room: the recipe at the left, the
+   email and the consents at the right. Stacked, this screen ran to ~1400px —
+   no shrinking gets three textareas, a verify block and two consents into a
+   window. The rule that set the verify block apart moves to stand between
+   the columns instead. */
+@media (min-width: 992px) {
+  .recipe-form__split {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s-5);
+  }
+
+  .recipe-form__split > :last-child {
+    padding-left: var(--s-5);
+    border-left: 1px solid var(--line);
+  }
+
+  .recipe-form__split .recipe-form__verify {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+  }
+
+  .recipe-form__split > * > :last-child {
+    margin-bottom: 0;
+  }
 }
 
 .recipe-form__row {
