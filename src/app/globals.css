@@ -2106,10 +2106,28 @@ body {
   div around either one: the frame is the element's own border.
 */
 
+/*
+  Centred both ways: the page is one screen tall, and what is short of that
+  sits in the middle of it rather than hanging off the top edge.
+
+  The middle is reached by an auto margin above the first row and below the
+  last, not by `justify-content`, because those two behave differently when the
+  form is taller than the screen. A centring `justify-content` would push the
+  first row off the top, where no scroll can reach it; auto margins resolve to
+  zero once the free space runs out, so a long step two simply starts at the
+  top and scrolls.
+*/
 .recipe-form {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
   max-width: 975px; /* the frame SVG's own width, so at desktop the notches are 1:1 */
   margin: 0 auto;
   padding: var(--s-4);
+}
+
+.recipe-form > :last-child {
+  margin-bottom: auto;
 }
 
 /*
@@ -2140,6 +2158,7 @@ body {
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--s-4);
+  margin-top: auto; /* the other half of the centring — see `.recipe-form` */
   margin-bottom: var(--s-3);
 }
 
