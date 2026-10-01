@@ -576,44 +576,6 @@ body {
   color: inherit;
 }
 
-/*
-  The drawn pot from the form comp, standing in for a lucide icon on the Add
-  Recipe row — the one illustrated mark on the rail.
-
-  Single-colour line art with a clean alpha channel, so it is masked over
-  `currentColor` rather than drawn as an image, the same idiom as every mark in
-  Logo.tsx. That is what carries it through the row's hover and active states
-  without a second file for each.
-
-  The same 18px box as its lucide neighbours, so all three labels in Features
-  keep one left edge. The artwork is a shade wider than it is tall, so `contain`
-  leaves it just under 18px high — which is invisible, and cheaper than the
-  ragged column a bespoke width would cost.
-
-  The file is 38x36 — twice the box — and its alpha has already been thickened
-  and curved. Both matter, and regenerating this PNG from the comp without them
-  brings back the pale version this replaced.
-
-  The comp's art is fine line work: at 18px its strokes cover a fraction of a
-  pixel, so the mask passed the ink at that fraction of an opacity and it read
-  faint beside two 2px lucide strokes. Two things fix it, and it needs both. The
-  ink is dilated by 2px at 4x before coming down, which is what gives the pot
-  its outline weight; then the alpha is curved, `a' = a^0.3`, which darkens what
-  coverage remains. The curve alone saturates — past about 0.25 it only flattens
-  the mound and leaves the thin outline as pale as it was.
-
-  The cost is the stipple in the mound, which fills to a solid cap. That detail
-  was never legible at this size anyway.
-*/
-.side-item__art {
-  flex: 0 0 auto;
-  width: 18px;
-  height: 18px;
-  background: currentColor;
-  -webkit-mask: url("/brand/recipe-bowl.png") center / contain no-repeat;
-  mask: url("/brand/recipe-bowl.png") center / contain no-repeat;
-}
-
 .side-item__text {
   overflow: hidden;
   text-overflow: ellipsis;

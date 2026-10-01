@@ -8,6 +8,7 @@ import {
   PanelLeftOpen,
   SquarePen,
   Settings,
+  Soup,
   Trash2,
   X,
 } from "lucide-react";
@@ -183,10 +184,7 @@ export function Sidebar({
           <li>
             <SideItem
               label={t.addRecipe}
-              /* The drawn pot from the form comp, in place of the lucide one —
-                 the only illustrated mark on the rail. Decorative: the row is
-                 named by its label. */
-              icon={<span className="side-item__art" aria-hidden />}
+              icon={<Soup size={18} className="side-item__icon" aria-hidden />}
               collapsed={collapsed}
               onClick={() => router.push("/add-recipe")}
             />
