@@ -281,7 +281,7 @@ export function AddRecipeForm() {
               input is only visually hidden — still focusable, still activated
               by the label, and the focus ring is drawn on the plate around it. */}
           <label className="recipe-form__file">
-            Select your photo
+            Attach your recipe image
             <input
               type="file"
               className="sr-only"
