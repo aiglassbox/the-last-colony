@@ -29,7 +29,7 @@ export const EN_UI_STRINGS = {
   recentConversations: "Recent conversations",
   recentEmpty: "Nothing yet. Name a dish to begin.",
   others: "Others",
-  setting: "Setting",
+  setting: "Settings",
   expandSidebar: "Expand sidebar",
   collapseSidebar: "Collapse sidebar",
   closeMenu: "Close menu",
