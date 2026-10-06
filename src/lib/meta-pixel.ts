@@ -56,18 +56,24 @@ const CUSTOM_EVENTS: Record<AnalyticsEvent, string> = {
   // name is never actually sent — required only because `CUSTOM_EVENTS` is
   // exhaustive over `AnalyticsEvent`.
   community_served: "CommunityServed",
-  // Never sent: both are in FIRST_PARTY_ONLY below. Named only because this
-  // map is exhaustive over `AnalyticsEvent`.
+  // Never sent: all three are in FIRST_PARTY_ONLY below. Named only because
+  // this map is exhaustive over `AnalyticsEvent`.
   recipe_entry_pressed: "RecipeEntryPressed",
   recipe_step: "RecipeStep",
+  social_clicked: "SocialClicked",
 };
 
 /**
  * Events the ad platform never sees. The recipe-box funnel exists to read the
  * Add Recipe form, not to tell Meta who is writing down their grandmother's
- * recipe.
+ * recipe; a click out to our own social accounts is ours to count, not an
+ * audience signal to hand over.
  */
-const FIRST_PARTY_ONLY: ReadonlySet<AnalyticsEvent> = new Set(["recipe_entry_pressed", "recipe_step"]);
+const FIRST_PARTY_ONLY: ReadonlySet<AnalyticsEvent> = new Set([
+  "recipe_entry_pressed",
+  "recipe_step",
+  "social_clicked",
+]);
 
 /** Fire-and-forget. Absent pixel, blocked pixel and thrown pixel are all no-ops. */
 export function trackPixel(event: AnalyticsEvent, props: EventProps = {}): void {

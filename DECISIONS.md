@@ -1116,3 +1116,41 @@ token is only ever valid on the door that issued it, whatever the secrets are.
 Changing the derivation ended every live kitchen and pantry session once — at
 most twelve hours of re-typing a password, against a misconfiguration that no
 longer exists. Raised by the recipe-box security review.
+
+## Social dock (home-screen social links) — settled 2026-10-06
+
+**Three icons, home screen only.** Instagram, YouTube and X, in that order,
+bottom right of the stage; Facebook shipped in the asset zip and was not
+picked. The dock renders only while `view === "chat" && isEmpty`, so it is
+there on first load and on every New chat and gone the moment a query is
+sent or a thread is opened. A row while the rail is open, a column while it
+is closed; always a row above the composer on a phone, where the bottom-right
+corner belongs to the composer.
+
+**Draggable, not just decorated.** The owner chose Bencho's full reorder
+behaviour over a liquid dock without dragging. The cost is a link that has to
+tell a click from a drag: under 4px of travel is a click, past it is a drag
+and the closing click is cancelled. The dragged order is not persisted — a
+reload restores Instagram, YouTube, X — because a per-device icon order is
+not worth a storage key.
+
+**The goo sits under the icons, never on them.** Bencho's filter thresholds
+alpha, which eats antialiased edges, so the orange circles on the filtered
+layer are plain blobs and the supplied SVGs ride unfiltered above them. At
+rest the image covers its blob exactly; the goo shows only as the held
+icon's swell, its squash in a fast drag, and the neck between two circles
+passing. The SVGs are served unchanged rather than split into circle and
+glyph, so a new icon set is a file swap.
+
+**`framer-motion`, through `LazyMotion`.** Added because the Bencho prompt
+specifies it and its springs are what the effect is made of; a CSS
+`linear()` spring approximation cannot follow a pointer-driven velocity.
+Imported as `m` under `LazyMotion` with `domAnimation`, so the landing page
+does not also load drag and layout animation it never uses. Bencho's
+`useTokens` probe is left out: it resolves tokens to rgb for Framer when a
+theme flips, and this site has one theme and changes the dock's colours on
+CSS transitions.
+
+**`social_clicked` is first-party only.** One event with `{network}`, fired
+on a real click and never after a drag, stored in `analytics_events` and kept
+from the Meta Pixel through `FIRST_PARTY_ONLY`. No dashboard panel yet.
