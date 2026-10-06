@@ -674,9 +674,23 @@ provider spend — and nothing was doing the other half.
 `OTP_DAILY_PER_CALLER_MAX` (default 5) counts a second `otp_daily` document
 keyed `"<day>:<caller>"`, spent after the shared slot so an exhausted day
 creates no per-caller rows, and giving the shared slot back when it is the one
-that refuses, so a refused send still costs the day nothing. The honest limit
-of it is the key: `clientKey` reads a forwarding header the client sets, which
-the limiter's own comments have always said. This raises the price of closing
+that refuses, so a refused send still costs the day nothing.
+
+Callers the proxy does not identify are one key, and the first draft of this
+exempted that key from the ceiling — a pool is not a person, and five a day
+between every visitor would have closed the form at the day's fifth send on a
+deployment that forwards nothing. That was a bypass, not an exemption:
+`clientKey` hands back the caller's own header value, so anyone could have
+claimed to be the pool and escaped the ceiling with one header. The pool is
+counted like anybody else, against three quarters of `OTP_DAILY_MAX` — a
+pool-sized figure that still leaves the last quarter of the day for callers we
+can tell apart, derived rather than configured because its only sane values are
+"a bit under the day". A deployment that forwards nothing therefore gives its
+real visitors three quarters of the day rather than all of it, and that is the
+price of the bound.
+
+The honest limit of the whole thing is the key: `clientKey` reads a forwarding
+header the client sets, which the limiter's own comments have always said. This raises the price of closing
 the day from ninety requests to ninety distinct source addresses; it does not
 make it free, and a challenge on the send route is the only control that makes
 a fresh address cost the caller anything. Found by the 2026-10-05 source audit,

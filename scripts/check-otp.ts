@@ -21,7 +21,7 @@ import {
   OTP,
   type OtpDoc,
 } from "../src/lib/community/otp-rules";
-import { dailySlot, otpDailyMax, otpDailyPerCallerMax, secondsToUtcMidnight } from "../src/lib/community/otp";
+import { dailySlot, otpDailyMax, otpDailyPerCallerMax, otpDailyPoolMax, secondsToUtcMidnight } from "../src/lib/community/otp";
 import { RATE_LIMIT } from "../src/lib/rate-limit";
 import { normalizeEmail, validateProof, validateSubmission } from "../src/lib/community/schema";
 
@@ -197,13 +197,23 @@ check(
   secondsToUtcMidnight(new Date("2026-12-31T23:00:00.000Z")) === 3600,
 );
 
-// The branch that must not be got wrong: with no forwarding header every
-// visitor is one pool, and holding a pool to one caller's five a day would
-// close the form at the day's fifth send — worse than the hole being closed.
 const noon = new Date("2026-10-06T12:00:00.000Z");
-check("dailySlot: a known caller is keyed by day and caller", dailySlot(noon, "203.0.113.7") === "2026-10-06:203.0.113.7");
-check("dailySlot: the unidentified pool has no per-caller slot", dailySlot(noon, RATE_LIMIT.sharedKey) === null);
-check("dailySlot: the day prefix cannot collide with the shared counter's own _id", dailySlot(noon, "x")?.startsWith("2026-10-06:") === true);
+check("dailySlot: a caller is keyed by day and caller", dailySlot(noon, "203.0.113.7") === "2026-10-06:203.0.113.7");
+check("dailySlot: the day prefix cannot collide with the shared counter's own _id", dailySlot(noon, "x").startsWith("2026-10-06:"));
+check("dailySlot: the pool is keyed like any other caller", dailySlot(noon, RATE_LIMIT.sharedKey) === `2026-10-06:${RATE_LIMIT.sharedKey}`);
+
+// The pool's own ceiling. It must bound the pool — `clientKey` hands back the
+// caller's header verbatim, so exempting the pool would have been a one-header
+// bypass of the per-caller ceiling — and it must leave room for the callers we
+// can tell apart, so it has to sit under the global figure.
+check("otpDailyPoolMax: a pool is not held to one caller's allowance", otpDailyPoolMax() > otpDailyPerCallerMax());
+check("otpDailyPoolMax: the pool cannot take the whole day", otpDailyPoolMax() < otpDailyMax());
+check("otpDailyPoolMax: the default leaves a quarter of the day for identified callers", otpDailyPoolMax() === 67);
+process.env.OTP_DAILY_MAX = "0";
+check("otpDailyPoolMax: a day of zero is a pool of zero", otpDailyPoolMax() === 0);
+process.env.OTP_DAILY_MAX = "4";
+check("otpDailyPoolMax: it floors rather than rounding past the day", otpDailyPoolMax() === 3);
+delete process.env.OTP_DAILY_MAX;
 
 if (failed > 0) {
   console.error(`\ncheck-otp: ${failed} failure(s)`);

@@ -122,20 +122,36 @@ export function secondsToUtcMidnight(now: Date): number {
 }
 
 /**
- * The per-caller counter's `_id`, or `null` when there is no caller to count.
+ * The day's allowance for callers that cannot be told apart.
  *
  * A pool of unknown callers is not one caller and must not be held to one
- * caller's allowance — the rule `checkRate` already applies to this same key,
- * and the reason it needs restating here is sharper. With no forwarding header
- * every visitor arrives as `unidentified`, so a five-a-day per-caller ceiling
- * would close the form at the day's fifth send site-wide: strictly worse than
- * the hole it was added to close. `null` leaves the global ceiling as the only
- * bound, which is exactly where this feature stood before — a deployment that
- * cannot tell callers apart gets no new protection and no new outage, and
- * `rate-limit.ts` already logs that condition once per process.
+ * caller's allowance — the rule `checkRate` already applies to this same key.
+ * With no forwarding header every visitor arrives as `unidentified`, and five
+ * a day between all of them would close the form at the day's fifth send:
+ * strictly worse than the hole the per-caller ceiling was added to close.
+ *
+ * But the pool cannot be exempt either, and this is the part worth being
+ * careful about: `clientKey` returns the caller's own header value verbatim,
+ * so anyone may arrive claiming to be the pool. Skipping the daily ceiling for
+ * the pool would therefore have handed every caller a one-header bypass of it.
+ * So the pool is counted like anybody else, just against a pool-sized figure —
+ * and that figure is deliberately short of `otpDailyMax`, which is what makes
+ * it a ceiling rather than an exemption: callers we *can* tell apart keep a
+ * quarter of the day whatever the pool does with its three.
+ *
+ * Derived rather than configured, because a third knob whose only sane values
+ * are "a bit under OTP_DAILY_MAX" is a knob nobody should have to set. The
+ * cost is stated plainly: a deployment whose proxy forwards nothing gives its
+ * real visitors three quarters of the day rather than all of it.
  */
-export function dailySlot(now: Date, callerKey: string): string | null {
-  return callerKey === RATE_LIMIT.sharedKey ? null : `${utcDay(now)}:${callerKey}`;
+export function otpDailyPoolMax(): number {
+  return Math.floor((otpDailyMax() * 3) / 4);
+}
+
+/** The per-caller counter's `_id`: the day, then the caller, never colliding
+ *  with the shared counter's own bare-day `_id`. */
+export function dailySlot(now: Date, callerKey: string): string {
+  return `${utcDay(now)}:${callerKey}`;
 }
 
 /** Logs which of the two fail-closed causes tripped a guard, so a dead form
@@ -254,29 +270,32 @@ export async function sendCode(email: string, callerKey: string, now = new Date(
     // spent. One slot of ninety, and it buys a caller nothing: a key racing
     // itself is still held to five, and a key it has not used yet would have
     // spent that slot legitimately anyway.
-    // `null` when callers cannot be told apart; see `dailySlot`.
+    // The pool is counted like any other caller, against a pool-sized figure;
+    // see `otpDailyPoolMax` for why it is not exempt.
     const slot = dailySlot(now, callerKey);
-    if (slot) {
-      const perCallerMax = otpDailyPerCallerMax();
-      const mine = await daily.findOneAndUpdate(
-        { _id: slot },
-        { $inc: { sends: 1 }, $set: { updated_at: now } },
-        { upsert: true, returnDocument: "after" },
-      );
-      if (!mine || mine.sends > perCallerMax) {
-        // The shared slot goes back first: this send is refused, so it must
-        // not count against everybody else's day — the same rule the cooldown
-        // and the cap already get.
-        await daily.updateOne({ _id: day }, { $inc: { sends: -1 }, $set: { updated_at: now } });
-        if (!mine) {
-          console.error("[otp] per-caller daily counter unreadable; refusing send");
-          return { ok: false, status: 503 };
-        }
-        // The count and the ceiling, never the key: it identifies the caller
-        // the same way the address identifies the person, and goes the same way.
-        console.error(`[otp] per-caller daily ceiling reached (${mine.sends}/${perCallerMax}); refusing send`);
-        return { ok: false, status: 429, reason: "daily", retryAfter: secondsToUtcMidnight(now) };
+    const pooled = callerKey === RATE_LIMIT.sharedKey;
+    const callerMax = pooled ? otpDailyPoolMax() : otpDailyPerCallerMax();
+    const mine = await daily.findOneAndUpdate(
+      { _id: slot },
+      { $inc: { sends: 1 }, $set: { updated_at: now } },
+      { upsert: true, returnDocument: "after" },
+    );
+    if (!mine || mine.sends > callerMax) {
+      // The shared slot goes back first: this send is refused, so it must not
+      // count against everybody else's day — the same rule the cooldown and
+      // the cap already get.
+      await daily.updateOne({ _id: day }, { $inc: { sends: -1 }, $set: { updated_at: now } });
+      if (!mine) {
+        console.error("[otp] per-caller daily counter unreadable; refusing send");
+        return { ok: false, status: 503 };
       }
+      // The count, the ceiling and which of the two it was — never the key,
+      // which identifies the caller the way the address identifies the person
+      // and goes the same way.
+      console.error(
+        `[otp] ${pooled ? "pool" : "per-caller"} daily ceiling reached (${mine.sends}/${callerMax}); refusing send`,
+      );
+      return { ok: false, status: 429, reason: "daily", retryAfter: secondsToUtcMidnight(now) };
     }
 
     await col.replaceOne({ email }, decision.doc, { upsert: true });
@@ -284,11 +303,8 @@ export async function sendCode(email: string, callerKey: string, now = new Date(
       if (existing) await col.replaceOne({ email }, existing);
       else await col.deleteOne({ email });
       // Given back with the code, and for the same reason: no mail left. Both
-      // counters when both were spent, in one round trip.
-      await daily.updateMany(
-        { _id: { $in: slot ? [day, slot] : [day] } },
-        { $inc: { sends: -1 }, $set: { updated_at: now } },
-      );
+      // counters, because both were spent, in one round trip.
+      await daily.updateMany({ _id: { $in: [day, slot] } }, { $inc: { sends: -1 }, $set: { updated_at: now } });
       return { ok: false, status: 503 };
     }
     return { ok: true, expiresIn: OTP.lifeMs / 1000, resendIn: OTP.cooldownMs / 1000 };
