@@ -21,7 +21,8 @@ import {
   OTP,
   type OtpDoc,
 } from "../src/lib/community/otp-rules";
-import { otpDailyMax, otpDailyPerCallerMax, secondsToUtcMidnight } from "../src/lib/community/otp";
+import { dailySlot, otpDailyMax, otpDailyPerCallerMax, secondsToUtcMidnight } from "../src/lib/community/otp";
+import { RATE_LIMIT } from "../src/lib/rate-limit";
 import { normalizeEmail, validateProof, validateSubmission } from "../src/lib/community/schema";
 
 let failed = 0;
@@ -195,6 +196,14 @@ check(
   "secondsToUtcMidnight: the last day of a month rolls to the first of the next",
   secondsToUtcMidnight(new Date("2026-12-31T23:00:00.000Z")) === 3600,
 );
+
+// The branch that must not be got wrong: with no forwarding header every
+// visitor is one pool, and holding a pool to one caller's five a day would
+// close the form at the day's fifth send — worse than the hole being closed.
+const noon = new Date("2026-10-06T12:00:00.000Z");
+check("dailySlot: a known caller is keyed by day and caller", dailySlot(noon, "203.0.113.7") === "2026-10-06:203.0.113.7");
+check("dailySlot: the unidentified pool has no per-caller slot", dailySlot(noon, RATE_LIMIT.sharedKey) === null);
+check("dailySlot: the day prefix cannot collide with the shared counter's own _id", dailySlot(noon, "x")?.startsWith("2026-10-06:") === true);
 
 if (failed > 0) {
   console.error(`\ncheck-otp: ${failed} failure(s)`);
