@@ -91,15 +91,27 @@ export function authHandlers(gate: Gate, rateKey: string) {
     return response;
   }
 
-  async function DELETE(): Promise<NextResponse> {
+  async function DELETE(request: NextRequest): Promise<NextResponse> {
     const response = NextResponse.json({ ok: true });
-    response.cookies.set({ name: gate.cookie, value: "", path: gate.path, maxAge: 0 });
-    // Transitional: sessions issued before the cookie was scoped sit at "/",
-    // and a browser sends those to this path too — so a logout that cleared
-    // only the scoped one would leave the operator still signed in. A cookie
-    // is cleared per path, so this clears the old path as well. Safe to drop
-    // once every session issued at "/" has expired (twelve hours).
-    response.cookies.set({ name: gate.cookie, value: "", path: "/", maxAge: 0 });
+    // A cookie is cleared only on the exact path it was set on, and there are
+    // two paths to clear: `gate.path` for sessions issued now, and "/" for any
+    // issued before the cookie was scoped — a browser sends those to this path
+    // too, so clearing only the scoped one would leave the operator signed in.
+    // The "/" line can go once every twelve-hour session predating the scoping
+    // has expired.
+    //
+    // Raw headers rather than two `response.cookies.set` calls: that API is
+    // keyed on the cookie NAME, so the second call for one name REPLACES the
+    // first instead of appending, and only one of the two deletions would have
+    // been sent. `Secure` mirrors the issuing rule, because a browser on a
+    // plain-HTTP loopback run drops a `Secure` cookie — including a deletion.
+    const secure = isSecureEnough(request) ? "; Secure" : "";
+    for (const path of [gate.path, "/"]) {
+      response.headers.append(
+        "set-cookie",
+        `${gate.cookie}=; Path=${path}; Max-Age=0; HttpOnly; SameSite=Lax${secure}`,
+      );
+    }
     return response;
   }
 
