@@ -73,7 +73,8 @@ posture `/api/email-report` has, and for the same reason.
 `recipe_entry_pressed` and `recipe_step` beacons in `analytics_events`, first
 -party only, starting at the deploy that added them. It shows counts only;
 submitter detail stays behind `/pantry`. Its submissions tab reads the Atlas store through `submissionRows` in `lib/community/client.ts`,
-always excluding the twelve `Arpit's Agent` seed rows.
+always excluding the twelve `Arpit's Agent` seed rows. Its reach tab reads
+chat's `community_served` events.
 
 Two sources feed it and they answer different questions.
 

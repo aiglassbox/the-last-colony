@@ -15,7 +15,7 @@ import { POST as trackRoute } from "../src/app/api/track/route";
 import { UNTRACKED_PATH } from "../src/lib/analytics";
 import type { SubmissionRow } from "../src/lib/community/client";
 import { bucketOf, HOUR, summariseSubmissions } from "../src/lib/dash/queries/submissions";
-import { bucketise, FINISH_EDGES, FINISH_LAST, median, MINUTE, percent, stepPanels } from "../src/lib/dash/queries/recipes";
+import { bucketise, FINISH_EDGES, FINISH_LAST, median, MINUTE, percent, ruleMix, stepPanels } from "../src/lib/dash/queries/recipes";
 import type { StepRow } from "../src/lib/dash/types";
 import { trackPixel } from "../src/lib/meta-pixel";
 
@@ -212,6 +212,24 @@ check("versions: one dish, three rows, states distinct and sorted",
   JSON.stringify(stats.versions[0]?.states) === JSON.stringify(["Goa", "Karnataka", "Maharashtra"]));
 check("all-time has no previous window", summariseSubmissions([sub({})], null, null).submitted.before === 0);
 check("HOUR is an hour", HOUR === 3_600_000);
+
+// --- reach -----------------------------------------------------------------
+check("gap fill on an empty window is no figure", percent(0, 0) === null);
+check("gap fill is served over corpus misses", percent(3, 12) === 25);
+const rules = ruleMix([
+  { label: "recency", n: 2 },
+  { label: "state", n: 5 },
+  { label: "bogus", n: 9 },
+]);
+check(
+  "rule mix in fixed order, unknown rules dropped, absent rules zero",
+  JSON.stringify(rules) ===
+    JSON.stringify([
+      { label: "Reader's state", n: 5 },
+      { label: "Reader's language", n: 0 },
+      { label: "Most recent", n: 2 },
+    ]),
+);
 
 // --- /api/track accepts both names ------------------------------------------
 async function beacon(event: string): Promise<number> {

@@ -222,6 +222,7 @@ export interface RecipeReport {
   funnel: RecipeFunnelPanel;
   /** Null when the community store is unavailable or unconfigured. */
   submissions: SubmissionStats | null;
+  reach: RecipeReachPanel;
 }
 
 export interface StatusDay {
@@ -251,4 +252,19 @@ export interface SubmissionStats {
   languages: Counted[];
   dishes: Counted[];
   versions: { tag: string; versions: number; states: string[] }[];
+}
+
+export interface RecipeReachPanel {
+  serves: Delta;
+  readers: Delta;
+  dishes: Delta;
+  /** Community serves as a whole percent of corpus-miss dish asks. */
+  gapFill: MaybeDelta;
+  daily: { day: string; serves: number; readers: number }[];
+  /** Which of `pickCommunity`'s rules chose the row, in rule order. */
+  rules: Counted[];
+  translated: number;
+  topDishes: Counted[];
+  servedStates: Counted[];
+  regions: Counted[];
 }

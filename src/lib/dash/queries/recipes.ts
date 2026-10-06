@@ -1,7 +1,7 @@
 import type { NeonQueryFunction } from "@neondatabase/serverless";
 
 import { ZONE } from "../range";
-import type { Counted, CountedDevices, Delta, FunnelStage, RecipeFunnelPanel, StepRow } from "../types";
+import type { Counted, CountedDevices, Delta, FunnelStage, RecipeFunnelPanel, RecipeReachPanel, StepRow } from "../types";
 import { tolerant } from "./events";
 
 /**
@@ -355,5 +355,158 @@ export async function recipeFunnel(
     stages,
     ...stepPanels(steps),
     finish: bucketise(finishNow, FINISH_EDGES, FINISH_LAST),
+  };
+}
+
+const RULES: [string, string][] = [
+  ["state", "Reader's state"],
+  ["language", "Reader's language"],
+  ["recency", "Most recent"],
+];
+
+/** `pickCommunity`'s three rules, in its own order; a rule chat never logs is dropped. */
+export function ruleMix(rows: Counted[]): Counted[] {
+  return RULES.map(([key, label]) => ({ label, n: rows.find((r) => r.label === key)?.n ?? 0 }));
+}
+
+interface ReachTotals {
+  serves: number;
+  readers: number;
+  dishes: number;
+  misses: number;
+}
+
+const NO_REACH: ReachTotals = { serves: 0, readers: 0, dishes: 0, misses: 0 };
+
+/**
+ * One window's reach. `misses` is the denominator for gap fill: dish asks the
+ * corpus did not answer, refused off-topic turns left out. Every community
+ * serve is also one of those asks — chat fires `dish_queried` with
+ * `hit: false` before it serves — so the rate cannot pass 100%.
+ */
+function reachTotals(sql: Sql, since: string | null, until: string | null): Promise<ReachTotals> {
+  return tolerant(
+    async () => {
+      const [row] = (await sql`
+        select count(*) filter (where event = 'community_served')::int                      as serves,
+               count(distinct device_id) filter (where event = 'community_served')::int     as readers,
+               count(distinct props->>'dish_tag') filter (where event = 'community_served')::int as dishes,
+               count(*) filter (
+                 where event = 'dish_queried'
+                   and props->>'hit' = 'false'
+                   and coalesce(props->>'off_topic', 'false') = 'false')::int               as misses
+          from analytics_events
+         where event in ('community_served', 'dish_queried')
+           and (${since}::timestamptz is null or occurred_at >= ${since}::timestamptz)
+           and (${until}::timestamptz is null or occurred_at <  ${until}::timestamptz)
+      `) as Row[];
+      return {
+        serves: int(row?.serves),
+        readers: int(row?.readers),
+        dishes: int(row?.dishes),
+        misses: int(row?.misses),
+      };
+    },
+    NO_REACH,
+    "recipe reachTotals",
+  );
+}
+
+export async function recipeReach(
+  sql: Sql,
+  since: string | null,
+  previousSince: string | null,
+): Promise<RecipeReachPanel> {
+  const served = (column: "dish_tag" | "served_state" | "rule") =>
+    tolerant(
+      async () => {
+        const rows = (await sql`
+          select props->>${column} as label, count(*)::int as n
+            from analytics_events
+           where event = 'community_served'
+             and props->>${column} is not null
+             and (${since}::timestamptz is null or occurred_at >= ${since}::timestamptz)
+           group by 1
+           order by n desc, 1
+           limit 12
+        `) as Row[];
+        return rows.map((r) => ({ label: str(r.label), n: int(r.n) }));
+      },
+      [] as Counted[],
+      `recipe served ${column}`,
+    );
+
+  const [now, before, daily, dishes, states, rules, translated, regions] = await Promise.all([
+    reachTotals(sql, since, null),
+    since ? reachTotals(sql, previousSince, since) : Promise.resolve(NO_REACH),
+    tolerant(
+      async () => {
+        const rows = (await sql`
+          select to_char(occurred_at at time zone ${ZONE}, 'YYYY-MM-DD') as day,
+                 count(*)::int                                          as serves,
+                 count(distinct device_id)::int                         as readers
+            from analytics_events
+           where event = 'community_served'
+             and (${since}::timestamptz is null or occurred_at >= ${since}::timestamptz)
+           group by 1
+           order by 1
+        `) as Row[];
+        return rows.map((r) => ({ day: str(r.day), serves: int(r.serves), readers: int(r.readers) }));
+      },
+      [] as RecipeReachPanel["daily"],
+      "recipe reach daily",
+    ),
+    served("dish_tag"),
+    served("served_state"),
+    served("rule"),
+    tolerant(
+      async () => {
+        const [row] = (await sql`
+          select count(*)::int as n
+            from analytics_events
+           where event = 'community_served'
+             and props->>'translated' = 'true'
+             and (${since}::timestamptz is null or occurred_at >= ${since}::timestamptz)
+        `) as Row[];
+        return int(row?.n);
+      },
+      0,
+      "recipe reach translated",
+    ),
+    tolerant(
+      async () => {
+        const rows = (await sql`
+          select region || coalesce(', ' || country, '') as label,
+                 count(distinct device_id)::int         as n
+            from analytics_events
+           where event = 'community_served'
+             and region is not null
+             and device_id is not null
+             and (${since}::timestamptz is null or occurred_at >= ${since}::timestamptz)
+           group by 1
+           order by n desc, 1
+           limit 12
+        `) as Row[];
+        return rows.map((r) => ({ label: str(r.label), n: int(r.n) }));
+      },
+      [] as Counted[],
+      "recipe reach regions",
+    ),
+  ]);
+
+  return {
+    serves: { now: now.serves, before: before.serves },
+    readers: { now: now.readers, before: before.readers },
+    dishes: { now: now.dishes, before: before.dishes },
+    gapFill: {
+      now: percent(now.serves, now.misses),
+      before: since ? percent(before.serves, before.misses) : null,
+    },
+    daily,
+    rules: ruleMix(rules),
+    translated,
+    topDishes: dishes,
+    servedStates: states,
+    regions,
   };
 }

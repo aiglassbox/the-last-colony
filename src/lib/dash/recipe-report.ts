@@ -1,7 +1,7 @@
 import { submissionRows } from "@/lib/community/client";
 import { db } from "@/lib/db/client";
 
-import { recipeFunnel } from "./queries/recipes";
+import { recipeFunnel, recipeReach } from "./queries/recipes";
 import { summariseSubmissions } from "./queries/submissions";
 import { bound, resolveRange, type RangeKey } from "./range";
 import { NoDatabaseError } from "./report";
@@ -22,9 +22,10 @@ export async function buildRecipeReport(key: RangeKey, now: Date = new Date()): 
 
   // The store is a separate vendor and can be down while Neon is up; it
   // costs the Submissions tab, never the page.
-  const [funnel, rows] = await Promise.all([
+  const [funnel, rows, reach] = await Promise.all([
     recipeFunnel(sql, since, previousSince),
     submissionRows(range.previousSince ?? range.since),
+    recipeReach(sql, since, previousSince),
   ]);
 
   return {
@@ -33,5 +34,6 @@ export async function buildRecipeReport(key: RangeKey, now: Date = new Date()): 
     comparable: range.since !== null,
     funnel,
     submissions: rows ? summariseSubmissions(rows, range.since, range.previousSince) : null,
+    reach,
   };
 }

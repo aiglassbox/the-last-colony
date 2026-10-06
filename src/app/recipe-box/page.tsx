@@ -9,6 +9,7 @@ import { NoDatabaseError } from "@/lib/dash/report";
 import { LoginForm } from "../kitchen/LoginForm";
 import { LogoutButton } from "../kitchen/LogoutButton";
 import { Funnel } from "./tabs/Funnel";
+import { Reach } from "./tabs/Reach";
 import { Submissions } from "./tabs/Submissions";
 
 /**
@@ -25,6 +26,7 @@ export const dynamic = "force-dynamic";
 const TABS = [
   { key: "funnel", label: "Funnel" },
   { key: "submissions", label: "Submissions" },
+  { key: "reach", label: "Reach" },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
@@ -122,12 +124,13 @@ export default async function RecipeBox(props: PageProps<"/recipe-box">) {
 
       {tab === "funnel" && <Funnel report={report} />}
       {tab === "submissions" && <Submissions report={report} />}
+      {tab === "reach" && <Reach report={report} />}
 
       <p className="k-caveat">
         <strong>What these numbers are.</strong> The funnel is beacons the form fires, counted from
         the deploy that added them; a reader whose browser blocks first-party analytics is not in
         them at all. Submissions come from the store itself and go back to the first one, with the
-        agent-run seed rows left out.
+        agent-run seed rows left out. Reach is chat&apos;s own record of each community recipe it served.
       </p>
     </div>
   );
