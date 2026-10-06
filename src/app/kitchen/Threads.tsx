@@ -46,7 +46,7 @@ export function Threads({ range }: Props) {
     setError(null);
     try {
       const query = new URLSearchParams({ range, page: String(page), search });
-      const response = await fetch(`/api/kitchen/threads?${query}`);
+      const response = await fetch(`/kitchen/api/threads?${query}`);
       if (!response.ok) throw new Error(String(response.status));
       const body = (await response.json()) as { rows: ThreadSummary[]; total: number };
       if (id !== requestId.current) return;
@@ -68,7 +68,7 @@ export function Threads({ range }: Props) {
   async function open(id: string) {
     setSelected(null);
     try {
-      const response = await fetch(`/api/kitchen/threads?id=${encodeURIComponent(id)}`);
+      const response = await fetch(`/kitchen/api/threads?id=${encodeURIComponent(id)}`);
       if (!response.ok) return;
       const body = (await response.json()) as { conversation: Conversation };
       setSelected(body.conversation);

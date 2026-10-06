@@ -23,6 +23,25 @@ import { passwordMatches, type Gate } from "./gate";
 /** Low, because nobody types this ten times by accident. */
 const MAX_ATTEMPTS = 10;
 
+/**
+ * Whether this response may mark the session cookie `secure`.
+ *
+ * It used to be `NODE_ENV === "production"`, which is a statement about how
+ * the build was made rather than about the connection the cookie is travelling
+ * on: a self-hosted `next start` with the variable unset handed the operator's
+ * session over plain HTTP. The connection is the thing that matters, so ask
+ * about the connection. Only a plain-HTTP loopback run — where there is no
+ * https to be secure on and a `secure` cookie would simply never come back —
+ * gets the flag dropped.
+ */
+function isSecureEnough(request: NextRequest): boolean {
+  const proto = request.headers.get("x-forwarded-proto")?.split(",")[0].trim();
+  const url = new URL(request.url);
+  if (proto) return proto === "https";
+  const loopback = url.hostname === "localhost" || url.hostname === "127.0.0.1" || url.hostname === "[::1]";
+  return url.protocol === "https:" || !loopback;
+}
+
 function notFound(): NextResponse {
   return NextResponse.json(
     { error: "Not found" },
@@ -63,9 +82,10 @@ export function authHandlers(gate: Gate, rateKey: string) {
       value: token.value,
       httpOnly: true,
       sameSite: "lax",
-      // Secure everywhere but a local run, where there is no https to be secure on.
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
+      secure: isSecureEnough(request),
+      // Not "/": the door's page and its endpoints are the only things that
+      // read this, and they all live under here. See `Gate.path`.
+      path: gate.path,
       maxAge: token.maxAge,
     });
     return response;
@@ -73,6 +93,12 @@ export function authHandlers(gate: Gate, rateKey: string) {
 
   async function DELETE(): Promise<NextResponse> {
     const response = NextResponse.json({ ok: true });
+    response.cookies.set({ name: gate.cookie, value: "", path: gate.path, maxAge: 0 });
+    // Transitional: sessions issued before the cookie was scoped sit at "/",
+    // and a browser sends those to this path too — so a logout that cleared
+    // only the scoped one would leave the operator still signed in. A cookie
+    // is cleared per path, so this clears the old path as well. Safe to drop
+    // once every session issued at "/" has expired (twelve hours).
     response.cookies.set({ name: gate.cookie, value: "", path: "/", maxAge: 0 });
     return response;
   }

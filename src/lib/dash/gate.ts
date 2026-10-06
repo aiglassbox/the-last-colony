@@ -19,6 +19,14 @@ const SESSION_MS = 12 * 60 * 60 * 1000;
 export interface Gate {
   /** Cookie name; also the key-derivation prefix, so two doors never share a session. */
   readonly cookie: string;
+  /**
+   * The only path that needs this cookie. The door's page and its endpoints
+   * both live under it, which is why the endpoints were moved there: at
+   * `path: "/"` an operator session rode every public request on the site —
+   * every chat turn, every tracking pixel — and nothing outside this prefix
+   * has ever read it.
+   */
+  readonly path: string;
   /** Null when the env var is unset or blank: the door does not exist. */
   password(): string | null;
   /** A session token: the expiry, and a signature over it. The password itself never goes into the cookie. */
@@ -52,6 +60,7 @@ export function makeGate(name: string, passwordVar: string, secretVar: string): 
 
   return {
     cookie: `kc_${name}`,
+    path: `/${name}`,
     password() {
       const value = process.env[passwordVar]?.trim();
       return value ? value : null;

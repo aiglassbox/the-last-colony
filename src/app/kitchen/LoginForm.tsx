@@ -12,7 +12,7 @@ import { useState, type FormEvent } from "react";
  * would re-download the route for no reason.
  */
 export function LoginForm({
-  endpoint = "/api/kitchen/auth",
+  endpoint = "/kitchen/api/auth",
   title = "The Kitchen",
   sub = "The Kranti Cookbook — analytics",
   inputId = "kitchen-password",

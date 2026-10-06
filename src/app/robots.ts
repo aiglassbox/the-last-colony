@@ -32,12 +32,13 @@ export default function robots(): MetadataRoute.Robots {
         "/unsubscribe",
         "/api/email-report",
         // The dashboard. The password is the control; this only keeps it from
-        // turning up in a search result and announcing that it exists.
+        // turning up in a search result and announcing that it exists. One
+        // entry each now covers the endpoints too: they live under the page so
+        // the session cookie can be scoped to that path instead of every
+        // request on the site.
         "/kitchen",
-        "/api/kitchen",
         // The pantry: same reasoning, its own password.
         "/pantry",
-        "/api/pantry",
       ],
     },
     sitemap: `${siteUrl()}/sitemap.xml`,

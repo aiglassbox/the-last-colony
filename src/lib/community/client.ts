@@ -245,11 +245,15 @@ export async function publishSubmission(
     // in the Published list that no reader can ever reach. Overriding a pending
     // document to GREEN is how one gets made; re-running the verdict fixes it.
     if (!doc.dish?.tag) return "no_tag";
-    // Filtered on the status the read just saw, so an override landing between
-    // the two calls loses rather than leaving `published_at` on a red document.
+    // Filtered on both preconditions the read just checked, not only the
+    // status: `overrideVerdict` rewrites `dish` on every call and its fallback
+    // tag can normalise to empty, so a filter on status alone let a race
+    // publish an untagged document that `matchCommunity` can never match.
+    // A lost race answers "not_green" because either way the document is not
+    // publishable as it now stands; the caller's next read says which.
     const at = new Date();
     const result = await col.updateOne(
-      { _id, status: "green" },
+      { _id, status: "green", "dish.tag": { $exists: true, $ne: "" } },
       { $set: { published_at: at, updated_at: at } },
     );
     return result.matchedCount === 1 ? "ok" : "not_green";
@@ -474,7 +478,22 @@ export async function overrideVerdict(id: string, card: "GREEN" | "RED"): Promis
     const doc = await col.findOne({ _id }, { projection: { verdict: 1, dish: 1, "submission.recipe_name": 1 } });
     if (!doc) return false;
     const now = new Date();
-    const verdict = { ...(doc.verdict ?? { reasons: [], model: "operator", at: now }), card, overridden_at: now };
+    // The decision is the operator's, so the audit trail says so. Spreading
+    // the model's verdict and changing only the card left `model` naming the
+    // model and `reasons` holding its reasoning, so the pantry's Verdict panel
+    // credited the model for a human's call. The model's own verdict is kept
+    // where it can still be read, attributed to the model that gave it, and
+    // `at` stays the model's timestamp — `overridden_at` is the human's.
+    const prior = doc.verdict;
+    const verdict = {
+      card,
+      model: "operator",
+      reasons: prior
+        ? [`model ${prior.model} said ${prior.card}: ${prior.reasons.join("; ") || "no reason given"}`]
+        : [],
+      at: prior?.at ?? now,
+      overridden_at: now,
+    };
     const dish = doc.dish ?? { tag: dishTag(doc.submission.recipe_name), aliases: [] };
     const status = card === "GREEN" ? "green" : "red";
     // A move to RED takes the recipe off the site in the same write: leaving

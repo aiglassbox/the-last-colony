@@ -41,7 +41,7 @@ export function Actions({
     setBusy(label);
     setNote(null);
     try {
-      const res = await fetch("/api/pantry/submissions", {
+      const res = await fetch("/pantry/api/submissions", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ id, ...body }),
@@ -61,7 +61,7 @@ export function Actions({
   }
 
   const download = (
-    <a className="k-button" href={`/api/pantry/submissions?id=${id}&download=1`}>
+    <a className="k-button" href={`/pantry/api/submissions?id=${id}&download=1`}>
       Download Corpus Candidate
     </a>
   );
