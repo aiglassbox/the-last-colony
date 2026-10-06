@@ -1120,33 +1120,45 @@ longer exists. Raised by the recipe-box security review.
 ## Social dock (home-screen social links) — settled 2026-10-06
 
 **Three icons, home screen only.** Instagram, YouTube and X, in that order,
-bottom right of the stage; Facebook shipped in the asset zip and was not
+bottom right of the hero; Facebook shipped in the asset zip and was not
 picked. The dock renders only while `view === "chat" && isEmpty`, so it is
 there on first load and on every New chat and gone the moment a query is
-sent or a thread is opened. A row while the rail is open, a column while it
+sent or a thread is opened. A column while the rail is open, a row while it
 is closed; always a row above the composer on a phone, where the bottom-right
-corner belongs to the composer.
+corner belongs to the composer. On desktop and tablet it is pinned bottom-right
+of the hero where the hero is wide enough (at least 944px for a row, 784px for
+a column), and sits in the hero's flow below that, so it never covers the
+composer and does not make a laptop-height hero scroll. A box pinned at every
+width covered the send button on short screens.
 
 **Draggable, not just decorated.** The owner chose Bencho's full reorder
 behaviour over a liquid dock without dragging. The cost is a link that has to
-tell a click from a drag: under 4px of travel is a click, past it is a drag
-and the closing click is cancelled. The dragged order is not persisted — a
-reload restores Instagram, YouTube, X — because a per-device icon order is
-not worth a storage key.
+tell a click from a drag: under 4px of travel for a mouse, or 10px for touch
+and pen, is a click; past it is a drag and the closing click is cancelled.
+The dragged order is not persisted, because a per-device icon order is not
+worth a storage key. A query, opening a thread or History, leaving a thread
+via New chat, crossing to phone width, or a reload gives a fresh order; New
+chat pressed on an already-empty home screen does not unmount the dock, so it
+keeps its order.
 
 **The goo sits under the icons, never on them.** Bencho's filter thresholds
 alpha, which eats antialiased edges, so the orange circles on the filtered
 layer are plain blobs and the supplied SVGs ride unfiltered above them. At
-rest the image covers its blob exactly; the goo shows only as the held
-icon's swell, its squash in a fast drag, and the neck between two circles
-passing. The SVGs are served unchanged rather than split into circle and
-glyph, so a new icon set is a file swap.
+rest the blob is slightly smaller than its icon (scale 0.94), so the goo's
+hard edge never shows; the goo shows only as the held icon's swell, its
+squash in a fast drag, and the neck between two circles passing. The SVGs
+are no longer the supplied files unchanged: at the owner's request, for
+contrast, the glyph is black and scaled 1.4x about the centre inside the
+unchanged orange circle. They are still whole files rather than split into
+circle and glyph.
 
 **`framer-motion`, through `LazyMotion`.** Added because the Bencho prompt
 specifies it and its springs are what the effect is made of; a CSS
 `linear()` spring approximation cannot follow a pointer-driven velocity.
 Imported as `m` under `LazyMotion` with `domAnimation`, so the landing page
-does not also load drag and layout animation it never uses. Bencho's
+does not also load drag and layout animation it never uses, and the dock
+itself is loaded through `next/dynamic` (`ssr: false`), so framer-motion is
+off the landing page's first bundle. Bencho's
 `useTokens` probe is left out: it resolves tokens to rgb for Framer when a
 theme flips, and this site has one theme and changes the dock's colours on
 CSS transitions.

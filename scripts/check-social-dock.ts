@@ -15,7 +15,7 @@ import { NextRequest } from "next/server";
 
 import { POST as trackRoute } from "../src/app/api/track/route";
 import { trackPixel } from "../src/lib/meta-pixel";
-import { moveTo, SIZE, slotOffset, slotPoint, SOCIALS, SPAN, STEP } from "../src/lib/social";
+import { moveTo, SIZE, slotFor, slotOffset, slotPoint, SOCIALS, SPAN, STEP } from "../src/lib/social";
 
 delete process.env.DATABASE_URL;
 delete process.env.Last_Colony_DATABASE_URL;
@@ -76,6 +76,13 @@ for (const id of [0, 1, 2]) {
   }
 }
 check("moveTo: never loses or doubles an icon", permutation);
+check("slotFor: no travel stays", slotFor(0, 0) === 0);
+check("slotFor: under half a step stays", slotFor(0, 21) === 0);
+check("slotFor: half a step moves", slotFor(0, 22) === 1);
+check("slotFor: half a step back stays (round(0.5) is 1)", slotFor(1, -22) === 1);
+check("slotFor: past half a step back moves", slotFor(1, -23) === 0);
+check("slotFor: clamped high", slotFor(0, 400) === 2);
+check("slotFor: clamped low", slotFor(2, -400) === 0);
 
 // --- first-party only --------------------------------------------------------
 const fired: string[] = [];

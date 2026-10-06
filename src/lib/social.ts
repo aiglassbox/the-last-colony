@@ -51,7 +51,7 @@ export type DockAxis = "row" | "column";
  * Where a slot sits, measured back from the dock's bottom-right corner.
  *
  * From the corner, not the start, because the corner is the one point a row
- * and a column share. The dock is pinned there, so when it flips the last
+ * and a column share. The dock is anchored there, so when it flips the last
  * icon stays where it is and the others swing round it — and their paths pass
  * close enough on the way for the goo to fuse them.
  */
@@ -61,6 +61,15 @@ export function slotOffset(slot: number): number {
 
 export function slotPoint(axis: DockAxis, slot: number): { x: number; y: number } {
   return axis === "row" ? { x: slotOffset(slot), y: 0 } : { x: 0, y: slotOffset(slot) };
+}
+
+/**
+ * The slot a held icon belongs in: where it was picked up, plus how far it has
+ * travelled, to the nearest slot and clamped to the list. The held icon itself
+ * is not clamped — only this reading is.
+ */
+export function slotFor(from: number, d: number): number {
+  return Math.min(Math.max(Math.round((from * STEP + d) / STEP), 0), SOCIALS.length - 1);
 }
 
 /** `order` with `id` lifted out and set down at `slot`, clamped to the list. */
