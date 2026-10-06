@@ -696,6 +696,39 @@ make it free, and a challenge on the send route is the only control that makes
 a fresh address cost the caller anything. Found by the 2026-10-05 source audit,
 fingerprint `otp.send.shared-daily-quota-exhaustible-by-one-caller`.
 
+**The verify attempt counter stays bound to the address rather than the
+requester — accepted, not overlooked, 2026-10-06.** `POST /api/otp/verify`
+carries `{email, code}` and nothing that proves who asked for the code, and
+`attempts` lives on the address document. So three wrong guesses from any
+stranger spend the three tries belonging to whoever is holding that code, and
+`otp-rules.ts:128-130` then refuses the correct one: the person reading the
+real code out of their inbox is told "too many tries".
+
+Two bounds make that a nuisance rather than a denial, and they are the reason
+this is accepted. The wrong-guess branch needs a live unverified document —
+`decideVerify` answers `expired` with `count: false` for a missing, verified or
+expired one — so an address holding no code cannot be locked at all, and the
+attacker has to land inside a five-minute window, which means knowing somebody
+is mid-signup right now. And a fresh send replaces the document whole with
+`attempts: 0` (`otp-rules.ts:100`), so the lock is per code, not per address:
+the victim clicks Resend and is through, at worst one 180-second cooldown
+later.
+
+Counting attempts per caller instead is **not** the fix and must not be
+attempted: the caller key is a header the client writes, so per-caller
+attempts would reset on rotation and hand out unlimited guesses at a six-digit
+code. That trades a three-minute nuisance for a brute-force hole.
+
+The real fix is a send-issued handle the client carries into verify, with
+attempts counted against the handle — which would also close the smaller thing
+accepted here, that the refusal shape tells a caller whether an address is
+mid-flow (`expired` versus `wrong_code`). It costs a change to both the send
+response and the verify request. Weighed against a self-healing three-minute
+nuisance it is not worth doing before the day's unbounded model spend is
+bounded, so it is deliberately not done. Reopen it if the OTP flow ever gains
+a step that cannot be repeated as cheaply as a resend. Found by the 2026-10-05
+source audit, fingerprint `otp.verify.unbound-attempt-counter`, severity low.
+
 **A corpus candidate carries no contact and can never claim ATTESTED.** The
 pantry's download is a GREEN submission in the corpus record's shape, for a
 human to incorporate by hand: `MODERN_DISH`, `unverified_seed`, no
