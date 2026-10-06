@@ -78,7 +78,10 @@ export function TimeSeries<T extends { day: string }>({
 
   if (!rows.length) return <p className="k-empty">Nothing in this window yet.</p>;
 
-  const ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => Math.round(max * f));
+  // A Set, because the tick is its own React key: with `niceMax` leaving a max
+  // of 1–3 as is, rounding the quarters lands two ticks on one integer
+  // ([0, 0, 1, 1, 1] for 1) and React warns about duplicate keys.
+  const ticks = [...new Set([0, 0.25, 0.5, 0.75, 1].map((f) => Math.round(max * f)))];
 
   /* Label density is a function of the pixels available, not of the row count.
      Deriving it from `rows.length` alone printed "20 Aug21 Aug" on a phone —
