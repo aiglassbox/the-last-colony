@@ -14,6 +14,7 @@ export function Figure({
   invert = false,
   comparable,
   empty,
+  span = 4,
 }: {
   label: string;
   value: MaybeDelta;
@@ -21,10 +22,11 @@ export function Figure({
   invert?: boolean;
   comparable: boolean;
   empty: string;
+  span?: 3 | 4;
 }) {
   if (value.now === null) {
     return (
-      <Panel title={label} span={4}>
+      <Panel title={label} span={span}>
         <p className="k-empty">{empty}</p>
       </Panel>
     );
@@ -36,7 +38,7 @@ export function Figure({
       suffix={suffix}
       invert={invert}
       comparable={comparable}
-      span={4}
+      span={span}
     />
   );
 }

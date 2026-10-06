@@ -1086,18 +1086,33 @@ else; `trackPixel` skips them. Nothing in the ask needed an ad platform to see
 who is writing down their grandmother's recipe. Turning it on later is one
 line.
 
-**Raw and unique, and the funnel is unique.** Every count shows both raw events
-and distinct devices, the convention the kitchen's event table already uses.
-Funnel stages count devices, so a reader pressing Send code four times is one
-reader at that step; the presses still show up in the secondary-press panel,
-where repeated sends are the signal.
+**Raw and unique where it means something, and the funnel is unique.** The
+headline presses and opens show both raw events and distinct devices, the
+convention the kitchen's event table already uses, and so do the second-tries
+rows. Funnel stages count devices, so a reader pressing Send code four times is
+one reader at that step; the presses still show up under second tries, where
+repeated sends are the signal. The photo, refusal, time-to-finish and dish
+panels are raw counts and say so.
 
 **Seeded rows never count.** Outcome queries drop `display_name` exactly
 `Arpit's Agent` (the twelve agent-run seeds), always, with no toggle. They were
 pushed through the pipeline to test matching and say nothing about readers.
 
-**Kitchen's ranges, unchanged.** 7d / 30d / 90d / all, cut at IST midnight,
-compared against the previous window of equal length — `lib/dash/range.ts` as
-is. Funnel and reach panels start at the deploy that adds the events and cannot
-be back-filled; submission outcomes come from the store and go back to the
-first submission.
+**Kitchen's ranges, unchanged.** 7d / 30d / 90d / all as rolling windows back
+from now, with every day bucket cut in IST, compared against the previous
+window of equal length — `lib/dash/range.ts` as is. The funnel starts at the
+deploy that adds its beacons and cannot be back-filled; reach reads
+`community_served`, which chat already wrote; submission outcomes come from the
+store and go back to the first submission.
+
+**Every door signs its own name — settled 2026-10-06.** The gate used to sign
+the expiry alone, so two doors whose `*_SECRET` values were set equal issued
+byte-identical tokens, and the only thing standing between a kitchen cookie and
+the pantry was a sentence in `.env.example`. A third door made that worse: the
+recipe box's password exists to be handed to someone who holds neither of the
+others, so the same mistake would now walk a lower-trust holder into every
+submitter's contact details. The signed message is `<door>.<expiry>` now, so a
+token is only ever valid on the door that issued it, whatever the secrets are.
+Changing the derivation ended every live kitchen and pantry session once — at
+most twelve hours of re-typing a password, against a misconfiguration that no
+longer exists. Raised by the recipe-box security review.

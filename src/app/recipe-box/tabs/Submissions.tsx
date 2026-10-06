@@ -113,7 +113,7 @@ export function Submissions({ report }: { report: RecipeReport }) {
 
       <Panel
         title="Dishes with more than one version"
-        note="Several families or states for one dish — what the serving rules choose between."
+        note="Several families or states for one dish, at any status. Only the published ones are what serving chooses between."
         span={12}
       >
         {s.versions.length ? (

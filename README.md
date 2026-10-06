@@ -551,7 +551,8 @@ button or open the form, how far they get, and what refuses them. It sits behind
 its own password (`RECIPE_BOX_PASSWORD`) on the same gate factory as the kitchen
 and the pantry, and 404s when that is unset. It reads the form's first-party
 beacons (`recipe_entry_pressed`, `recipe_step`) from `analytics_events`, and
-shows counts only. Its Submissions tab counts what lands in the Atlas store — status, state, photo or typed, relation, language, dish — seed rows excluded.
+shows counts only. Its Submissions tab counts what lands in the Atlas store —
+status, state, photo or typed, relation, language, dish — seed rows excluded.
 Its Reach tab reads chat's own `community_served` events: serves, readers,
 which rule chose the version, and what share of corpus misses a community
 recipe filled.

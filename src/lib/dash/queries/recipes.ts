@@ -1,5 +1,6 @@
 import type { NeonQueryFunction } from "@neondatabase/serverless";
 
+import { stateForRegion } from "../../community/match";
 import { ZONE } from "../range";
 import type { Counted, CountedDevices, Delta, FunnelStage, RecipeFunnelPanel, RecipeReachPanel, StepRow } from "../types";
 import { tolerant } from "./events";
@@ -61,6 +62,19 @@ export function bucketise(values: number[], edges: Edge[], last: string): Counte
   return out;
 }
 
+/**
+ * `bucketise` for counts SQL already made. `width_bucket` over the edges'
+ * `below` values numbers the buckets exactly as `bucketise` indexes them:
+ * 0 below the first edge, `edges.length` at or past the last. No counts, no
+ * bars.
+ */
+export function bucketCounts(rows: { bucket: number; n: number }[], edges: Edge[], last: string): Counted[] {
+  if (!rows.some((r) => r.n > 0)) return [];
+  const out = [...edges.map((e) => ({ label: e.label, n: 0 })), { label: last, n: 0 }];
+  for (const r of rows) if (out[r.bucket]) out[r.bucket].n += r.n;
+  return out;
+}
+
 export const FINISH_EDGES: Edge[] = [
   { label: "Under 2 minutes", below: 2 * MINUTE },
   { label: "2–5 minutes", below: 5 * MINUTE },
@@ -96,6 +110,27 @@ const REASON = new Map([
   ["invalid", "invalid"],
   ["lapsed", "verification lapsed"],
 ]);
+
+// The allow-lists `stepRows` filters on in SQL, so a forged label is never
+// grouped, let alone returned. They restate `app/add-recipe/track.ts` rather
+// than import it: `lib/` does not reach into `app/`.
+/** Every `RecipeStep` the form sends. */
+export const RECIPE_STEPS = [
+  "opened",
+  "photo_attached",
+  "photo_read",
+  "next",
+  "back",
+  "code_send",
+  "code_resend",
+  "change_email",
+  "verify",
+  "submit",
+];
+/** Every outcome the form sends. */
+export const RECIPE_OUTCOMES = ["ok", "invalid", "refused", "failed", "accepted", "unreadable", "not_recipe"];
+/** Every reason the form sends: exactly the ones the refusals panel can name. */
+export const RECIPE_REASONS = [...REASON.keys()];
 
 const PHOTO_OUTCOMES: [string, string][] = [
   ["ok", "Read — fields filled"],
@@ -261,6 +296,9 @@ function stepRows(sql: Sql, since: string | null): Promise<StepRow[]> {
                count(distinct device_id)::int                        as devices
           from analytics_events
          where event = 'recipe_step'
+           and props->>'step' = any(${RECIPE_STEPS}::text[])
+           and (props->>'outcome' is null or props->>'outcome' = any(${RECIPE_OUTCOMES}::text[]))
+           and (props->>'reason' is null or props->>'reason' = any(${RECIPE_REASONS}::text[]))
            and (${since}::timestamptz is null or occurred_at >= ${since}::timestamptz)
          group by grouping sets (
            (props->>'step', props->>'outcome', props->>'reason'),
@@ -282,17 +320,42 @@ function stepRows(sql: Sql, since: string | null): Promise<StepRow[]> {
 }
 
 /**
- * Accepted-submit durations since `floor`, flagged by which window they fall
- * in. Clamped to a day here as well as in the browser: the same ceiling as
+ * Accepted-submit durations since `floor`, as aggregates per window: counts
+ * per `FINISH_EDGES` bucket, and the median. Only aggregates come back, because
+ * these are beacons anyone can post, not submissions the store caps. Clamped
+ * to a day here as well as in the browser: the same ceiling as
  * `MAX_FINISH_MS` in `app/add-recipe/track.ts`, restated because a forged
  * beacon never ran that code.
- *
- * ponytail: the durations come back as rows and are bucketed in JS, so the
- * bucket edges live in one place. Accepted submits are capped by
- * SUBMISSION_DAILY_MAX, so this is tens of thousands of numbers at worst;
- * move the bucketing into SQL if it ever is not.
  */
-function finishTimes(
+function finishBuckets(
+  sql: Sql,
+  since: string | null,
+  floor: string | null,
+): Promise<{ current: boolean; bucket: number; n: number }[]> {
+  return tolerant(
+    async () => {
+      const rows = (await sql`
+        select (${since}::timestamptz is null or occurred_at >= ${since}::timestamptz) as current,
+               width_bucket(least(greatest((props->>'ms')::float8, 0), 86400000),
+                            ${FINISH_EDGES.map((e) => e.below)}::float8[])            as bucket,
+               count(*)::int                                                           as n
+          from analytics_events
+         where event = 'recipe_step'
+           and props->>'step' = 'submit'
+           and props->>'outcome' = 'accepted'
+           and jsonb_typeof(props->'ms') = 'number'
+           and (${floor}::timestamptz is null or occurred_at >= ${floor}::timestamptz)
+         group by 1, 2
+      `) as Row[];
+      return rows.map((r) => ({ current: r.current === true, bucket: int(r.bucket), n: int(r.n) }));
+    },
+    [],
+    "recipe finishBuckets",
+  );
+}
+
+/** The median of the same durations, per window. See `finishBuckets`. */
+function finishMedians(
   sql: Sql,
   since: string | null,
   floor: string | null,
@@ -301,18 +364,20 @@ function finishTimes(
     async () => {
       const rows = (await sql`
         select (${since}::timestamptz is null or occurred_at >= ${since}::timestamptz) as current,
-               least(greatest((props->>'ms')::float8, 0), 86400000)                    as ms
+               percentile_cont(0.5) within group (
+                 order by least(greatest((props->>'ms')::float8, 0), 86400000))        as ms
           from analytics_events
          where event = 'recipe_step'
            and props->>'step' = 'submit'
            and props->>'outcome' = 'accepted'
            and jsonb_typeof(props->'ms') = 'number'
            and (${floor}::timestamptz is null or occurred_at >= ${floor}::timestamptz)
+         group by 1
       `) as Row[];
       return rows.map((r) => ({ current: r.current === true, ms: Number(r.ms) }));
     },
     [],
-    "recipe finishTimes",
+    "recipe finishMedians",
   );
 }
 
@@ -321,7 +386,7 @@ export async function recipeFunnel(
   since: string | null,
   previousSince: string | null,
 ): Promise<RecipeFunnelPanel> {
-  const [now, before, daily, stages, steps, finish] = await Promise.all([
+  const [now, before, daily, stages, steps, buckets, medians] = await Promise.all([
     entryTotals(sql, since, null),
     // All-time has no window before it; every delta then reads against zero,
     // which StatTile renders as "nothing before this to compare against".
@@ -329,16 +394,15 @@ export async function recipeFunnel(
     entryDaily(sql, since),
     funnelStages(sql, since),
     stepRows(sql, since),
-    finishTimes(sql, since, previousSince ?? since),
+    finishBuckets(sql, since, previousSince ?? since),
+    finishMedians(sql, since, previousSince ?? since),
   ]);
 
   const pair = (key: keyof EntryTotals): Delta => ({ now: now[key], before: before[key] });
-  const minutes = (values: number[]) => {
-    const m = median(values);
-    return m === null ? null : Math.round((m / MINUTE) * 10) / 10;
+  const minutes = (current: boolean) => {
+    const m = medians.find((r) => r.current === current);
+    return m ? Math.round((m.ms / MINUTE) * 10) / 10 : null;
   };
-  const finishNow = finish.filter((f) => f.current).map((f) => f.ms);
-  const finishBefore = finish.filter((f) => !f.current).map((f) => f.ms);
 
   return {
     presses: pair("presses"),
@@ -346,15 +410,16 @@ export async function recipeFunnel(
     opens: pair("opens"),
     openDevices: pair("openDevices"),
     acceptedDevices: pair("acceptedDevices"),
+    // At or under 100%, except at a window's edge: the numerator is not restricted to devices that opened inside it.
     rate: {
       now: percent(now.acceptedDevices, now.openDevices),
       before: since ? percent(before.acceptedDevices, before.openDevices) : null,
     },
-    medianMinutes: { now: minutes(finishNow), before: since ? minutes(finishBefore) : null },
+    medianMinutes: { now: minutes(true), before: since ? minutes(false) : null },
     daily,
     stages,
     ...stepPanels(steps),
-    finish: bucketise(finishNow, FINISH_EDGES, FINISH_LAST),
+    finish: bucketCounts(buckets.filter((b) => b.current), FINISH_EDGES, FINISH_LAST),
   };
 }
 
@@ -363,6 +428,22 @@ const RULES: [string, string][] = [
   ["language", "Reader's language"],
   ["recency", "Most recent"],
 ];
+
+/**
+ * "Served to" in the words "Recipes from" uses: an Indian edge code becomes
+ * its state, so OD and OR are one Odisha; anywhere else stays `region, country`.
+ * Rows that land on one label are summed, then ranked.
+ */
+export function regionLabels(rows: { region: string; country: string | null; n: number }[]): Counted[] {
+  const merged = new Map<string, number>();
+  for (const { region, country, n } of rows) {
+    const label = country === "IN" ? (stateForRegion(region) ?? region) : country ? `${region}, ${country}` : region;
+    merged.set(label, (merged.get(label) ?? 0) + n);
+  }
+  return [...merged]
+    .map(([label, n]) => ({ label, n }))
+    .sort((a, b) => b.n - a.n || a.label.localeCompare(b.label));
+}
 
 /** `pickCommunity`'s three rules, in its own order; a rule chat never logs is dropped. */
 export function ruleMix(rows: Counted[]): Counted[] {
@@ -382,7 +463,9 @@ const NO_REACH: ReachTotals = { serves: 0, readers: 0, dishes: 0, misses: 0 };
  * One window's reach. `misses` is the denominator for gap fill: dish asks the
  * corpus did not answer, refused off-topic turns left out. Every community
  * serve is also one of those asks — chat fires `dish_queried` with
- * `hit: false` before it serves — so the rate cannot pass 100%.
+ * `hit: false` before it serves — so the rate stays at or under 100%, except
+ * at a window's edge, where a serve's ask can fall just before the window
+ * opens.
  */
 function reachTotals(sql: Sql, since: string | null, until: string | null): Promise<ReachTotals> {
   return tolerant(
@@ -476,18 +559,19 @@ export async function recipeReach(
     tolerant(
       async () => {
         const rows = (await sql`
-          select region || coalesce(', ' || country, '') as label,
-                 count(distinct device_id)::int         as n
+          select region,
+                 country,
+                 count(distinct device_id)::int as n
             from analytics_events
            where event = 'community_served'
              and region is not null
              and device_id is not null
              and (${since}::timestamptz is null or occurred_at >= ${since}::timestamptz)
-           group by 1
-           order by n desc, 1
+           group by 1, 2
+           order by n desc, 1, 2
            limit 12
         `) as Row[];
-        return rows.map((r) => ({ label: str(r.label), n: int(r.n) }));
+        return regionLabels(rows.map((r) => ({ region: str(r.region), country: optional(r.country), n: int(r.n) })));
       },
       [] as Counted[],
       "recipe reach regions",

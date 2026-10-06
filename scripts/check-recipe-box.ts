@@ -15,7 +15,20 @@ import { POST as trackRoute } from "../src/app/api/track/route";
 import { UNTRACKED_PATH } from "../src/lib/analytics";
 import type { SubmissionRow } from "../src/lib/community/client";
 import { bucketOf, HOUR, summariseSubmissions } from "../src/lib/dash/queries/submissions";
-import { bucketise, FINISH_EDGES, FINISH_LAST, median, MINUTE, percent, ruleMix, stepPanels } from "../src/lib/dash/queries/recipes";
+import {
+  bucketCounts,
+  bucketise,
+  FINISH_EDGES,
+  FINISH_LAST,
+  median,
+  MINUTE,
+  percent,
+  RECIPE_OUTCOMES,
+  RECIPE_REASONS,
+  regionLabels,
+  ruleMix,
+  stepPanels,
+} from "../src/lib/dash/queries/recipes";
 import type { StepRow } from "../src/lib/dash/types";
 import { trackPixel } from "../src/lib/meta-pixel";
 
@@ -80,6 +93,29 @@ for (const [step, status, payload, want] of cases) {
   const got = outcomeOf(step, status, payload);
   check(`outcomeOf(${step}, ${status}) = ${want.outcome}/${want.reason ?? "-"}`, same(got, want));
 }
+
+// --- drift guard: every label the form sends is one the dashboard draws -----
+// compress_failed is sent by the form directly, never through outcomeOf.
+const sent: [string, StepResult][] = [
+  ...cases.map(([step, , , want]): [string, StepResult] => [step, want]),
+  ["photo_read", { outcome: "refused", reason: "compress_failed" }],
+];
+const unlisted = sent.filter(
+  ([, w]) => !RECIPE_OUTCOMES.includes(w.outcome) || (w.reason !== undefined && !RECIPE_REASONS.includes(w.reason)),
+);
+check(
+  `every outcome and reason the form sends is allow-listed${unlisted.length ? `; missing: ${unlisted.map(([s, w]) => `${s}/${w.outcome}/${w.reason ?? "-"}`).join(", ")}` : ""}`,
+  unlisted.length === 0,
+);
+const undrawn = sent.filter(
+  ([step, w]) =>
+    (w.outcome === "refused" || w.outcome === "failed") &&
+    stepPanels([{ step, outcome: w.outcome, reason: w.reason ?? null, rollup: false, n: 1, devices: 1 }]).refusals.length !== 1,
+);
+check(
+  `every refusal the form sends draws as a bar${undrawn.length ? `; undrawn: ${undrawn.map(([s, w]) => `${s}/${w.reason ?? "-"}`).join(", ")}` : ""}`,
+  undrawn.length === 0,
+);
 
 // --- stepProps: labels and a duration, nothing else -------------------------
 const accepted: StepResult = { outcome: "accepted" };
@@ -161,6 +197,18 @@ check("buckets: exactly on an edge goes up", finish[1]?.n === 1);
 check("buckets: past the last edge lands in the last bucket", finish[4]?.label === FINISH_LAST && finish[4]?.n === 1);
 check("buckets: nothing to bucket is no bars", bucketise([], FINISH_EDGES, FINISH_LAST).length === 0);
 
+// bucketCounts reads SQL's width_bucket indices: 0 below the first edge, 4 at or past the last.
+const counted = bucketCounts([{ bucket: 3, n: 2 }, { bucket: 0, n: 5 }], FINISH_EDGES, FINISH_LAST);
+check(
+  "bucketCounts: zeros filled, labels in order",
+  JSON.stringify(counted) ===
+    JSON.stringify([...FINISH_EDGES.map((e) => e.label), FINISH_LAST].map((label, i) => ({ label, n: [5, 0, 0, 2, 0][i] }))),
+);
+check("bucketCounts: no rows is no bars", bucketCounts([], FINISH_EDGES, FINISH_LAST).length === 0);
+check("bucketCounts: all-zero rows is no bars", bucketCounts([{ bucket: 1, n: 0 }], FINISH_EDGES, FINISH_LAST).length === 0);
+const top = bucketCounts([{ bucket: 4, n: 1 }], FINISH_EDGES, FINISH_LAST);
+check("bucketCounts: bucket 4 lands on the last bucket", top.length === 5 && top[4]?.label === FINISH_LAST && top[4]?.n === 1);
+
 // --- submission outcomes -----------------------------------------------------
 const sub = (over: Partial<SubmissionRow>): SubmissionRow => ({
   status: "green",
@@ -228,6 +276,22 @@ check(
       { label: "Reader's state", n: 5 },
       { label: "Reader's language", n: 0 },
       { label: "Most recent", n: 2 },
+    ]),
+);
+check(
+  "served to: Indian edge codes become state names, OD and OR merge, ranked",
+  JSON.stringify(
+    regionLabels([
+      { region: "MH", country: "IN", n: 2 },
+      { region: "OD", country: "IN", n: 1 },
+      { region: "OR", country: "IN", n: 1 },
+      { region: "CA", country: "US", n: 3 },
+    ]),
+  ) ===
+    JSON.stringify([
+      { label: "CA, US", n: 3 },
+      { label: "Maharashtra", n: 2 },
+      { label: "Odisha", n: 2 },
     ]),
 );
 

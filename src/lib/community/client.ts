@@ -774,6 +774,7 @@ export async function submissionRows(since: Date | null): Promise<SubmissionRow[
             "submission.belongs_to": 1,
             "submission.language": 1,
           },
+          maxTimeMS: 2000,
         },
       )
       .toArray();

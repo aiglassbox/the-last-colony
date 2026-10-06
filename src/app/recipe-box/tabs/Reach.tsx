@@ -1,3 +1,4 @@
+import { percent } from "@/lib/dash/queries/recipes";
 import { SERIES } from "@/lib/dash/tokens";
 import type { RecipeReport } from "@/lib/dash/types";
 
@@ -14,7 +15,7 @@ import { Figure } from "./Figure";
  */
 export function Reach({ report }: { report: RecipeReport }) {
   const { reach: r, comparable } = report;
-  const translatedShare = r.serves.now ? Math.round((r.translated / r.serves.now) * 100) : null;
+  const translatedShare = percent(r.translated, r.serves.now);
 
   return (
     <div className="k-grid">
@@ -27,6 +28,7 @@ export function Reach({ report }: { report: RecipeReport }) {
         suffix="%"
         comparable={comparable}
         empty="No dish asks missed the corpus in this window."
+        span={3}
       />
 
       <Panel title="Serves per day" span={8}>
