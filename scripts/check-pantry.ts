@@ -28,7 +28,7 @@ import {
   SUBMISSIONS,
   unpublishSubmission,
 } from "../src/lib/community/client";
-import { kitchen, pantry } from "../src/lib/dash/auth";
+import { kitchen, pantry, recipeBox } from "../src/lib/dash/auth";
 import { makeGate, passwordMatches } from "../src/lib/dash/gate";
 import type { Verdict } from "../src/lib/community/pipeline";
 import type { SubmissionInput } from "../src/lib/community/schema";
@@ -68,8 +68,8 @@ check(
   !gate.tokenValid(token.value.replace(/.$/, (c) => (c === "0" ? "1" : "0")), "swordfish"),
 );
 
-// The derivation, restated: sha256 HMAC over the expiry, keyed "<door>:<password>".
-const sign = (expiry: string) => createHmac("sha256", "check:swordfish").update(expiry).digest("hex");
+// The derivation, restated: sha256 HMAC over "<door>.<expiry>", keyed "<door>:<password>".
+const sign = (expiry: string) => createHmac("sha256", "check:swordfish").update(`check.${expiry}`).digest("hex");
 check("expired token is invalid even when correctly signed", !gate.tokenValid(`1.${sign("1")}`, "swordfish"));
 const future = String(Date.now() + 60_000);
 check("hand-signed future token is valid (derivation pinned)", gate.tokenValid(`${future}.${sign(future)}`, "swordfish"));
@@ -80,6 +80,18 @@ check(
 );
 delete process.env.CHECK_GATE_SECRET;
 
+// The door name is in the signed message, so a secret shared by mistake
+// cannot carry one door's session onto another.
+process.env.CHECK_SHARED_SECRET = "same";
+const doorA = makeGate("a", "CHECK_GATE_PASSWORD", "CHECK_SHARED_SECRET");
+const doorB = makeGate("b", "CHECK_GATE_PASSWORD", "CHECK_SHARED_SECRET");
+check(
+  "equal secrets: one door's token never opens another",
+  !doorB.tokenValid(doorA.issueToken("swordfish").value, "swordfish") &&
+    !doorA.tokenValid(doorB.issueToken("swordfish").value, "swordfish"),
+);
+delete process.env.CHECK_SHARED_SECRET;
+
 // --- the two real doors: env-var names are literals tsc cannot check --------
 // A typo in one of these strings reads an unset variable, and the door then
 // fail-closes to 404 in production without a single type error.
@@ -88,6 +100,13 @@ process.env.ADMIN_PASSWORD = "p-live";
 check("kitchen door is kc_kitchen and reads KITCHEN_PASSWORD", kitchen.cookie === "kc_kitchen" && kitchen.password() === "k-live");
 check("pantry door is kc_pantry and reads ADMIN_PASSWORD", pantry.cookie === "kc_pantry" && pantry.password() === "p-live");
 check("a kitchen session is not a pantry session", !pantry.tokenValid(kitchen.issueToken("k-live").value, "k-live"));
+process.env.RECIPE_BOX_PASSWORD = "r-live";
+check(
+  "recipe-box door is kc_recipe-box on /recipe-box and reads RECIPE_BOX_PASSWORD",
+  recipeBox.cookie === "kc_recipe-box" && recipeBox.path === "/recipe-box" && recipeBox.password() === "r-live",
+);
+check("a recipe-box session is not a pantry session", !pantry.tokenValid(recipeBox.issueToken("r-live").value, "r-live"));
+check("a recipe-box session is not a kitchen session", !kitchen.tokenValid(recipeBox.issueToken("r-live").value, "r-live"));
 
 check("passwordMatches: equal", passwordMatches("swordfish", "swordfish"));
 check("passwordMatches: different length", !passwordMatches("sword", "swordfish"));

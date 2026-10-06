@@ -1,5 +1,7 @@
 import type { Collection } from "mongodb";
 
+import { RATE_LIMIT } from "@/lib/rate-limit";
+
 import { communityDb } from "./client";
 import { canConsume, decideSend, decideVerify, newCode, OTP, type OtpDoc } from "./otp-rules";
 
@@ -16,7 +18,8 @@ import { canConsume, decideSend, decideVerify, newCode, OTP, type OtpDoc } from 
 
 export const OTP_CODES = "otp_codes";
 /**
- * The day's send counter — one document per UTC day, `_id` the day itself.
+ * The day's send counters — one document per UTC day, `_id` the day itself,
+ * and one per UTC day per caller key beside it.
  *
  * Its own collection, not a row in `otp_codes`: that one is unique on `email`
  * and Mongo reads a missing field as null, so only one address-less document
@@ -26,7 +29,12 @@ export const OTP_CODES = "otp_codes";
  */
 export const OTP_DAILY = "otp_daily";
 
-/** `_id` is "YYYY-MM-DD" UTC, so today's counter is found without a query. */
+/**
+ * `_id` is "YYYY-MM-DD" UTC for the shared counter and "YYYY-MM-DD:<caller>"
+ * for one caller's, so either is found without a query. The day string is a
+ * fixed ten characters and carries no colon, so the two shapes cannot collide,
+ * and the collection's TTL on `updated_at` housekeeps both.
+ */
 interface DailyDoc {
   _id: string;
   /** Codes handed to Resend today; a send that never left is given back. */
@@ -72,6 +80,80 @@ export function otpDailyMax(): number {
   return Number.isFinite(n) && n >= 0 ? n : 90;
 }
 
+/**
+ * Codes sent per UTC day per caller — the dimension the ceiling above lacks.
+ *
+ * `otpDailyMax` is global by design, and on its own it was spendable by a
+ * single host. Both per-person bounds live in `decideSend`, inside
+ * `if (existing)` (otp-rules.ts:85), and `existing` is `findOne({ email })` on
+ * the address in the request body — so a caller naming a fresh address every
+ * time meets neither of them, not once. The route's own three-per-window
+ * ceiling is 864 accepted sends a day, an order above the ninety the day
+ * allows. Ninety small POSTs therefore closed verification, and through the
+ * proof requirement every recipe submission, for every visitor until midnight.
+ *
+ * This is the lower of the two ceilings and the one an ordinary submitter
+ * never meets: a person verifies one address, and the three-minute cooldown
+ * already holds them to two or three codes. Conventions follow `otpDailyMax`
+ * exactly — read per call so a test can set it, `0` refuses every send, unset
+ * or unparseable means the default.
+ *
+ * ponytail: the key is `clientKey`, which rate-limit.ts documents as
+ * spoofable. This raises the cost of closing the day from ninety requests to
+ * ninety distinct source addresses; it does not make it free. A challenge on
+ * the send route is the only control that makes a fresh address cost the
+ * caller anything.
+ */
+export function otpDailyPerCallerMax(): number {
+  const raw = process.env.OTP_DAILY_PER_CALLER_MAX?.trim();
+  const n = raw ? Number(raw) : 5;
+  return Number.isFinite(n) && n >= 0 ? n : 5;
+}
+
+/**
+ * Seconds until the counters' day rolls over, for the `retry-after` on a
+ * per-caller refusal. Day + 1 in UTC rather than +86_400_000, so it lands on
+ * the next midnight and not an offset from this instant. At least one, so a
+ * refusal never tells a caller to retry now.
+ */
+export function secondsToUtcMidnight(now: Date): number {
+  const next = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
+  return Math.max(1, Math.ceil((next - now.getTime()) / 1000));
+}
+
+/**
+ * The day's allowance for callers that cannot be told apart.
+ *
+ * A pool of unknown callers is not one caller and must not be held to one
+ * caller's allowance — the rule `checkRate` already applies to this same key.
+ * With no forwarding header every visitor arrives as `unidentified`, and five
+ * a day between all of them would close the form at the day's fifth send:
+ * strictly worse than the hole the per-caller ceiling was added to close.
+ *
+ * But the pool cannot be exempt either, and this is the part worth being
+ * careful about: `clientKey` returns the caller's own header value verbatim,
+ * so anyone may arrive claiming to be the pool. Skipping the daily ceiling for
+ * the pool would therefore have handed every caller a one-header bypass of it.
+ * So the pool is counted like anybody else, just against a pool-sized figure —
+ * and that figure is deliberately short of `otpDailyMax`, which is what makes
+ * it a ceiling rather than an exemption: callers we *can* tell apart keep a
+ * quarter of the day whatever the pool does with its three.
+ *
+ * Derived rather than configured, because a third knob whose only sane values
+ * are "a bit under OTP_DAILY_MAX" is a knob nobody should have to set. The
+ * cost is stated plainly: a deployment whose proxy forwards nothing gives its
+ * real visitors three quarters of the day rather than all of it.
+ */
+export function otpDailyPoolMax(): number {
+  return Math.floor((otpDailyMax() * 3) / 4);
+}
+
+/** The per-caller counter's `_id`: the day, then the caller, never colliding
+ *  with the shared counter's own bare-day `_id`. */
+export function dailySlot(now: Date, callerKey: string): string {
+  return `${utcDay(now)}:${callerKey}`;
+}
+
 /** Logs which of the two fail-closed causes tripped a guard, so a dead form
  *  is debuggable. No address, no code. */
 function logGuardMiss(key: string | null, col: Collection<OtpDoc> | null): void {
@@ -111,14 +193,19 @@ async function deliver(to: string, code: string, key: string): Promise<boolean> 
 
 export type SendResult =
   | { ok: true; expiresIn: number; resendIn: number }
-  | { ok: false; status: 429; reason: "cooldown" | "cap"; retryAfter: number }
+  | { ok: false; status: 429; reason: "cooldown" | "cap" | "daily"; retryAfter: number }
   | { ok: false; status: 503 };
 
 /**
  * Writes the new code first and sends second, and rolls the write back if
  * the mail never left: a person must not be charged a send, or start a
- * cooldown, for an email they did not get. The day's counter is spent and
+ * cooldown, for an email they did not get. Both day counters are spent and
  * rolled back on exactly the same two paths, for the same reason.
+ *
+ * `callerKey` is the limiter's view of who is asking (`clientKey`), and it
+ * carries the only budget dimension the caller does not choose outright. The
+ * route supplies it rather than this file reading the request, so the key the
+ * day is counted against is the same string the window was counted against.
  *
  * ponytail: read-decide-replace is not atomic, so two sends landing together
  * can both pass the cooldown; the per-IP limiter is the real ceiling there.
@@ -127,7 +214,7 @@ export type SendResult =
  * person is charged a cooldown for mail they never received, the one thing
  * this write-then-send ordering exists to prevent.
  */
-export async function sendCode(email: string, now = new Date()): Promise<SendResult> {
+export async function sendCode(email: string, callerKey: string, now = new Date()): Promise<SendResult> {
   const key = apiKey();
   const col = await codes();
   const daily = await days();
@@ -168,12 +255,56 @@ export async function sendCode(email: string, now = new Date()): Promise<SendRes
       return { ok: false, status: 503 };
     }
 
+    // The second dimension, and the one that bounds a principal: the count
+    // above is global, so one host naming ninety fresh addresses could take
+    // the whole day and close the form for everybody. See
+    // `otpDailyPerCallerMax` for why neither per-address bound catches that.
+    //
+    // Spent after the shared slot, not before, so an exhausted day creates no
+    // per-caller document: the collection then grows by at most the day's own
+    // allowance however many keys turn up, rather than once per request from a
+    // caller rotating the header. Same `$inc`-and-read-back as above, so two
+    // sends racing for this caller's last slot get two different numbers —
+    // and the same duplicate-key race on a caller's first send of the day,
+    // whose loser throws to the outer catch with the shared slot already
+    // spent. One slot of ninety, and it buys a caller nothing: a key racing
+    // itself is still held to five, and a key it has not used yet would have
+    // spent that slot legitimately anyway.
+    // The pool is counted like any other caller, against a pool-sized figure;
+    // see `otpDailyPoolMax` for why it is not exempt.
+    const slot = dailySlot(now, callerKey);
+    const pooled = callerKey === RATE_LIMIT.sharedKey;
+    const callerMax = pooled ? otpDailyPoolMax() : otpDailyPerCallerMax();
+    const mine = await daily.findOneAndUpdate(
+      { _id: slot },
+      { $inc: { sends: 1 }, $set: { updated_at: now } },
+      { upsert: true, returnDocument: "after" },
+    );
+    if (!mine || mine.sends > callerMax) {
+      // The shared slot goes back first: this send is refused, so it must not
+      // count against everybody else's day — the same rule the cooldown and
+      // the cap already get.
+      await daily.updateOne({ _id: day }, { $inc: { sends: -1 }, $set: { updated_at: now } });
+      if (!mine) {
+        console.error("[otp] per-caller daily counter unreadable; refusing send");
+        return { ok: false, status: 503 };
+      }
+      // The count, the ceiling and which of the two it was — never the key,
+      // which identifies the caller the way the address identifies the person
+      // and goes the same way.
+      console.error(
+        `[otp] ${pooled ? "pool" : "per-caller"} daily ceiling reached (${mine.sends}/${callerMax}); refusing send`,
+      );
+      return { ok: false, status: 429, reason: "daily", retryAfter: secondsToUtcMidnight(now) };
+    }
+
     await col.replaceOne({ email }, decision.doc, { upsert: true });
     if (!(await deliver(email, code, key))) {
       if (existing) await col.replaceOne({ email }, existing);
       else await col.deleteOne({ email });
-      // Given back with the code, and for the same reason: no mail left.
-      await daily.updateOne({ _id: day }, { $inc: { sends: -1 }, $set: { updated_at: now } });
+      // Given back with the code, and for the same reason: no mail left. Both
+      // counters, because both were spent, in one round trip.
+      await daily.updateMany({ _id: { $in: [day, slot] } }, { $inc: { sends: -1 }, $set: { updated_at: now } });
       return { ok: false, status: 503 };
     }
     return { ok: true, expiresIn: OTP.lifeMs / 1000, resendIn: OTP.cooldownMs / 1000 };

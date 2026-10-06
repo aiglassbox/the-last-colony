@@ -2,6 +2,7 @@ import type { Conversation } from "@/lib/chat/store";
 import { MAX_CONVERSATION_CHARS, MAX_CONVERSATIONS, pruneConversations } from "@/lib/chat/shape";
 import { fileCorpus } from "@/lib/corpus/load";
 import type { CorpusRecord } from "@/lib/corpus/types";
+import { publishedIds } from "@/lib/community/client";
 import { isDeviceId, listConversations, syncConversations } from "@/lib/db/conversations";
 import { loadLocalized } from "@/lib/lang/localized-store";
 import { isSupported } from "@/lib/lang/types";
@@ -37,10 +38,39 @@ function deviceIdFrom(request: Request): string | null {
  * the client hydrates from them: a stored record that says `editor_verified`
  * and carries a locus renders exactly what the corpus holds for that slug, or
  * nothing.
+ *
+ * A stored community card is the device's claim too, and unlike a corpus
+ * record its authorization can be revoked: an operator's unpublish or RED has
+ * to reach this copy as well as the match query and the photo route. It is
+ * re-checked here rather than in `pruneConversations` so a row stored while
+ * the submission was live is re-evaluated on every GET instead of frozen at
+ * write time.
+ *
+ * `live` is a parameter so `scripts/check-mirror.ts` can drive all three of
+ * its answers offline, the same way `check-community-match.ts` injects
+ * `matchCommunity` into `serveCommunity`.
  */
-async function canonical(conversations: Conversation[]): Promise<Conversation[]> {
+export async function canonical(
+  conversations: Conversation[],
+  live: typeof publishedIds = publishedIds,
+): Promise<Conversation[]> {
+  const cardIds = conversations.flatMap((c) =>
+    c.messages.flatMap((m) => (typeof m.community?.id === "string" ? [m.community.id] : [])),
+  );
+  // `null` is "could not tell" — see `publishedIds`. Leaving the payload alone
+  // takes a takedown lag for the length of an Atlas outage; stripping it would
+  // delete the card from the device's own localStorage, because
+  // `hydrateFromServer` writes this response back.
+  const servable = cardIds.length ? await live(cardIds) : null;
+
   for (const conversation of conversations) {
     for (const message of conversation.messages) {
+      if (servable && message.community && !servable.has(message.community.id)) {
+        // The photo URL is built from the same id and would 404 on its own,
+        // but it goes with the payload it belonged to.
+        delete message.community;
+      }
+
       if (!message.records?.length) continue;
       const records = (
         await Promise.all(

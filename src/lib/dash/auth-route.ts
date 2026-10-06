@@ -23,6 +23,25 @@ import { passwordMatches, type Gate } from "./gate";
 /** Low, because nobody types this ten times by accident. */
 const MAX_ATTEMPTS = 10;
 
+/**
+ * Whether this response may mark the session cookie `secure`.
+ *
+ * It used to be `NODE_ENV === "production"`, which is a statement about how
+ * the build was made rather than about the connection the cookie is travelling
+ * on: a self-hosted `next start` with the variable unset handed the operator's
+ * session over plain HTTP. The connection is the thing that matters, so ask
+ * about the connection. Only a plain-HTTP loopback run — where there is no
+ * https to be secure on and a `secure` cookie would simply never come back —
+ * gets the flag dropped.
+ */
+function isSecureEnough(request: NextRequest): boolean {
+  const proto = request.headers.get("x-forwarded-proto")?.split(",")[0].trim();
+  const url = new URL(request.url);
+  if (proto) return proto === "https";
+  const loopback = url.hostname === "localhost" || url.hostname === "127.0.0.1" || url.hostname === "[::1]";
+  return url.protocol === "https:" || !loopback;
+}
+
 function notFound(): NextResponse {
   return NextResponse.json(
     { error: "Not found" },
@@ -63,17 +82,36 @@ export function authHandlers(gate: Gate, rateKey: string) {
       value: token.value,
       httpOnly: true,
       sameSite: "lax",
-      // Secure everywhere but a local run, where there is no https to be secure on.
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
+      secure: isSecureEnough(request),
+      // Not "/": the door's page and its endpoints are the only things that
+      // read this, and they all live under here. See `Gate.path`.
+      path: gate.path,
       maxAge: token.maxAge,
     });
     return response;
   }
 
-  async function DELETE(): Promise<NextResponse> {
+  async function DELETE(request: NextRequest): Promise<NextResponse> {
     const response = NextResponse.json({ ok: true });
-    response.cookies.set({ name: gate.cookie, value: "", path: "/", maxAge: 0 });
+    // A cookie is cleared only on the exact path it was set on, and there are
+    // two paths to clear: `gate.path` for sessions issued now, and "/" for any
+    // issued before the cookie was scoped — a browser sends those to this path
+    // too, so clearing only the scoped one would leave the operator signed in.
+    // The "/" line can go once every twelve-hour session predating the scoping
+    // has expired.
+    //
+    // Raw headers rather than two `response.cookies.set` calls: that API is
+    // keyed on the cookie NAME, so the second call for one name REPLACES the
+    // first instead of appending, and only one of the two deletions would have
+    // been sent. `Secure` mirrors the issuing rule, because a browser on a
+    // plain-HTTP loopback run drops a `Secure` cookie — including a deletion.
+    const secure = isSecureEnough(request) ? "; Secure" : "";
+    for (const path of [gate.path, "/"]) {
+      response.headers.append(
+        "set-cookie",
+        `${gate.cookie}=; Path=${path}; Max-Age=0; HttpOnly; SameSite=Lax${secure}`,
+      );
+    }
     return response;
   }
 

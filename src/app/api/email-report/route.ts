@@ -4,6 +4,7 @@ import type { NextRequest } from "next/server";
 
 import { db } from "@/lib/db/client";
 import { formatReport, readReport } from "@/lib/email/report";
+import { checkRate, clientKey } from "@/lib/rate-limit";
 
 /**
  * GET /api/email-report?sent=2000[&tokens=1]
@@ -28,6 +29,9 @@ import { formatReport, readReport } from "@/lib/email/report";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+/** The same figure the password doors use, for the same reason. */
+const MAX_ATTEMPTS = 10;
+
 /** Constant-time, so the token cannot be recovered a byte at a time. */
 function tokenMatches(supplied: string | null, expected: string): boolean {
   if (!supplied) return false;
@@ -45,9 +49,30 @@ function denied(): Response {
 }
 
 export async function GET(request: NextRequest) {
-  const expected = process.env.EMAIL_REPORT_TOKEN;
+  // Trimmed, like every other secret this repo reads, and for a reason that
+  // bit: the supplied bearer value is trimmed below, so a token pasted into
+  // Vercel with a trailing newline matched only through `?token=` — the
+  // carrier this file's own comment calls the worse one.
+  const expected = process.env.EMAIL_REPORT_TOKEN?.trim();
   // Not configured is not "open to everyone", it is "not here".
   if (!expected) return denied();
+
+  // The only bearer door without an attempt budget, while both password doors
+  // deliberately keep one against exactly this — somebody pointing a loop at
+  // the URL. Counted before the token is compared, so a wrong guess costs the
+  // guesser something, and on its own key so it cannot spend a reader's chat
+  // allowance or be spent by one.
+  const rate = checkRate(`email-report:${clientKey(request)}`, Date.now(), MAX_ATTEMPTS);
+  if (!rate.ok) {
+    return new Response("Too many attempts\n", {
+      status: 429,
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "retry-after": String(rate.retryAfter),
+        "X-Robots-Tag": "noindex, nofollow",
+      },
+    });
+  }
 
   // A wrong token gets the same 404 as an unconfigured route, so probing cannot
   // even establish that a report exists here.

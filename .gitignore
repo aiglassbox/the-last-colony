@@ -41,3 +41,13 @@ TASK.md
 graphify-out/
 # gstack browse skill session state (holds a local token)
 .gstack/
+
+# Key material, by shape rather than by name. Nothing matches today; the point
+# is that the day somebody drops a service-account file or a cert in the tree,
+# the first `git add -A` does not commit it.
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*.json
+service-account*.json

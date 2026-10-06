@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 /** Ends the session server-side and re-renders the page, which then shows the prompt. */
-export function LogoutButton({ endpoint = "/api/kitchen/auth" }: { endpoint?: string }) {
+export function LogoutButton({ endpoint = "/kitchen/api/auth" }: { endpoint?: string }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
 

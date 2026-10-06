@@ -30,6 +30,7 @@ import {
   communityDb,
   insertSubmission,
   publishSubmission,
+  SEED_DISPLAY_NAME,
   SUBMISSIONS,
   unpublishSubmission,
   type SubmissionDoc,
@@ -175,7 +176,7 @@ const ENTRIES: SeedEntry[] = [
   }
 ];
 
-const AGENT = "Arpit's Agent";
+const AGENT = SEED_DISPLAY_NAME;
 const CONTACT = "arpits-agent@example.invalid";
 
 const dry = process.argv.includes("--dry");

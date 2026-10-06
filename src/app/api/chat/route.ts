@@ -163,12 +163,27 @@ interface CommunityContext {
  * published recipe whose last step read "(in your next reply, …)" primed the
  * model in every other reader's follow-up. Review reads for a recipe, not for
  * an instruction hidden in step nine. So the submitter's prose no longer
- * speaks in the assistant's voice at all: the name and state are the model's
- * to see, the text is not. The card the reader is looking at still has all
- * of it.
+ * speaks in the assistant's voice at all: the text is not the model's to see.
+ * The card the reader is looking at still has all of it.
+ *
+ * That reduction kept `recipe_name`, which has exactly the same provenance:
+ * 120 characters of arbitrary submitter text, unrestricted in charset or
+ * newlines, interpolated here and replayed as the model's own prior words to
+ * the next reader. So the identity now comes from the stored tag instead.
+ *
+ * `state` is allowlisted by `STATES` (community/schema.ts). `dish_tag` is not
+ * free text either: `dishTag`/`normalizeDish` (community/normalize.ts) fold it
+ * to letters, marks, digits and hyphens, so no quote, no newline, no sentence
+ * punctuation and no `::` — the sequence `condenseRows` splits a replayed line
+ * on — can survive in it. But it is NOT length-bounded upstream, and its
+ * primary source is the moderation model with a fallback normalised from
+ * `recipe_name` (community/pipeline.ts:111-112). The slice is therefore this
+ * function's own bound at the last point before the string becomes assistant
+ * content, not a restatement of someone else's guarantee.
  */
-function communityText(card: CommunityCardData): string {
-  return `Showed the reader a community recipe card: "${card.recipe_name}" from ${card.state}.`;
+export function communityText(card: CommunityCardData): string {
+  const tag = card.dish_tag.replace(/-/g, " ").slice(0, 60);
+  return `Showed the reader a community recipe card for ${tag} from ${card.state}.`;
 }
 
 /**

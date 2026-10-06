@@ -32,20 +32,25 @@ export type AnalyticsEvent =
   | "swap_requested"
   | "source_drawer_opened"
   | "card_shared"
-  | "qr_entry";
+  | "qr_entry"
+  // The Add Recipe funnel, read by /recipe-box. First-party only: `trackPixel`
+  // skips both. `recipe_step` is told apart by its `step` prop — see
+  // `app/add-recipe/track.ts`.
+  | "recipe_entry_pressed"
+  | "recipe_step";
 
 export type EventProps = Record<string, string | number | boolean | null>;
 
 /**
  * Paths no third-party tag may load on, and the first-party visit beacon skips.
  *
- * `/kitchen` and `/pantry` so the dashboards do not appear in their own
- * numbers (AGENTS.md, "Reading the numbers"). `/unsubscribe` because its URL
+ * `/kitchen`, `/pantry` and `/recipe-box` so the dashboards do not appear in
+ * their own numbers (AGENTS.md, "Reading the numbers"). `/unsubscribe` because its URL
  * carries the per-recipient token, and a page-view sent with the full URL
  * hands that token to Google and Meta — the same leak `/r` closes with a
  * no-referrer header. One predicate, so the three trackers cannot drift.
  */
-export const UNTRACKED_PATH = /^\/(kitchen|pantry|unsubscribe)(\/|$)/;
+export const UNTRACKED_PATH = /^\/(kitchen|pantry|recipe-box|unsubscribe)(\/|$)/;
 
 export function track(event: AnalyticsEvent, props: EventProps = {}): void {
   const payload = { event, ...props };

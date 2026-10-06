@@ -15,6 +15,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { trackClient } from "@/lib/analytics";
 import type { Conversation } from "@/lib/chat/store";
 import { fill, type UiStrings } from "@/lib/lang/ui-strings";
 
@@ -186,7 +187,12 @@ export function Sidebar({
               label={t.addRecipe}
               icon={<Soup size={18} className="side-item__icon" aria-hidden />}
               collapsed={collapsed}
-              onClick={() => router.push("/add-recipe")}
+              onClick={() => {
+                // The only in-app way into the form. Opens with no press
+                // beside them are arrivals by link or typed URL.
+                trackClient("recipe_entry_pressed");
+                router.push("/add-recipe");
+              }}
             />
           </li>
           <li>

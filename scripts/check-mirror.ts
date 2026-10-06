@@ -5,6 +5,7 @@
  * and `/r?c=constructor` used to throw. Every assertion here is pure: no
  * database, no model key, no network. Run by `npm run check`.
  */
+import { canonical } from "../src/app/api/conversations/route";
 import { MAX_CONVERSATIONS, pruneConversations } from "../src/lib/chat/shape";
 import { destinationFor } from "../src/lib/email/destinations";
 
@@ -76,6 +77,36 @@ check("external photo URL nulled", community("https://example.com/track.png"), n
 check("protocol-relative photo URL nulled", community("//example.com/x.png"), null);
 check("null photo kept", community(null), null);
 
+// `canonical()` re-derives a row's corpus records because the row is the
+// device's claim, not the corpus's. A stored community card is the device's
+// claim too, and unlike a record its authorization can be revoked — so an
+// operator's unpublish or RED has to reach this copy as well as the match
+// query and the photo route. The lookup is injected, so these stay offline.
+const LIVE = "aaaaaaaaaaaaaaaaaaaaaaaa";
+const GONE = "bbbbbbbbbbbbbbbbbbbbbbbb";
+const carded = (id: string) => [
+  {
+    id: "t1",
+    title: "Puran poli",
+    createdAt: 1,
+    updatedAt: 2,
+    activeRecordIds: [],
+    messages: [{ id: "m1", role: "assistant", text: "", community: { id, recipe_name: "Puran poli" } }],
+  },
+];
+
+const hasCard = (threads: unknown) =>
+  "community" in ((threads as { messages: Record<string, unknown>[] }[])[0].messages[0] as Record<string, unknown>);
+
+async function checkWithdrawnCards(): Promise<void> {
+  check("a live card survives the mirror", hasCard(await canonical(carded(LIVE) as never, async () => new Set([LIVE]))), true);
+  check("a withdrawn card loses its payload", hasCard(await canonical(carded(GONE) as never, async () => new Set([LIVE]))), false);
+  // "Could not tell" is not "none": the mirror's response is written back to
+  // the device's localStorage, so answering none during an Atlas outage would
+  // delete a reader's stored history for an operational blip.
+  check("an unreachable store leaves the payload alone", hasCard(await canonical(carded(GONE) as never, async () => null)), true);
+}
+
 console.log("\nRedirect destinations");
 
 const home = destinationFor(null);
@@ -85,5 +116,10 @@ check("constructor falls back", destinationFor("constructor"), home);
 check("__proto__ falls back", destinationFor("__proto__"), home);
 check("toString falls back", destinationFor("toString"), home);
 
-console.log(`\n${checks - failures}/${checks} passed`);
-if (failures) process.exit(1);
+// The one async section, awaited before the summary so its failures count.
+void (async () => {
+  console.log("\nWithdrawn community cards");
+  await checkWithdrawnCards();
+  console.log(`\n${checks - failures}/${checks} passed`);
+  if (failures) process.exit(1);
+})();

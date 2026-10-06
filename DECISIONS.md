@@ -658,6 +658,77 @@ cooldown and the cap are already the per-person rules and a daily allowance
 would need a per-person identity this feature does not have.
 → `.docs/specs/2026-09-08-email-otp-design.md`
 
+**That last sentence was wrong, and a per-caller daily ceiling sits beside the
+global one — settled 2026-10-06.** The cooldown and the cap are not per-person
+rules; they are per-address rules, and the address is a string in the request
+body. `decideSend` consults both only inside `if (existing)`, and `existing` is
+`findOne({ email })`, so a caller naming an address nobody has used before meets
+neither — not once, ever. The per-IP window did not cover for that either:
+three sends per five minutes is 864 a day against a day that allows ninety. So
+one host, no credentials, ninety small POSTs and ninety addresses of its own
+choosing spent the global ceiling, and because a code must be delivered before
+it can be verified and a submission is refused without a proof, that closed
+email verification and the whole recipe-submission tier for every visitor until
+midnight UTC. The global ceiling was doing what it was built for — bounding
+provider spend — and nothing was doing the other half.
+`OTP_DAILY_PER_CALLER_MAX` (default 5) counts a second `otp_daily` document
+keyed `"<day>:<caller>"`, spent after the shared slot so an exhausted day
+creates no per-caller rows, and giving the shared slot back when it is the one
+that refuses, so a refused send still costs the day nothing.
+
+Callers the proxy does not identify are one key, and the first draft of this
+exempted that key from the ceiling — a pool is not a person, and five a day
+between every visitor would have closed the form at the day's fifth send on a
+deployment that forwards nothing. That was a bypass, not an exemption:
+`clientKey` hands back the caller's own header value, so anyone could have
+claimed to be the pool and escaped the ceiling with one header. The pool is
+counted like anybody else, against three quarters of `OTP_DAILY_MAX` — a
+pool-sized figure that still leaves the last quarter of the day for callers we
+can tell apart, derived rather than configured because its only sane values are
+"a bit under the day". A deployment that forwards nothing therefore gives its
+real visitors three quarters of the day rather than all of it, and that is the
+price of the bound.
+
+The honest limit of the whole thing is the key: `clientKey` reads a forwarding
+header the client sets, which the limiter's own comments have always said. This raises the price of closing
+the day from ninety requests to ninety distinct source addresses; it does not
+make it free, and a challenge on the send route is the only control that makes
+a fresh address cost the caller anything. Found by the 2026-10-05 source audit,
+fingerprint `otp.send.shared-daily-quota-exhaustible-by-one-caller`.
+
+**The verify attempt counter stays bound to the address rather than the
+requester — accepted, not overlooked, 2026-10-06.** `POST /api/otp/verify`
+carries `{email, code}` and nothing that proves who asked for the code, and
+`attempts` lives on the address document. So three wrong guesses from any
+stranger spend the three tries belonging to whoever is holding that code, and
+`otp-rules.ts:128-130` then refuses the correct one: the person reading the
+real code out of their inbox is told "too many tries".
+
+Two bounds make that a nuisance rather than a denial, and they are the reason
+this is accepted. The wrong-guess branch needs a live unverified document —
+`decideVerify` answers `expired` with `count: false` for a missing, verified or
+expired one — so an address holding no code cannot be locked at all, and the
+attacker has to land inside a five-minute window, which means knowing somebody
+is mid-signup right now. And a fresh send replaces the document whole with
+`attempts: 0` (`otp-rules.ts:100`), so the lock is per code, not per address:
+the victim clicks Resend and is through, at worst one 180-second cooldown
+later.
+
+Counting attempts per caller instead is **not** the fix and must not be
+attempted: the caller key is a header the client writes, so per-caller
+attempts would reset on rotation and hand out unlimited guesses at a six-digit
+code. That trades a three-minute nuisance for a brute-force hole.
+
+The real fix is a send-issued handle the client carries into verify, with
+attempts counted against the handle — which would also close the smaller thing
+accepted here, that the refusal shape tells a caller whether an address is
+mid-flow (`expired` versus `wrong_code`). It costs a change to both the send
+response and the verify request. Weighed against a self-healing three-minute
+nuisance it is not worth doing before the day's unbounded model spend is
+bounded, so it is deliberately not done. Reopen it if the OTP flow ever gains
+a step that cannot be repeated as cheaply as a resend. Found by the 2026-10-05
+source audit, fingerprint `otp.verify.unbound-attempt-counter`, severity low.
+
 **A corpus candidate carries no contact and can never claim ATTESTED.** The
 pantry's download is a GREEN submission in the corpus record's shape, for a
 human to incorporate by hand: `MODERN_DISH`, `unverified_seed`, no
@@ -977,3 +1048,71 @@ live data — "misal pav" beside "litti chokha" is not a tie, so it picked the
 longer one. It is keyed on `dish.tag` rather than the document, because three
 submissions of puran poli are one dish, and keying on documents would decline
 the geo trio the feature was built for.
+
+---
+
+## Recipe-box dashboard (Add Recipe analytics) — settled 2026-10-06
+
+**The add-recipe numbers get their own door, not a kitchen tab.** `/recipe-box`
+sits beside `/kitchen` and `/pantry` with its own password
+(`RECIPE_BOX_PASSWORD`), its own HMAC key (`RECIPE_BOX_SECRET`) and its own
+cookie scoped to its own path. It is a third instance of the gate factory in
+`lib/dash/gate.ts`, so it inherits the constant-time compare, the signed
+12-hour cookie, the ten-tries-per-five-minutes login budget and the 404 for
+"unconfigured" and "wrong cookie" alike. A kitchen tab (cheapest: no new door)
+and a pantry tab (already reads Atlas, but it is the door that shows contact
+details) were both on the table; the owner chose a separate door. It shows
+counts only; the submitter-level view stays behind the pantry's door.
+
+**Two event names, not one per step.** `recipe_entry_pressed` is the sidebar
+button; `recipe_step` is everything inside the form, told apart by
+`{step, outcome, reason, ms}` props. Fifteen union members would each need an
+`/api/track` allowlist line and an entry in the exhaustive pixel map, and the
+dashboard reads them by prop anyway. Props never carry what the submitter
+typed: no email, name, dish or story, only step names, outcome labels, refusal
+reasons and a duration.
+
+**Funnel beacons, not server-side tracking in the submission routes.**
+`trackClient` already attaches `device_id`; the submission, extract and OTP
+routes never see one. Tracking outcomes in those routes would give a funnel
+whose steps cannot be joined per device, and the presses that never reach a
+server (sidebar, Next, Back) would still need beacons — two sinks for one
+funnel. Storing the events in Atlas beside the submissions was also rejected:
+it would rebuild the event table, IST bucketing and query helpers Neon already
+has.
+
+**First-party only.** The add-recipe events go to `/api/track` and nowhere
+else; `trackPixel` skips them. Nothing in the ask needed an ad platform to see
+who is writing down their grandmother's recipe. Turning it on later is one
+line.
+
+**Raw and unique where it means something, and the funnel is unique.** The
+headline presses and opens show both raw events and distinct devices, the
+convention the kitchen's event table already uses, and so do the second-tries
+rows. Funnel stages count devices, so a reader pressing Send code four times is
+one reader at that step; the presses still show up under second tries, where
+repeated sends are the signal. The photo, refusal, time-to-finish and dish
+panels are raw counts and say so.
+
+**Seeded rows never count.** Outcome queries drop `display_name` exactly
+`Arpit's Agent` (the twelve agent-run seeds), always, with no toggle. They were
+pushed through the pipeline to test matching and say nothing about readers.
+
+**Kitchen's ranges, unchanged.** 7d / 30d / 90d / all as rolling windows back
+from now, with every day bucket cut in IST, compared against the previous
+window of equal length — `lib/dash/range.ts` as is. The funnel starts at the
+deploy that adds its beacons and cannot be back-filled; reach reads
+`community_served`, which chat already wrote; submission outcomes come from the
+store and go back to the first submission.
+
+**Every door signs its own name — settled 2026-10-06.** The gate used to sign
+the expiry alone, so two doors whose `*_SECRET` values were set equal issued
+byte-identical tokens, and the only thing standing between a kitchen cookie and
+the pantry was a sentence in `.env.example`. A third door made that worse: the
+recipe box's password exists to be handed to someone who holds neither of the
+others, so the same mistake would now walk a lower-trust holder into every
+submitter's contact details. The signed message is `<door>.<expiry>` now, so a
+token is only ever valid on the door that issued it, whatever the secrets are.
+Changing the derivation ended every live kitchen and pantry session once — at
+most twelve hours of re-typing a password, against a misconfiguration that no
+longer exists. Raised by the recipe-box security review.

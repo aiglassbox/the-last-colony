@@ -21,7 +21,8 @@ import {
   OTP,
   type OtpDoc,
 } from "../src/lib/community/otp-rules";
-import { otpDailyMax } from "../src/lib/community/otp";
+import { dailySlot, otpDailyMax, otpDailyPerCallerMax, otpDailyPoolMax, secondsToUtcMidnight } from "../src/lib/community/otp";
+import { RATE_LIMIT } from "../src/lib/rate-limit";
 import { normalizeEmail, validateProof, validateSubmission } from "../src/lib/community/schema";
 
 let failed = 0;
@@ -158,6 +159,60 @@ process.env.OTP_DAILY_MAX = "abc";
 check("otpDailyMax: garbage means 90", otpDailyMax() === 90);
 process.env.OTP_DAILY_MAX = "-5";
 check("otpDailyMax: negative means 90", otpDailyMax() === 90);
+delete process.env.OTP_DAILY_MAX;
+
+// --- and the per-caller ceiling beside it -------------------------------------
+// The one above is global, so one host naming a fresh address each time could
+// spend the whole day and close the form for everyone: `decideSend` consults
+// the cooldown and the cap only when a document already exists for the exact
+// address supplied, which the three sends below re-state as an assertion.
+delete process.env.OTP_DAILY_PER_CALLER_MAX;
+check("otpDailyPerCallerMax: unset means 5", otpDailyPerCallerMax() === 5);
+check("otpDailyPerCallerMax: the per-caller ceiling is the lower of the two", otpDailyPerCallerMax() < otpDailyMax());
+process.env.OTP_DAILY_PER_CALLER_MAX = "0";
+check("otpDailyPerCallerMax: 0 refuses every send", otpDailyPerCallerMax() === 0);
+process.env.OTP_DAILY_PER_CALLER_MAX = "  7 ";
+check("otpDailyPerCallerMax: trimmed number", otpDailyPerCallerMax() === 7);
+process.env.OTP_DAILY_PER_CALLER_MAX = "abc";
+check("otpDailyPerCallerMax: garbage means 5", otpDailyPerCallerMax() === 5);
+process.env.OTP_DAILY_PER_CALLER_MAX = "-5";
+check("otpDailyPerCallerMax: negative means 5", otpDailyPerCallerMax() === 5);
+delete process.env.OTP_DAILY_PER_CALLER_MAX;
+
+// Why the per-caller ceiling has to exist: a never-seen address is refused by
+// neither per-person bound, however many times the trick is repeated.
+const fresh1 = decideSend(null, "x1@b.com", "111111", KEY, at(0));
+const fresh2 = decideSend(null, "x2@b.com", "222222", KEY, at(0));
+const fresh3 = decideSend(null, "x3@b.com", "333333", KEY, at(0));
+check("per-caller: three fresh addresses at one instant are all accepted", fresh1.ok && fresh2.ok && fresh3.ok);
+check("per-caller: a fresh address starts the window at one send", fresh3.ok && fresh3.doc.sends === 1);
+
+// The refusal's retry-after is the wait to the counters' own rollover.
+check("secondsToUtcMidnight: one second before midnight is 1", secondsToUtcMidnight(new Date("2026-10-06T23:59:59.000Z")) === 1);
+check("secondsToUtcMidnight: midnight itself is a whole day", secondsToUtcMidnight(new Date("2026-10-06T00:00:00.000Z")) === 86400);
+check("secondsToUtcMidnight: noon is half a day", secondsToUtcMidnight(new Date("2026-10-06T12:00:00.000Z")) === 43200);
+check("secondsToUtcMidnight: never says retry now", secondsToUtcMidnight(new Date("2026-10-06T23:59:59.999Z")) >= 1);
+check(
+  "secondsToUtcMidnight: the last day of a month rolls to the first of the next",
+  secondsToUtcMidnight(new Date("2026-12-31T23:00:00.000Z")) === 3600,
+);
+
+const noon = new Date("2026-10-06T12:00:00.000Z");
+check("dailySlot: a caller is keyed by day and caller", dailySlot(noon, "203.0.113.7") === "2026-10-06:203.0.113.7");
+check("dailySlot: the day prefix cannot collide with the shared counter's own _id", dailySlot(noon, "x").startsWith("2026-10-06:"));
+check("dailySlot: the pool is keyed like any other caller", dailySlot(noon, RATE_LIMIT.sharedKey) === `2026-10-06:${RATE_LIMIT.sharedKey}`);
+
+// The pool's own ceiling. It must bound the pool — `clientKey` hands back the
+// caller's header verbatim, so exempting the pool would have been a one-header
+// bypass of the per-caller ceiling — and it must leave room for the callers we
+// can tell apart, so it has to sit under the global figure.
+check("otpDailyPoolMax: a pool is not held to one caller's allowance", otpDailyPoolMax() > otpDailyPerCallerMax());
+check("otpDailyPoolMax: the pool cannot take the whole day", otpDailyPoolMax() < otpDailyMax());
+check("otpDailyPoolMax: the default leaves a quarter of the day for identified callers", otpDailyPoolMax() === 67);
+process.env.OTP_DAILY_MAX = "0";
+check("otpDailyPoolMax: a day of zero is a pool of zero", otpDailyPoolMax() === 0);
+process.env.OTP_DAILY_MAX = "4";
+check("otpDailyPoolMax: it floors rather than rounding past the day", otpDailyPoolMax() === 3);
 delete process.env.OTP_DAILY_MAX;
 
 if (failed > 0) {

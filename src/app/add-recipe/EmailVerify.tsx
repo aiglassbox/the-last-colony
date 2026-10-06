@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from "react";
 
 import { normalizeEmail } from "@/lib/community/schema";
 
+import { outcomeOf, trackStep } from "./track";
+
 /**
  * The email step of the form: send a code, enter it, hold the proof.
  *
@@ -134,8 +136,11 @@ export function EmailVerify({ onChange }: { onChange: (verified: Verified | null
   const canVerify = !busy && !locked && !expired && !verifyBlocked && code.length === 6;
 
   async function send() {
+    // Send code and Resend are this one function; the phase says which button it was.
+    const step = phase === "sent" ? "code_resend" : "code_send";
     const normalized = normalizeEmail(email);
     if (!normalized) {
+      trackStep(step, { outcome: "refused", reason: "bad_email" });
       setError("That doesn't look like an email address.");
       return;
     }
@@ -148,6 +153,7 @@ export function EmailVerify({ onChange }: { onChange: (verified: Verified | null
         body: JSON.stringify({ email: normalized }),
       });
       const payload = await res.json().catch(() => null);
+      trackStep(step, outcomeOf(step, res.status, payload));
       const t = Date.now();
       setNow(t);
       if (res.ok) {
@@ -164,6 +170,13 @@ export function EmailVerify({ onChange }: { onChange: (verified: Verified | null
         setSendBlockUntil(t + duration(payload?.resendIn, 180) * 1000);
         setHoldUntil(null);
         onChange(null);
+      } else if (res.status === 429 && payload?.error === "daily") {
+        // The day's per-caller ceiling. Its `retryAfter` runs to midnight UTC,
+        // so it is deliberately not fed to `sendBlockUntil`: the countdown
+        // beside the button is a minutes-and-seconds convenience and would
+        // read "Send code in 1433:20". The sentence carries the wait instead,
+        // and the server refuses either way.
+        setError("Too many codes from this network today. Try again after midnight UTC.");
       } else if (res.status === 429) {
         const wait = duration(payload?.retryAfter, 60);
         setError(`Too many codes — wait ${wait}s.`);
@@ -175,6 +188,7 @@ export function EmailVerify({ onChange }: { onChange: (verified: Verified | null
         setError(UNAVAILABLE);
       }
     } catch {
+      trackStep(step, outcomeOf(step, "network"));
       setError(UNAVAILABLE);
     } finally {
       setBusy(null);
@@ -191,6 +205,7 @@ export function EmailVerify({ onChange }: { onChange: (verified: Verified | null
         body: JSON.stringify({ email, code }),
       });
       const payload = await res.json().catch(() => null);
+      trackStep("verify", outcomeOf("verify", res.status, payload));
       const t = Date.now();
       setNow(t);
       if (res.ok && typeof payload?.proof === "string") {
@@ -218,6 +233,7 @@ export function EmailVerify({ onChange }: { onChange: (verified: Verified | null
         setError(UNAVAILABLE);
       }
     } catch {
+      trackStep("verify", outcomeOf("verify", "network"));
       setError(UNAVAILABLE);
     } finally {
       setBusy(null);
@@ -225,6 +241,7 @@ export function EmailVerify({ onChange }: { onChange: (verified: Verified | null
   }
 
   function changeEmail() {
+    trackStep("change_email");
     setPhase("idle");
     setCode("");
     setError("");

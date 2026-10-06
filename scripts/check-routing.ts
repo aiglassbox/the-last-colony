@@ -15,8 +15,12 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { NextRequest } from "next/server";
+
 import { COMMANDS, parseCommand } from "../src/lib/chat/commands";
 import { kindOf, MODE_LINE, parseResolved, RESOLUTION, type TurnKind } from "../src/lib/chat/turn";
+import { authHandlers } from "../src/lib/dash/auth-route";
+import { makeGate } from "../src/lib/dash/gate";
 import { namesForeignDish } from "../src/lib/indianization/foreign-dishes";
 import { stripHealthClaims } from "../src/lib/model/health";
 import { auditProse } from "../src/lib/model/guards";
@@ -942,10 +946,35 @@ check(
   "Salem Haldi (Ground Turmeric), or Salem Haldi (Ground Turmeric) again.",
 );
 
+// --- the operator door's logout actually ends the session -------------------
+// Two cookie paths have to be cleared: the scoped one a session is issued on
+// now, and "/" for any session issued before the cookie was scoped, which a
+// browser still sends to this path. The trap is that `ResponseCookies.set` is
+// keyed on the cookie NAME, so two calls for one name collapse into a single
+// header and one of the deletions is silently dropped — which is a logout
+// that does not log you out. This pins that both are sent.
+async function checkLogoutClearsBothPaths(): Promise<void> {
+  const gate = makeGate("kitchen", "KITCHEN_PASSWORD", "KITCHEN_SECRET");
+  const response = await authHandlers(gate, "kitchen").DELETE(
+    new NextRequest("https://example.test/kitchen/api/auth", { method: "DELETE" }),
+  );
+  const cookies = response.headers.getSetCookie();
+  check("logout sends one deletion per path", cookies.length, 2);
+  check("logout clears the scoped cookie", cookies.some((c) => c.includes(`Path=${gate.path}`)), true);
+  check("logout clears a pre-scoping session at /", cookies.some((c) => /Path=\/(;|$)/.test(c)), true);
+  check("every deletion expires the cookie", cookies.every((c) => c.includes("Max-Age=0")), true);
+  check("a deletion is httpOnly like the cookie it clears", cookies.every((c) => c.includes("HttpOnly")), true);
+  check("a deletion over https is Secure", cookies.every((c) => c.includes("Secure")), true);
+}
+
 // --- report ---------------------------------------------------------------
 
-if (failures) {
-  console.error(`\n✗ ${failures} of ${checks} routing checks failed\n`);
-  process.exit(1);
-}
-console.log(`\n${checks}/${checks} routing checks pass\n`);
+void (async () => {
+  await checkLogoutClearsBothPaths();
+
+  if (failures) {
+    console.error(`\n✗ ${failures} of ${checks} routing checks failed\n`);
+    process.exit(1);
+  }
+  console.log(`\n${checks}/${checks} routing checks pass\n`);
+})();

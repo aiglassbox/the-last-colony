@@ -8,6 +8,7 @@ import {
   type PantryView,
   type StoredSubmission,
 } from "@/lib/community/client";
+import { PHOTO_MIMES } from "@/lib/community/schema";
 import { pantryAccess } from "@/lib/dash/auth";
 
 import { LoginForm } from "../kitchen/LoginForm";
@@ -48,7 +49,7 @@ export default async function Pantry(props: PageProps<"/pantry">) {
   if (access === "denied") {
     return (
       <LoginForm
-        endpoint="/api/pantry/auth"
+        endpoint="/pantry/api/auth"
         title="The Pantry"
         sub="The Kranti Cookbook — community submissions"
         inputId="pantry-password"
@@ -71,7 +72,7 @@ export default async function Pantry(props: PageProps<"/pantry">) {
         <p className="k-head__sub">Community submissions · all times India Standard Time</p>
       </div>
       <div className="k-head__actions">
-        <LogoutButton endpoint="/api/pantry/auth" />
+        <LogoutButton endpoint="/pantry/api/auth" />
       </div>
     </header>
   );
@@ -283,8 +284,20 @@ function Detail({ doc }: { doc: StoredSubmission }) {
             <h2 className="k-panel__title">Photo · {Math.round(s.photo.bytes / 1024)} KB</h2>
           </div>
           <div className="k-panel__body">
-            {/* eslint-disable-next-line @next/next/no-img-element -- a data: URL from the store; there is nothing for next/image to optimise */}
-            <img className="p-photo" src={`data:${s.photo.mime};base64,${s.photo.data}`} alt={`Photo submitted with ${s.recipe_name}`} />
+            {/* The mime is reasserted here for the same reason the public
+                photo route reasserts it (`api/community/photo/[id]`): it
+                arrived from a client at submission time, and this builds a
+                `data:` URL out of it now. The two paths disagreeing was the
+                whole defect — one checked, one interpolated.
+                eslint-disable-next-line @next/next/no-img-element -- a data: URL from the store; there is nothing for next/image to optimise */}
+            {PHOTO_MIMES.includes(s.photo.mime) ? (
+              // eslint-disable-next-line @next/next/no-img-element -- a data: URL from the store; there is nothing for next/image to optimise
+              <img className="p-photo" src={`data:${s.photo.mime};base64,${s.photo.data}`} alt={`Photo submitted with ${s.recipe_name}`} />
+            ) : (
+              <p className="k-empty">
+                Photo withheld: stored type {JSON.stringify(s.photo.mime)} is not one this site serves.
+              </p>
+            )}
           </div>
         </section>
       ) : null}

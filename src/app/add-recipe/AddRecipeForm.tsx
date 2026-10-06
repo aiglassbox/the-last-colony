@@ -2,11 +2,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { BELONGS_TO, PHOTO_MAX_BYTES, STATES, type Extracted, type Photo } from "@/lib/community/schema";
 
 import { EmailVerify, type Verified } from "./EmailVerify";
+import { outcomeOf, trackStep } from "./track";
 
 /**
  * One form, shown as the comp's two screens: who you are and the photo, then
@@ -80,6 +81,15 @@ export function AddRecipeForm() {
   const [step, setStep] = useState<1 | 2>(1);
   const formRef = useRef<HTMLFormElement>(null);
   const stepOneRef = useRef<HTMLDivElement>(null);
+  /** When the form mounted: the clock "time to finish" is read against. */
+  const openedAt = useRef(0);
+
+  // The funnel's first step. In an effect, not render: a beacon fired during
+  // render fires again on every re-render. StrictMode doubles it in dev only.
+  useEffect(() => {
+    openedAt.current = Date.now();
+    trackStep("opened");
+  }, []);
 
   async function readPhoto(p: Photo) {
     setPhotoNote("Reading your photo…");
@@ -90,6 +100,7 @@ export function AddRecipeForm() {
         body: JSON.stringify({ photo: { data: p.data, mime: p.mime } }),
       });
       const payload = await res.json().catch(() => null);
+      trackStep("photo_read", outcomeOf("photo_read", res.status, payload));
       if (res.ok && payload?.extracted) {
         const read = payload.extracted as Extracted;
         setExtracted(read);
@@ -117,6 +128,7 @@ export function AddRecipeForm() {
         setPhotoNote("Reading photos is unavailable right now — you can still type it in.");
       }
     } catch {
+      trackStep("photo_read", outcomeOf("photo_read", "network"));
       // fetch itself failed (offline, DNS): same copy as a 5xx, never a stuck "Reading…".
       setPhotoNote("Reading photos is unavailable right now — you can still type it in.");
     }
@@ -130,6 +142,7 @@ export function AddRecipeForm() {
     // and clearing it would drop the previous reading out from under them.
     setExtracted(null);
     if (!file) return;
+    trackStep("photo_attached");
     // The input stays disabled from the first byte of compression to the end
     // of the read, so a second pick cannot overlap the first and leave a
     // reading beside a photo it did not come from.
@@ -137,6 +150,8 @@ export function AddRecipeForm() {
     try {
       const compressed = await compressImage(file);
       if (!compressed) {
+        // No request was sent, but the shortcut still failed the reader.
+        trackStep("photo_read", { outcome: "refused", reason: "compress_failed" });
         setPhotoNote("That image could not be read or compressed under 500KB — try another.");
         return;
       }
@@ -157,8 +172,12 @@ export function AddRecipeForm() {
   function toStepTwo() {
     const controls = stepOneRef.current?.querySelectorAll<HTMLInputElement>("input, select, textarea");
     for (const control of controls ?? []) {
-      if (!control.reportValidity()) return;
+      if (!control.reportValidity()) {
+        trackStep("next", { outcome: "invalid" });
+        return;
+      }
     }
+    trackStep("next", { outcome: "ok" });
     setErrors([]);
     setStep(2);
   }
@@ -199,10 +218,12 @@ export function AddRecipeForm() {
         body: JSON.stringify(body),
       });
       if (res.status === 201) {
+        trackStep("submit", outcomeOf("submit", 201), Date.now() - openedAt.current);
         setSent(true);
         return;
       }
       const payload = await res.json().catch(() => null);
+      trackStep("submit", outcomeOf("submit", res.status, payload));
       if (res.status === 400 && Array.isArray(payload?.errors)) setErrors(payload.errors);
       else if (res.status === 429) setErrors([`Too many submissions — try again in ${payload?.retryAfter ?? 60}s.`]);
       else if (res.status === 403) {
@@ -218,6 +239,11 @@ export function AddRecipeForm() {
       // silently spends it if that release failed too. Either way the retry
       // is the same button, and a spent one comes back as the 403 above.
       else setErrors(["Submissions are unavailable right now. Your recipe was not lost — please try later. You may need to verify your email again."]);
+    } catch (error) {
+      // Recorded and rethrown: the funnel needs the failure, and the form's
+      // behaviour on a dead network stays exactly what it was.
+      trackStep("submit", outcomeOf("submit", "network"));
+      throw error;
     } finally {
       setBusy(false);
     }
@@ -383,7 +409,14 @@ export function AddRecipeForm() {
             </button>
           ) : (
             <>
-              <button type="button" className="recipe-form__button" onClick={() => setStep(1)}>
+              <button
+                type="button"
+                className="recipe-form__button"
+                onClick={() => {
+                  trackStep("back");
+                  setStep(1);
+                }}
+              >
                 ← Back
               </button>
               <button type="submit" className="recipe-form__submit" disabled={busy || reading || !verified}>

@@ -17,11 +17,19 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 const SESSION_MS = 12 * 60 * 60 * 1000;
 
 export interface Gate {
-  /** Cookie name; also the key-derivation prefix, so two doors never share a session. */
+  /** Cookie name. The door name is also in every signed message, so two doors never share a session. */
   readonly cookie: string;
+  /**
+   * The only path that needs this cookie. The door's page and its endpoints
+   * both live under it, which is why the endpoints were moved there: at
+   * `path: "/"` an operator session rode every public request on the site —
+   * every chat turn, every tracking pixel — and nothing outside this prefix
+   * has ever read it.
+   */
+  readonly path: string;
   /** Null when the env var is unset or blank: the door does not exist. */
   password(): string | null;
-  /** A session token: the expiry, and a signature over it. The password itself never goes into the cookie. */
+  /** A session token: the expiry, and a signature over `<door>.<expiry>`. The password itself never goes into the cookie. */
   issueToken(password: string): { value: string; maxAge: number };
   tokenValid(token: string | undefined, password: string): boolean;
 }
@@ -44,14 +52,20 @@ export function passwordMatches(supplied: unknown, expected: string): boolean {
  * set, so the common case is one variable rather than two — and changing the
  * password invalidates every live session, which is exactly what you want the
  * day somebody leaves.
+ *
+ * The signed message is `<door>.<expiry>`, not the expiry alone, so equal
+ * `*_SECRET` values can no longer make one door's token valid on another: a
+ * token only ever opens the door that issued it. Putting the door name in the
+ * message ended every live session once, on 2026-10-06.
  */
 export function makeGate(name: string, passwordVar: string, secretVar: string): Gate {
   const secret = (password: string) => process.env[secretVar]?.trim() || `${name}:${password}`;
   const sign = (value: string, password: string) =>
-    createHmac("sha256", secret(password)).update(value).digest("hex");
+    createHmac("sha256", secret(password)).update(`${name}.${value}`).digest("hex");
 
   return {
     cookie: `kc_${name}`,
+    path: `/${name}`,
     password() {
       const value = process.env[passwordVar]?.trim();
       return value ? value : null;

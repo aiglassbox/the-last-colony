@@ -245,11 +245,15 @@ export async function publishSubmission(
     // in the Published list that no reader can ever reach. Overriding a pending
     // document to GREEN is how one gets made; re-running the verdict fixes it.
     if (!doc.dish?.tag) return "no_tag";
-    // Filtered on the status the read just saw, so an override landing between
-    // the two calls loses rather than leaving `published_at` on a red document.
+    // Filtered on both preconditions the read just checked, not only the
+    // status: `overrideVerdict` rewrites `dish` on every call and its fallback
+    // tag can normalise to empty, so a filter on status alone let a race
+    // publish an untagged document that `matchCommunity` can never match.
+    // A lost race answers "not_green" because either way the document is not
+    // publishable as it now stands; the caller's next read says which.
     const at = new Date();
     const result = await col.updateOne(
-      { _id, status: "green" },
+      { _id, status: "green", "dish.tag": { $exists: true, $ne: "" } },
       { $set: { published_at: at, updated_at: at } },
     );
     return result.matchedCount === 1 ? "ok" : "not_green";
@@ -474,7 +478,22 @@ export async function overrideVerdict(id: string, card: "GREEN" | "RED"): Promis
     const doc = await col.findOne({ _id }, { projection: { verdict: 1, dish: 1, "submission.recipe_name": 1 } });
     if (!doc) return false;
     const now = new Date();
-    const verdict = { ...(doc.verdict ?? { reasons: [], model: "operator", at: now }), card, overridden_at: now };
+    // The decision is the operator's, so the audit trail says so. Spreading
+    // the model's verdict and changing only the card left `model` naming the
+    // model and `reasons` holding its reasoning, so the pantry's Verdict panel
+    // credited the model for a human's call. The model's own verdict is kept
+    // where it can still be read, attributed to the model that gave it, and
+    // `at` stays the model's timestamp — `overridden_at` is the human's.
+    const prior = doc.verdict;
+    const verdict = {
+      card,
+      model: "operator",
+      reasons: prior
+        ? [`model ${prior.model} said ${prior.card}: ${prior.reasons.join("; ") || "no reason given"}`]
+        : [],
+      at: prior?.at ?? now,
+      overridden_at: now,
+    };
     const dish = doc.dish ?? { tag: dishTag(doc.submission.recipe_name), aliases: [] };
     const status = card === "GREEN" ? "green" : "red";
     // A move to RED takes the recipe off the site in the same write: leaving
@@ -658,5 +677,123 @@ export async function publishedPhoto(
   } catch (error) {
     console.error("[community] photo read failed:", error);
     return { ok: false, reason: "unreachable" };
+  }
+}
+
+/**
+ * Which of these submission ids may still be served: green and published.
+ *
+ * Lifecycle only — no text, no photo, no contact — so the conversation mirror
+ * can re-check a stored community card as cheaply as it already re-checks a
+ * corpus slug by slug. The filter is the same pair `matchCommunity` and
+ * `publishedPhoto` use, so one unpublish or one RED reaches all three.
+ *
+ * `null` means "could not tell", not "none", and the distinction is the whole
+ * point — the same one `publishedPhoto` draws between `not_found` and
+ * `unreachable`. An empty set withholds every card, and the mirror's response
+ * is written back to the device's own localStorage, so answering "none" during
+ * an Atlas outage would delete a reader's stored history off their device for
+ * an operational blip. A caller that gets `null` leaves the payload alone and
+ * takes a takedown lag for the length of the outage, which is the cheaper
+ * mistake: the photo route already 404s on its own, and an operator who cannot
+ * reach Atlas cannot be issuing takedowns through it either.
+ */
+export async function publishedIds(ids: string[]): Promise<Set<string> | null> {
+  const objectIds = ids.map(hexId).filter((v): v is ObjectId => v !== null);
+  // Every id was malformed, so none of them names a servable submission. That
+  // is an answer, not an outage.
+  if (!objectIds.length) return new Set();
+  const db = await communityDb();
+  if (!db) return null;
+  try {
+    const docs = await db
+      .collection<SubmissionDoc>(SUBMISSIONS)
+      .find(
+        { _id: { $in: objectIds }, status: "green", published_at: { $exists: true } },
+        { projection: { _id: 1 }, maxTimeMS: 2000 },
+      )
+      .toArray();
+    return new Set(docs.map((d) => String(d._id)));
+  } catch (error) {
+    console.error("[community] published-id check failed:", error);
+    return null;
+  }
+}
+
+/** The twelve agent-run seed rows carry exactly this name (`scripts/seed-community.ts`). */
+export const SEED_DISPLAY_NAME = "Arpit's Agent";
+
+/** One submission as the recipe box counts it: nothing the submitter wrote, no contact, no photo. */
+export interface SubmissionRow {
+  status: SubmissionDoc["status"];
+  created_at: Date;
+  published_at: Date | null;
+  overridden: boolean;
+  mode: SubmissionDoc["mode"];
+  state: string;
+  has_city: boolean;
+  belongs_to: string;
+  /** The verdict model's code, the old form field for older documents, or "". */
+  language: string;
+  /** `dish.tag`, or "" when the verdict has not tagged it. */
+  tag: string;
+}
+
+/**
+ * Every reader's submission created since `since` (all of them for null),
+ * projected to what the recipe box counts. Seed rows never leave the store
+ * through here. Null when the store is unavailable — which the dashboard shows
+ * as unavailable, not as zero.
+ *
+ * ponytail: rows come back and are counted in JS. SUBMISSION_DAILY_MAX bounds
+ * the store at a hundred a day, so a 90-day window is a few thousand small
+ * documents; move to an aggregation pipeline if that stops being true.
+ */
+export async function submissionRows(since: Date | null): Promise<SubmissionRow[] | null> {
+  const db = await communityDb();
+  if (!db) return null;
+  try {
+    const docs = await db
+      .collection<SubmissionDoc>(SUBMISSIONS)
+      .find(
+        {
+          "submission.display_name": { $ne: SEED_DISPLAY_NAME },
+          ...(since ? { created_at: { $gte: since } } : {}),
+        },
+        {
+          projection: {
+            status: 1,
+            created_at: 1,
+            published_at: 1,
+            mode: 1,
+            "verdict.overridden_at": 1,
+            "dish.tag": 1,
+            "dish.language": 1,
+            "submission.state": 1,
+            "submission.city": 1,
+            "submission.belongs_to": 1,
+            "submission.language": 1,
+          },
+          maxTimeMS: 2000,
+        },
+      )
+      .toArray();
+    return docs.map((d) => ({
+      status: d.status,
+      created_at: d.created_at,
+      published_at: d.published_at ?? null,
+      overridden: Boolean(d.verdict?.overridden_at),
+      mode: d.mode,
+      state: d.submission.state,
+      has_city: Boolean(d.submission.city?.trim()),
+      belongs_to: d.submission.belongs_to,
+      // Read the way candidate.ts does: documents from before the verdict
+      // model named the language carry the old form field instead.
+      language: d.dish?.language || (d.submission as { language?: string }).language || "",
+      tag: d.dish?.tag ?? "",
+    }));
+  } catch (error) {
+    console.error("[community] submission rows failed:", error);
+    return null;
   }
 }
