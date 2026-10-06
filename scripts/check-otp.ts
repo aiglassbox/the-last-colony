@@ -10,6 +10,9 @@
  * mongodb package — reading a knob opens no connection, exactly as
  * check-submissions.ts already pins `dailyMax` from client.ts.
  */
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+
 import {
   canConsume,
   codeMatches,
@@ -22,7 +25,9 @@ import {
   type OtpDoc,
 } from "../src/lib/community/otp-rules";
 import { dailySlot, otpDailyMax, otpDailyPerCallerMax, otpDailyPoolMax, secondsToUtcMidnight } from "../src/lib/community/otp";
+import { otpEmail } from "../src/lib/community/otp-email";
 import { RATE_LIMIT } from "../src/lib/rate-limit";
+import { SOCIALS } from "../src/lib/social";
 import { normalizeEmail, validateProof, validateSubmission } from "../src/lib/community/schema";
 
 let failed = 0;
@@ -214,6 +219,40 @@ check("otpDailyPoolMax: a day of zero is a pool of zero", otpDailyPoolMax() === 
 process.env.OTP_DAILY_MAX = "4";
 check("otpDailyPoolMax: it floors rather than rounding past the day", otpDailyPoolMax() === 3);
 delete process.env.OTP_DAILY_MAX;
+
+// --- the email ---------------------------------------------------------------
+const mail = otpEmail("042917");
+const minutes = OTP.lifeMs / 60_000;
+check("email: subject carries the code", mail.subject === "Your Kranti Cookbook code: 042917");
+check("email: html carries the code", mail.html.includes("042917"));
+check("email: text carries the code", mail.text.includes("042917"));
+check(
+  "email: expiry follows OTP.lifeMs in both parts",
+  mail.html.includes(`expires in ${minutes} minutes`) && mail.text.includes(`expires in ${minutes} minutes`),
+);
+check("email: no script", !/<script/i.test(mail.html));
+const hrefs = [...mail.html.matchAll(/href="([^"]+)"/g)].map((m) => m[1]);
+check("email: every link is https", hrefs.length > 0 && hrefs.every((h) => h.startsWith("https://")));
+check(
+  "email: every social link, in both parts",
+  SOCIALS.every((s) => hrefs.includes(s.href) && mail.text.includes(s.href)),
+);
+const imgs = [...mail.html.matchAll(/<img\b[^>]*>/g)].map((m) => m[0]);
+check("email: four images — the logo and three icons", imgs.length === 4);
+check(
+  "email: every image is an absolute https png with alt text",
+  imgs.every((t) => /src="https:\/\/[^"]+\.png"/.test(t) && /alt="[^"]+"/.test(t)),
+);
+check(
+  "email: every image file exists under public/",
+  imgs.every((t) => {
+    const src = /src="([^"]+)"/.exec(t)?.[1];
+    return !!src && existsSync(join("public", new URL(src).pathname));
+  }),
+);
+check("email: under Gmail's clipping size", Buffer.byteLength(mail.html) < 100_000);
+const hostile = otpEmail("<x>");
+check("email: interpolations are escaped", hostile.html.includes("&lt;x&gt;") && !hostile.html.includes("<x>"));
 
 if (failed > 0) {
   console.error(`\ncheck-otp: ${failed} failure(s)`);
