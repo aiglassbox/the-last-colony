@@ -1636,19 +1636,26 @@ body {
   padding: var(--s-4) var(--s-5) var(--s-6);
 }
 
-/* The one place in this design that wants a visible scrollbar. Everywhere else
-   the track is hidden because the content ends where it looks like it ends; a
-   dialog taller than the screen has to say so, or it reads as truncated. */
-.drawer__body {
+/* The cream plate's scrollers (the drawer body, the rail's recents and the
+   modal) get a thin --on-cream thumb instead of the platform's grey bar, the
+   one grey object on the cream. The text-field scrollbar is hidden. Scrollers
+   on the green ground keep the platform default. */
+.drawer__body,
+.sidebar__scroll,
+.modal {
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, var(--on-cream) 34%, transparent) transparent;
 }
 
-.drawer__body::-webkit-scrollbar {
+.drawer__body::-webkit-scrollbar,
+.sidebar__scroll::-webkit-scrollbar,
+.modal::-webkit-scrollbar {
   width: 10px;
 }
 
-.drawer__body::-webkit-scrollbar-thumb {
+.drawer__body::-webkit-scrollbar-thumb,
+.sidebar__scroll::-webkit-scrollbar-thumb,
+.modal::-webkit-scrollbar-thumb {
   border: 3px solid transparent;
   border-radius: 999px;
   background: color-mix(in srgb, var(--on-cream) 34%, transparent);
