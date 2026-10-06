@@ -72,7 +72,8 @@ posture `/api/email-report` has, and for the same reason.
 `RECIPE_BOX_PASSWORD`, with the same 404-when-unset posture. Its funnel is the
 `recipe_entry_pressed` and `recipe_step` beacons in `analytics_events`, first
 -party only, starting at the deploy that added them. It shows counts only;
-submitter detail stays behind `/pantry`.
+submitter detail stays behind `/pantry`. Its submissions tab reads the Atlas store through `submissionRows` in `lib/community/client.ts`,
+always excluding the twelve `Arpit's Agent` seed rows.
 
 Two sources feed it and they answer different questions.
 

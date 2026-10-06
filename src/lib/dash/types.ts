@@ -220,4 +220,35 @@ export interface RecipeReport {
   /** False only for all-time, as on the kitchen's report. */
   comparable: boolean;
   funnel: RecipeFunnelPanel;
+  /** Null when the community store is unavailable or unconfigured. */
+  submissions: SubmissionStats | null;
+}
+
+export interface StatusDay {
+  day: string;
+  pending: number;
+  green: number;
+  red: number;
+  published: number;
+}
+
+export interface SubmissionStats {
+  submitted: Delta;
+  /** Awaiting a verdict. */
+  pending: Delta;
+  /** Cleared by the model, not yet published by an operator. */
+  green: Delta;
+  red: Delta;
+  published: Delta;
+  daily: StatusDay[];
+  overrides: number;
+  publishMedianHours: number | null;
+  publishTimes: Counted[];
+  states: Counted[];
+  withCity: number;
+  modes: { image: number; manual: number };
+  relations: Counted[];
+  languages: Counted[];
+  dishes: Counted[];
+  versions: { tag: string; versions: number; states: string[] }[];
 }

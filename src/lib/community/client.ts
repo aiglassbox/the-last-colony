@@ -719,3 +719,80 @@ export async function publishedIds(ids: string[]): Promise<Set<string> | null> {
     return null;
   }
 }
+
+/** The twelve agent-run seed rows carry exactly this name (`scripts/seed-community.ts`). */
+export const SEED_DISPLAY_NAME = "Arpit's Agent";
+
+/** One submission as the recipe box counts it: nothing the submitter wrote, no contact, no photo. */
+export interface SubmissionRow {
+  status: SubmissionDoc["status"];
+  created_at: Date;
+  published_at: Date | null;
+  overridden: boolean;
+  mode: SubmissionDoc["mode"];
+  state: string;
+  has_city: boolean;
+  belongs_to: string;
+  /** The verdict model's code, the old form field for older documents, or "". */
+  language: string;
+  /** `dish.tag`, or "" when the verdict has not tagged it. */
+  tag: string;
+}
+
+/**
+ * Every reader's submission created since `since` (all of them for null),
+ * projected to what the recipe box counts. Seed rows never leave the store
+ * through here. Null when the store is unavailable — which the dashboard shows
+ * as unavailable, not as zero.
+ *
+ * ponytail: rows come back and are counted in JS. SUBMISSION_DAILY_MAX bounds
+ * the store at a hundred a day, so a 90-day window is a few thousand small
+ * documents; move to an aggregation pipeline if that stops being true.
+ */
+export async function submissionRows(since: Date | null): Promise<SubmissionRow[] | null> {
+  const db = await communityDb();
+  if (!db) return null;
+  try {
+    const docs = await db
+      .collection<SubmissionDoc>(SUBMISSIONS)
+      .find(
+        {
+          "submission.display_name": { $ne: SEED_DISPLAY_NAME },
+          ...(since ? { created_at: { $gte: since } } : {}),
+        },
+        {
+          projection: {
+            status: 1,
+            created_at: 1,
+            published_at: 1,
+            mode: 1,
+            "verdict.overridden_at": 1,
+            "dish.tag": 1,
+            "dish.language": 1,
+            "submission.state": 1,
+            "submission.city": 1,
+            "submission.belongs_to": 1,
+            "submission.language": 1,
+          },
+        },
+      )
+      .toArray();
+    return docs.map((d) => ({
+      status: d.status,
+      created_at: d.created_at,
+      published_at: d.published_at ?? null,
+      overridden: Boolean(d.verdict?.overridden_at),
+      mode: d.mode,
+      state: d.submission.state,
+      has_city: Boolean(d.submission.city?.trim()),
+      belongs_to: d.submission.belongs_to,
+      // Read the way candidate.ts does: documents from before the verdict
+      // model named the language carry the old form field instead.
+      language: d.dish?.language || (d.submission as { language?: string }).language || "",
+      tag: d.dish?.tag ?? "",
+    }));
+  } catch (error) {
+    console.error("[community] submission rows failed:", error);
+    return null;
+  }
+}

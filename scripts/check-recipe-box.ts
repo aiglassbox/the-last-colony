@@ -13,6 +13,8 @@ import { NextRequest } from "next/server";
 import { MAX_FINISH_MS, outcomeOf, stepProps, type AnsweredStep, type StepResult } from "../src/app/add-recipe/track";
 import { POST as trackRoute } from "../src/app/api/track/route";
 import { UNTRACKED_PATH } from "../src/lib/analytics";
+import type { SubmissionRow } from "../src/lib/community/client";
+import { bucketOf, HOUR, summariseSubmissions } from "../src/lib/dash/queries/submissions";
 import { bucketise, FINISH_EDGES, FINISH_LAST, median, MINUTE, percent, stepPanels } from "../src/lib/dash/queries/recipes";
 import type { StepRow } from "../src/lib/dash/types";
 import { trackPixel } from "../src/lib/meta-pixel";
@@ -158,6 +160,58 @@ check("buckets: just under an edge stays below it", finish[0]?.n === 1);
 check("buckets: exactly on an edge goes up", finish[1]?.n === 1);
 check("buckets: past the last edge lands in the last bucket", finish[4]?.label === FINISH_LAST && finish[4]?.n === 1);
 check("buckets: nothing to bucket is no bars", bucketise([], FINISH_EDGES, FINISH_LAST).length === 0);
+
+// --- submission outcomes -----------------------------------------------------
+const sub = (over: Partial<SubmissionRow>): SubmissionRow => ({
+  status: "green",
+  created_at: new Date("2026-10-05T19:00:00Z"), // 00:30 IST on 6 October
+  published_at: null,
+  overridden: false,
+  mode: "manual",
+  state: "Maharashtra",
+  has_city: false,
+  belongs_to: "grandmother",
+  language: "",
+  tag: "puran poli",
+  ...over,
+});
+const since = new Date("2026-10-01T00:00:00Z");
+const previousSince = new Date("2026-09-24T00:00:00Z");
+const stats = summariseSubmissions(
+  [
+    sub({ published_at: new Date("2026-10-05T21:00:00Z"), mode: "image", has_city: true, language: "mr" }),
+    sub({ status: "red", published_at: new Date("2026-10-05T21:00:00Z"), state: "Goa", tag: "" }),
+    sub({ status: "pending", state: "Goa", belongs_to: "other", language: "xx" }),
+    sub({ overridden: true, state: "Karnataka", belongs_to: "mother", tag: "puran poli" }),
+    sub({ created_at: new Date("2026-09-25T00:00:00Z") }), // previous window
+    sub({ created_at: new Date("2026-09-01T00:00:00Z") }), // before both: ignored
+  ],
+  since,
+  previousSince,
+);
+check("published only when green", bucketOf(sub({ status: "red", published_at: new Date() })) === "red");
+check("submitted counts the window", stats.submitted.now === 4 && stats.submitted.before === 1);
+check("buckets partition the window", stats.pending.now + stats.green.now + stats.red.now + stats.published.now === 4);
+check("published is its own bucket", stats.published.now === 1 && stats.green.now === 1);
+check("days are cut in IST", stats.daily.length === 1 && stats.daily[0]?.day === "2026-10-06");
+check("overrides counted", stats.overrides === 1);
+check("publish time median in hours", stats.publishMedianHours === 2);
+check("states ranked", stats.states[0]?.label === "Goa" && stats.states[0]?.n === 2);
+check("city share", stats.withCity === 1);
+check("photo vs typed", stats.modes.image === 1 && stats.modes.manual === 3);
+check("relation labels from the form's list", stats.relations.some((r) => r.label === "Grandmother" && r.n === 2));
+check("language named, unsupported kept as code, blank as not detected",
+  stats.languages.some((l) => l.label === "Marathi") &&
+  stats.languages.some((l) => l.label === "xx") &&
+  stats.languages.some((l) => l.label === "Not detected"));
+check("untagged rows are counted, not dropped", stats.dishes.some((d) => d.label === "Untagged" && d.n === 1));
+check("versions: one dish, three rows, states distinct and sorted",
+  stats.versions.length === 1 &&
+  stats.versions[0]?.tag === "puran poli" &&
+  stats.versions[0]?.versions === 3 &&
+  JSON.stringify(stats.versions[0]?.states) === JSON.stringify(["Goa", "Karnataka", "Maharashtra"]));
+check("all-time has no previous window", summariseSubmissions([sub({})], null, null).submitted.before === 0);
+check("HOUR is an hour", HOUR === 3_600_000);
 
 // --- /api/track accepts both names ------------------------------------------
 async function beacon(event: string): Promise<number> {
