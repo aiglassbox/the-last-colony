@@ -44,6 +44,8 @@ const ALLOWED: AnalyticsEvent[] = [
   "source_drawer_opened",
   "card_shared",
   "qr_entry",
+  "recipe_entry_pressed",
+  "recipe_step",
 ];
 
 /**

@@ -1048,3 +1048,56 @@ live data — "misal pav" beside "litti chokha" is not a tie, so it picked the
 longer one. It is keyed on `dish.tag` rather than the document, because three
 submissions of puran poli are one dish, and keying on documents would decline
 the geo trio the feature was built for.
+
+---
+
+## Recipe-box dashboard (Add Recipe analytics) — settled 2026-10-06
+
+**The add-recipe numbers get their own door, not a kitchen tab.** `/recipe-box`
+sits beside `/kitchen` and `/pantry` with its own password
+(`RECIPE_BOX_PASSWORD`), its own HMAC key (`RECIPE_BOX_SECRET`) and its own
+cookie scoped to its own path. It is a third instance of the gate factory in
+`lib/dash/gate.ts`, so it inherits the constant-time compare, the signed
+12-hour cookie, the ten-tries-per-five-minutes login budget and the 404 for
+"unconfigured" and "wrong cookie" alike. A kitchen tab (cheapest: no new door)
+and a pantry tab (already reads Atlas, but it is the door that shows contact
+details) were both on the table; the owner chose a separate door. It shows
+counts only; the submitter-level view stays behind the pantry's door.
+
+**Two event names, not one per step.** `recipe_entry_pressed` is the sidebar
+button; `recipe_step` is everything inside the form, told apart by
+`{step, outcome, reason, ms}` props. Fifteen union members would each need an
+`/api/track` allowlist line and an entry in the exhaustive pixel map, and the
+dashboard reads them by prop anyway. Props never carry what the submitter
+typed: no email, name, dish or story, only step names, outcome labels, refusal
+reasons and a duration.
+
+**Funnel beacons, not server-side tracking in the submission routes.**
+`trackClient` already attaches `device_id`; the submission, extract and OTP
+routes never see one. Tracking outcomes in those routes would give a funnel
+whose steps cannot be joined per device, and the presses that never reach a
+server (sidebar, Next, Back) would still need beacons — two sinks for one
+funnel. Storing the events in Atlas beside the submissions was also rejected:
+it would rebuild the event table, IST bucketing and query helpers Neon already
+has.
+
+**First-party only.** The add-recipe events go to `/api/track` and nowhere
+else; `trackPixel` skips them. Nothing in the ask needed an ad platform to see
+who is writing down their grandmother's recipe. Turning it on later is one
+line.
+
+**Raw and unique, and the funnel is unique.** Every count shows both raw events
+and distinct devices, the convention the kitchen's event table already uses.
+Funnel stages count devices, so a reader pressing Send code four times is one
+reader at that step; the presses still show up in the secondary-press panel,
+where repeated sends are the signal.
+
+**Seeded rows never count.** Outcome queries drop `display_name` exactly
+`Arpit's Agent` (the twelve agent-run seeds), always, with no toggle. They were
+pushed through the pipeline to test matching and say nothing about readers.
+
+**Kitchen's ranges, unchanged.** 7d / 30d / 90d / all, cut at IST midnight,
+compared against the previous window of equal length — `lib/dash/range.ts` as
+is. Funnel and reach panels start at the deploy that adds the events and cannot
+be back-filled; submission outcomes come from the store and go back to the
+first submission.

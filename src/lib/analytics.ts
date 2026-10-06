@@ -32,7 +32,12 @@ export type AnalyticsEvent =
   | "swap_requested"
   | "source_drawer_opened"
   | "card_shared"
-  | "qr_entry";
+  | "qr_entry"
+  // The Add Recipe funnel, read by /recipe-box. First-party only: `trackPixel`
+  // skips both. `recipe_step` is told apart by its `step` prop — see
+  // `app/add-recipe/track.ts`.
+  | "recipe_entry_pressed"
+  | "recipe_step";
 
 export type EventProps = Record<string, string | number | boolean | null>;
 
