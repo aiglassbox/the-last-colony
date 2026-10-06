@@ -28,7 +28,7 @@ import {
   SUBMISSIONS,
   unpublishSubmission,
 } from "../src/lib/community/client";
-import { kitchen, pantry } from "../src/lib/dash/auth";
+import { kitchen, pantry, recipeBox } from "../src/lib/dash/auth";
 import { makeGate, passwordMatches } from "../src/lib/dash/gate";
 import type { Verdict } from "../src/lib/community/pipeline";
 import type { SubmissionInput } from "../src/lib/community/schema";
@@ -88,6 +88,13 @@ process.env.ADMIN_PASSWORD = "p-live";
 check("kitchen door is kc_kitchen and reads KITCHEN_PASSWORD", kitchen.cookie === "kc_kitchen" && kitchen.password() === "k-live");
 check("pantry door is kc_pantry and reads ADMIN_PASSWORD", pantry.cookie === "kc_pantry" && pantry.password() === "p-live");
 check("a kitchen session is not a pantry session", !pantry.tokenValid(kitchen.issueToken("k-live").value, "k-live"));
+process.env.RECIPE_BOX_PASSWORD = "r-live";
+check(
+  "recipe-box door is kc_recipe-box on /recipe-box and reads RECIPE_BOX_PASSWORD",
+  recipeBox.cookie === "kc_recipe-box" && recipeBox.path === "/recipe-box" && recipeBox.password() === "r-live",
+);
+check("a recipe-box session is not a pantry session", !pantry.tokenValid(recipeBox.issueToken("r-live").value, "r-live"));
+check("a recipe-box session is not a kitchen session", !kitchen.tokenValid(recipeBox.issueToken("r-live").value, "r-live"));
 
 check("passwordMatches: equal", passwordMatches("swordfish", "swordfish"));
 check("passwordMatches: different length", !passwordMatches("sword", "swordfish"));

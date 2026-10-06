@@ -39,6 +39,8 @@ export default function robots(): MetadataRoute.Robots {
         "/kitchen",
         // The pantry: same reasoning, its own password.
         "/pantry",
+        // The recipe box: same again.
+        "/recipe-box",
       ],
     },
     sitemap: `${siteUrl()}/sitemap.xml`,

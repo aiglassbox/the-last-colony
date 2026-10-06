@@ -5,19 +5,22 @@ import { makeGate, type Gate } from "./gate";
 export { passwordMatches } from "./gate";
 
 /**
- * The two doors.
+ * The three doors.
  *
  * The kitchen: one shared password, read by three people who already share a
  * Vercel login; a user table would be more surface than the thing it protects.
  * The pantry: community submissions with the submitters' contact details, so
  * its own password and its own cookie — a kitchen session opens nothing here.
+ * The recipe box: the Add Recipe numbers, counts only, its own password so it
+ * can be handed to someone who holds neither of the other two.
  *
- * Unset password means the door does not exist. Both fail closed for the same
- * reason `/api/email-report` does: a page that quietly serves everybody because
- * somebody forgot a variable is worse than no page.
+ * Unset password means the door does not exist. All three fail closed for the
+ * same reason `/api/email-report` does: a page that quietly serves everybody
+ * because somebody forgot a variable is worse than no page.
  */
 export const kitchen = makeGate("kitchen", "KITCHEN_PASSWORD", "KITCHEN_SECRET");
 export const pantry = makeGate("pantry", "ADMIN_PASSWORD", "ADMIN_SECRET");
+export const recipeBox = makeGate("recipe-box", "RECIPE_BOX_PASSWORD", "RECIPE_BOX_SECRET");
 
 export type Access = "granted" | "denied" | "unconfigured";
 
@@ -38,3 +41,4 @@ export async function access(gate: Gate): Promise<Access> {
 
 export const kitchenAccess = (): Promise<Access> => access(kitchen);
 export const pantryAccess = (): Promise<Access> => access(pantry);
+export const recipeBoxAccess = (): Promise<Access> => access(recipeBox);

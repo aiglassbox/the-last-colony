@@ -23,7 +23,7 @@ type Row = Record<string, unknown>;
 const int = (value: unknown): number => (typeof value === "number" ? value : Number(value ?? 0));
 const str = (value: unknown): string => (typeof value === "string" ? value : String(value ?? ""));
 
-async function tolerant<T>(work: () => Promise<T>, fallback: T, label: string): Promise<T> {
+export async function tolerant<T>(work: () => Promise<T>, fallback: T, label: string): Promise<T> {
   try {
     return await work();
   } catch (error) {

@@ -544,6 +544,15 @@ by hand. It is copy-shape work, not a promotion: the candidate is always
 rule that governs corpus records), no photo, and the submitter's contact is
 left behind in the store — a corpus file is public.
 
+### The recipe box
+
+`/recipe-box` is the Add Recipe dashboard: how many people press the sidebar
+button or open the form, how far they get, and what refuses them. It sits behind
+its own password (`RECIPE_BOX_PASSWORD`) on the same gate factory as the kitchen
+and the pantry, and 404s when that is unset. It reads the form's first-party
+beacons (`recipe_entry_pressed`, `recipe_step`) from `analytics_events`, and
+shows counts only.
+
 ### Publishing and translation
 
 Publishing (`publishSubmission`) is the human gate: only a GREEN, tagged
@@ -559,15 +568,16 @@ language's call failing at publish time.
 
 New since the corpus-only build, all documented in `.env.example`:
 `ATLAS_URL` / `ATLAS_USER` / `ATLAS_PASSWORD` (the store), `ADMIN_PASSWORD` /
-`ADMIN_SECRET` (the pantry's door), `SUBMISSION_DAILY_MAX` (a store-size guard
+`ADMIN_SECRET` (the pantry's door), `RECIPE_BOX_PASSWORD` / `RECIPE_BOX_SECRET`
+(the recipe box's door), `SUBMISSION_DAILY_MAX` (a store-size guard
 for the free tier — submissions accepted per UTC day across all readers, not a
 per-reader limit), and one model per job — `SUBMISSION_VERDICT_MODEL`,
 `SUBMISSION_EXTRACT_MODEL`, `SUBMISSION_TRANSLATE_MODEL` — because extraction
 and translation need the full-quality tier and moderation does not.
 `NEXT_PUBLIC_GA_ID` (Google Analytics 4) is unrelated to community submissions
 but is also new since this file was last written: same off-by-default posture
-as the Meta Pixel, and `GoogleAnalytics` explicitly skips `/kitchen` and
-`/pantry` so neither dashboard reports on itself.
+as the Meta Pixel, and `GoogleAnalytics` explicitly skips `/kitchen`,
+`/pantry` and `/recipe-box` so no dashboard reports on itself.
 
 `npm run community:index` creates the indexes the pantry list and the daily
 ceiling read by (idempotent, run once per environment). `npm run

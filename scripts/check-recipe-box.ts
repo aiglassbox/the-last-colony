@@ -4,17 +4,21 @@
  *
  *   npx tsx scripts/check-recipe-box.ts
  *
- * Model-free and offline, and part of `npm run check`. `DATABASE_URL` is
- * cleared first so the beacon round-trip below can never write a row into a
+ * Model-free and offline, and part of `npm run check`. `DATABASE_URL` and
+ * `Last_Colony_DATABASE_URL` are cleared first so the beacon round-trip below can never write a row into a
  * real event log.
  */
 import { NextRequest } from "next/server";
 
 import { MAX_FINISH_MS, outcomeOf, stepProps, type AnsweredStep, type StepResult } from "../src/app/add-recipe/track";
 import { POST as trackRoute } from "../src/app/api/track/route";
+import { UNTRACKED_PATH } from "../src/lib/analytics";
+import { bucketise, FINISH_EDGES, FINISH_LAST, median, MINUTE, percent, stepPanels } from "../src/lib/dash/queries/recipes";
+import type { StepRow } from "../src/lib/dash/types";
 import { trackPixel } from "../src/lib/meta-pixel";
 
 delete process.env.DATABASE_URL;
+delete process.env.Last_Colony_DATABASE_URL;
 
 let failed = 0;
 function check(name: string, pass: boolean): void {
@@ -100,6 +104,60 @@ delete g.window;
 check("pixel skips recipe_step", !fired.includes("RecipeStep"));
 check("pixel skips recipe_entry_pressed", !fired.includes("RecipeEntryPressed"));
 check("pixel still fires other events (harness sanity)", fired.includes("CardShared"));
+
+// --- the dashboard is not in its own numbers --------------------------------
+check("UNTRACKED_PATH covers /recipe-box", UNTRACKED_PATH.test("/recipe-box"));
+check("UNTRACKED_PATH covers /recipe-box/api/auth", UNTRACKED_PATH.test("/recipe-box/api/auth"));
+check("UNTRACKED_PATH leaves /recipe-boxes alone", !UNTRACKED_PATH.test("/recipe-boxes"));
+check("UNTRACKED_PATH leaves /add-recipe alone", !UNTRACKED_PATH.test("/add-recipe"));
+
+// --- funnel arithmetic -------------------------------------------------------
+const row = (step: string, outcome: string | null, reason: string | null, n: number, devices: number, rollup = false): StepRow => ({
+  step,
+  outcome,
+  reason,
+  rollup,
+  n,
+  devices,
+});
+const panels = stepPanels([
+  row("photo_attached", null, null, 5, 4, true),
+  row("photo_read", "ok", null, 3, 3),
+  row("photo_read", "unreadable", null, 1, 1),
+  row("photo_read", "refused", "rate_limited", 1, 1),
+  row("verify", "failed", "wrong_code", 7, 3),
+  row("verify", "refused", "wrong_code", 2, 1), // forged outcome spelling, same label: merged
+  row("submit", "refused", "lapsed", 2, 2),
+  row("submit", "refused", "constructor", 9, 9), // forged reason: dropped
+  row("hacked", "refused", "network", 9, 9), // forged step: dropped
+  row("back", null, null, 6, 2, true),
+  row("code_resend", null, null, 4, 3, true),
+  row("next", "invalid", null, 3, 2),
+]);
+check(
+  "photo branch: attached then outcomes in fixed order",
+  JSON.stringify(panels.photo.map((p) => [p.label, p.n])) ===
+    JSON.stringify([["Attached", 5], ["Read — fields filled", 3], ["Unreadable", 1], ["Not a recipe", 0], ["Refused", 1]]),
+);
+check("refusals: merged by label, biggest first", panels.refusals[0]?.label === "Verify · wrong code" && panels.refusals[0]?.n === 9);
+check("refusals: forged step and reason dropped", panels.refusals.length === 3);
+check("secondary: Back from the rollup row", panels.secondary[0]?.n === 6 && panels.secondary[0]?.devices === 2);
+check("secondary: Resend from the rollup row", panels.secondary[1]?.n === 4 && panels.secondary[1]?.devices === 3);
+check("secondary: absent step is a zero, not a missing row", panels.secondary[2]?.n === 0);
+check("secondary: next blocked", panels.secondary[3]?.n === 3 && panels.secondary[3]?.devices === 2);
+check("no photo events means no photo bars", stepPanels([]).photo.length === 0);
+
+check("median of nothing is no figure", median([]) === null);
+check("median of one", median([3]) === 3);
+check("median of four is the mean of the middle two", median([4, 1, 3, 2]) === 2.5);
+check("percent with no denominator is no figure", percent(0, 0) === null);
+check("percent rounds", percent(1, 3) === 33);
+
+const finish = bucketise([2 * MINUTE - 1, 2 * MINUTE, 31 * MINUTE], FINISH_EDGES, FINISH_LAST);
+check("buckets: just under an edge stays below it", finish[0]?.n === 1);
+check("buckets: exactly on an edge goes up", finish[1]?.n === 1);
+check("buckets: past the last edge lands in the last bucket", finish[4]?.label === FINISH_LAST && finish[4]?.n === 1);
+check("buckets: nothing to bucket is no bars", bucketise([], FINISH_EDGES, FINISH_LAST).length === 0);
 
 // --- /api/track accepts both names ------------------------------------------
 async function beacon(event: string): Promise<number> {
