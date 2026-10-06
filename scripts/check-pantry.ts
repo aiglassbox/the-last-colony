@@ -68,8 +68,8 @@ check(
   !gate.tokenValid(token.value.replace(/.$/, (c) => (c === "0" ? "1" : "0")), "swordfish"),
 );
 
-// The derivation, restated: sha256 HMAC over the expiry, keyed "<door>:<password>".
-const sign = (expiry: string) => createHmac("sha256", "check:swordfish").update(expiry).digest("hex");
+// The derivation, restated: sha256 HMAC over "<door>.<expiry>", keyed "<door>:<password>".
+const sign = (expiry: string) => createHmac("sha256", "check:swordfish").update(`check.${expiry}`).digest("hex");
 check("expired token is invalid even when correctly signed", !gate.tokenValid(`1.${sign("1")}`, "swordfish"));
 const future = String(Date.now() + 60_000);
 check("hand-signed future token is valid (derivation pinned)", gate.tokenValid(`${future}.${sign(future)}`, "swordfish"));
@@ -79,6 +79,18 @@ check(
   !gate.tokenValid(`${future}.${sign(future)}`, "swordfish") && gate.tokenValid(gate.issueToken("swordfish").value, "swordfish"),
 );
 delete process.env.CHECK_GATE_SECRET;
+
+// The door name is in the signed message, so a secret shared by mistake
+// cannot carry one door's session onto another.
+process.env.CHECK_SHARED_SECRET = "same";
+const doorA = makeGate("a", "CHECK_GATE_PASSWORD", "CHECK_SHARED_SECRET");
+const doorB = makeGate("b", "CHECK_GATE_PASSWORD", "CHECK_SHARED_SECRET");
+check(
+  "equal secrets: one door's token never opens another",
+  !doorB.tokenValid(doorA.issueToken("swordfish").value, "swordfish") &&
+    !doorA.tokenValid(doorB.issueToken("swordfish").value, "swordfish"),
+);
+delete process.env.CHECK_SHARED_SECRET;
 
 // --- the two real doors: env-var names are literals tsc cannot check --------
 // A typo in one of these strings reads an unset variable, and the door then
