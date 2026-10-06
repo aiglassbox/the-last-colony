@@ -164,6 +164,13 @@ export function EmailVerify({ onChange }: { onChange: (verified: Verified | null
         setSendBlockUntil(t + duration(payload?.resendIn, 180) * 1000);
         setHoldUntil(null);
         onChange(null);
+      } else if (res.status === 429 && payload?.error === "daily") {
+        // The day's per-caller ceiling. Its `retryAfter` runs to midnight UTC,
+        // so it is deliberately not fed to `sendBlockUntil`: the countdown
+        // beside the button is a minutes-and-seconds convenience and would
+        // read "Send code in 1433:20". The sentence carries the wait instead,
+        // and the server refuses either way.
+        setError("Too many codes from this network today. Try again after midnight UTC.");
       } else if (res.status === 429) {
         const wait = duration(payload?.retryAfter, 60);
         setError(`Too many codes — wait ${wait}s.`);

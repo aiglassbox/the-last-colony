@@ -658,6 +658,30 @@ cooldown and the cap are already the per-person rules and a daily allowance
 would need a per-person identity this feature does not have.
 → `.docs/specs/2026-09-08-email-otp-design.md`
 
+**That last sentence was wrong, and a per-caller daily ceiling sits beside the
+global one — settled 2026-10-06.** The cooldown and the cap are not per-person
+rules; they are per-address rules, and the address is a string in the request
+body. `decideSend` consults both only inside `if (existing)`, and `existing` is
+`findOne({ email })`, so a caller naming an address nobody has used before meets
+neither — not once, ever. The per-IP window did not cover for that either:
+three sends per five minutes is 864 a day against a day that allows ninety. So
+one host, no credentials, ninety small POSTs and ninety addresses of its own
+choosing spent the global ceiling, and because a code must be delivered before
+it can be verified and a submission is refused without a proof, that closed
+email verification and the whole recipe-submission tier for every visitor until
+midnight UTC. The global ceiling was doing what it was built for — bounding
+provider spend — and nothing was doing the other half.
+`OTP_DAILY_PER_CALLER_MAX` (default 5) counts a second `otp_daily` document
+keyed `"<day>:<caller>"`, spent after the shared slot so an exhausted day
+creates no per-caller rows, and giving the shared slot back when it is the one
+that refuses, so a refused send still costs the day nothing. The honest limit
+of it is the key: `clientKey` reads a forwarding header the client sets, which
+the limiter's own comments have always said. This raises the price of closing
+the day from ninety requests to ninety distinct source addresses; it does not
+make it free, and a challenge on the send route is the only control that makes
+a fresh address cost the caller anything. Found by the 2026-10-05 source audit,
+fingerprint `otp.send.shared-daily-quota-exhaustible-by-one-caller`.
+
 **A corpus candidate carries no contact and can never claim ATTESTED.** The
 pantry's download is a GREEN submission in the corpus record's shape, for a
 human to incorporate by hand: `MODERN_DISH`, `unverified_seed`, no
