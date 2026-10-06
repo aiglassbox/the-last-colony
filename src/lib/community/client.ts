@@ -660,3 +660,43 @@ export async function publishedPhoto(
     return { ok: false, reason: "unreachable" };
   }
 }
+
+/**
+ * Which of these submission ids may still be served: green and published.
+ *
+ * Lifecycle only — no text, no photo, no contact — so the conversation mirror
+ * can re-check a stored community card as cheaply as it already re-checks a
+ * corpus slug by slug. The filter is the same pair `matchCommunity` and
+ * `publishedPhoto` use, so one unpublish or one RED reaches all three.
+ *
+ * `null` means "could not tell", not "none", and the distinction is the whole
+ * point — the same one `publishedPhoto` draws between `not_found` and
+ * `unreachable`. An empty set withholds every card, and the mirror's response
+ * is written back to the device's own localStorage, so answering "none" during
+ * an Atlas outage would delete a reader's stored history off their device for
+ * an operational blip. A caller that gets `null` leaves the payload alone and
+ * takes a takedown lag for the length of the outage, which is the cheaper
+ * mistake: the photo route already 404s on its own, and an operator who cannot
+ * reach Atlas cannot be issuing takedowns through it either.
+ */
+export async function publishedIds(ids: string[]): Promise<Set<string> | null> {
+  const objectIds = ids.map(hexId).filter((v): v is ObjectId => v !== null);
+  // Every id was malformed, so none of them names a servable submission. That
+  // is an answer, not an outage.
+  if (!objectIds.length) return new Set();
+  const db = await communityDb();
+  if (!db) return null;
+  try {
+    const docs = await db
+      .collection<SubmissionDoc>(SUBMISSIONS)
+      .find(
+        { _id: { $in: objectIds }, status: "green", published_at: { $exists: true } },
+        { projection: { _id: 1 }, maxTimeMS: 2000 },
+      )
+      .toArray();
+    return new Set(docs.map((d) => String(d._id)));
+  } catch (error) {
+    console.error("[community] published-id check failed:", error);
+    return null;
+  }
+}
