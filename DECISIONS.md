@@ -1187,9 +1187,13 @@ and the off-site links stay clean for the reason `email/destinations.ts`
 gives. The images are generated once, by `scripts/make-email-assets.ts`, from
 `brand/kranti.png` (tinted cream) and `brand/social/*.svg` into
 `lib/community/otp-email-images.ts`, and travel inside the email. The email has
-an MSO ghost table so classic Outlook keeps the 440px width. It is compact on
-purpose: the whole message, footer included, fits a laptop Gmail reading pane
-(about 430px tall at 125% scaling) without scrolling.
+one full-width row: the logo, the 440px card, then the follow block, so the
+whole message reads in a laptop Gmail pane without scrolling. The card sits
+dead centre because the row is a `table-layout:fixed` table whose two side
+cells name no width: a fixed table splits the leftover width equally between
+them, where an auto table splits it by content and pushes the card off centre.
+Each side cell centres its content both ways. One media query stacks the three
+on a phone and shrinks the logo back.
 
 **The cream plate's scrollers share one scrollbar.** The platform's grey
 scrollbar was the one grey object on the cream plate. The drawer body, the

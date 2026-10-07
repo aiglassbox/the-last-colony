@@ -25,9 +25,9 @@ import sharp from "sharp";
 const root = process.cwd();
 const target = path.join(root, "src", "lib", "community", "otp-email-images.ts");
 
-/* Twice the size `otp-email.ts` shows them at (64 px logo, 28 px icons), so
+/* Twice the size `otp-email.ts` shows them at (200 px logo, 28 px icons), so
    they stay sharp on a dense screen; check-otp fails if the two drift apart. */
-const LOGO_PX = 128;
+const LOGO_PX = 400;
 const ICON_PX = 56;
 
 type Img = { filename: string; width: number; height: number; content: string };
