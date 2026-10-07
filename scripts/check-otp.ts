@@ -10,9 +10,6 @@
  * mongodb package — reading a knob opens no connection, exactly as
  * check-submissions.ts already pins `dailyMax` from client.ts.
  */
-import { existsSync } from "node:fs";
-import { join } from "node:path";
-
 import {
   canConsume,
   codeMatches,
@@ -239,16 +236,31 @@ check(
 );
 const imgs = [...mail.html.matchAll(/<img\b[^>]*>/g)].map((m) => m[0]);
 check("email: four images — the logo and three icons", imgs.length === 4);
+check("email: every image is an inline cid with alt text", imgs.every((t) => /src="cid:[^"]+"/.test(t) && /alt="[^"]+"/.test(t)));
+const cidOf = (t: string) => /src="cid:([^"]+)"/.exec(t)?.[1];
+const ids = mail.attachments.map((a) => a.content_id);
 check(
-  "email: every image is an absolute https png with alt text",
-  imgs.every((t) => /src="https:\/\/[^"]+\.png"/.test(t) && /alt="[^"]+"/.test(t)),
+  "email: one attachment per image, no strays",
+  mail.attachments.length === imgs.length &&
+    new Set(ids).size === ids.length &&
+    // two images on one cid would leave an attachment unreferenced — a stray
+    new Set(imgs.map(cidOf)).size === imgs.length &&
+    imgs.every((t) => ids.filter((x) => x === cidOf(t)).length === 1),
+);
+const PNG_SIG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+check(
+  "email: every attachment is a png at twice its display width",
+  imgs.every((t) => {
+    const a = mail.attachments.find((x) => x.content_id === cidOf(t));
+    const shown = Number(/\swidth="(\d+)"/.exec(t)?.[1]);
+    if (!a) return false;
+    const buf = Buffer.from(a.content, "base64");
+    return buf.subarray(0, 8).equals(PNG_SIG) && a.content_type === "image/png" && buf.readUInt32BE(16) === 2 * shown;
+  }),
 );
 check(
-  "email: every image file exists under public/",
-  imgs.every((t) => {
-    const src = /src="([^"]+)"/.exec(t)?.[1];
-    return !!src && existsSync(join("public", new URL(src).pathname));
-  }),
+  "email: the attachments stay light",
+  mail.attachments.reduce((n, a) => n + Buffer.from(a.content, "base64").length, 0) < 60_000,
 );
 check("email: under Gmail's clipping size", Buffer.byteLength(mail.html) < 100_000);
 const hostile = otpEmail("<x>");

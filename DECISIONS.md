@@ -1170,12 +1170,15 @@ from the Meta Pixel through `FIRST_PARTY_ONLY`. No dashboard panel yet.
 ## OTP email and sidebar scrollbar — settled 2026-10-06
 
 **The verification email is branded HTML, with the plain text kept.**
-`otpEmail(code)` in `lib/community/otp-email.ts` builds the subject, HTML and
-text, and `deliver()` sends all three. It is built for mail clients, not
-browsers: tables and inline styles, PNG images (Gmail and Outlook do not
-render SVG), absolute image URLs from `siteUrl()`, and alt text on every image
-so it reads correctly before images load. The palette is the home page's,
-copied as literals because an email cannot read CSS variables.
+`otpEmail(code)` in `lib/community/otp-email.ts` builds the subject, HTML,
+text and inline images, and `deliver()` sends them all. It is built for mail
+clients, not browsers: tables and inline styles, PNG images (Gmail and Outlook
+do not render SVG), images embedded as inline (CID) attachments via Resend's
+`content_id`, and alt text on every image so it reads correctly if a client
+rejects them. Hosted images needed a deploy and a public host, and clients
+that block remote images held them back; `data:` URIs are stripped by Gmail.
+The palette is the home page's, copied as literals because an email cannot
+read CSS variables.
 
 **Social links, but no tracking.** The footer carries the home dock's three
 icons, with hrefs read from `SOCIALS` so a changed handle changes both places.
@@ -1183,8 +1186,10 @@ There is no pixel and no UTM: it is a transactional mail the reader asked for,
 and the off-site links stay clean for the reason `email/destinations.ts`
 gives. The images are generated once, by `scripts/make-email-assets.ts`, from
 `brand/kranti.png` (tinted cream) and `brand/social/*.svg` into
-`public/email-assets/`, and they load only from a deployed site. The email has
-an MSO ghost table so classic Outlook keeps the 600px width.
+`lib/community/otp-email-images.ts`, and travel inside the email. The email has
+an MSO ghost table so classic Outlook keeps the 440px width. It is compact on
+purpose: the whole message, footer included, fits a laptop Gmail reading pane
+(about 430px tall at 125% scaling) without scrolling.
 
 **The cream plate's scrollers share one scrollbar.** The platform's grey
 scrollbar was the one grey object on the cream plate. The drawer body, the
