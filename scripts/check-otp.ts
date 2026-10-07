@@ -21,6 +21,9 @@ import {
   OTP,
   type OtpDoc,
 } from "../src/lib/community/otp-rules";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { dailySlot, otpDailyMax, otpDailyPerCallerMax, otpDailyPoolMax, secondsToUtcMidnight } from "../src/lib/community/otp";
 import { otpEmail } from "../src/lib/community/otp-email";
 import { RATE_LIMIT } from "../src/lib/rate-limit";
@@ -236,31 +239,30 @@ check(
 );
 const imgs = [...mail.html.matchAll(/<img\b[^>]*>/g)].map((m) => m[0]);
 check("email: four images — the logo and three icons", imgs.length === 4);
-check("email: every image is an inline cid with alt text", imgs.every((t) => /src="cid:[^"]+"/.test(t) && /alt="[^"]+"/.test(t)));
-const cidOf = (t: string) => /src="cid:([^"]+)"/.exec(t)?.[1];
-const ids = mail.attachments.map((a) => a.content_id);
 check(
-  "email: one attachment per image, no strays",
-  mail.attachments.length === imgs.length &&
-    new Set(ids).size === ids.length &&
-    // two images on one cid would leave an attachment unreferenced — a stray
-    new Set(imgs.map(cidOf)).size === imgs.length &&
-    imgs.every((t) => ids.filter((x) => x === cidOf(t)).length === 1),
+  "email: every image is an absolute https png with alt text",
+  imgs.every((t) => /src="https:\/\/[^"]+\.png"/.test(t) && /alt="[^"]+"/.test(t)),
 );
 const PNG_SIG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+const fileOf = (t: string) => {
+  const src = /src="([^"]+)"/.exec(t)?.[1];
+  return src ? join("public", new URL(src).pathname) : "";
+};
 check(
-  "email: every attachment is a png at twice its display width",
+  "email: every image is a png under public/, at twice its display size",
   imgs.every((t) => {
-    const a = mail.attachments.find((x) => x.content_id === cidOf(t));
-    const shown = Number(/\swidth="(\d+)"/.exec(t)?.[1]);
-    if (!a) return false;
-    const buf = Buffer.from(a.content, "base64");
-    return buf.subarray(0, 8).equals(PNG_SIG) && a.content_type === "image/png" && buf.readUInt32BE(16) === 2 * shown;
+    const file = fileOf(t);
+    if (!file || !existsSync(file)) return false;
+    const buf = readFileSync(file);
+    const w = Number(/\swidth="(\d+)"/.exec(t)?.[1]);
+    const h = Number(/\sheight="(\d+)"/.exec(t)?.[1]);
+    // the height is rounded from the file's aspect, so it may sit half a pixel off
+    return buf.subarray(0, 8).equals(PNG_SIG) && buf.readUInt32BE(16) === 2 * w && Math.abs(buf.readUInt32BE(20) - 2 * h) <= 1;
   }),
 );
 check(
-  "email: the attachments stay light",
-  mail.attachments.reduce((n, a) => n + Buffer.from(a.content, "base64").length, 0) < 60_000,
+  "email: the images stay light",
+  imgs.reduce((n, t) => n + (existsSync(fileOf(t)) ? readFileSync(fileOf(t)).length : Infinity), 0) < 60_000,
 );
 check("email: under Gmail's clipping size", Buffer.byteLength(mail.html) < 100_000);
 const hostile = otpEmail("<x>");

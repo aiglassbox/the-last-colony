@@ -169,7 +169,7 @@ async function deliver(to: string, code: string, key: string): Promise<boolean> 
       method: "POST",
       headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
       // Both parts: the HTML for every client that renders it, the text for
-      // the ones that do not, plus the inline (CID) images the HTML points at. Built in `otp-email.ts`, pinned by check-otp.
+      // the ones that do not. Built in `otp-email.ts`, pinned by check-otp.
       // The sender and recipient are written last, so nothing the builder
       // returns can ever override them.
       body: JSON.stringify({ ...otpEmail(code), from: FROM, to }),

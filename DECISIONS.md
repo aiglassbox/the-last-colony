@@ -1170,15 +1170,23 @@ from the Meta Pixel through `FIRST_PARTY_ONLY`. No dashboard panel yet.
 ## OTP email and sidebar scrollbar — settled 2026-10-06
 
 **The verification email is branded HTML, with the plain text kept.**
-`otpEmail(code)` in `lib/community/otp-email.ts` builds the subject, HTML,
-text and inline images, and `deliver()` sends them all. It is built for mail
-clients, not browsers: tables and inline styles, PNG images (Gmail and Outlook
-do not render SVG), images embedded as inline (CID) attachments via Resend's
-`content_id`, and alt text on every image so it reads correctly if a client
-rejects them. Hosted images needed a deploy and a public host, and clients
-that block remote images held them back; `data:` URIs are stripped by Gmail.
-The palette is the home page's, copied as literals because an email cannot
-read CSS variables.
+`otpEmail(code)` in `lib/community/otp-email.ts` builds the subject, HTML and
+text, and `deliver()` sends all three. It is built for mail clients, not
+browsers: tables and inline styles, PNG images (Gmail and Outlook do not
+render SVG), and alt text on every image so it reads correctly before images
+load. The palette is the home page's, copied as literals because an email
+cannot read CSS variables.
+
+**The images are hosted, not embedded.** They are PNGs in
+`public/email-assets/`, linked by absolute URL from `siteUrl()`. Inline (CID)
+attachments were tried first, because they need no deploy, but Gmail fetched
+every one afresh for every email, about two seconds after the text. Hosted
+images go through Gmail's image proxy, which caches them, so after the first
+open they show almost at once; `next.config.ts` gives `/email-assets/` a
+week's `Cache-Control` so the proxy keeps its copy instead of revalidating on
+every open. The cost: images load only from a deployed site, so a test send
+from localhost shows the alt text, and a changed image needs a new file name
+(or a `?v=`) to get past the cache. `data:` URIs are stripped by Gmail.
 
 **Social links, but no tracking.** The footer carries the home dock's three
 icons, with hrefs read from `SOCIALS` so a changed handle changes both places.
@@ -1186,7 +1194,7 @@ There is no pixel and no UTM: it is a transactional mail the reader asked for,
 and the off-site links stay clean for the reason `email/destinations.ts`
 gives. The images are generated once, by `scripts/make-email-assets.ts`, from
 `brand/kranti.png` (tinted cream) and `brand/social/*.svg` into
-`lib/community/otp-email-images.ts`, and travel inside the email. The email has
+`public/email-assets/`. The email has
 one full-width row: the logo, the 440px card, then the follow block, so the
 whole message reads in a laptop Gmail pane without scrolling. The card sits
 dead centre because the row is a `table-layout:fixed` table whose two side
