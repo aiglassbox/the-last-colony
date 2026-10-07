@@ -1116,3 +1116,96 @@ token is only ever valid on the door that issued it, whatever the secrets are.
 Changing the derivation ended every live kitchen and pantry session once — at
 most twelve hours of re-typing a password, against a misconfiguration that no
 longer exists. Raised by the recipe-box security review.
+
+## Social dock (home-screen social links) — settled 2026-10-06
+
+**Three icons, home screen only.** Instagram, YouTube and X, in that order,
+bottom right of the hero; Facebook shipped in the asset zip and was not
+picked. The dock renders only while `view === "chat" && isEmpty`, so it is
+there on first load and on every New chat and gone the moment a query is
+sent or a thread is opened. A column while the rail is open, a row while it
+is closed; always a row above the composer on a phone, where the bottom-right
+corner belongs to the composer. On desktop and tablet it is pinned bottom-right
+of the hero where the hero is wide enough (at least 944px for a row, 784px for
+a column), and sits in the hero's flow below that, so it never covers the
+composer and does not make a laptop-height hero scroll. A box pinned at every
+width covered the send button on short screens.
+
+**Draggable, not just decorated.** The owner chose Bencho's full reorder
+behaviour over a liquid dock without dragging. The cost is a link that has to
+tell a click from a drag: under 4px of travel for a mouse, or 10px for touch
+and pen, is a click; past it is a drag and the closing click is cancelled.
+The dragged order is not persisted, because a per-device icon order is not
+worth a storage key. A query, opening a thread or History, leaving a thread
+via New chat, crossing to phone width, or a reload gives a fresh order; New
+chat pressed on an already-empty home screen does not unmount the dock, so it
+keeps its order.
+
+**The goo sits under the icons, never on them.** Bencho's filter thresholds
+alpha, which eats antialiased edges, so the orange circles on the filtered
+layer are plain blobs and the supplied SVGs ride unfiltered above them. At
+rest the blob is slightly smaller than its icon (scale 0.94), so the goo's
+hard edge never shows; the goo shows only as the held icon's swell, its
+squash in a fast drag, and the neck between two circles passing. The SVGs
+are no longer the supplied files unchanged: at the owner's request, for
+contrast, the glyph is black and scaled 1.4x about the centre inside the
+unchanged orange circle. They are still whole files rather than split into
+circle and glyph.
+
+**`framer-motion`, through `LazyMotion`.** Added because the Bencho prompt
+specifies it and its springs are what the effect is made of; a CSS
+`linear()` spring approximation cannot follow a pointer-driven velocity.
+Imported as `m` under `LazyMotion` with `domAnimation`, so the landing page
+does not also load drag and layout animation it never uses, and the dock
+itself is loaded through `next/dynamic` (`ssr: false`), so framer-motion is
+off the landing page's first bundle. Bencho's
+`useTokens` probe is left out: it resolves tokens to rgb for Framer when a
+theme flips, and this site has one theme and changes the dock's colours on
+CSS transitions.
+
+**`social_clicked` is first-party only.** One event with `{network}`, fired
+on a real click and never after a drag, stored in `analytics_events` and kept
+from the Meta Pixel through `FIRST_PARTY_ONLY`. No dashboard panel yet.
+
+## OTP email and sidebar scrollbar — settled 2026-10-06
+
+**The verification email is branded HTML, with the plain text kept.**
+`otpEmail(code)` in `lib/community/otp-email.ts` builds the subject, HTML and
+text, and `deliver()` sends all three. It is built for mail clients, not
+browsers: tables and inline styles, PNG images (Gmail and Outlook do not
+render SVG), and alt text on every image so it reads correctly before images
+load. The palette is the home page's, copied as literals because an email
+cannot read CSS variables.
+
+**The images are hosted, not embedded.** They are PNGs in
+`public/email-assets/`, linked by absolute URL from `siteUrl()`. Inline (CID)
+attachments were tried first, because they need no deploy, but Gmail fetched
+every one afresh for every email, about two seconds after the text. Hosted
+images go through Gmail's image proxy, which caches them, so after the first
+open they show almost at once; `next.config.ts` gives `/email-assets/` a
+week's `Cache-Control` so the proxy keeps its copy instead of revalidating on
+every open. The cost: images load only from a deployed site, so a test send
+from localhost shows the alt text, and a changed image needs a new file name
+(or a `?v=`) to get past the cache. `data:` URIs are stripped by Gmail.
+
+**Social links, but no tracking.** The footer carries the home dock's three
+icons, with hrefs read from `SOCIALS` so a changed handle changes both places.
+There is no pixel and no UTM: it is a transactional mail the reader asked for,
+and the off-site links stay clean for the reason `email/destinations.ts`
+gives. The images are generated once, by `scripts/make-email-assets.ts`, from
+`brand/kranti.png` (tinted cream) and `brand/social/*.svg` into
+`public/email-assets/`. The email has
+one full-width row: the logo, the 440px card, then the follow block, so the
+whole message reads in a laptop Gmail pane without scrolling. The card sits
+dead centre because the row is a `table-layout:fixed` table whose two side
+cells name no width: a fixed table splits the leftover width equally between
+them, where an auto table splits it by content and pushes the card off centre.
+Each side cell centres its content both ways. One media query stacks the three
+on a phone and shrinks the logo back.
+
+**The cream plate's scrollers share one scrollbar.** The platform's grey
+scrollbar was the one grey object on the cream plate. The drawer body, the
+rail's recents (`.sidebar__scroll`) and the modal (`.modal`) now share a thin
+`--on-cream` thumb, by adding them to the same rule rather than copying it. The
+text-field scrollbar stays hidden, and scrollers on the green ground keep the
+platform default.

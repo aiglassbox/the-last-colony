@@ -3,6 +3,7 @@ import type { Collection } from "mongodb";
 import { RATE_LIMIT } from "@/lib/rate-limit";
 
 import { communityDb } from "./client";
+import { otpEmail } from "./otp-email";
 import { canConsume, decideSend, decideVerify, newCode, OTP, type OtpDoc } from "./otp-rules";
 
 /**
@@ -167,12 +168,11 @@ async function deliver(to: string, code: string, key: string): Promise<boolean> 
     const res = await fetch(RESEND_URL, {
       method: "POST",
       headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
-      body: JSON.stringify({
-        from: FROM,
-        to,
-        subject: `Your Kranti Cookbook code: ${code}`,
-        text: `Your code is ${code}. It expires in 5 minutes.\n\nIf you did not ask for this, ignore this email.`,
-      }),
+      // Both parts: the HTML for every client that renders it, the text for
+      // the ones that do not. Built in `otp-email.ts`, pinned by check-otp.
+      // The sender and recipient are written last, so nothing the builder
+      // returns can ever override them.
+      body: JSON.stringify({ ...otpEmail(code), from: FROM, to }),
       // A timeout here returns false and the caller rolls the code back, even
       // though Resend may have sent it anyway — a send that lands after the
       // client gives up looks identical to one that never went out. Deliberate:

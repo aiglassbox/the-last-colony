@@ -1,6 +1,7 @@
 "use client";
 
 import { Menu, SquarePen } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 import { parseCommand } from "@/lib/chat/commands";
@@ -41,6 +42,10 @@ import { Logo, TwoBrothersMark } from "./Logo";
 import { Message } from "./Message";
 import { SettingsSheet } from "./SettingsSheet";
 import { Sidebar, type SidebarView } from "./Sidebar";
+
+/* The dock renders nothing until after hydration anyway, so its framer-motion
+   chunk is loaded then instead of riding the landing page's first bundle. */
+const SocialDock = dynamic(() => import("./SocialDock").then((m) => m.SocialDock), { ssr: false });
 
 /**
  * The application shell.
@@ -631,6 +636,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
 
                 <div className="thread__foot">
                   <div className="thread__foot-inner">
+                    <SocialDock axis="row" className="dock--above" />
                     <Composer
                       value={input}
                       onChange={setInput}
@@ -672,6 +678,11 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
                     lang={uiLang}
                   />
                 </section>
+
+                {/* The home screen's social icons: a column while the rail is
+                    out, a row while it is tucked away. In the hero's flow, so
+                    it can never sit on the composer. */}
+                <SocialDock axis={railCollapsed ? "row" : "column"} className="dock--corner" />
               </div>
             ) : (
               <>

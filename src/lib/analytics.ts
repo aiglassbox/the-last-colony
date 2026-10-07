@@ -37,7 +37,10 @@ export type AnalyticsEvent =
   // skips both. `recipe_step` is told apart by its `step` prop — see
   // `app/add-recipe/track.ts`.
   | "recipe_entry_pressed"
-  | "recipe_step";
+  | "recipe_step"
+  // A click on one of the home screen's social icons (`SocialDock`), with
+  // `{network}`. Never fired for a press that became a drag. First-party only.
+  | "social_clicked";
 
 export type EventProps = Record<string, string | number | boolean | null>;
 
