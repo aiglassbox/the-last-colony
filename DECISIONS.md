@@ -1211,3 +1211,42 @@ owner's call (2026-10-08): the thin thumb was tried there first, and any track
 on the rail read as clutter; the list still scrolls by wheel and touch. The
 text-field scrollbar stays hidden, and scrollers on the green ground keep the
 platform default.
+
+## Recipe emails (templates for submitters and the list) — settled 2026-10-08
+
+Nine designed emails in `email-templates/`, in three folders: `thank-you/`
+(received, published, milestone), `needs-changes/` (general-edits,
+health-claim, missing-details) and `keep-sharing/` (add-your-recipe,
+tell-everyone-the-story, anniversary). `received` will go out by itself once a
+submission arrives; the other eight go from a send page (part 2) when the
+operator presses send. The three `keep-sharing` emails go to a pasted list and
+carry an unsubscribe link; the rest go to one submitter.
+
+**Static HTML with blanks, not builder functions.** Each email is a plain file
+built the way the code email is (tables, inline styles, hosted images), with
+`{{blank}}` slots. Nine different layouts share little beyond the footer, so a
+shared TypeScript shell would have constrained them for no gain, and MJML or
+react-email would add a dependency to do what tables already do.
+`src/lib/mail-templates/registry.ts` names every template's blanks, and
+`scripts/check-email-templates.ts` fails if a file and the registry disagree in
+either direction.
+
+**Fill is the trust boundary.** `fillTemplate` escapes every value, braces
+included, so a value cannot open another blank; it refuses any `_url` value
+that does not parse as an https link with a host (or localhost, for
+previews); it counts an empty or whitespace-only value, or a list with no
+rows, as missing, because every blank is required and `received` goes out
+with no one reading it first; a list row sees only its own fields, so a row
+short of a name is reported rather than filled with the top-level one; and
+it names every missing blank and bad link in one error. The send page fills
+through it and nowhere else.
+
+**No message copy in the designs.** Every heading and message is a blank; the
+only fixed words are labels, button text and the footer. The operator writes
+each email; the templates only lay it out.
+
+**The art is cut out, not pasted in.** All the folk-art crops (`art-*` in
+`public/email-assets/`) but `art-hero.jpg` are lifted off their painted
+green by `scripts/make-email-assets.ts`, so they sit on the emails' flat
+greens and creams with no textured rectangle around them. The hero keeps
+its painted green sky, which matches the page green it sits on.
