@@ -378,11 +378,19 @@ body {
   flex-direction: column;
 }
 
+/* Scrolls with no bar at all: the recents are a short list of titles, and any
+   track on the rail read as clutter. Same as the composer field. */
 .sidebar__scroll {
   flex: 1 1 auto;
   overflow-y: auto;
   min-height: 0;
   width: 100%;
+  scrollbar-width: none;
+}
+
+.sidebar__scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .side-list {
@@ -846,6 +854,11 @@ body {
      block rides up with it. */
   padding: clamp(28px, 8.5vh, 104px) var(--s-5) var(--s-5);
   overflow-y: auto;
+  /* the social dock reads this width (container queries) */
+  container-type: inline-size;
+  /* a dragged corner icon is not clamped; its transform must not add
+     horizontal scroll overflow mid-drag */
+  overflow-x: hidden;
 }
 
 .hero {
@@ -1631,19 +1644,23 @@ body {
   padding: var(--s-4) var(--s-5) var(--s-6);
 }
 
-/* The one place in this design that wants a visible scrollbar. Everywhere else
-   the track is hidden because the content ends where it looks like it ends; a
-   dialog taller than the screen has to say so, or it reads as truncated. */
-.drawer__body {
+/* The cream plate's dialogs (the drawer body and the modal) get a thin
+   --on-cream thumb instead of the platform's grey bar, the one grey object on
+   the cream. The rail's recents and the text field hide theirs. Scrollers on
+   the green ground keep the platform default. */
+.drawer__body,
+.modal {
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, var(--on-cream) 34%, transparent) transparent;
 }
 
-.drawer__body::-webkit-scrollbar {
+.drawer__body::-webkit-scrollbar,
+.modal::-webkit-scrollbar {
   width: 10px;
 }
 
-.drawer__body::-webkit-scrollbar-thumb {
+.drawer__body::-webkit-scrollbar-thumb,
+.modal::-webkit-scrollbar-thumb {
   border: 3px solid transparent;
   border-radius: 999px;
   background: color-mix(in srgb, var(--on-cream) 34%, transparent);
@@ -2444,4 +2461,186 @@ body {
     flex: 1;
     min-width: 0;
   }
+}
+
+/* ------------------------------------------------------------ social dock -- */
+
+/* The home screen's social icons — `components/SocialDock.tsx`, adapted from
+   Bencho's Reorder list (MIT, bencho.dev/licence). The box is the dock's
+   footprint, a row or a column, and everything inside it is placed from its
+   bottom-right corner: the one point a row and a column share. */
+.dock {
+  position: relative;
+  /* the row in your hand: a step off the resting pane, not a
+     jump to ink. Mixed toward --ink rather than hardcoded, so
+     it darkens in light mode and lightens in dark — "one step
+     more present than the ground" either way. */
+  /* Bencho's --lift. The ink that sits on cream here is --on-cream, so the
+     held icon's halo is a darker orange. */
+  --lift: color-mix(in srgb, var(--on-cream) 16%, var(--cream));
+  /* a drag must not start a text selection, and a long press on iOS must not
+     raise the image menu over an icon you are holding */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.dock[data-axis="row"] {
+  width: var(--span);
+  height: var(--size);
+}
+
+.dock[data-axis="column"] {
+  width: var(--size);
+  height: var(--span);
+}
+
+/* Desktop and tablet, narrow hero: the last thing in the hero's scroll column.
+   With room to spare it is pushed into the bottom-right corner (the
+   hero-wrap's own padding is the inset); without room it sits just below the
+   composer and scrolls with it. This in-flow placement is the narrow-hero
+   fallback; the container queries below pin it on wide heroes. It used to be
+   pinned everywhere, and on a short laptop screen the pinned box landed on the
+   send button — a click meant for the composer opened Instagram. In flow, it
+   cannot overlap anything. */
+.dock--corner {
+  flex: none;
+  align-self: flex-end;
+  margin-top: auto;
+  /* the gap above it when the hero runs long; content-box, so the padding
+     sits above the dock's footprint instead of eating into it, and the
+     bottom-right corner the icons are placed from does not move */
+  box-sizing: content-box;
+  padding-top: var(--s-4);
+}
+
+/* Where the hero is wide enough that the dock cannot reach the composer
+   (660px, centred) beside it, pin it to the corner again: there it costs the
+   hero no height, so a laptop-height screen does not scroll to show it. Below
+   these widths the in-flow rule above holds. The thresholds are where the
+   dock's left edge clears the composer's right edge with a margin to spare:
+   a 124px row needs ~908px of hero, a 36px column ~732px. The queries ask
+   for 944 and 784, which leave the dock at least 18px clear and no more
+   than that, so a classic scrollbar appearing (~15px narrower) does not
+   drop a pinned dock back into flow. */
+@container (min-width: 944px) {
+  .dock--corner[data-axis="row"] {
+    position: absolute;
+    right: var(--s-5);
+    bottom: var(--s-5);
+    margin: 0;
+    padding: 0;
+  }
+}
+
+@container (min-width: 784px) {
+  .dock--corner[data-axis="column"] {
+    position: absolute;
+    right: var(--s-5);
+    bottom: var(--s-5);
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* A phone gets the row above the composer instead. The corner dock is hidden
+   here too, for the render before `Chat` has learned it is on a phone. */
+@media (max-width: 767px) {
+  .dock--corner {
+    display: none;
+  }
+}
+
+/* Phone: in flow, right-aligned, above the composer. */
+.dock--above {
+  margin: 0 0 var(--s-3) auto;
+}
+
+/* Both layers are square, the span on each side, whichever way the dock
+   runs. The goo filter's region is a box around the layer it is on, and an
+   icon swinging from a row slot to a column slot travels through the square;
+   a layer sized to the row would clip it mid-flight. */
+.dock__blobs,
+.dock__ink {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: var(--span);
+  height: var(--span);
+  pointer-events: none;
+}
+
+/* the outer element carries the position, which while a row
+   is held is pinned to the finger and must never ease */
+.dock__blob,
+.dock__link {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: var(--size);
+  height: var(--size);
+  /* transform is Framer's now — a CSS transition on the same
+     property re-interpolates every frame the spring writes, and
+     what you see is the easing, not the spring. */
+}
+
+/* and the inner one carries the deformation, which must */
+.dock__skin {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  /* the icons' own circle colour, so at rest the blob is invisible under its
+     icon and the goo only shows where it reaches past it */
+  background: var(--cream);
+  transition: background-color 220ms var(--ease);
+}
+
+.dock__blob[data-held] .dock__skin {
+  background: var(--lift);
+}
+
+.dock__link {
+  display: block;
+  border-radius: 999px;
+  pointer-events: auto;
+  touch-action: none;
+  cursor: pointer;
+}
+
+/* pinned to the finger, and the one thing on the stage that
+   is fully present while it is held */
+.dock__link[data-held] {
+  cursor: grabbing;
+  z-index: 2;
+}
+
+.dock__link img {
+  /* the link, not the picture, is the pointer target — touch and pen capture
+     to whatever was pressed, and a capture handed from the img to the link
+     fires lostpointercapture, which ended every touch drag a frame in */
+  pointer-events: none;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ── the goo's defs hold nothing you can see ────────────────
+   `useGoo` renders an <svg> carrying a <defs> and nothing
+   else, and an <svg> with no dimensions is a replaced element:
+   the browser gives it the default 300x150 and puts it in the
+   flow. Every block that mounts one has been carrying an
+   invisible 300x150 box ever since — harmless in the fixed-size
+   relative stages that host most of them, and not harmless in
+   a flex column, where it over-subscribed the container and
+   shrank the palette's swatch row from 132 to 64.
+
+   Nothing inside a <defs> is rendered, so taking the element
+   out of flow entirely costs nothing and is what it always
+   wanted. */
+.liq-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
 }

@@ -21,8 +21,13 @@ import {
   OTP,
   type OtpDoc,
 } from "../src/lib/community/otp-rules";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { dailySlot, otpDailyMax, otpDailyPerCallerMax, otpDailyPoolMax, secondsToUtcMidnight } from "../src/lib/community/otp";
+import { otpEmail } from "../src/lib/community/otp-email";
 import { RATE_LIMIT } from "../src/lib/rate-limit";
+import { SOCIALS } from "../src/lib/social";
 import { normalizeEmail, validateProof, validateSubmission } from "../src/lib/community/schema";
 
 let failed = 0;
@@ -214,6 +219,54 @@ check("otpDailyPoolMax: a day of zero is a pool of zero", otpDailyPoolMax() === 
 process.env.OTP_DAILY_MAX = "4";
 check("otpDailyPoolMax: it floors rather than rounding past the day", otpDailyPoolMax() === 3);
 delete process.env.OTP_DAILY_MAX;
+
+// --- the email ---------------------------------------------------------------
+const mail = otpEmail("042917");
+const minutes = OTP.lifeMs / 60_000;
+check("email: subject carries the code", mail.subject === "Your Kranti Cookbook code: 042917");
+check("email: html carries the code", mail.html.includes("042917"));
+check("email: text carries the code", mail.text.includes("042917"));
+check(
+  "email: expiry follows OTP.lifeMs in both parts",
+  mail.html.includes(`expires in ${minutes} minutes`) && mail.text.includes(`expires in ${minutes} minutes`),
+);
+check("email: no script", !/<script/i.test(mail.html));
+const hrefs = [...mail.html.matchAll(/href="([^"]+)"/g)].map((m) => m[1]);
+check("email: every link is https", hrefs.length > 0 && hrefs.every((h) => h.startsWith("https://")));
+check(
+  "email: every social link, in both parts",
+  SOCIALS.every((s) => hrefs.includes(s.href) && mail.text.includes(s.href)),
+);
+const imgs = [...mail.html.matchAll(/<img\b[^>]*>/g)].map((m) => m[0]);
+check("email: four images — the logo and three icons", imgs.length === 4);
+check(
+  "email: every image is an absolute https png with alt text",
+  imgs.every((t) => /src="https:\/\/[^"]+\.png"/.test(t) && /alt="[^"]+"/.test(t)),
+);
+const PNG_SIG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+const fileOf = (t: string) => {
+  const src = /src="([^"]+)"/.exec(t)?.[1];
+  return src ? join("public", new URL(src).pathname) : "";
+};
+check(
+  "email: every image is a png under public/, at twice its display size",
+  imgs.every((t) => {
+    const file = fileOf(t);
+    if (!file || !existsSync(file)) return false;
+    const buf = readFileSync(file);
+    const w = Number(/\swidth="(\d+)"/.exec(t)?.[1]);
+    const h = Number(/\sheight="(\d+)"/.exec(t)?.[1]);
+    // the height is rounded from the file's aspect, so it may sit half a pixel off
+    return buf.subarray(0, 8).equals(PNG_SIG) && buf.readUInt32BE(16) === 2 * w && Math.abs(buf.readUInt32BE(20) - 2 * h) <= 1;
+  }),
+);
+check(
+  "email: the images stay light",
+  imgs.reduce((n, t) => n + (existsSync(fileOf(t)) ? readFileSync(fileOf(t)).length : Infinity), 0) < 60_000,
+);
+check("email: under Gmail's clipping size", Buffer.byteLength(mail.html) < 100_000);
+const hostile = otpEmail("<x>");
+check("email: interpolations are escaped", hostile.html.includes("&lt;x&gt;") && !hostile.html.includes("<x>"));
 
 if (failed > 0) {
   console.error(`\ncheck-otp: ${failed} failure(s)`);

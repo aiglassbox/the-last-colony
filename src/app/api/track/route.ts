@@ -46,6 +46,7 @@ const ALLOWED: AnalyticsEvent[] = [
   "qr_entry",
   "recipe_entry_pressed",
   "recipe_step",
+  "social_clicked",
 ];
 
 /**
