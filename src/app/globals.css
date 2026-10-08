@@ -378,11 +378,19 @@ body {
   flex-direction: column;
 }
 
+/* Scrolls with no bar at all: the recents are a short list of titles, and any
+   track on the rail read as clutter. Same as the composer field. */
 .sidebar__scroll {
   flex: 1 1 auto;
   overflow-y: auto;
   min-height: 0;
   width: 100%;
+  scrollbar-width: none;
+}
+
+.sidebar__scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .side-list {
@@ -1636,25 +1644,22 @@ body {
   padding: var(--s-4) var(--s-5) var(--s-6);
 }
 
-/* The cream plate's scrollers (the drawer body, the rail's recents and the
-   modal) get a thin --on-cream thumb instead of the platform's grey bar, the
-   one grey object on the cream. The text-field scrollbar is hidden. Scrollers
-   on the green ground keep the platform default. */
+/* The cream plate's dialogs (the drawer body and the modal) get a thin
+   --on-cream thumb instead of the platform's grey bar, the one grey object on
+   the cream. The rail's recents and the text field hide theirs. Scrollers on
+   the green ground keep the platform default. */
 .drawer__body,
-.sidebar__scroll,
 .modal {
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, var(--on-cream) 34%, transparent) transparent;
 }
 
 .drawer__body::-webkit-scrollbar,
-.sidebar__scroll::-webkit-scrollbar,
 .modal::-webkit-scrollbar {
   width: 10px;
 }
 
 .drawer__body::-webkit-scrollbar-thumb,
-.sidebar__scroll::-webkit-scrollbar-thumb,
 .modal::-webkit-scrollbar-thumb {
   border: 3px solid transparent;
   border-radius: 999px;

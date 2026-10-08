@@ -1203,9 +1203,11 @@ them, where an auto table splits it by content and pushes the card off centre.
 Each side cell centres its content both ways. One media query stacks the three
 on a phone and shrinks the logo back.
 
-**The cream plate's scrollers share one scrollbar.** The platform's grey
-scrollbar was the one grey object on the cream plate. The drawer body, the
-rail's recents (`.sidebar__scroll`) and the modal (`.modal`) now share a thin
-`--on-cream` thumb, by adding them to the same rule rather than copying it. The
+**The cream plate's scrollers.** The platform's grey scrollbar was the one
+grey object on the cream plate. The drawer body and the modal (`.modal`) share
+a thin `--on-cream` thumb, by adding them to the same rule rather than copying
+it. The rail's recents (`.sidebar__scroll`) show no scrollbar at all, at the
+owner's call (2026-10-08): the thin thumb was tried there first, and any track
+on the rail read as clutter; the list still scrolls by wheel and touch. The
 text-field scrollbar stays hidden, and scrollers on the green ground keep the
 platform default.
