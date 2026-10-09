@@ -1250,3 +1250,93 @@ each email; the templates only lay it out.
 green by `scripts/make-email-assets.ts`, so they sit on the emails' flat
 greens and creams with no textured rectangle around them. The hero keeps
 its painted green sky, which matches the page green it sits on.
+
+## Mailroom (sending the recipe emails) — settled 2026-10-09
+
+`/mailroom` is a page behind its own password (`MAILROOM_PASSWORD`, 404 when
+unset, like `/kitchen`, `/pantry` and `/recipe-box`) with three tabs: Write
+(pick one of the nine emails, fill it, preview it, send it), Sent (the log and
+"Send the rest") and Opt-outs. It sends the part 1 templates through
+`fillTemplate` and nothing else. The plan is Resend's free tier, 100 emails a
+day.
+
+**Our own sender, not Resend Broadcasts.** Broadcasts would take a list but
+lose the nine designed templates (they would have to be rebuilt in Resend's
+editor) and our own log, and each email needs that person's own unsubscribe
+link. An automatic drip queue would send big lists unattended, but it needs a
+scheduler the project does not have. Instead the operator presses send, and
+"Send the rest" covers whatever the day's allowance left waiting.
+
+**The 70/25 split.** Verification codes may use 70 sends a day
+(`OTP_DAILY_MAX`, down from 90) and the mailroom 25 (`MAILROOM_DAILY_MAX`),
+automatic `received` included. Together that is 95, under the free 100, so a
+busy day of recipe emails can never starve the codes that let people submit.
+Both are settings; raise them when the plan does.
+
+**The log stores addresses.** The owner asked to see who was sent what. The
+launch campaign's tracker deliberately kept no addresses, but that was a click
+log; this is an operator tool behind its own password, and a mailroom session
+opens no other door. `mail_sends` holds one row per attempt, `mail_batches` the
+filled values (so "Send the rest" repeats a send exactly), `mail_contacts` the
+unsubscribe tokens and opt-outs, and `mail_settings` the saved automatic
+`received` text. Submitters' addresses are read from Atlas by submission id,
+never from the form, and only submissions whose address was verified by code
+can be chosen.
+
+**An opt-out stops list emails only.** `add-your-recipe`,
+`tell-everyone-the-story` and `anniversary` skip an opted-out address. The
+emails about a person's own submission (`received`, `published`, `milestone`,
+the three `needs-changes`) still go: they asked for those by submitting.
+
+**Unsubscribe tokens are random and permanent.** One per address, 24 base64url
+characters from the random source, stored beside the address. Nothing is
+derived from the address, so there is no secret whose rotation would break old
+links, and a token cannot be worked out from an address.
+
+**The one-click POST always answers 200.** Gmail's and Yahoo's button posts to
+`/api/unsubscribe?u=<token>`. It answers 200 whatever the token, so the
+endpoint does not tell a scanner which tokens exist. The footer link opens the
+extended `/unsubscribe` page.
+
+**The launch campaign's opt-outs are imported once.** Its suppressions were
+stored by `tid` with no address, so they cannot be matched against the list.
+The operator pastes those addresses into the Opt-outs tab once, and they join
+the skip list for good, marked as the launch import. `/unsubscribe?t=…` keeps
+working as before.
+
+**The automatic `received`.** It goes out from the submission route in its own
+`after()`, separate from the recipe check, so one cannot hold up or break the
+other. It is off until its text has been saved in the page and switched on;
+nothing goes out by itself with empty text. It never throws: a failure is
+logged and the submission is unaffected. At the daily limit it is skipped and
+logged, because it is the least important email.
+
+**The allowance is re-read before every send, and each row is claimed.** The
+plan reserved a batch's share of the allowance once, up front. Instead the
+count is read again before every Resend call, and each waiting row is claimed
+atomically (`claimWaiting`) before it is sent. Overlapping sends (two tabs,
+"Send the rest" pressed during a send, an automatic `received` arriving
+mid-list) can then overshoot by at most the sends in flight, not by a whole
+batch, which protects the verification codes' share. Sends are spaced 500 ms
+apart for Resend's per-second rate limit.
+
+**A list send is logged before it starts.** The route writes every address to
+the log in two bulk inserts, opted-out ones first and then the waiting ones,
+before the first send, and then drains the batch with the same loop "Send the
+rest" uses. If the route's time limit cuts a send off, the addresses it did not
+reach are still there as waiting and can be sent later.
+
+**Try-it types, never sends.** `published` and `tell-everyone-the-story` link
+to `/?q=<question>`, which puts the question in the chat box and nothing more:
+the reader presses send, so a link scanner that opens the link costs no model
+call. It is capped at 200 characters, treated as plain text, and removed from
+the address bar once typed. It is read in the browser, so `/` stays a static
+page. The Write tab warns, without blocking, when an edited question no longer
+holds the recipe's name or one of its stored spellings, since Kranti finds a
+community recipe by that name.
+
+**Templates are read from disk and traced.** `email-templates/` is read with
+`process.cwd()`, as the corpus is, and `outputFileTracingIncludes` in
+`next.config.ts` ships the nine files with the mailroom routes and
+`/api/submissions`. After `next build` they are checked in both routes' trace
+files.
