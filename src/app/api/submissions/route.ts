@@ -6,6 +6,7 @@ import { consumeVerification, releaseVerification } from "@/lib/community/otp";
 import { moderate } from "@/lib/community/pipeline";
 import { MAX_BODY_BYTES, validateProof, validateSubmission } from "@/lib/community/schema";
 import { geoFrom } from "@/lib/events/geo";
+import { sendAutoReceived } from "@/lib/mailroom/send";
 import { checkRate, clientKey } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -88,6 +89,12 @@ export async function POST(request: NextRequest) {
     const verdict = await moderate(checked.value);
     if (verdict) await applyVerdict(id, verdict);
   });
+
+  /* The automatic thank-you, in its own `after` so a slow verdict never
+     delays it and a failed email never touches the verdict. It sends only
+     what the operator saved in /mailroom, within the day's allowance, and
+     never throws. */
+  after(() => sendAutoReceived(checked.value.contact, checked.value.display_name, checked.value.recipe_name));
 
   return Response.json({ ok: true }, { status: 201 });
 }

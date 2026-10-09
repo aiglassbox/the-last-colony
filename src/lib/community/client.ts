@@ -4,6 +4,7 @@ import type { Geo } from "../events/geo";
 import type { TranslatedFields } from "./card";
 import { matchedPhrase, pickCommunity, pickDish, type CommunityMatch } from "./match";
 import { dishTag, normalizeDish } from "./normalize";
+import type { MailPick } from "../mailroom/draft";
 import type { Verdict } from "./pipeline";
 import type { Extracted, SubmissionInput } from "./schema";
 
@@ -794,6 +795,94 @@ export async function submissionRows(since: Date | null): Promise<SubmissionRow[
     }));
   } catch (error) {
     console.error("[community] submission rows failed:", error);
+    return null;
+  }
+}
+
+/**
+ * A submission as the mailroom reads it: who to write to, and what to call
+ * the recipe. Behind the mailroom's own password, so the contact is
+ * included; no story, method or photo is projected.
+ */
+const MAIL_PROJECTION = {
+  status: 1,
+  created_at: 1,
+  published_at: 1,
+  contact_verified_at: 1,
+  "submission.recipe_name": 1,
+  "submission.display_name": 1,
+  "submission.state": 1,
+  "submission.belongs_to": 1,
+  "submission.belongs_to_other": 1,
+  "submission.contact": 1,
+  dish: 1,
+} as const;
+
+function toMailPick(d: SubmissionDoc): MailPick {
+  const s = d.submission;
+  return {
+    id: String(d._id),
+    recipe_name: s.recipe_name,
+    display_name: s.display_name,
+    state: s.state,
+    belongs_to: s.belongs_to === "other" ? (s.belongs_to_other ?? "") : s.belongs_to,
+    tag: d.dish?.tag ?? "",
+    aliases: d.dish?.aliases ?? [],
+    contact: s.contact ? s.contact : null,
+    verified: Boolean(d.contact_verified_at),
+    status: d.status,
+    published: d.status === "green" && Boolean(d.published_at),
+    created_at: d.created_at.toISOString(),
+  };
+}
+
+/** Submissions a submitter email can go to: a verified contact, newest first. Null when the store is down. */
+export async function mailPicks(limit = 200): Promise<MailPick[] | null> {
+  const db = await communityDb();
+  if (!db) return null;
+  try {
+    const docs = await db
+      .collection<SubmissionDoc>(SUBMISSIONS)
+      .find({ contact_verified_at: { $exists: true } }, { projection: MAIL_PROJECTION, maxTimeMS: 2000 })
+      .sort({ created_at: -1 })
+      .limit(limit)
+      .toArray();
+    return docs.map(toMailPick);
+  } catch (error) {
+    console.error("[community] mail picks failed:", error);
+    return null;
+  }
+}
+
+/** One submission by id, for the sender: the address is read here, never from the form. */
+export async function mailPick(id: string): Promise<MailPick | null> {
+  const _id = hexId(id);
+  if (!_id) return null;
+  const db = await communityDb();
+  if (!db) return null;
+  try {
+    const doc = await db.collection<SubmissionDoc>(SUBMISSIONS).findOne({ _id }, { projection: MAIL_PROJECTION, maxTimeMS: 2000 });
+    return doc ? toMailPick(doc) : null;
+  } catch (error) {
+    console.error("[community] mail pick failed:", error);
+    return null;
+  }
+}
+
+/** Live recipes, newest published first: the tell-everyone picker and the sender's check that each is still live. */
+export async function publishedPicks(limit = 200): Promise<MailPick[] | null> {
+  const db = await communityDb();
+  if (!db) return null;
+  try {
+    const docs = await db
+      .collection<SubmissionDoc>(SUBMISSIONS)
+      .find({ status: "green", published_at: { $exists: true } }, { projection: MAIL_PROJECTION, maxTimeMS: 2000 })
+      .sort({ published_at: -1 })
+      .limit(limit)
+      .toArray();
+    return docs.map(toMailPick);
+  } catch (error) {
+    console.error("[community] published picks failed:", error);
     return null;
   }
 }

@@ -154,16 +154,17 @@ check("consume: no document", !canConsume(null, "a@b.com", proof, at(70)));
 // person, so the default sits under the provider's own hundred a day and our
 // refusal comes first.
 delete process.env.OTP_DAILY_MAX;
-check("otpDailyMax: unset means 90", otpDailyMax() === 90);
+check("otpDailyMax: unset means 70", otpDailyMax() === 70);
+check("otpDailyMax: with the mailroom's 25, the default stays under Resend's 100", otpDailyMax() + 25 <= 95);
 check("otpDailyMax: the default leaves headroom under Resend's 100 a day", otpDailyMax() < 100);
 process.env.OTP_DAILY_MAX = "0";
 check("otpDailyMax: 0 refuses every send", otpDailyMax() === 0);
 process.env.OTP_DAILY_MAX = "  250 ";
 check("otpDailyMax: trimmed number", otpDailyMax() === 250);
 process.env.OTP_DAILY_MAX = "abc";
-check("otpDailyMax: garbage means 90", otpDailyMax() === 90);
+check("otpDailyMax: garbage means 70", otpDailyMax() === 70);
 process.env.OTP_DAILY_MAX = "-5";
-check("otpDailyMax: negative means 90", otpDailyMax() === 90);
+check("otpDailyMax: negative means 70", otpDailyMax() === 70);
 delete process.env.OTP_DAILY_MAX;
 
 // --- and the per-caller ceiling beside it -------------------------------------
@@ -213,7 +214,7 @@ check("dailySlot: the pool is keyed like any other caller", dailySlot(noon, RATE
 // can tell apart, so it has to sit under the global figure.
 check("otpDailyPoolMax: a pool is not held to one caller's allowance", otpDailyPoolMax() > otpDailyPerCallerMax());
 check("otpDailyPoolMax: the pool cannot take the whole day", otpDailyPoolMax() < otpDailyMax());
-check("otpDailyPoolMax: the default leaves a quarter of the day for identified callers", otpDailyPoolMax() === 67);
+check("otpDailyPoolMax: the default leaves a quarter of the day for identified callers", otpDailyPoolMax() === 52);
 process.env.OTP_DAILY_MAX = "0";
 check("otpDailyPoolMax: a day of zero is a pool of zero", otpDailyPoolMax() === 0);
 process.env.OTP_DAILY_MAX = "4";

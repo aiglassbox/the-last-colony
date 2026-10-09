@@ -72,13 +72,13 @@ function utcDay(now: Date): string {
  * Blast-radius ceiling on codes sent per UTC day across everybody — not a
  * per-person limit, which is the cooldown and the cap in `otp-rules.ts`. It
  * sits under Resend's own hundred a day so our refusal comes first, with
- * headroom left for the day's other mail. Read per call so a test can set it.
+ * the mailroom's 25 (`MAILROOM_DAILY_MAX`) beside it, the two together at 95. Read per call so a test can set it.
  * `0` refuses every send; unset or unparseable means the default.
  */
 export function otpDailyMax(): number {
   const raw = process.env.OTP_DAILY_MAX?.trim();
-  const n = raw ? Number(raw) : 90;
-  return Number.isFinite(n) && n >= 0 ? n : 90;
+  const n = raw ? Number(raw) : 70;
+  return Number.isFinite(n) && n >= 0 ? n : 70;
 }
 
 /**

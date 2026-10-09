@@ -1,0 +1,570 @@
+/*
+  The mailroom: forms on the kitchen's surface.
+
+  The kitchen shell has panels, tables and one password box, but no forms. This
+  file adds what the mailroom's forms need: labels and hints, fields, check
+  boxes, a switch, disabled and focus states for the kitchen's two buttons
+  (`.k-button` is the quiet one, `.k-button--primary` the loud one), the error,
+  warning and result boxes, and the sealed preview frame with its width toggle.
+  Then the layouts: the Write tab's, and the small forms on Sent and Opt-outs.
+
+  Every colour is a kitchen token from `kitchen.css`, at most mixed down with
+  transparency. Everything is scoped under `.kitchen`, like the shell itself.
+*/
+
+/* ------------------------------------------------------------- fields --- */
+
+.kitchen .mr-field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.kitchen .mr-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s-3);
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+
+.kitchen .mr-hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink-3);
+}
+
+.kitchen .mr-count {
+  font-size: 11.5px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Native pickers, scrollbars and check marks drawn for a dark surface. */
+.kitchen .k-input,
+.kitchen .mr-check input {
+  color-scheme: dark;
+}
+
+.kitchen textarea.k-input {
+  resize: vertical;
+  min-height: 5.5em;
+  line-height: 1.55;
+}
+
+.kitchen select.k-input {
+  cursor: pointer;
+}
+
+.kitchen .k-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ------------------------------------------------- checks and the switch --- */
+
+.kitchen .mr-check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-2);
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.kitchen .mr-check input {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  margin: 3px 0 0;
+  accent-color: var(--brand);
+  cursor: inherit;
+}
+
+.kitchen .mr-check:has(input:disabled) {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.kitchen .mr-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.kitchen .mr-switch input {
+  appearance: none;
+  flex: none;
+  position: relative;
+  width: 34px;
+  height: 20px;
+  margin: 0;
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  cursor: inherit;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.kitchen .mr-switch input::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--ink-3);
+  transition: transform 0.15s;
+}
+
+.kitchen .mr-switch input:checked {
+  background: var(--brand);
+  border-color: var(--brand);
+}
+
+.kitchen .mr-switch input:checked::after {
+  transform: translateX(14px);
+  background: var(--plane);
+}
+
+.kitchen .mr-switch:has(input:disabled) {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ------------------------------------------------------------ buttons --- */
+
+.kitchen .k-button:disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.kitchen .k-button:focus-visible,
+.kitchen .k-thread:focus-visible,
+.kitchen .mr-seg button:focus-visible,
+.kitchen .mr-switch input:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+/* ------------------------------------------- error, warning, result --- */
+
+.kitchen .mr-alert,
+.kitchen .mr-warn,
+.kitchen .mr-banner {
+  margin: 0;
+  padding: 9px 12px;
+  border-left: 2px solid;
+  border-radius: 0 var(--r) var(--r) 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.kitchen .mr-alert {
+  border-left-color: var(--critical);
+  background: color-mix(in srgb, var(--critical) 12%, transparent);
+}
+
+.kitchen .mr-warn {
+  border-left-color: var(--warning);
+  background: color-mix(in srgb, var(--warning) 10%, transparent);
+}
+
+.kitchen .mr-banner {
+  border-left-color: var(--good);
+  background: color-mix(in srgb, var(--good) 10%, transparent);
+  display: grid;
+  gap: 6px;
+}
+
+.kitchen .mr-banner--bad {
+  border-left-color: var(--critical);
+  background: color-mix(in srgb, var(--critical) 10%, transparent);
+}
+
+.kitchen .mr-banner p {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.kitchen .mr-banner ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--ink-2);
+}
+
+.kitchen .mr-banner a {
+  color: var(--brand);
+  justify-self: start;
+}
+
+/* ------------------------------------------------------ preview frame --- */
+
+.kitchen .mr-seg {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.kitchen .mr-seg__opts {
+  display: inline-flex;
+  border: 1px solid var(--rule);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+
+.kitchen .mr-seg button {
+  appearance: none;
+  font: inherit;
+  font-size: 12px;
+  padding: 5px 11px;
+  border: 0;
+  border-right: 1px solid var(--rule);
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+
+.kitchen .mr-seg button:last-child {
+  border-right: 0;
+}
+
+.kitchen .mr-seg button:hover {
+  background: color-mix(in srgb, var(--brand) 8%, transparent);
+  color: var(--ink);
+}
+
+.kitchen .mr-seg button[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--brand) 16%, transparent);
+  color: var(--brand);
+}
+
+/* The email sits on the plane, like a letter on a desk, at the width it
+   will be read at. Its own scrollbar, so a long one doesn't push the
+   buttons off the screen. */
+.kitchen .mr-stage {
+  display: flex;
+  justify-content: center;
+  overflow-x: auto;
+  padding: var(--s-4);
+  background: var(--plane);
+  border: 1px solid var(--rule);
+  border-radius: var(--r);
+}
+
+.kitchen .mr-frame {
+  display: block;
+  max-width: 100%;
+  height: min(1000px, 80dvh);
+  min-height: 520px;
+  border: 1px solid var(--grid);
+  border-radius: var(--r);
+  background: var(--ink);
+}
+
+/* --------------------------------------------------------- Write tab --- */
+
+.kitchen .mr-write {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: var(--s-3);
+  margin-top: var(--s-4);
+  align-items: start;
+}
+
+.kitchen .mr-picker {
+  position: sticky;
+  top: var(--s-4);
+  gap: var(--s-4);
+}
+
+.kitchen .mr-folder,
+.kitchen .mr-form,
+.kitchen .mr-section {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.kitchen .mr-folder {
+  display: grid;
+  gap: 1px;
+}
+
+.kitchen .mr-folder > legend {
+  padding: 0 0 6px 12px;
+}
+
+/* An email in the picker: the kitchen's selected-thread treatment, so it
+   reads as one of the shell's lists rather than a new control. */
+.kitchen .mr-email {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  padding: 7px 10px;
+  border-left: 2px solid transparent;
+  border-radius: 0 var(--r) var(--r) 0;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.kitchen .mr-email:hover {
+  background: color-mix(in srgb, var(--brand) 7%, transparent);
+}
+
+.kitchen .mr-email:has(input:checked) {
+  background: color-mix(in srgb, var(--brand) 12%, transparent);
+  border-left-color: var(--brand);
+  color: var(--ink);
+}
+
+.kitchen .mr-email:has(input:disabled) {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+.kitchen .mr-email:has(input:focus-visible) {
+  outline: 2px solid var(--brand);
+  outline-offset: -2px;
+}
+
+.kitchen .mr-email__name {
+  font-size: 13px;
+}
+
+.kitchen .mr-email__use {
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--ink-3);
+}
+
+.kitchen .mr-compose {
+  display: grid;
+  gap: var(--s-3);
+  min-width: 0;
+}
+
+.kitchen .mr-compose__title {
+  margin: 0 0 2px;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--brand);
+}
+
+.kitchen .mr-form {
+  display: grid;
+  gap: var(--s-6);
+  margin-top: var(--s-2);
+}
+
+/* A legend sits outside its fieldset's grid, so it takes a margin, not the gap. */
+.kitchen .mr-section {
+  display: grid;
+  gap: var(--s-3);
+}
+
+.kitchen .mr-section > legend {
+  padding: 0;
+  margin-bottom: var(--s-3);
+}
+
+.kitchen .mr-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-3);
+}
+
+.kitchen .mr-wide {
+  grid-column: 1 / -1;
+}
+
+.kitchen .mr-who {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: var(--s-5);
+  align-items: start;
+}
+
+.kitchen .mr-person {
+  display: grid;
+  gap: var(--s-3);
+}
+
+.kitchen .mr-picklist {
+  max-height: 340px;
+  overflow-y: auto;
+  border: 1px solid var(--grid);
+  border-radius: var(--r);
+  padding: 2px 0;
+}
+
+.kitchen .mr-contact {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+
+.kitchen .mr-status--published { color: var(--good); }
+.kitchen .mr-status--cleared { color: var(--ink-2); }
+.kitchen .mr-status--rejected { color: var(--critical); }
+.kitchen .mr-status--pending { color: var(--ink-3); }
+
+.kitchen .mr-message {
+  min-height: 14em;
+}
+
+.kitchen .mr-recipe {
+  display: grid;
+  gap: var(--s-2);
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--grid);
+}
+
+.kitchen .mr-recipe:last-child {
+  border-bottom: 0;
+}
+
+.kitchen .mr-recipe .mr-field {
+  padding-left: 23px;
+}
+
+.kitchen .mr-recipe__from {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.kitchen .mr-order {
+  margin-left: auto;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+}
+
+.kitchen .mr-meta {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.kitchen .mr-meta__key {
+  color: var(--ink-3);
+  margin-right: 4px;
+}
+
+.kitchen .mr-preview {
+  display: grid;
+  gap: var(--s-3);
+  margin-top: var(--s-2);
+}
+
+.kitchen .mr-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-3);
+  margin-top: var(--s-5);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--rule);
+}
+
+.kitchen .mr-actions + .mr-alert,
+.kitchen .mr-compose .mr-banner {
+  margin-top: var(--s-3);
+}
+
+.kitchen .mr-allowance {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.kitchen .mr-confirm {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.kitchen .mr-auto .mr-form {
+  gap: var(--s-3);
+}
+
+@media (max-width: 1080px) {
+  .kitchen .mr-who { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 900px) {
+  .kitchen .mr-write { grid-template-columns: minmax(0, 1fr); }
+  .kitchen .mr-picker { position: static; }
+}
+
+@media (max-width: 620px) {
+  .kitchen .mr-pair { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ---------------------------------------------- Sent and Opt-outs tabs --- */
+
+.kitchen .mr-import {
+  display: grid;
+  gap: 6px;
+  max-width: 640px;
+}
+
+.kitchen .mr-import__row,
+.kitchen .mr-inline {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-3);
+}
+
+.kitchen .mr-import__row {
+  margin-top: var(--s-2);
+}
+
+.kitchen .mr-inline__note {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.kitchen .mr-inline__note.k-error {
+  margin: 0;
+  color: var(--critical);
+}
+
+.kitchen .mr-search {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.kitchen .mr-search__label {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.kitchen .mr-search .k-input {
+  width: 220px;
+  padding: 5px 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kitchen .mr-switch input,
+  .kitchen .mr-switch input::after {
+    transition: none;
+  }
+}

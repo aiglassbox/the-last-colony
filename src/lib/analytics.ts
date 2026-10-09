@@ -47,13 +47,13 @@ export type EventProps = Record<string, string | number | boolean | null>;
 /**
  * Paths no third-party tag may load on, and the first-party visit beacon skips.
  *
- * `/kitchen`, `/pantry` and `/recipe-box` so the dashboards do not appear in
+ * `/kitchen`, `/pantry`, `/recipe-box` and `/mailroom` so the dashboards do not appear in
  * their own numbers (AGENTS.md, "Reading the numbers"). `/unsubscribe` because its URL
  * carries the per-recipient token, and a page-view sent with the full URL
  * hands that token to Google and Meta — the same leak `/r` closes with a
  * no-referrer header. One predicate, so the three trackers cannot drift.
  */
-export const UNTRACKED_PATH = /^\/(kitchen|pantry|recipe-box|unsubscribe)(\/|$)/;
+export const UNTRACKED_PATH = /^\/(kitchen|pantry|recipe-box|mailroom|unsubscribe)(\/|$)/;
 
 export function track(event: AnalyticsEvent, props: EventProps = {}): void {
   const payload = { event, ...props };

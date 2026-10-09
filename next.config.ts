@@ -17,6 +17,13 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // The mailroom reads the nine recipe emails from email-templates/ at run
+  // time (`lib/mailroom/templates.ts`), and nothing imports them, so tracing
+  // cannot find them by itself. Both routes that send must carry them.
+  outputFileTracingIncludes: {
+    "/mailroom/api/mail": ["./email-templates/**/*"],
+    "/api/submissions": ["./email-templates/**/*"],
+  },
 };
 
 export default nextConfig;

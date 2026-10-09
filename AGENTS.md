@@ -85,7 +85,7 @@ Two things to keep true when touching either:
 
 1. **The dashboard must not appear in its own numbers.** `VisitTracker`, the
    Meta Pixel and Google Analytics all skip `UNTRACKED_PATH`
-   (`lib/analytics.ts`): `/kitchen`, `/pantry`, `/recipe-box`. They live in the
+   (`lib/analytics.ts`): `/kitchen`, `/pantry`, `/recipe-box`, `/mailroom`. They live in the
    root layout, so without that guard every look at the graphs writes a row
    into the graphs.
 2. **Painted neighbours must be palette neighbours.** The chart colours in
@@ -105,6 +105,17 @@ submitter detail stays behind `/pantry`. Its submissions tab reads the Atlas
 store through `submissionRows` in `lib/community/client.ts`, always excluding
 the twelve `Arpit's Agent` seed rows. Its reach tab reads chat's
 `community_served` events.
+
+`/mailroom` writes and sends the nine recipe emails in `email-templates/`, behind
+its own password in `MAILROOM_PASSWORD` with the same 404-when-unset posture. It
+reads submitters' addresses from Atlas by id (never from the form), fills every
+email through `fillTemplate`, builds every link on the server, and logs every
+attempt in Neon (`mail_sends`), addresses included, which is why it has its own
+door. Its daily allowance (`MAILROOM_DAILY_MAX`, 25) and the code email's
+(`OTP_DAILY_MAX`, 70) together stay under Resend's free 100. An opt-out
+(`mail_contacts`) stops list emails only. `received` also goes out
+automatically from the submission route, but only once its text is saved and
+switched on in the page.
 
 ## Before you push
 

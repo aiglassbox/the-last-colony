@@ -41,6 +41,8 @@ export default function robots(): MetadataRoute.Robots {
         "/pantry",
         // The recipe box: same again.
         "/recipe-box",
+        // The mailroom: same again.
+        "/mailroom",
       ],
     },
     sitemap: `${siteUrl()}/sitemap.xml`,
