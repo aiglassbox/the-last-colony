@@ -174,6 +174,26 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
     };
   }, []);
 
+  // A Try-it link from a recipe email (`/?q=…`) types its question into the
+  // box and stops there: the reader presses send, so a link scanner opening
+  // it costs nothing. Read in the browser so `/` stays a static page, and taken
+  // out of the address bar so a refresh does not type it again.
+  useEffect(() => {
+    if (initialSlug) return;
+    const url = new URL(window.location.href);
+    const question = url.searchParams.get("q")?.trim();
+    if (!question) return;
+    // Deferred a tick, as the auto-send below is, rather than set in the
+    // effect body; the cleanup keeps a strict-mode re-run from typing it twice.
+    const id = setTimeout(() => {
+      setInput(question.slice(0, 200));
+      url.searchParams.delete("q");
+      window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+      promptRef.current?.focus();
+    }, 0);
+    return () => clearTimeout(id);
+  }, [initialSlug]);
+
   // ---- scrolling ----------------------------------------------------------
 
   /**
