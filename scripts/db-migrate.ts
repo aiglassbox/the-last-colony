@@ -14,6 +14,7 @@ import { neon } from "@neondatabase/serverless";
 
 import { ensureEmailTables } from "../src/lib/email/schema";
 import { ensureEventTables } from "../src/lib/events/schema";
+import { ensureMailTables } from "../src/lib/mailroom/schema";
 
 async function main(): Promise<void> {
   const url = process.env.DATABASE_URL || process.env.Last_Colony_DATABASE_URL;
@@ -57,6 +58,9 @@ async function main(): Promise<void> {
 
   // Same again for the event log, which `recordEvent` also heals on demand.
   await ensureEventTables(sql);
+
+  // The mailroom's log, batches, opt-outs and settings; the store also creates them on first use.
+  await ensureMailTables(sql);
 
   const [{ count }] = await sql`select count(*)::int as count from conversations`;
   console.log(`conversations table ready — ${count} row${count === 1 ? "" : "s"}`);
