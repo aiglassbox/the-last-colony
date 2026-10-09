@@ -3,10 +3,14 @@ import { headers } from "next/headers";
 import Link from "next/link";
 
 import { suppress } from "@/lib/email/track";
+import { optOutByToken } from "@/lib/mailroom/store";
 import { checkRate, clientKeyFromHeaders } from "@/lib/rate-limit";
 
 /**
- * GET /unsubscribe?t=<tid>
+ * GET /unsubscribe?t=<tid> or /unsubscribe?u=<token>
+ *
+ * `t` is the launch campaign's token; `u` is the mailroom's permanent
+ * per-address token. If both are present `u` wins: only mailroom links carry it.
  *
  * A legal and deliverability requirement, not a feature, so it is deliberately
  * the plainest page on the site: no confirmation step, no preference centre, no
@@ -44,8 +48,16 @@ export default async function Unsubscribe(props: PageProps<"/unsubscribe">) {
   const params = await props.searchParams;
   const raw = params.t;
   const tid = typeof raw === "string" ? raw : null;
+  const u = typeof params.u === "string" ? params.u : null;
 
-  const recorded = (await withinRate()) ? await suppress(tid) : false;
+  const recorded = (await withinRate())
+    ? u !== null
+      ? await optOutByToken(u, "link").catch((error) => {
+          console.error("[unsubscribe] link failed:", error instanceof Error ? error.message : error);
+          return false;
+        })
+      : await suppress(tid)
+    : false;
 
   return (
     <main className="mx-auto max-w-2xl px-5 py-24 text-[var(--ink)]">
@@ -55,15 +67,16 @@ export default async function Unsubscribe(props: PageProps<"/unsubscribe">) {
         <>
           <h1 className="display mt-3 mb-4 text-2xl">You are unsubscribed.</h1>
           <p className="max-w-[56ch] text-[var(--ink-soft)]">
-            We have taken you off the list for this campaign. You will not get another
-            email from us about it. Nothing else needs doing.
+            {u !== null
+              ? "You won't get Kranti Cookbook's list emails any more: invitations, recipe round-ups and anniversary notes. If you shared a recipe, we may still write to you about that recipe. Nothing else needs doing."
+              : "We have taken you off the list for this campaign. You will not get another email from us about it. Nothing else needs doing."}
           </p>
         </>
       ) : (
         <>
           <h1 className="display mt-3 mb-4 text-2xl">We could not complete that.</h1>
           <p className="max-w-[56ch] text-[var(--ink-soft)]">
-            {tid
+            {tid || u
               ? "Something went wrong on our side and we would rather tell you than let you think it worked."
               : "This link is missing the token that identifies your subscription — it may have been truncated by your mail client."}{" "}
             Reply to the email you received and we will remove you by hand.
