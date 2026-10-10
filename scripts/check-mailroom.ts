@@ -102,11 +102,12 @@ const recipes = new Map<string, RecipeFacts>([
 {
   const draft = parseDraft({
     template: "thank-you/published",
-    fields: { subject: "S", heading: "H", message: "M", preheader: "P", display_name: "Asha", recipe_name: "Dal", state: "Goa", belongs_to: "mother", question: "Give me Asha's dal recipe", try_url: "javascript:alert(1)", site_url: "https://evil.example" },
+    fields: { subject: "S", heading: "H", message: "M", preheader: "P", display_name: "Asha", recipe_name: "Dal", state: "Goa", belongs_to: "mother", question: "Give me pizza", try_url: "javascript:alert(1)", site_url: "https://evil.example" },
     lists: {},
   });
   const v = valuesFromDraft(draft, SITE, recipes);
-  check("draft: a link sent by the form is ignored", v.try_url === tryUrl(SITE, "Give me Asha's dal recipe"));
+  check("draft: the try link is built from name and recipe, never the form", v.try_url === tryUrl(SITE, "Give me Asha's dal recipe"));
+  check("draft: a question sent for published is dropped", !("question" in v));
   check("draft: the site comes from the server", v.site_url === SITE);
   check("draft: undeclared fields are dropped", !("count" in v));
 }
@@ -151,7 +152,12 @@ check(
 check(
   "draft: an over-long question is refused",
   throws(
-    () => valuesFromDraft(parseDraft({ template: "thank-you/published", fields: { question: "q".repeat(201) }, lists: {} }), SITE, recipes),
+    () =>
+      valuesFromDraft(
+        parseDraft({ template: "keep-sharing/tell-everyone-the-story", fields: {}, lists: {}, recipes: [{ id: "a".repeat(24), question: "q".repeat(201) }] }),
+        SITE,
+        recipes,
+      ),
     "question",
   ),
 );

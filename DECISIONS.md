@@ -1347,3 +1347,10 @@ files.
 and bringing one back is a line in `FOLDERS`. `received` lists every verified
 submission, green, red or awaiting a verdict; `published` and `milestone` list
 only published ones, since both are about a recipe that is live.
+
+**Simpler emails (2026-10-10).** The owner cut the footer logo from the five
+offered emails, so each shows the logo once, at the top; `received` was redrawn
+as a single cream card in the same 600px column as the others. `published` lost
+its question bubble and the form its question field: "Ask Kranti for it" now
+types the default question, built on the server from the name and recipe on the
+form. `add-your-recipe` lost its numbered prompts and the form's Details section.

@@ -41,7 +41,7 @@ export function plainText(id: TemplateId, values: TemplateValues): string {
     } else out.push(list.map((row, i) => `${i + 1}. ${item(row)}`).join("\n"));
   }
 
-  if (has("question")) out.push(`Ask Kranti: "${s("question")}"\n${s("try_url")}`);
+  if (has("try_url")) out.push(`Ask Kranti for it: ${s("try_url")}`);
   if (has("add_recipe_url")) {
     out.push(`${id.startsWith("needs-changes/") ? "Update your recipe" : "Add a recipe"}: ${s("add_recipe_url")}`);
   }

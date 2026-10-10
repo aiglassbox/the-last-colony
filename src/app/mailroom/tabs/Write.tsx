@@ -70,11 +70,6 @@ const LABELS: Record<string, string> = {
   state: "State",
   belongs_to: "Whose recipe (e.g. grandmother)",
   count: "Readers reached",
-  question: "Question Kranti should be asked",
-};
-
-const LIST_LABELS: Record<string, string> = {
-  prompts: "Prompts (one per line, three read best)",
 };
 
 /** Filled from the chosen submission, and shown beside it. */
@@ -83,11 +78,10 @@ const PERSON_TAGS = ["display_name", "recipe_name", "state", "belongs_to"] as co
 /** subject, preheader, heading, message: every email has them, and they survive a change of email. */
 const COMMON = COMMON_TAGS.filter((tag) => !tag.endsWith("_url"));
 
-/** The server's limits (`draft.ts`, `compose.ts`, `question.ts`), so the form stops at them. The server still checks. */
+/** The server's limits (`draft.ts`, `compose.ts`), so the form stops at them. The server still checks. */
 const SUBJECT_MAX = 150;
 const FIELD_MAX = 2_000;
 const MESSAGE_MAX = 6_000;
-const QUESTION_MAX = 200;
 
 /** `tryQuestion` in `lib/mailroom/question.ts`, which cannot be imported here: it brings the community matcher with it. */
 const defaultQuestion = (name: string, recipe: string) => `Give me ${name.trim()}'s ${recipe.trim().toLowerCase()} recipe`;
@@ -159,7 +153,6 @@ export function Write({ submissions, published, auto, remaining, max }: WritePro
     setSubmissionId(pick.id);
     const next = { ...fields };
     for (const tag of personBlanks) next[tag] = pick[tag as (typeof PERSON_TAGS)[number]];
-    if (blanks.includes("question")) next.question = defaultQuestion(pick.display_name, pick.recipe_name);
     if (blanks.includes("count")) {
       next.count = "";
       void loadCount(pick.id);
@@ -390,7 +383,7 @@ export function Write({ submissions, published, auto, remaining, max }: WritePro
                   {ownBlanks.length > 0 ? (
                     <div className="mr-pair">
                       {ownBlanks.map((tag) => (
-                        <div key={tag} className={tag === "question" ? "mr-field mr-wide" : "mr-field"}>
+                        <div key={tag} className="mr-field">
                           <label className="mr-label" htmlFor={`mr-f-${tag}`}>
                             {LABELS[tag] ?? tag}
                           </label>
@@ -398,7 +391,7 @@ export function Write({ submissions, published, auto, remaining, max }: WritePro
                             id={`mr-f-${tag}`}
                             className="k-input"
                             value={fields[tag] ?? ""}
-                            maxLength={tag === "question" ? QUESTION_MAX : FIELD_MAX}
+                            maxLength={FIELD_MAX}
                             aria-describedby={tag === "count" ? "mr-count-note" : undefined}
                             onChange={(e) => setField(tag, e.target.value)}
                           />
@@ -420,7 +413,7 @@ export function Write({ submissions, published, auto, remaining, max }: WritePro
                   {listNames.map((name) => (
                     <div key={name} className="mr-field">
                       <label className="mr-label" htmlFor={`mr-l-${name}`}>
-                        {LIST_LABELS[name] ?? name}
+                        {name}
                       </label>
                       <textarea
                         id={`mr-l-${name}`}

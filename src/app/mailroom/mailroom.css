@@ -386,10 +386,6 @@
   gap: var(--s-3);
 }
 
-.kitchen .mr-wide {
-  grid-column: 1 / -1;
-}
-
 .kitchen .mr-who {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);

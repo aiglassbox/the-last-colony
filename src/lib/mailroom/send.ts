@@ -117,8 +117,8 @@ async function requireSubmission(id: string | undefined): Promise<MailPick & { c
 
 function questionWarnings(draft: Draft, values: TemplateValues, recipes: Map<string, RecipeFacts>, sub: MailPick | null): string[] {
   const warnings: string[] = [];
-  if (sub && typeof values.question === "string" && !questionFindsRecipe(values.question, sub.tag, sub.aliases)) {
-    warnings.push(`The question no longer names ${sub.recipe_name}, so Kranti may answer with something else.`);
+  if (sub && typeof values.try_url === "string" && !questionFindsRecipe(String(values.recipe_name), sub.tag, sub.aliases)) {
+    warnings.push(`The recipe name no longer matches ${sub.recipe_name}, so "Ask Kranti for it" may bring up something else.`);
   }
   for (const row of draft.recipes ?? []) {
     const r = recipes.get(row.id);
