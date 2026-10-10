@@ -1340,3 +1340,10 @@ community recipe by that name.
 `next.config.ts` ships the nine files with the mailroom routes and
 `/api/submissions`. After `next build` they are checked in both routes' trace
 files.
+
+**Five emails offered, not nine (2026-10-10).** The owner took the three
+`needs-changes` emails and `anniversary` off the Write tab. Their files stay in
+`email-templates/` and the registry, so the template check still covers them
+and bringing one back is a line in `FOLDERS`. `received` lists every verified
+submission, green, red or awaiting a verdict; `published` and `milestone` list
+only published ones, since both are about a recipe that is live.

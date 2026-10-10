@@ -106,9 +106,10 @@ store through `submissionRows` in `lib/community/client.ts`, always excluding
 the twelve `Arpit's Agent` seed rows. Its reach tab reads chat's
 `community_served` events.
 
-`/mailroom` writes and sends the nine recipe emails in `email-templates/`, behind
-its own password in `MAILROOM_PASSWORD` with the same 404-when-unset posture. It
-reads submitters' addresses from Atlas by id (never from the form), fills every
+`/mailroom` writes and sends five of the nine recipe emails in `email-templates/`
+(not the three needs-changes emails or anniversary), behind its own password in
+`MAILROOM_PASSWORD` with the same 404-when-unset posture. It reads submitters'
+addresses from Atlas by id (never from the form), fills every
 email through `fillTemplate`, builds every link on the server, and logs every
 attempt in Neon (`mail_sends`), addresses included, which is why it has its own
 door. Its daily allowance (`MAILROOM_DAILY_MAX`, 25) and the code email's

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
 
-import { COMMON_TAGS, TEMPLATE_IDS, TEMPLATES, type TemplateId } from "@/lib/mail-templates/registry";
+import { COMMON_TAGS, TEMPLATES, type TemplateId } from "@/lib/mail-templates/registry";
 import type { Draft, MailPick } from "@/lib/mailroom/draft";
 import type { Preview, SendSummary } from "@/lib/mailroom/send";
 import type { AutoReceived } from "@/lib/mailroom/store";
@@ -16,7 +16,7 @@ import { RECIPES_MAX, RecipePicker, type Picked } from "./write/RecipePicker";
 import { SubmissionPicker } from "./write/SubmissionPicker";
 
 /**
- * The Write tab: pick one of the nine emails, fill it, preview it, send it.
+ * The Write tab: pick one of five emails, fill it, preview it, send it.
  *
  * The form holds words and choices only. Every link, and a submitter's
  * address, is the server's to add, so nothing typed here can point an email
@@ -38,26 +38,22 @@ export interface WriteProps {
   max: number; // the daily allowance
 }
 
+/** The emails this page offers. The three needs-changes emails and anniversary stay in `email-templates/`, unoffered. */
 const FOLDERS = [
-  { key: "thank-you", label: "Thank you" },
-  { key: "needs-changes", label: "Needs changes" },
-  { key: "keep-sharing", label: "Keep sharing" },
-] as const;
+  { label: "Thank you", ids: ["thank-you/received", "thank-you/published", "thank-you/milestone"] },
+  { label: "Keep sharing", ids: ["keep-sharing/add-your-recipe", "keep-sharing/tell-everyone-the-story"] },
+] as const satisfies readonly { label: string; ids: readonly TemplateId[] }[];
+
+type Offered = (typeof FOLDERS)[number]["ids"][number];
+
+/** About a recipe that is live, so only published submissions can be chosen for them. */
+const LIVE_ONLY: readonly TemplateId[] = ["thank-you/published", "thank-you/milestone"];
 
 /** Each email's name and when it is used, from the templates spec's table. */
-const EMAILS: Record<TemplateId, { name: string; use: string }> = {
+const EMAILS: Record<Offered, { name: string; use: string }> = {
   "thank-you/received": { name: "Received", use: "Right after their recipe reaches us. Can be sent automatically." },
   "thank-you/published": { name: "Published", use: "When their recipe goes live on Kranti." },
   "thank-you/milestone": { name: "Milestone", use: "When their recipe has been shown to a set number of readers." },
-  "needs-changes/general-edits": { name: "General edits", use: "When a few things need fixing before it can go live." },
-  "needs-changes/health-claim": {
-    name: "Health claim",
-    use: "When the recipe says something about health or healing that we can't publish.",
-  },
-  "needs-changes/missing-details": {
-    name: "Missing details",
-    use: "When something is missing, such as quantities, steps or cooking time.",
-  },
   "keep-sharing/add-your-recipe": {
     name: "Add your recipe",
     use: "Invites people who haven't submitted yet to add a family recipe.",
@@ -66,10 +62,6 @@ const EMAILS: Record<TemplateId, { name: string; use: string }> = {
     name: "Tell everyone the story",
     use: "Shows off published recipes, each with a button that asks Kranti for it.",
   },
-  "keep-sharing/anniversary": {
-    name: "Anniversary",
-    use: "On Kranti Cookbook's own anniversary. It celebrates the site, not one recipe.",
-  },
 };
 
 const LABELS: Record<string, string> = {
@@ -77,16 +69,11 @@ const LABELS: Record<string, string> = {
   recipe_name: "Recipe name",
   state: "State",
   belongs_to: "Whose recipe (e.g. grandmother)",
-  quoted_line: "Their line",
-  suggested_line: "Your suggested wording",
-  date_label: "Anniversary (e.g. 1 year)",
   count: "Readers reached",
   question: "Question Kranti should be asked",
 };
 
 const LIST_LABELS: Record<string, string> = {
-  changes: "Things to change",
-  missing: "What's missing",
   prompts: "Prompts (one per line, three read best)",
 };
 
@@ -108,7 +95,7 @@ const defaultQuestion = (name: string, recipe: string) => `Give me ${name.trim()
 export function Write({ submissions, published, auto, remaining, max }: WriteProps) {
   const router = useRouter();
 
-  const [template, setTemplate] = useState<TemplateId>(TEMPLATE_IDS[0]);
+  const [template, setTemplate] = useState<Offered>(FOLDERS[0].ids[0]);
   const [fields, setFields] = useState<Record<string, string>>({});
   const [lists, setLists] = useState<Record<string, string>>({});
   const [submissionId, setSubmissionId] = useState<string | null>(null);
@@ -149,7 +136,7 @@ export function Write({ submissions, published, auto, remaining, max }: WritePro
 
   const setField = (tag: string, value: string) => setFields((f) => ({ ...f, [tag]: value }));
 
-  function chooseTemplate(next: TemplateId) {
+  function chooseTemplate(next: Offered) {
     if (next === template) return;
     const kept: Record<string, string> = {};
     for (const tag of COMMON) if (fields[tag] !== undefined) kept[tag] = fields[tag];
@@ -254,9 +241,9 @@ export function Write({ submissions, published, auto, remaining, max }: WritePro
     <div className="mr-write">
       <section className="k-panel mr-picker" aria-label="Choose an email">
         {FOLDERS.map((folder) => (
-          <fieldset key={folder.key} className="mr-folder" disabled={busy !== null}>
+          <fieldset key={folder.label} className="mr-folder" disabled={busy !== null}>
             <legend className="k-panel__title">{folder.label}</legend>
-            {TEMPLATE_IDS.filter((id) => id.startsWith(`${folder.key}/`)).map((id) => (
+            {folder.ids.map((id) => (
               <label key={id} className="mr-email">
                 <input
                   type="radio"
@@ -291,7 +278,12 @@ export function Write({ submissions, published, auto, remaining, max }: WritePro
                 <legend className="k-panel__title">To</legend>
                 {toPerson ? (
                   <div className="mr-who">
-                    <SubmissionPicker submissions={submissions} chosenId={submissionId} onChoose={chooseSubmission} />
+                    <SubmissionPicker
+                      submissions={submissions}
+                      liveOnly={LIVE_ONLY.includes(template)}
+                      chosenId={submissionId}
+                      onChoose={chooseSubmission}
+                    />
 
                     <div className="mr-person">
                       <p className="mr-meta">
