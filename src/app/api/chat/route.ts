@@ -4,8 +4,9 @@ import { track } from "@/lib/analytics";
 import { parseCommand } from "@/lib/chat/commands";
 import { MODE_LINE, parseResolved, RESOLUTION, type TurnKind, type TurnMode } from "@/lib/chat/turn";
 import { toCommunityCard, type CommunityCardData } from "@/lib/community/card";
-import { matchCommunity } from "@/lib/community/client";
-import { stateForRegion } from "@/lib/community/match";
+import { communityById, matchCommunity } from "@/lib/community/client";
+import { namesSender, stateForRegion } from "@/lib/community/match";
+import { normalizeDish } from "@/lib/community/normalize";
 import { fileCorpus } from "@/lib/corpus/load";
 import type { CorpusRecord } from "@/lib/corpus/types";
 import { isDeviceId } from "@/lib/db/conversations";
@@ -64,6 +65,8 @@ interface ChatRequest {
   activeRecordIds?: string[];
   /** Set when the user arrived on /dish/[slug] — bypasses search entirely. */
   slug?: string;
+  /** Set when the question came from a mailroom link (`/?q=…&r=<id>`): that submission, served as is. */
+  communityId?: string;
 }
 
 function encodeEvent(obj: unknown): Uint8Array {
@@ -149,6 +152,8 @@ interface CommunityContext {
   device: string | null;
   label: string;
   rawRegion: string | null;
+  /** Served by id from a mailroom link, so none of the three rules chose it. */
+  link?: boolean;
 }
 
 /**
@@ -233,14 +238,19 @@ export async function serveCommunity(
   // what it already computed: rule 1 wins outright whenever the row's own
   // state matches the reader's mapped region, rule 2 only when it does not
   // but the row's language matches the reader's, and rule 3 (recency)
-  // whenever neither does.
+  // whenever neither does. A named sender (`bySender`) narrows ahead of all
+  // three, so it is checked first.
   const mappedState = stateForRegion(region);
-  const rule =
-    mappedState && chosen.state === mappedState
-      ? "state"
-      : readerLang && chosen.language === readerLang
-        ? "language"
-        : "recency";
+  const named = queries.some((q) => namesSender(normalizeDish(q), chosen.submission.display_name));
+  const rule = ctx.link
+    ? "link"
+    : named
+      ? "name"
+      : mappedState && chosen.state === mappedState
+        ? "state"
+        : readerLang && chosen.language === readerLang
+          ? "language"
+          : "recency";
 
   // A community hit is not a corpus gap: `no_original_found` is the
   // corpus-roadmap log and stays reserved for a dish nobody has answered at
@@ -316,6 +326,7 @@ export async function POST(request: NextRequest) {
   // the (English) keyword engine sees it. The echoed `label` stays the user's
   // own words; only retrieval reads the translation.
   const normalized = slug ? null : await normalize(query);
+  const linkId = !slug && typeof body.communityId === "string" ? body.communityId : null;
 
   // Off topic, and cheap to know: the detector above is the only model call
   // this turn is allowed to cost. Everything downstream — BM25, a Pinecone
@@ -402,6 +413,27 @@ export async function POST(request: NextRequest) {
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       const emit = (obj: unknown) => controller.enqueue(encodeEvent(obj));
+
+      // A mailroom link names its recipe outright, so the dish name, the
+      // corpus and the three rules get no say in whose it is — two people's
+      // recipes for one dish cannot be mixed up. First, ahead of the topic
+      // gate, because the operator wrote the question, not the reader. An id
+      // no longer published falls through to the ordinary turn.
+      if (linkId) {
+        const lang = normalized && !normalized.fell_back ? normalized.lang : null;
+        const served = await serveCommunity(
+          [],
+          geo.region ?? null,
+          lang,
+          emit,
+          { geo, device, label, rawRegion: geo.region ?? null, link: true },
+          () => communityById(linkId, lang),
+        );
+        if (served) {
+          controller.close();
+          return;
+        }
+      }
 
       // A slash command with no dish behind it. There is nothing to retrieve
       // and nothing to restore, so this is not a card at all — it used to fall

@@ -137,8 +137,13 @@ export function valuesFromDraft(
     values[tag] = raw;
   }
   if (spec.tags.includes("add_recipe_url")) values.add_recipe_url = addRecipeUrl(site);
-  if (spec.tags.includes("try_url") && typeof values.display_name === "string" && typeof values.recipe_name === "string") {
-    values.try_url = tryUrl(site, tryQuestion(values.display_name, values.recipe_name));
+  if (
+    spec.tags.includes("try_url") &&
+    draft.submissionId &&
+    typeof values.display_name === "string" &&
+    typeof values.recipe_name === "string"
+  ) {
+    values.try_url = tryUrl(site, tryQuestion(values.display_name, values.recipe_name), draft.submissionId);
   }
 
   for (const name of Object.keys(spec.lists)) {
@@ -155,7 +160,7 @@ export function valuesFromDraft(
           display_name: recipe.display_name,
           state: recipe.state,
           question: q,
-          try_url: tryUrl(site, q),
+          try_url: tryUrl(site, q, id),
         };
       });
       continue;

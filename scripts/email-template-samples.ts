@@ -32,7 +32,7 @@ function url(tag: string, site: string, question = TEXT.question): string {
     case "unsubscribe_url":
       return `${site}/unsubscribe`;
     case "try_url":
-      return `${site}/?q=${encodeURIComponent(question)}`;
+      return `${site}/?q=${encodeURIComponent(question)}&r=${"0".repeat(24)}`;
     default:
       throw new Error(`no sample for ${tag}`);
   }

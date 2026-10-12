@@ -7,7 +7,6 @@ import { MAX_RECIPIENTS, mailroomDailyMax, parseRecipients, planBatch } from "./
 import { composeEmail, type Composed } from "./compose";
 import { DraftError, isTemplateId, valuesFromDraft, type Draft, type MailPick, type RecipeFacts } from "./draft";
 import { oneClickUrl, unsubscribeUrl } from "./links";
-import { questionFindsRecipe } from "./question";
 import {
   claimWaiting,
   createBatch,
@@ -44,7 +43,6 @@ export interface Preview {
   subject: string;
   html: string;
   text: string;
-  warnings: string[];
   to: string | null;
   recipients: { valid: number; invalid: string[]; optedOut: number; send: number; waiting: number } | null;
   remaining: number;
@@ -115,21 +113,6 @@ async function requireSubmission(id: string | undefined): Promise<MailPick & { c
   return { ...pick, contact: pick.contact };
 }
 
-function questionWarnings(draft: Draft, values: TemplateValues, recipes: Map<string, RecipeFacts>, sub: MailPick | null): string[] {
-  const warnings: string[] = [];
-  if (sub && typeof values.try_url === "string" && !questionFindsRecipe(String(values.recipe_name), sub.tag, sub.aliases)) {
-    warnings.push(`The recipe name no longer matches ${sub.recipe_name}, so "Ask Kranti for it" may bring up something else.`);
-  }
-  for (const row of draft.recipes ?? []) {
-    const r = recipes.get(row.id);
-    const q = row.question.trim();
-    if (r && q && !questionFindsRecipe(q, r.tag, r.aliases)) {
-      warnings.push(`The question for ${r.recipe_name} no longer names it, so Kranti may answer with something else.`);
-    }
-  }
-  return warnings;
-}
-
 const remainingToday = async (): Promise<number> => Math.max(0, mailroomDailyMax() - (await sentToday()));
 
 /** The addresses a list draft names; Preview and Send refuse the same lists. */
@@ -151,7 +134,7 @@ export async function previewDraft(draft: Draft): Promise<Preview> {
   if (addresses === null) {
     const sub = await requireSubmission(draft.submissionId);
     const email = compose(draft.template, values);
-    return { ...email, warnings: questionWarnings(draft, values, recipes, sub), to: sub.contact, recipients: null, remaining };
+    return { ...email, to: sub.contact, recipients: null, remaining };
   }
 
   const { valid, invalid } = addresses;
@@ -163,7 +146,6 @@ export async function previewDraft(draft: Draft): Promise<Preview> {
   );
   return {
     ...email,
-    warnings: questionWarnings(draft, values, recipes, null),
     to: null,
     recipients: { valid: valid.length, invalid, optedOut: plan.optedOut.length, send: plan.send.length, waiting: plan.waiting.length },
     remaining,

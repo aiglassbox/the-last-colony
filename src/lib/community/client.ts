@@ -2,7 +2,7 @@ import { MongoClient, ObjectId, type Db } from "mongodb";
 
 import type { Geo } from "../events/geo";
 import type { TranslatedFields } from "./card";
-import { matchedPhrase, pickCommunity, pickDish, type CommunityMatch } from "./match";
+import { bySender, matchedPhrase, pickCommunity, pickDish, type CommunityMatch } from "./match";
 import { dishTag, normalizeDish } from "./normalize";
 import type { MailPick } from "../mailroom/draft";
 import type { Verdict } from "./pipeline";
@@ -513,6 +513,50 @@ export async function overrideVerdict(id: string, card: "GREEN" | "RED"): Promis
   }
 }
 
+/** The fields a reader card is drawn from, and nothing else. */
+const SERVE_PROJECTION = {
+  dish: 1,
+  published_at: 1,
+  created_at: 1,
+  "submission.recipe_name": 1,
+  "submission.display_name": 1,
+  "submission.belongs_to": 1,
+  "submission.belongs_to_other": 1,
+  "submission.state": 1,
+  "submission.city": 1,
+  "submission.story": 1,
+  "submission.ingredients": 1,
+  "submission.method": 1,
+  "submission.photo.mime": 1,
+  "submission.photo.bytes": 1,
+  // Neither submission.contact nor submission.photo.data is projected here:
+  // the first is a member of the public's contact details, the second is up
+  // to 500 KB of base64 served from its own route.
+} as const;
+
+/** A served document, flattened into the shape `pickCommunity` and the card mapper read. */
+function toMatch(d: SubmissionDoc): CommunityMatch {
+  return {
+    id: String(d._id),
+    state: d.submission.state,
+    language: d.dish?.language || null,
+    published_at: d.published_at as Date,
+    created_at: d.created_at,
+    dish: { tag: d.dish?.tag ?? "", aliases: d.dish?.aliases ?? [] },
+    submission: {
+      recipe_name: d.submission.recipe_name,
+      display_name: d.submission.display_name,
+      belongs_to: d.submission.belongs_to,
+      belongs_to_other: d.submission.belongs_to_other,
+      city: d.submission.city,
+      story: d.submission.story,
+      ingredients: d.submission.ingredients,
+      method: d.submission.method,
+      photo: d.submission.photo ? { mime: d.submission.photo.mime, bytes: d.submission.photo.bytes } : undefined,
+    },
+  };
+}
+
 /**
  * The thin Mongo query that feeds `phraseMatches` and `pickCommunity` — the
  * whole decision lives in `match.ts` as pure functions; this fetches the
@@ -552,28 +596,7 @@ export async function matchCommunity(
     const docs = await col
       .find(
         { status: "green", published_at: { $exists: true }, "dish.tag": { $exists: true, $ne: "" } },
-        {
-          projection: {
-            dish: 1,
-            published_at: 1,
-            created_at: 1,
-            "submission.recipe_name": 1,
-            "submission.display_name": 1,
-            "submission.belongs_to": 1,
-            "submission.belongs_to_other": 1,
-            "submission.state": 1,
-            "submission.city": 1,
-            "submission.story": 1,
-            "submission.ingredients": 1,
-            "submission.method": 1,
-            "submission.photo.mime": 1,
-            "submission.photo.bytes": 1,
-            // Neither submission.contact nor submission.photo.data is
-            // projected here: the first is a member of the public's contact
-            // details, the second is up to 500 KB of base64 served from its
-            // own route.
-          },
-        },
+        { projection: SERVE_PROJECTION },
       )
       .sort({ published_at: -1 })
       .maxTimeMS(2000)
@@ -596,28 +619,10 @@ export async function matchCommunity(
 
     const matches: CommunityMatch[] = strengths
       .filter((s) => s.phrase !== "" && s.tag === dish)
-      .map(({ doc: d }) => ({
-        id: String(d._id),
-        state: d.submission.state,
-        language: d.dish?.language || null,
-        published_at: d.published_at as Date,
-        created_at: d.created_at,
-        dish: { tag: d.dish?.tag ?? "", aliases: d.dish?.aliases ?? [] },
-        submission: {
-          recipe_name: d.submission.recipe_name,
-          display_name: d.submission.display_name,
-          belongs_to: d.submission.belongs_to,
-          belongs_to_other: d.submission.belongs_to_other,
-          city: d.submission.city,
-          story: d.submission.story,
-          ingredients: d.submission.ingredients,
-          method: d.submission.method,
-          photo: d.submission.photo ? { mime: d.submission.photo.mime, bytes: d.submission.photo.bytes } : undefined,
-        },
-      }));
+      .map(({ doc }) => toMatch(doc));
 
     if (!matches.length) return null;
-    const chosen = pickCommunity(matches, region, readerLang);
+    const chosen = pickCommunity(bySender(matches, normalizedQueries), region, readerLang);
     if (!chosen) return null;
 
     // The other states a reader could have been served, in first-seen order,
@@ -642,6 +647,31 @@ export async function matchCommunity(
     console.error("[community] match failed:", error);
     return null;
   }
+}
+
+/**
+ * The one submission a mailroom link names (`/?q=…&r=<id>`), if it is still
+ * published. The same filter and shape as `matchCommunity`, without the
+ * matching: the link already says whose recipe, so neither the dish name,
+ * the corpus nor the newest-200 window can hand the reader somebody else's.
+ * Throws on a store error; `serveCommunity` catches it.
+ */
+export async function communityById(id: string, readerLang: string | null): ReturnType<typeof matchCommunity> {
+  const _id = hexId(id);
+  if (!_id) return null;
+  const db = await communityDb();
+  if (!db) return null;
+  const doc = await db
+    .collection<SubmissionDoc>(SUBMISSIONS)
+    .findOne(
+      { _id, status: "green", published_at: { $exists: true }, "dish.tag": { $exists: true, $ne: "" } },
+      { projection: SERVE_PROJECTION, maxTimeMS: 2000 },
+    );
+  if (!doc) return null;
+  const chosen = toMatch(doc);
+  const translation =
+    readerLang && readerLang !== chosen.language ? await getTranslation(chosen.id, readerLang) : null;
+  return { chosen, translation, others: [], total: 1 };
 }
 
 /**

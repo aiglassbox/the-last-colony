@@ -6,6 +6,7 @@ import { useRef, useState, type FormEvent } from "react";
 
 import { COMMON_TAGS, TEMPLATES, type TemplateId } from "@/lib/mail-templates/registry";
 import type { Draft, MailPick } from "@/lib/mailroom/draft";
+import { tryQuestion } from "@/lib/mailroom/question";
 import type { Preview, SendSummary } from "@/lib/mailroom/send";
 import type { AutoReceived } from "@/lib/mailroom/store";
 
@@ -82,9 +83,6 @@ const COMMON = COMMON_TAGS.filter((tag) => !tag.endsWith("_url"));
 const SUBJECT_MAX = 150;
 const FIELD_MAX = 2_000;
 const MESSAGE_MAX = 6_000;
-
-/** `tryQuestion` in `lib/mailroom/question.ts`, which cannot be imported here: it brings the community matcher with it. */
-const defaultQuestion = (name: string, recipe: string) => `Give me ${name.trim()}'s ${recipe.trim().toLowerCase()} recipe`;
 
 export function Write({ submissions, published, auto, remaining, max }: WriteProps) {
   const router = useRouter();
@@ -175,7 +173,7 @@ export function Write({ submissions, published, auto, remaining, max }: WritePro
     setRecipes((rs) => {
       if (!on) return rs.filter((r) => r.id !== pick.id);
       if (rs.length >= RECIPES_MAX || rs.some((r) => r.id === pick.id)) return rs;
-      return [...rs, { id: pick.id, question: defaultQuestion(pick.display_name, pick.recipe_name) }];
+      return [...rs, { id: pick.id, question: tryQuestion(pick.display_name, pick.recipe_name) }];
     });
   }
 

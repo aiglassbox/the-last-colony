@@ -1,6 +1,7 @@
 "use client";
 
 import type { MailPick } from "@/lib/mailroom/draft";
+import { QUESTION_MAX } from "@/lib/mailroom/question";
 
 /**
  * The published recipes a tell-everyone email shows off, in the order they
@@ -12,7 +13,6 @@ import type { MailPick } from "@/lib/mailroom/draft";
 
 /** `RECIPES_MAX` in `lib/mailroom/draft.ts`. */
 export const RECIPES_MAX = 12;
-const QUESTION_MAX = 200;
 
 export interface Picked {
   id: string;

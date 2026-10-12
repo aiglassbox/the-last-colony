@@ -1354,3 +1354,21 @@ as a single cream card in the same 600px column as the others. `published` lost
 its question bubble and the form its question field: "Ask Kranti for it" now
 types the default question, built on the server from the name and recipe on the
 form. `add-your-recipe` lost its numbered prompts and the form's Details section.
+
+**Try-it links name their recipe (2026-10-12).** Chat finds a community recipe
+by dish name alone, so a link asking for one person's recipe could open
+another's for the same dish (picked by the reader's state, then language, then
+the newest), the corpus's own record when it holds that dish, or nothing once
+the recipe fell outside the newest 200. Every Try-it link now carries the
+submission id as `r`; the home page sends it with the typed question, and chat
+serves that submission as long as it is published, before the corpus or the
+rules are consulted. A reader who rewrites the question before sending drops
+the id. The question is only the words on screen now, so the Write tab's
+warning about an edited question was removed with it.
+
+**A named sender narrows the pick (2026-10-12).** For questions typed by hand,
+a reader who writes a sender's whole display name ("Asha Kulkarni's dal") is
+served from that person's rows before state, language and recency choose.
+Whole names only, three letters or more: a first name alone is a guess once
+two people share it. It only chooses among one dish's rows, so it never
+overrides the corpus or reaches past the newest 200; the link does that.

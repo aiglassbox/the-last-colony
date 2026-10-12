@@ -174,6 +174,9 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
     };
   }, []);
 
+  /** The recipe a Try-it link named (`r`), held until its question is sent. */
+  const linkRef = useRef<{ question: string; id: string } | null>(null);
+
   // A Try-it link from a recipe email (`/?q=…`) types its question into the
   // box and stops there: the reader presses send, so a link scanner opening
   // it costs nothing. Read in the browser so `/` stays a static page, and taken
@@ -183,11 +186,15 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
     const url = new URL(window.location.href);
     const question = url.searchParams.get("q")?.trim();
     if (!question) return;
+    const recipe = url.searchParams.get("r");
     // Deferred a tick, as the auto-send below is, rather than set in the
     // effect body; the cleanup keeps a strict-mode re-run from typing it twice.
     const id = setTimeout(() => {
-      setInput(question.slice(0, 200));
+      const text = question.slice(0, 200).trim();
+      setInput(text);
+      linkRef.current = recipe ? { question: text, id: recipe } : null;
       url.searchParams.delete("q");
+      url.searchParams.delete("r");
       window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
       promptRef.current?.focus();
     }, 0);
@@ -327,6 +334,11 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
 
       const priorMessages = base.messages;
       const activeRecordIds = base.activeRecordIds;
+      // The link's recipe goes only with the link's own question: a reader
+      // who rewrote it is asking for something else.
+      const link = linkRef.current;
+      linkRef.current = null;
+      const communityId = link && !slug && trimmed === link.question ? link.id : undefined;
 
       patchConversation(conversationId, (c) => ({
         ...c,
@@ -369,6 +381,7 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
           signal: controller.signal,
           body: JSON.stringify({
             slug,
+            communityId,
             activeRecordIds,
             messages: [...priorMessages, userMsg].map((m) => ({ role: m.role, content: m.text })),
           }),
