@@ -1372,3 +1372,18 @@ served from that person's rows before state, language and recency choose.
 Whole names only, three letters or more: a first name alone is a guess once
 two people share it. It only chooses among one dish's rows, so it never
 overrides the corpus or reaches past the newest 200; the link does that.
+
+**One card per dish, then chat (2026-10-13).** Every message used to run
+retrieval afresh, so a follow-up that named its dish drew the same card again,
+and a follow-up that did not was answered without the recipe: a community card
+was replayed as one line naming the dish, and a corpus card's quantities lived
+in the record, which only the latest card's follow-ups could see. Now a dish
+gets its card once per thread. A later message about it, or a message that
+only mentions a dish inside a question, is answered in chat, with every
+corpus record and reader recipe the thread has carded on the prompt (reader
+recipes as fenced data the model is told not to obey) and earlier replies
+replayed whole. A new dish asked for by name, a pill, a dish page and a
+mailroom link still draw a card. The browser sends the carded ids; the
+language call says whether a message asks for a dish or about one, and
+anything short of "question" counts as asking, which is how every turn
+behaved before.
