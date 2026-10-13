@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 import { parseCommand } from "@/lib/chat/commands";
+import { cardedIds } from "@/lib/chat/followup";
 import {
   deleteConversation,
   deriveTitle,
@@ -383,6 +384,9 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
             slug,
             communityId,
             activeRecordIds,
+            // Every recipe this thread has shown on a card, so a dish that has
+            // had its card is answered in chat (`lib/chat/followup.ts`).
+            cards: cardedIds(priorMessages),
             messages: [...priorMessages, userMsg].map((m) => ({ role: m.role, content: m.text })),
           }),
         });
