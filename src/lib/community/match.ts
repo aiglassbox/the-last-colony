@@ -203,6 +203,30 @@ export function pickDish(matches: Array<{ tag: string; phrase: string }>): strin
 }
 
 /**
+ * Whether the reader named this sender: the whole display name, as a phrase,
+ * the way a dish name is matched. "Give me Asha Kulkarni's dal" names her;
+ * "Asha's dal" does not, because with two Ashas a first name is a guess.
+ * Names under three letters never count, so a sender called "Me" cannot
+ * claim every "give me".
+ */
+export function namesSender(normalizedQuery: string, displayName: string): boolean {
+  const name = normalizeDish(displayName);
+  return name.length >= 3 && containsPhrase(normalizedQuery, name);
+}
+
+/**
+ * The versions whose sender the reader named, or all of them when they named
+ * none. Runs before `pickCommunity`, so a named sender outranks state,
+ * language and recency. It only ever chooses among one dish's rows, so a
+ * name that happens to be an ordinary word costs at most another family's
+ * version of the same dish.
+ */
+export function bySender(matches: CommunityMatch[], normalizedQueries: string[]): CommunityMatch[] {
+  const named = matches.filter((m) => normalizedQueries.some((q) => namesSender(q, m.submission.display_name)));
+  return named.length ? named : matches;
+}
+
+/**
  * Three rules, each filtering what the last one left; only the third chooses.
  * `matches` arrives sorted by published_at descending, so "the first survivor"
  * is "the most recently published" at every stage and rule 3 needs no

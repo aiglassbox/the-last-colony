@@ -40,7 +40,7 @@ export const TEMPLATES: Readonly<Record<TemplateId, TemplateSpec>> = {
   "thank-you/received": { audience: "submitter", tags: ["display_name", "recipe_name"], lists: {} },
   "thank-you/published": {
     audience: "submitter",
-    tags: ["display_name", "recipe_name", "state", "belongs_to", "question", "try_url"],
+    tags: ["display_name", "recipe_name", "state", "belongs_to", "try_url"],
     lists: {},
   },
   "thank-you/milestone": { audience: "submitter", tags: ["display_name", "recipe_name", "count"], lists: {} },
@@ -59,11 +59,7 @@ export const TEMPLATES: Readonly<Record<TemplateId, TemplateSpec>> = {
     tags: ["display_name", "recipe_name", "add_recipe_url"],
     lists: { missing: ["item"] },
   },
-  "keep-sharing/add-your-recipe": {
-    audience: "list",
-    tags: ["add_recipe_url", "unsubscribe_url"],
-    lists: { prompts: ["item"] },
-  },
+  "keep-sharing/add-your-recipe": { audience: "list", tags: ["add_recipe_url", "unsubscribe_url"], lists: {} },
   "keep-sharing/tell-everyone-the-story": {
     audience: "list",
     tags: ["unsubscribe_url"],

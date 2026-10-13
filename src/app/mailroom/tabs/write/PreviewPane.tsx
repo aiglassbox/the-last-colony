@@ -38,12 +38,6 @@ export function PreviewPane({ preview }: { preview: Preview }) {
         <span className="mr-meta__key">Subject</span> {preview.subject}
       </p>
 
-      {preview.warnings.map((warning) => (
-        <p key={warning} className="mr-warn">
-          {warning}
-        </p>
-      ))}
-
       <div className="mr-seg" role="group" aria-labelledby="mr-width-label">
         <span id="mr-width-label">Width</span>
         <span className="mr-seg__opts">

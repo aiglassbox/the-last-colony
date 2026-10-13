@@ -32,7 +32,7 @@ function url(tag: string, site: string, question = TEXT.question): string {
     case "unsubscribe_url":
       return `${site}/unsubscribe`;
     case "try_url":
-      return `${site}/?q=${encodeURIComponent(question)}`;
+      return `${site}/?q=${encodeURIComponent(question)}&r=${"0".repeat(24)}`;
     default:
       throw new Error(`no sample for ${tag}`);
   }
@@ -46,7 +46,6 @@ function lists(site: string): Record<string, Row[]> {
   return {
     changes: ["First thing to change goes here.", "Second thing to change goes here.", "Third thing to change goes here."],
     missing: ["Quantities", "Cooking time", "Serves"],
-    prompts: ["First prompt goes here.", "Second prompt goes here.", "Third prompt goes here."],
     recipes: [
       recipe("Bisi bele bath", "Asha Kulkarni", "Karnataka"),
       recipe("Sol kadhi", "Rohan Naik", "Goa"),

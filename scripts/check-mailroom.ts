@@ -14,7 +14,7 @@ import { composeEmail, HTML_MAX } from "../src/lib/mailroom/compose";
 import { DraftError, parseDraft, valuesFromDraft, type RecipeFacts } from "../src/lib/mailroom/draft";
 import { mailroomDailyMax, parseRecipients, planBatch, utcDayStart } from "../src/lib/mailroom/budget";
 import { oneClickUrl, TOKEN_PATTERN, unsubscribeUrl } from "../src/lib/mailroom/links";
-import { questionFindsRecipe, tryQuestion, tryUrl } from "../src/lib/mailroom/question";
+import { tryQuestion, tryUrl } from "../src/lib/mailroom/question";
 import { loadTemplate } from "../src/lib/mailroom/templates";
 import { plainText } from "../src/lib/mailroom/text";
 import { newToken } from "../src/lib/mailroom/token";
@@ -86,10 +86,8 @@ check(
 {
   const q = tryQuestion("Asha Kulkarni", "Bisi Bele Bath");
   check("question: built from name and recipe", q === "Give me Asha Kulkarni's bisi bele bath recipe");
-  check("question: url-encoded onto the home page", tryUrl(SITE, q) === `${SITE}/?q=${encodeURIComponent(q)}`);
-  check("question: finds the recipe by its tag", questionFindsRecipe(q, "bisi-bele-bath", ["bisi bele bath"]));
-  check("question: finds it by an alias", questionFindsRecipe("Show me bisibelebath please", "bisi-bele-bath", ["bisibelebath"]));
-  check("question: warns once the name is gone", !questionFindsRecipe("Give me Asha's rice dish", "bisi-bele-bath", ["bisi bele bath"]));
+  const id = "c".repeat(24);
+  check("question: url-encoded onto the home page, with the recipe id", tryUrl(SITE, q, id) === `${SITE}/?q=${encodeURIComponent(q)}&r=${id}`);
 }
 
 // --- the Write form -> values ----------------------------------------------------
@@ -102,11 +100,13 @@ const recipes = new Map<string, RecipeFacts>([
 {
   const draft = parseDraft({
     template: "thank-you/published",
-    fields: { subject: "S", heading: "H", message: "M", preheader: "P", display_name: "Asha", recipe_name: "Dal", state: "Goa", belongs_to: "mother", question: "Give me Asha's dal recipe", try_url: "javascript:alert(1)", site_url: "https://evil.example" },
+    submissionId: "c".repeat(24),
+    fields: { subject: "S", heading: "H", message: "M", preheader: "P", display_name: "Asha", recipe_name: "Dal", state: "Goa", belongs_to: "mother", question: "Give me pizza", try_url: "javascript:alert(1)", site_url: "https://evil.example" },
     lists: {},
   });
   const v = valuesFromDraft(draft, SITE, recipes);
-  check("draft: a link sent by the form is ignored", v.try_url === tryUrl(SITE, "Give me Asha's dal recipe"));
+  check("draft: the try link is built from name and recipe, never the form", v.try_url === tryUrl(SITE, "Give me Asha's dal recipe", "c".repeat(24)));
+  check("draft: a question sent for published is dropped", !("question" in v));
   check("draft: the site comes from the server", v.site_url === SITE);
   check("draft: undeclared fields are dropped", !("count" in v));
 }
@@ -133,7 +133,7 @@ const recipes = new Map<string, RecipeFacts>([
   const row = (v.recipes as Record<string, string>[])[0];
   check("draft: a recipe row comes from the store", row.display_name === "Rohan Naik" && row.state === "Goa");
   check("draft: an empty question gets the default", row.question === "Give me Rohan Naik's sol kadhi recipe");
-  check("draft: the row's try link is built", row.try_url === tryUrl(SITE, row.question));
+  check("draft: the row's try link names its recipe", row.try_url === tryUrl(SITE, row.question, "a".repeat(24)));
   check(
     "draft: a recipe that is not published is refused",
     throws(() => valuesFromDraft({ ...draft, recipes: [{ id: "b".repeat(24), question: "" }] }, SITE, recipes), "not a published recipe"),
@@ -151,7 +151,12 @@ check(
 check(
   "draft: an over-long question is refused",
   throws(
-    () => valuesFromDraft(parseDraft({ template: "thank-you/published", fields: { question: "q".repeat(201) }, lists: {} }), SITE, recipes),
+    () =>
+      valuesFromDraft(
+        parseDraft({ template: "keep-sharing/tell-everyone-the-story", fields: {}, lists: {}, recipes: [{ id: "a".repeat(24), question: "q".repeat(201) }] }),
+        SITE,
+        recipes,
+      ),
     "question",
   ),
 );

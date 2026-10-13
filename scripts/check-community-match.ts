@@ -28,6 +28,8 @@ import {
   TRANSLATIONS,
 } from "../src/lib/community/client";
 import {
+  bySender,
+  namesSender,
   phraseMatches,
   pickCommunity,
   pickDish,
@@ -222,6 +224,30 @@ check("an empty match list gives null", pickCommunity([], "MH", "en") === null);
 const only = fixture({ state: "Goa", language: "en", published_at: new Date("2026-09-01") }, "only");
 check("a single-element list returns that element for any region/language", pickCommunity([only], "ZZ", "xx") === only);
 check("a single-element list returns that element for null region/language", pickCommunity([only], null, null) === only);
+
+// --- a named sender ------------------------------------------------------------
+// Two people's rows for one dish. Naming one narrows to theirs ahead of state,
+// language and recency; naming nobody, or a first name only, changes nothing.
+const sender = (base: CommunityMatch, display_name: string): CommunityMatch => ({
+  ...base,
+  submission: { ...base.submission, display_name },
+});
+const byAsha = sender(A, "Asha Kulkarni"); // Maharashtra, older
+const byAgent = sender(D, "Arpit's Agent"); // Maharashtra, newest
+const pair = [byAgent, byAsha];
+const ask = (q: string) => bySender(pair, [normalizeDish(q)]);
+check(
+  "sender: a full name picks that person's row over a newer one",
+  pickCommunity(ask("Give me Asha Kulkarni's bisi bele bath recipe"), "MH", null) === byAsha,
+);
+check(
+  "sender: an apostrophe in the name still matches",
+  pickCommunity(ask("Give me Arpit's Agent's bisi bele bath recipe"), "MH", null) === byAgent,
+);
+check("sender: no name named leaves every row", ask("bisi bele bath").length === 2);
+check("sender: a first name alone names nobody", ask("Give me Asha's bisi bele bath").length === 2);
+check("sender: a two-letter name never matches", !namesSender(normalizeDish("give me dal"), "Me"));
+check("sender: a name inside a longer word does not match", !namesSender(normalizeDish("give me ashan s dal"), "Asha"));
 
 // --- the served payload -----------------------------------------------------
 // `toCommunityCard` maps a full `CommunityMatch` (not the partial pick

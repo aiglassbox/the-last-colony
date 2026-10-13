@@ -153,10 +153,9 @@
   outline-offset: 2px;
 }
 
-/* ------------------------------------------- error, warning, result --- */
+/* --------------------------------------------------- error, result --- */
 
 .kitchen .mr-alert,
-.kitchen .mr-warn,
 .kitchen .mr-banner {
   margin: 0;
   padding: 9px 12px;
@@ -170,11 +169,6 @@
 .kitchen .mr-alert {
   border-left-color: var(--critical);
   background: color-mix(in srgb, var(--critical) 12%, transparent);
-}
-
-.kitchen .mr-warn {
-  border-left-color: var(--warning);
-  background: color-mix(in srgb, var(--warning) 10%, transparent);
 }
 
 .kitchen .mr-banner {
@@ -384,10 +378,6 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--s-3);
-}
-
-.kitchen .mr-wide {
-  grid-column: 1 / -1;
 }
 
 .kitchen .mr-who {
