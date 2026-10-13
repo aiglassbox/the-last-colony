@@ -394,9 +394,9 @@ export async function POST(request: NextRequest) {
   // thread behind it or a card on screen, and a cold turn has neither. So the
   // refusal is confined to a first message, where nothing can be a follow-up
   // and nothing is being referred back to.
+  const midThread = history.some((m) => m.role === "assistant");
   const coldTurn =
-    !history.some((m) => m.role === "assistant") &&
-    !(Array.isArray(body.activeRecordIds) && body.activeRecordIds.length > 0);
+    !midThread && !(Array.isArray(body.activeRecordIds) && body.activeRecordIds.length > 0);
   const offTopic = !slug && normalized!.scope === "other" && coldTurn;
 
   // An empty query returns EMPTY without touching the network, so the refused
@@ -435,7 +435,7 @@ export async function POST(request: NextRequest) {
   // a card outright; so does a mailroom link, which is served before any of
   // this is consulted.
   const facts = {
-    midThread: history.some((m) => m.role === "assistant"),
+    midThread,
     explicit: Boolean(slug || command),
     asks: normalized?.asks ?? ("dish" as const),
   };
@@ -786,12 +786,14 @@ export async function POST(request: NextRequest) {
         if (!chat && !isResolve) chat = !drawsCard(facts, retrieval.records[0].id, carded.records);
 
         // A dish the corpus holds no record for may still be one a reader's
-        // own family already sent in. Looked up here, ahead of the branches,
-        // because a chat turn wants it too: "can I skip tamarind in bisi bele
-        // bath?" is answered from that recipe. A community hit that draws a
-        // card costs no prompt construction and no model call. A miss costs
-        // only the Pinecone round trip `retrieveForDish` already spent
-        // fetching candidates above, because the vector fallback lives inside
+        // own family already sent in. Looked up only while the turn may still
+        // draw a card: a mid-thread question is chat already and gets only the
+        // recipes this thread showed, so it skips the query. A match this
+        // thread already carded turns the turn into chat and is reused there
+        // rather than fetched twice. A community hit that draws a card costs
+        // no prompt construction and no model call. A miss costs only the
+        // Pinecone round trip `retrieveForDish` already spent fetching
+        // candidates above, because the vector fallback lives inside
         // retrieval — moving this lookup earlier would put an Atlas query
         // inside `retrieve.ts`, which knows only about the corpus, and mixing
         // two stores in one module is a worse trade than one wasted call on a
@@ -813,10 +815,17 @@ export async function POST(request: NextRequest) {
           (q): q is string => Boolean(q),
         );
         // `matchCommunity` already folds a store failure to null; the catch
-        // is the same second guard `serveCommunity` keeps around its lookup.
-        const found = isResolve
-          ? await matchCommunity(communityQueries, geo.region ?? null, communityLang).catch(() => null)
-          : null;
+        // is the same second guard `serveCommunity` keeps around its lookup,
+        // and logs the same way.
+        const found =
+          isResolve && !chat
+            ? await matchCommunity(communityQueries, geo.region ?? null, communityLang).catch(
+                (error: unknown) => {
+                  console.error("[community] lookup failed:", error);
+                  return null;
+                },
+              )
+            : null;
         if (found && !chat) {
           chat = !drawsCard(facts, found.chosen.id, carded.community);
           if (
@@ -850,22 +859,29 @@ export async function POST(request: NextRequest) {
         if (chat) {
           // ---- Chat: a follow-up, answered in prose -------------------------
           // No card and no mode line. The model gets every recipe this thread
-          // has shown — the records this message found, the records on
-          // screen, the records carded earlier, and the reader recipes — so a
-          // follow-up is answered about the actual recipe, not the dish name.
-          const seen = new Set(retrieval.records.map((r) => r.id));
-          const moreIds = [...new Set([...carriedIds, ...carded.records])].filter((id) => !seen.has(id));
-          const more = (await Promise.all(moreIds.map((id) => fileCorpus.byId(id)))).filter(
+          // has shown — the records on screen, the records carded earlier, and
+          // the reader recipes carded earlier — so a follow-up is answered
+          // about the actual recipe, not the dish name. Only what the thread
+          // showed: a record or recipe this message matched that no card ever
+          // showed stays out. It may be one a card withdrew as a modern
+          // namesake ("sabudana khichdi" matches the ancient Kṛsara), and the
+          // prompt tells the model the reader has seen everything it is given.
+          const ids = [...new Set([...carriedIds, ...carded.records])].slice(0, MAX_CARRIED_RECORDS);
+          const records = (await Promise.all(ids.map((id) => fileCorpus.byId(id)))).filter(
             (r): r is CorpusRecord => Boolean(r),
           );
-          const records = [...retrieval.records, ...more].slice(0, MAX_CARRIED_RECORDS);
 
           // A store failure or an unpublished recipe costs that recipe, never
-          // the turn.
+          // the turn. `found` is set here only when it was already carded.
           const fetched = await Promise.all(
             carded.community
               .filter((id) => id !== found?.chosen.id)
-              .map((id) => communityById(id, communityLang).catch(() => null)),
+              .map((id) =>
+                communityById(id, communityLang).catch((error: unknown) => {
+                  console.error("[community] carded recipe failed:", error);
+                  return null;
+                }),
+              ),
           );
           const readers = [found, ...fetched]
             .filter((f): f is NonNullable<typeof f> => Boolean(f))
@@ -1388,10 +1404,14 @@ export async function POST(request: NextRequest) {
         // turn can still be moved: re-declare it as conversation and let the
         // words render as what they actually are.
         if (!emitted) {
+          // A follow-up that came back empty has no dish to ask for: the
+          // thread already has one.
           const text =
             full.trim() ||
-            "I could not match that to a dish. Name one dish on its own, " +
-              "the way you would say it at home, and I will show you what it was.";
+            (chat
+              ? "I could not answer that one. Ask it another way, or say which dish you mean."
+              : "I could not match that to a dish. Name one dish on its own, " +
+                "the way you would say it at home, and I will show you what it was.");
           if (!proseTurn) {
             emit({
               type: "meta",

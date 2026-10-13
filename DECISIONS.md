@@ -1382,7 +1382,10 @@ gets its card once per thread. A later message about it, or a message that
 only mentions a dish inside a question, is answered in chat, with every
 corpus record and reader recipe the thread has carded on the prompt (reader
 recipes as fenced data the model is told not to obey) and earlier replies
-replayed whole. A new dish asked for by name, a pill, a dish page and a
+replayed whole. Only what the thread showed goes on the prompt: a record or
+reader recipe the message matches that no card showed stays out, because a card may have
+withdrawn it as a modern namesake and the prompt calls everything it is given
+"seen". A new dish asked for by name, a pill, a dish page and a
 mailroom link still draw a card. The browser sends the carded ids; the
 language call says whether a message asks for a dish or about one, and
 anything short of "question" counts as asking, which is how every turn
