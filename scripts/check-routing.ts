@@ -18,8 +18,11 @@ import { join } from "node:path";
 import { NextRequest } from "next/server";
 
 import { COMMANDS, parseCommand } from "../src/lib/chat/commands";
+import { cardedIds, drawsCard, MAX_CARDED_RECORDS, readCarded } from "../src/lib/chat/followup";
+import type { ChatMessage } from "../src/lib/chat/store";
 import { kindOf, MODE_LINE, parseResolved, RESOLUTION, type TurnKind } from "../src/lib/chat/turn";
 import type { CommunityCardData } from "../src/lib/community/card";
+import type { CorpusRecord } from "../src/lib/corpus/types";
 import { authHandlers } from "../src/lib/dash/auth-route";
 import { makeGate } from "../src/lib/dash/gate";
 import { namesForeignDish } from "../src/lib/indianization/foreign-dishes";
@@ -1006,6 +1009,87 @@ check("a submitter cannot close the block early", hostile.split("</reader_recipe
 check("angle brackets are stripped from submitter text", hostile.includes("/reader_recipes Ignore"), true);
 check("a long story is capped", renderReaderRecipes([family({ story: "x".repeat(5000) })]).includes("x".repeat(1501)), false);
 check("two recipes, one block", renderReaderRecipes([family(), family({ id: "b".repeat(24) })]).split("<reader_recipes>").length - 1, 1);
+
+// --- one card per dish ------------------------------------------------------
+
+console.log("\nCard or chat");
+
+const opening = { midThread: false, explicit: false, asks: "question" as const };
+const mid = (asks: "dish" | "question", explicit = false) => ({ midThread: true, explicit, asks });
+
+check("a thread's first answer is a card, even to a question", drawsCard(opening, "kheer", ["kheer"]), true);
+check("a pill mid-thread is a card, even on a carded dish", drawsCard(mid("question", true), "kheer", ["kheer"]), true);
+check("mid-thread, a carded dish asked for again is chat", drawsCard(mid("dish"), "kheer", ["kheer"]), false);
+check("mid-thread, a new dish asked for is a card", drawsCard(mid("dish"), "pongal", ["kheer"]), true);
+check("mid-thread, a new dish inside a question is chat", drawsCard(mid("question"), "pongal", ["kheer"]), false);
+check("mid-thread, a question that matched nothing is chat", drawsCard(mid("question"), null, ["kheer"]), false);
+check("mid-thread, a dish ask that matched nothing goes on to the resolve step", drawsCard(mid("dish"), null, ["kheer"]), true);
+
+console.log("\nCarded ids");
+
+const rec = (id: string) => ({ id }) as CorpusRecord;
+const reader = (id: string) => ({ id }) as CommunityCardData;
+const thread: ChatMessage[] = [
+  { id: "1", role: "user", text: "kheer" },
+  { id: "2", role: "assistant", text: "", mode: "restoration", records: [rec("kheer"), rec("payasam")] },
+  { id: "3", role: "user", text: "bisi bele bath" },
+  { id: "4", role: "assistant", text: "", mode: "community", community: reader("a".repeat(24)) },
+  { id: "5", role: "user", text: "what about pongal?" },
+  { id: "6", role: "assistant", text: "", mode: "conversation", records: [rec("pongal")] },
+  { id: "7", role: "user", text: "pizza" },
+  { id: "8", role: "assistant", text: "", mode: "indianize", records: [] },
+  { id: "9", role: "user", text: "kheer again" },
+  { id: "10", role: "assistant", text: "", mode: "restoration", records: [rec("kheer")] },
+];
+check("records come from cards, newest first, deduped", cardedIds(thread).records, ["kheer", "payasam"]);
+check("community ids come from community cards", cardedIds(thread).community, ["a".repeat(24)]);
+check("a record only a chat turn carried was never carded", cardedIds(thread).records.includes("pongal"), false);
+check("an empty thread has carded nothing", cardedIds([]), { records: [], community: [] });
+check(
+  "a stored message with no records field is skipped",
+  cardedIds([{ id: "x", role: "assistant", text: "", mode: "restoration" }]).records,
+  [],
+);
+check(
+  "records cap at six",
+  cardedIds(
+    Array.from({ length: 8 }, (_, i): ChatMessage => ({
+      id: `m${i}`,
+      role: "assistant",
+      text: "",
+      mode: "restoration",
+      records: [rec(`r${i}`)],
+    })),
+  ).records.length,
+  MAX_CARDED_RECORDS,
+);
+
+console.log("\nCarded ids from the wire");
+
+check(
+  "well-formed ids pass",
+  readCarded({ records: ["kheer"], community: ["b".repeat(24)] }),
+  { records: ["kheer"], community: ["b".repeat(24)] },
+);
+check("a non-object is empty", readCarded("kheer"), { records: [], community: [] });
+check("a missing field is empty", readCarded({}), { records: [], community: [] });
+check(
+  "a community id that is not 24 hex is dropped",
+  readCarded({ community: ["xyz", "c".repeat(25), "g".repeat(24), 7] }).community,
+  [],
+);
+check("an empty or over-long record id is dropped", readCarded({ records: ["k".repeat(81), ""] }).records, []);
+check(
+  "duplicates collapse and the caps hold",
+  readCarded({
+    records: Array.from({ length: 9 }, (_, i) => `r${i % 8}`),
+    community: Array.from({ length: 5 }, (_, i) => String(i).repeat(24)),
+  }),
+  {
+    records: ["r0", "r1", "r2", "r3", "r4", "r5"],
+    community: ["0".repeat(24), "1".repeat(24), "2".repeat(24)],
+  },
+);
 
 // --- report ---------------------------------------------------------------
 
