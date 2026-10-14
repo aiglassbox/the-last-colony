@@ -1330,6 +1330,12 @@ body {
   color: var(--ink);
 }
 
+/* A reply's single line breaks are its own: a recipe given again in chat is
+   one ingredient per line, and collapsing them ran the list into a sentence. */
+.thread-prose p {
+  white-space: pre-line;
+}
+
 .thread-prose p:last-child {
   margin-bottom: 0;
 }

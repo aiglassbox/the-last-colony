@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { blocks } from "@/lib/chat/prose-blocks";
 import type { ChatMessage } from "@/lib/chat/store";
 import { kindOf } from "@/lib/chat/turn";
 import { uiStrings } from "@/lib/lang/ui-strings";
@@ -81,50 +82,6 @@ export function Message({ message }: { message: ChatMessage }) {
       )}
     </div>
   );
-}
-
-/**
- * Split a reply into paragraphs and comparison tables.
- *
- * A row is a line with two `::` separators, which is the shape the recipe table
- * already uses — one convention for "this is tabular", not a second one the
- * model has to remember. Consecutive rows are one table; anything else is a
- * paragraph. A run of one row is left as prose, because a single line that
- * happens to contain the separator is far more likely to be a sentence than a
- * table of one.
- */
-type Block = { text: string; rows?: string[][] };
-
-function blocks(body: string): Block[] {
-  const out: Block[] = [];
-  let rows: string[][] = [];
-  let para: string[] = [];
-
-  const flushRows = () => {
-    if (rows.length > 1) out.push({ text: "", rows });
-    else if (rows.length === 1) para.push(rows[0].join(" :: "));
-    rows = [];
-  };
-  const flushPara = () => {
-    const text = para.join("\n").trim();
-    if (text) out.push({ text });
-    para = [];
-  };
-
-  for (const line of body.split("\n")) {
-    const cells = line.split("::").map((c) => c.trim());
-    if (cells.length === 3 && cells.some(Boolean)) {
-      flushPara();
-      rows.push(cells);
-      continue;
-    }
-    flushRows();
-    if (!line.trim()) flushPara();
-    else para.push(line);
-  }
-  flushRows();
-  flushPara();
-  return out;
 }
 
 /** Then against now, as the reader asked to see it. */

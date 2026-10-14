@@ -26,6 +26,7 @@ import {
   readCarded,
   shownRecords,
 } from "../src/lib/chat/followup";
+import { blocks, rowAsLine } from "../src/lib/chat/prose-blocks";
 import type { ChatMessage } from "../src/lib/chat/store";
 import { kindOf, MODE_LINE, parseResolved, RESOLUTION, type TurnKind } from "../src/lib/chat/turn";
 import type { CommunityCardData } from "../src/lib/community/card";
@@ -36,6 +37,7 @@ import { namesForeignDish } from "../src/lib/indianization/foreign-dishes";
 import { stripHealthClaims } from "../src/lib/model/health";
 import { stripCardSyntax } from "../src/lib/model/beats";
 import { auditProse } from "../src/lib/model/guards";
+import { renderUnseenRecords } from "../src/lib/model/corpus-block";
 import { condenseRows } from "../src/lib/model/history";
 import { restoreIndianWords } from "../src/lib/model/indian-words";
 import { labTerms, plainWords } from "../src/lib/model/jargon";
@@ -1160,6 +1162,43 @@ check(
   stripCitationShapes("The dish appears in the Annabhoga section, recorded in chapter 12, verse 4. Use full-fat milk."),
   "Use full-fat milk.",
 );
+
+console.log("\nProse blocks");
+
+check(
+  "an Aspect run is a comparison table",
+  blocks("Aspect :: Then :: Now\nGrain :: millet :: rice"),
+  [{ text: "", rows: [["Aspect", "Then", "Now"], ["Grain", "millet", "rice"]] }],
+);
+check(
+  "prose above a comparison stays its own paragraph",
+  blocks("Here is the difference.\nAspect :: Then :: Now\nGrain :: millet :: rice\nThat is all."),
+  [
+    { text: "Here is the difference." },
+    { text: "", rows: [["Aspect", "Then", "Now"], ["Grain", "millet", "rice"]] },
+    { text: "That is all." },
+  ],
+);
+check(
+  "ingredient rows become plain lines, not a table",
+  blocks("Ingredients:\nAtta :: 1 cup :: fibre the mill removes\nPaneer :: 100g :: milk protein"),
+  [{ text: "Ingredients:\nAtta, 1 cup: fibre the mill removes\nPaneer, 100g: milk protein" }],
+);
+check("paragraphs split on a blank line", blocks("One.\n\nTwo."), [{ text: "One." }, { text: "Two." }]);
+check("a row with no quantity", rowAsLine(["Salt", "", "to taste"]), "Salt: to taste");
+check("a row with no reason", rowAsLine(["Salt", "1 tsp", ""]), "Salt, 1 tsp");
+
+console.log("\nUnseen records");
+
+const idliRecord = JSON.parse(
+  readFileSync(join(process.cwd(), "corpus", "ancient", "idli.json"), "utf8"),
+) as CorpusRecord;
+const unseenBlock = renderUnseenRecords([idliRecord]);
+check("no unseen records, no block", renderUnseenRecords([]), "");
+check("the block says the reader has not seen it", unseenBlock.includes("The reader has NOT seen them"), true);
+check("the block warns a name match can be a namesake", unseenBlock.includes("only shares the name"), true);
+check("the record is rendered inside it", unseenBlock.includes('<record id="iddarika-idli-001"'), true);
+check("it is its own block, not on screen", unseenBlock.includes("<on_screen>"), false);
 
 // --- report ---------------------------------------------------------------
 

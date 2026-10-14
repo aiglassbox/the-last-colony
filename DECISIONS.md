@@ -1405,3 +1405,16 @@ every record retrieval carried ("dal" carries the paratha records, which used
 to turn a later "aloo paratha" into chat); and a thread is mid-thread only
 once it has shown a card, so a greeting or a refusal first no longer costs the
 next dish its card.
+
+**What a chat answer may draw on, revised (2026-10-14).** The second live
+run left three things. Asked about a dish no card showed ("how is this
+different from idli?" after a dosa), the model told idli's history from its
+own memory however the instruction was worded, so that dish's record now goes
+to the model after all, in its own block that says the reader has not seen it
+and that a name match can be a namesake; it never joins what is on screen.
+English answers kept ending with a list of the languages on offer, because
+every English turn was told when to add one; that line now belongs only to
+the fallback for a language that could not be placed. And a recipe given
+again in chat came back as the card's ingredient rows, drawn as a table with
+an ingredient for a header; only a comparison headed "Aspect" is a table now,
+any other rows read as plain lines, and a chat paragraph keeps its line breaks.

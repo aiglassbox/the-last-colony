@@ -2,7 +2,13 @@ import type { NextRequest } from "next/server";
 
 import { track } from "@/lib/analytics";
 import { parseCommand } from "@/lib/chat/commands";
-import { cardRecords, drawsCard, MAX_CARDED_COMMUNITY, readCarded } from "@/lib/chat/followup";
+import {
+  cardRecords,
+  drawsCard,
+  MAX_CARDED_COMMUNITY,
+  readCarded,
+  shownRecords,
+} from "@/lib/chat/followup";
 import { MODE_LINE, parseResolved, RESOLUTION, type TurnKind, type TurnMode } from "@/lib/chat/turn";
 import { toCommunityCard, type CommunityCardData } from "@/lib/community/card";
 import { communityById, matchCommunity } from "@/lib/community/client";
@@ -18,7 +24,12 @@ import { loadLocalized } from "@/lib/lang/localized-store";
 import { uiStrings } from "@/lib/lang/ui-strings";
 import { renderIndianizationBlock } from "@/lib/indianization";
 import { BeatParser, INDIANIZE_BEATS, MarkerParser, stripCardSyntax, type StreamingParser } from "@/lib/model/beats";
-import { renderComponentSwaps, renderCorpusBlock, renderRecord } from "@/lib/model/corpus-block";
+import {
+  renderComponentSwaps,
+  renderCorpusBlock,
+  renderRecord,
+  renderUnseenRecords,
+} from "@/lib/model/corpus-block";
 import { condenseRows } from "@/lib/model/history";
 import { auditProse, isClean } from "@/lib/model/guards";
 import { lastSentenceEnd, MAX_SENTENCE_HOLD, stripHealthClaims } from "@/lib/model/health";
@@ -184,11 +195,12 @@ const CHAT_TURN =
   "the steps numbered 1., 2., 3. When the reader asks for a change — a swap, a " +
   "quantity, a step — this applies. " +
   REPLY_ANSWER +
-  " Tell a dish's history only as far as <on_screen> records it: no century, " +
-  "court, manual, text, author or origin story the record does not give you. A " +
+  " Tell a dish's history only as far as <on_screen> or " +
+  "<found_for_this_question> records it: no century, court, manual, text, " +
+  "author or origin story a record does not give you. A " +
   "family recipe in <reader_recipes> has no history beyond the story its sender " +
-  "wrote; never add one. If the message asks about a dish that is in neither " +
-  "block, do not describe its history or its older form at all: say plainly " +
+  "wrote; never add one. If the message asks about a dish that is in none of " +
+  "these blocks, do not describe its history or its older form at all: say plainly " +
   "that you do not have that one written down here, answer only the cooking " +
   "part of the question if there is one, and offer to show it — ask for the " +
   "dish by name and its card will come up. If the message is not about food at " +
@@ -877,14 +889,24 @@ export async function POST(request: NextRequest) {
           // has shown — the records on screen, the records carded earlier, and
           // the reader recipes carded earlier — so a follow-up is answered
           // about the actual recipe, not the dish name. Only what the thread
-          // showed: a record or recipe this message matched that no card ever
-          // showed stays out. It may be one a card withdrew as a modern
-          // namesake ("sabudana khichdi" matches the ancient Kṛsara), and the
-          // prompt tells the model the reader has seen everything it is given.
+          // showed goes in <on_screen>: a record or recipe this message matched
+          // that no card ever showed stays out of it. It may be one a card
+          // withdrew as a modern namesake ("sabudana khichdi" matches the
+          // ancient Kṛsara), and the prompt tells the model the reader has seen
+          // everything in <on_screen>. Such a record now goes in
+          // <found_for_this_question> instead, labelled unseen.
           const ids = [...new Set([...carriedIds, ...carded.records])].slice(0, MAX_CARRIED_RECORDS);
           const records = (await Promise.all(ids.map((id) => fileCorpus.byId(id)))).filter(
             (r): r is CorpusRecord => Boolean(r),
           );
+
+          // What this message matched that no card showed, in its own block:
+          // a comparison is better answered from the record than from memory
+          // (owner, 2026-10-14). Only what a card would draw, never echoed in
+          // `meta.records`, so it never becomes "on screen".
+          const shownIds = new Set(records.map((r) => r.id));
+          const unseen = shownRecords(retrieval.records).filter((r) => !shownIds.has(r.id));
+          const unseenBlock = renderUnseenRecords(unseen);
 
           // A store failure or an unpublished recipe costs that recipe, never
           // the turn. `found` is set here only when it was already carded.
@@ -926,14 +948,15 @@ export async function POST(request: NextRequest) {
           });
 
           const chatPrompt =
-            `${onScreen}\n\n${readerBlock ? `${readerBlock}\n\n` : ""}` +
+            `${onScreen}\n\n${unseenBlock ? `${unseenBlock}\n\n` : ""}` +
+            `${readerBlock ? `${readerBlock}\n\n` : ""}` +
             `${renderComponentSwaps(await fileCorpus.swaps())}\n\n` +
             CHAT_TURN +
             PLAIN_WORDS +
             langRule +
             `\n\nUser said: ${label}`;
 
-          auditRecords = records;
+          auditRecords = [...records, ...unseen];
           proseTurn = true;
           full = await pump(call(chatPrompt, true)[Symbol.asyncIterator](), undefined, null, true);
         } else if (!isResolve) {

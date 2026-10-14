@@ -201,6 +201,13 @@ check("fallback instruction lists supported languages in English", () => {
   assert.match(s, /Tamil/); // the supported list is named
 });
 
+check("a confident English turn does not invite the languages line", () => {
+  const s = replyInstruction(mk({ lang: "en", script: "roman", register: "roman", fell_back: false }));
+  assert.match(s, /Reply in English/);
+  assert.doesNotMatch(s, /Tamil/);
+  assert.match(s, /Do not add a line about which languages/);
+});
+
 // validateLocalizedCard — a minimal record carrying only the fields the
 // validator reads (lengths of ingredients / method / restore_today).
 const rec = {
