@@ -125,6 +125,51 @@ check("scope survives an unsupported language", () => {
   assert.equal(parseNormalizeResponse(urdu, "کچھ").scope, "other");
 });
 
+// parseNormalizeResponse — asks, the mid-thread card-or-chat input
+//
+// Same shape as scope: only the exact word changes anything, so a detector
+// outage leaves every turn drawing its card the way it did before `asks`.
+const withAsks = (asks: string) =>
+  `{"lang":"en","script":"roman","register":"roman","confidence":0.9,"english":"pongal","scope":"food","asks":"${asks}"}`;
+
+check("an explicit question is a question", () => {
+  assert.equal(
+    parseNormalizeResponse(withAsks("question"), "how is this different from pongal").asks,
+    "question",
+  );
+});
+
+check("an explicit dish is a dish", () => {
+  assert.equal(parseNormalizeResponse(withAsks("dish"), "give me pongal recipe").asks, "dish");
+});
+
+check("a missing asks field is dish", () => {
+  const n = parseNormalizeResponse(
+    '{"lang":"en","script":"roman","register":"roman","confidence":0.9,"english":"dosa"}',
+    "dosa",
+  );
+  assert.equal(n.asks, "dish");
+});
+
+check("an unrecognised asks value is dish", () => {
+  assert.equal(parseNormalizeResponse(withAsks("QUESTION"), "x").asks, "dish");
+  assert.equal(parseNormalizeResponse(withAsks("followup"), "x").asks, "dish");
+});
+
+check("malformed JSON is dish, so an outage changes nothing", () => {
+  assert.equal(parseNormalizeResponse("not json at all", "dosa").asks, "dish");
+  assert.equal(enFallback("dosa").asks, "dish");
+});
+
+check("asks survives the language fallback", () => {
+  const weak = `{"lang":"hi","script":"native","register":"native","confidence":${
+    CONFIDENCE_THRESHOLD - 0.1
+  },"english":"pongal","scope":"food","asks":"question"}`;
+  const n = parseNormalizeResponse(weak, "कुछ");
+  assert.equal(n.fell_back, true);
+  assert.equal(n.asks, "question");
+});
+
 // The refusal the route emits without calling a model. Localized like the rest
 // of the chrome, English until `localize:ui` fills the other seven.
 check("the off-topic refusal asks for a dish", () => {
@@ -136,7 +181,7 @@ check("the off-topic refusal asks for a dish", () => {
 // replyInstruction
 const mk = (over: Partial<Normalized>): Normalized => ({
   lang: "hi", script: "native", register: "native", confidence: 0.9,
-  english: "idli", fell_back: false, scope: "food", ...over,
+  english: "idli", fell_back: false, scope: "food", asks: "dish", ...over,
 });
 
 check("instruction names the target language", () => {
@@ -154,6 +199,13 @@ check("fallback instruction lists supported languages in English", () => {
   const s = replyInstruction(mk({ lang: "en", register: "roman", fell_back: true }));
   assert.match(s, /English/);
   assert.match(s, /Tamil/); // the supported list is named
+});
+
+check("a confident English turn does not invite the languages line", () => {
+  const s = replyInstruction(mk({ lang: "en", script: "roman", register: "roman", fell_back: false }));
+  assert.match(s, /Reply in English/);
+  assert.doesNotMatch(s, /Tamil/);
+  assert.match(s, /Do not add a line about which languages/);
 });
 
 // validateLocalizedCard — a minimal record carrying only the fields the

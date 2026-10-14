@@ -108,3 +108,17 @@ export class BeatParser extends MarkerParser<Beat> {
     super(BEATS);
   }
 }
+
+/**
+ * Card syntax out of a prose turn. A chat or REPLY turn has no beat parser, so
+ * a `§VERDICT§` the model writes anyway — and it does, when a reader asks
+ * again for a recipe a card already showed — reaches the bubble as literal
+ * text. A `MODE:` line is the same leak from the resolve step's format. Any
+ * `§WORD§` goes, not only the known beats, so an injected one cannot survive
+ * by being unfamiliar.
+ */
+export function stripCardSyntax(text: string): string {
+  return text
+    .replace(/§\s*[A-Z_]+\s*§[ \t]*\n?/g, "")
+    .replace(/^[ \t]*MODE:\s*(INDIANISE|MODERN|RESTORE|REPLY|DECLINE)[ \t]*\n?/gim, "");
+}

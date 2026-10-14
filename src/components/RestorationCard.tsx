@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { cardRecords } from "@/lib/chat/followup";
 import type { TurnKind } from "@/lib/chat/turn";
 import type { CorpusRecord } from "@/lib/corpus/types";
 import { cardStrings, type CardStrings, type HistoryBeat } from "@/lib/lang/card-strings";
@@ -153,11 +154,9 @@ const RECORD_LABEL: Record<Beat, "verdict" | "then" | "whatChanged" | "cookToday
 export function RestorationCard({ data }: { data: CardData }) {
   const [drawer, setDrawer] = useState(false);
 
-  const ancient = data.records.find((r) => r.tier === "ancient") ?? data.records[0] ?? null;
-  const modern =
-    (ancient?.modern_counterpart_id
-      ? data.records.find((r) => r.id === ancient.modern_counterpart_id)
-      : null) ?? null;
+  // What this card draws is also what the thread counts as shown
+  // (`lib/chat/followup.ts`), so the two cannot disagree.
+  const { ancient, modern } = cardRecords(data.records);
 
   // The localized card for the ancient record, if this turn carried one. Every
   // field below prefers the localization and falls back to the English record,

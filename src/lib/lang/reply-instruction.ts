@@ -9,6 +9,18 @@ import { LANG_NAMES, SUPPORTED_LANGS, type Normalized } from "./types";
  * the languages we do support, in one line.
  */
 export function replyInstruction(n: Normalized): string {
+  // Read as English, and confidently. Said outright because the prompt's
+  // language section tells the model to list the languages it supports
+  // whenever a turn says "Reply in English", and it did, under answers to
+  // questions that had nothing to do with language. The list belongs to the
+  // fallback below, where the reader's language could not be placed.
+  if (!n.fell_back && n.lang === "en") {
+    return (
+      "\n\nReply in English, the language the reader wrote in. Do not add a " +
+      "line about which languages you can answer in."
+    );
+  }
+
   if (n.fell_back || n.lang === "en") {
     const names = SUPPORTED_LANGS.filter((c) => c !== "en").map((c) => LANG_NAMES[c]);
     return (

@@ -29,6 +29,7 @@ const native = (lang: Normalized["lang"], english: string): Normalized => ({
   english,
   fell_back: false,
   scope: "food",
+  asks: "dish",
 });
 
 const CASES: GuardCase[] = [

@@ -53,6 +53,17 @@ export function isSupported(code: string): code is SupportedLang {
  */
 export type QueryScope = "food" | "other";
 
+/**
+ * Whether the message asks FOR a dish or asks something ABOUT one.
+ *
+ * Read only mid-thread, where it decides card or chat (`lib/chat/followup.ts`):
+ * "pongal" and "give me pongal recipe" ask for the dish and may draw its card;
+ * "how is this different from pongal?" mentions it inside a question and is
+ * answered in chat. Every uncertain path resolves to "dish", which is what
+ * every turn was before this existed.
+ */
+export type QueryAsks = "dish" | "question";
+
 export interface Normalized {
   lang: SupportedLang;
   /** The writing system the user used. */
@@ -73,6 +84,8 @@ export interface Normalized {
    * The gate fails open by construction, not by a check somewhere.
    */
   scope: QueryScope;
+  /** See `QueryAsks`. "dish" on every fallback path, for the same reason `scope` is "food". */
+  asks: QueryAsks;
 }
 
 /** The safe result: reply in English, retrieve on the untranslated string. */
@@ -85,5 +98,6 @@ export function enFallback(original: string): Normalized {
     english: original,
     fell_back: true,
     scope: "food",
+    asks: "dish",
   };
 }

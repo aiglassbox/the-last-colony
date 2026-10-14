@@ -2,6 +2,13 @@ import type { NextRequest } from "next/server";
 
 import { track } from "@/lib/analytics";
 import { parseCommand } from "@/lib/chat/commands";
+import {
+  cardRecords,
+  drawsCard,
+  MAX_CARDED_COMMUNITY,
+  readCarded,
+  shownRecords,
+} from "@/lib/chat/followup";
 import { MODE_LINE, parseResolved, RESOLUTION, type TurnKind, type TurnMode } from "@/lib/chat/turn";
 import { toCommunityCard, type CommunityCardData } from "@/lib/community/card";
 import { communityById, matchCommunity } from "@/lib/community/client";
@@ -16,8 +23,13 @@ import { replyInstruction } from "@/lib/lang/reply-instruction";
 import { loadLocalized } from "@/lib/lang/localized-store";
 import { uiStrings } from "@/lib/lang/ui-strings";
 import { renderIndianizationBlock } from "@/lib/indianization";
-import { BeatParser, INDIANIZE_BEATS, MarkerParser, type StreamingParser } from "@/lib/model/beats";
-import { renderComponentSwaps, renderCorpusBlock, renderRecord } from "@/lib/model/corpus-block";
+import { BeatParser, INDIANIZE_BEATS, MarkerParser, stripCardSyntax, type StreamingParser } from "@/lib/model/beats";
+import {
+  renderComponentSwaps,
+  renderCorpusBlock,
+  renderRecord,
+  renderUnseenRecords,
+} from "@/lib/model/corpus-block";
 import { condenseRows } from "@/lib/model/history";
 import { auditProse, isClean } from "@/lib/model/guards";
 import { lastSentenceEnd, MAX_SENTENCE_HOLD, stripHealthClaims } from "@/lib/model/health";
@@ -25,6 +37,7 @@ import { restoreIndianWords } from "@/lib/model/indian-words";
 import { plainWords } from "@/lib/model/jargon";
 import { stripCitationShapes, stripProvenanceClaims } from "@/lib/model/provenance";
 import { findLeak, LEAK_HOLD, LEAK_REFUSAL } from "@/lib/model/leak";
+import { renderReaderRecipes } from "@/lib/model/reader-recipe";
 import { dropNarration, dropSelfAsPerson, stripOpener } from "@/lib/model/self-reference";
 import { danglingTail, styleProse } from "@/lib/model/punctuation";
 import { activeProvider, asQuotaError, MAX_TOKENS, RefusalError } from "@/lib/model/provider";
@@ -67,6 +80,8 @@ interface ChatRequest {
   slug?: string;
   /** Set when the question came from a mailroom link (`/?q=…&r=<id>`): that submission, served as is. */
   communityId?: string;
+  /** Ids of what earlier turns in this thread showed on a card. Distrusted: see `readCarded`. */
+  cards?: unknown;
 }
 
 function encodeEvent(obj: unknown): Uint8Array {
@@ -137,6 +152,61 @@ const PLAIN_WORDS =
   "The worked examples above use palak paneer. They show a shape, not a sentence " +
   "to hand back. If the reader has named palak paneer, that is the one dish whose " +
   "verdict you must write from scratch.";
+
+/**
+ * How a follow-up answers a request to change something. Shared by the
+ * resolve step's MODE: REPLY and the chat turn so the two cannot drift.
+ */
+const REPLY_ANSWER =
+  "Answer with the change itself: the " +
+  "ingredient, the quantity, the step, the heat or the order of work that " +
+  "differs. Open on a verb the reader can act on, never on a modal, and put " +
+  "no placeholder where an ingredient belongs — a sentence about what could " +
+  "be done is not an answer. If you cannot name the concrete thing, say what " +
+  "you would need to know.";
+
+/** How a follow-up shows a comparison. Shared for the same reason. */
+const COMPARISON_ROWS =
+  "When the reader asks to SEE a comparison — a table, a side by side, " +
+  "'what changed from then to now', 'show me the difference' — answer in " +
+  "rows rather than paragraphs. Write a line reading 'Aspect :: Then :: Now' " +
+  "and then one row per line in the same three-field shape, and the card " +
+  "renders them as a table. Keep every cell to a few words. One row per " +
+  "thing that actually changed, taken from the record on screen and the " +
+  "swap table; do not pad the table to look complete, and do not add a row " +
+  "for anything neither of them records. A sentence before the rows is " +
+  "fine, and where the comparison does not fit rows, stay in prose.";
+
+/**
+ * The turn instruction for a follow-up answered in chat (`lib/chat/followup.ts`).
+ * The dish already had its card, or the reader asked something about a dish
+ * rather than for it, so there is no card to fill: prose, from every recipe
+ * this thread has shown.
+ */
+const CHAT_TURN =
+  "This message is a follow-up in a conversation that already has its recipe " +
+  "cards above. Do not write a card: no §markers§, no MODE line and no section " +
+  "headings such as VERDICT or THEN, plain prose only. The records in " +
+  "<on_screen> and the recipes in <reader_recipes> are what the reader has seen " +
+  "on those cards, with every quantity and step: answer from them and from the " +
+  "turns above, and do not repeat a whole recipe unless the reader asks for it. " +
+  "When they ask for a recipe they were already shown, give it again from those " +
+  "blocks as plain lines: each ingredient on its own line without '::', then " +
+  "the steps numbered 1., 2., 3. When the reader asks for a change — a swap, a " +
+  "quantity, a step — this applies. " +
+  REPLY_ANSWER +
+  " Tell a dish's history only as far as <on_screen> or " +
+  "<found_for_this_question> records it: no century, court, manual, text, " +
+  "author or origin story a record does not give you. A " +
+  "family recipe in <reader_recipes> has no history beyond the story its sender " +
+  "wrote; never add one. If the message asks about a dish that is in none of " +
+  "these blocks, do not describe its history or its older form at all: say plainly " +
+  "that you do not have that one written down here, answer only the cooking " +
+  "part of the question if there is one, and offer to show it — ask for the " +
+  "dish by name and its card will come up. If the message is not about food at " +
+  "all, say in one line that recipes are all you hold and ask what they would " +
+  "like to cook; do not answer it first.\n" +
+  COMPARISON_ROWS;
 
 /**
  * What `serveCommunity` needs beyond the match itself, bundled so its own
@@ -327,6 +397,7 @@ export async function POST(request: NextRequest) {
   // own words; only retrieval reads the translation.
   const normalized = slug ? null : await normalize(query);
   const linkId = !slug && typeof body.communityId === "string" ? body.communityId : null;
+  const carded = readCarded(body.cards);
 
   // Off topic, and cheap to know: the detector above is the only model call
   // this turn is allowed to cost. Everything downstream — BM25, a Pinecone
@@ -343,9 +414,9 @@ export async function POST(request: NextRequest) {
   // thread behind it or a card on screen, and a cold turn has neither. So the
   // refusal is confined to a first message, where nothing can be a follow-up
   // and nothing is being referred back to.
+  const midThread = history.some((m) => m.role === "assistant");
   const coldTurn =
-    !history.some((m) => m.role === "assistant") &&
-    !(Array.isArray(body.activeRecordIds) && body.activeRecordIds.length > 0);
+    !midThread && !(Array.isArray(body.activeRecordIds) && body.activeRecordIds.length > 0);
   const offTopic = !slug && normalized!.scope === "other" && coldTurn;
 
   // An empty query returns EMPTY without touching the network, so the refused
@@ -379,6 +450,16 @@ export async function POST(request: NextRequest) {
   const isResolve = retrieval.empty && !slug;
   const label = slug || query;
   const provider = activeProvider();
+
+  // One card per dish (`lib/chat/followup.ts`). A dish page or a pill asks for
+  // a card outright; so does a mailroom link, which is served before any of
+  // this is consulted. Mid-thread means after a card: a greeting, a refusal or
+  // a bare pill before the first card leaves the next dish its card.
+  const facts = {
+    midThread: midThread && carded.anyCard,
+    explicit: Boolean(slug || command),
+    asks: normalized?.asks ?? ("dish" as const),
+  };
 
   /* Whose turn this is, as far as anything here can know. The client sends the
      same id it files threads under, so every event below can be joined to the
@@ -637,17 +718,20 @@ export async function POST(request: NextRequest) {
         // sentence describing the last answer is throat-clearing in prose, and
         // on a card there is no last answer to describe.
         //
-        // A typed chapter/verse/page is kept only beside a verified record,
-        // where the model is repeating a locus it was shown; with no record,
-        // or an unverified one, the locus was withheld and the citation is
-        // invented, so the sentence goes.
+        // A typed chapter/verse/page is kept only on a card beside a verified
+        // record, where the model is repeating a locus it was shown and the
+        // source strip says the same. A prose turn never keeps one: its
+        // history is the client's to send, and a forged earlier reply quoting
+        // "chapter 12, verse 4" came back as fact beside a verified record.
+        // Prose also loses any card syntax the model wrote into it.
         const clean = (text: string) => {
-          const citeable = auditRecords.some((r) => r.verification.status === "editor_verified");
+          const citeable =
+            !asProse && auditRecords.some((r) => r.verification.status === "editor_verified");
           const graded = stripProvenanceClaims(stripHealthClaims(styleProse(text)));
           const styled = dropSelfAsPerson(
             restoreIndianWords(plainWords(citeable ? graded : stripCitationShapes(graded))),
           );
-          return asProse ? dropNarration(styled) : styled;
+          return asProse ? dropNarration(stripCardSyntax(styled)) : styled;
         };
 
         const handle = (chunk: string) => {
@@ -683,23 +767,109 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        const prior = history
-          .slice(0, -1)
-          .slice(-MAX_HISTORY_TURNS)
-          .map((m) => ({
-            role: m.role,
-            content: m.role === "assistant" ? condenseRows(m.content) : m.content,
-          }));
+        // Earlier replies go back so the model knows what it said. A card
+        // turn gets them with their rows collapsed (`condenseRows`: a replayed
+        // table is a format the next card's table copies); a chat turn draws
+        // no card table and needs the quantities, so it gets them whole.
+        const replay = (whole: boolean) =>
+          history
+            .slice(0, -1)
+            .slice(-MAX_HISTORY_TURNS)
+            .map((m) => ({
+              role: m.role,
+              content: m.role === "assistant" && !whole ? condenseRows(m.content) : m.content,
+            }));
 
-        const call = (userContent: string) =>
+        const call = (userContent: string, whole = false) =>
           provider.streamText(
             {
               system: SYSTEM_PROMPT,
               maxTokens: MAX_TOKENS,
-              messages: [...prior, { role: "user" as const, content: userContent }],
+              messages: [...replay(whole), { role: "user" as const, content: userContent }],
             },
             request.signal,
           );
+
+        // Deduped and capped before anything is rendered. A card shows one
+        // record and at most a counterpart, so a few ids is every legitimate
+        // case; three hundred copies of one public id was a prompt with
+        // hundreds of thousands of tokens in it, on a request the limiter
+        // counted as one.
+        const carriedIds = [
+          ...new Set(
+            (Array.isArray(body.activeRecordIds) ? body.activeRecordIds : []).filter(
+              (id): id is string => typeof id === "string" && id.length <= 80,
+            ),
+          ),
+        ].slice(0, MAX_CARRIED_RECORDS);
+
+        // Card or chat, settled before any card is drawn. A mid-thread
+        // question is chat whatever it names; otherwise a dish this thread
+        // already has a card for is chat, and anything else may be a card.
+        let chat = !drawsCard(facts, null, []);
+        // Matched by the record the card would draw, not whichever came back
+        // first: a card only ever counted the records it showed.
+        if (!chat && !isResolve)
+          chat = !drawsCard(facts, cardRecords(retrieval.records).ancient?.id ?? null, carded.records);
+
+        // A dish the corpus holds no record for may still be one a reader's
+        // own family already sent in. Looked up only while the turn may still
+        // draw a card: a mid-thread question is chat already and gets only the
+        // recipes this thread showed, so it skips the query. A match this
+        // thread already carded turns the turn into chat and is reused there
+        // rather than fetched twice. A community hit that draws a card costs
+        // no prompt construction and no model call. A miss costs only the
+        // Pinecone round trip `retrieveForDish` already spent fetching
+        // candidates above, because the vector fallback lives inside
+        // retrieval — moving this lookup earlier would put an Atlas query
+        // inside `retrieve.ts`, which knows only about the corpus, and mixing
+        // two stores in one module is a worse trade than one wasted call on a
+        // miss.
+        // ponytail: the vector fallback already ran; reorder only if that
+        // call shows up in latency.
+        const communityLang = normalized && !normalized.fell_back ? normalized.lang : null;
+        // Both forms, because each reaches rows the other cannot. The
+        // resolved dish name is what gets through a sentence or a
+        // misspelling — "मला आर्टिसन ब्रेडची रेसिपी द्या" and "लिटी चोखा"
+        // only ever match as "artisan bread" and "litti chokha". The
+        // reader's own words are what reach an alias stored in their own
+        // script — "ब्राउनी" is an alias of the brownies row, but the
+        // language step resolves it to "brownie", and "brownie" is not
+        // "brownies". Matching on either one alone loses a whole class of
+        // reader; `label` also stays the analytics event's `query`, which
+        // should always be what was actually typed.
+        const communityQueries = [normalized?.english, label].filter(
+          (q): q is string => Boolean(q),
+        );
+        // `matchCommunity` already folds a store failure to null; the catch
+        // is the same second guard `serveCommunity` keeps around its lookup,
+        // and logs the same way.
+        const found =
+          isResolve && !chat
+            ? await matchCommunity(communityQueries, geo.region ?? null, communityLang).catch(
+                (error: unknown) => {
+                  console.error("[community] lookup failed:", error);
+                  return null;
+                },
+              )
+            : null;
+        if (found && !chat) {
+          chat = !drawsCard(facts, found.chosen.id, carded.community);
+          if (
+            !chat &&
+            (await serveCommunity(
+              communityQueries,
+              geo.region ?? null,
+              communityLang,
+              emit,
+              { geo, device, label, rawRegion: geo.region ?? null },
+              async () => found,
+            ))
+          ) {
+            controller.close();
+            return;
+          }
+        }
 
         // The command narrows what the turn emphasises. It never relaxes the
         // corpus rules and never changes which turn kind this is — just appended
@@ -713,7 +883,83 @@ export async function POST(request: NextRequest) {
         // nothing usable. Set alongside every pump call.
         let proseTurn = false;
 
-        if (!isResolve) {
+        if (chat) {
+          // ---- Chat: a follow-up, answered in prose -------------------------
+          // No card and no mode line. The model gets every recipe this thread
+          // has shown — the records on screen, the records carded earlier, and
+          // the reader recipes carded earlier — so a follow-up is answered
+          // about the actual recipe, not the dish name. Only what the thread
+          // showed goes in <on_screen>: a record or recipe this message matched
+          // that no card ever showed stays out of it. It may be one a card
+          // withdrew as a modern namesake ("sabudana khichdi" matches the
+          // ancient Kṛsara), and the prompt tells the model the reader has seen
+          // everything in <on_screen>. Such a record now goes in
+          // <found_for_this_question> instead, labelled unseen.
+          const ids = [...new Set([...carriedIds, ...carded.records])].slice(0, MAX_CARRIED_RECORDS);
+          const records = (await Promise.all(ids.map((id) => fileCorpus.byId(id)))).filter(
+            (r): r is CorpusRecord => Boolean(r),
+          );
+
+          // What this message matched that no card showed, in its own block:
+          // a comparison is better answered from the record than from memory
+          // (owner, 2026-10-14). Only what a card would draw, never echoed in
+          // `meta.records`, so it never becomes "on screen".
+          const shownIds = new Set(records.map((r) => r.id));
+          const unseen = shownRecords(retrieval.records).filter((r) => !shownIds.has(r.id));
+          const unseenBlock = renderUnseenRecords(unseen);
+
+          // A store failure or an unpublished recipe costs that recipe, never
+          // the turn. `found` is set here only when it was already carded.
+          const fetched = await Promise.all(
+            carded.community
+              .filter((id) => id !== found?.chosen.id)
+              .map((id) =>
+                communityById(id, communityLang).catch((error: unknown) => {
+                  console.error("[community] carded recipe failed:", error);
+                  return null;
+                }),
+              ),
+          );
+          const readers = [found, ...fetched]
+            .filter((f): f is NonNullable<typeof f> => Boolean(f))
+            .slice(0, MAX_CARDED_COMMUNITY)
+            .map((f) => toCommunityCard(f.chosen, [], 1, f.translation));
+          const readerBlock = renderReaderRecipes(readers);
+
+          const onScreen = records.length
+            ? `<on_screen>\n${records.map(renderRecord).join("\n\n")}\n</on_screen>`
+            : "<on_screen>none</on_screen>";
+
+          emit({
+            type: "meta",
+            mode: "conversation" satisfies TurnMode,
+            kind: null,
+            top_score: retrieval.top_score,
+            // Echoed so `activeRecordIds` carries them into the next follow-up.
+            records,
+            ...(uiLang && { lang: uiLang }),
+          });
+          track("turn_resolved", {
+            ...geo,
+            device_id: device,
+            query: label,
+            resolved: "followup",
+            top_score: retrieval.top_score,
+          });
+
+          const chatPrompt =
+            `${onScreen}\n\n${unseenBlock ? `${unseenBlock}\n\n` : ""}` +
+            `${readerBlock ? `${readerBlock}\n\n` : ""}` +
+            `${renderComponentSwaps(await fileCorpus.swaps())}\n\n` +
+            CHAT_TURN +
+            PLAIN_WORDS +
+            langRule +
+            `\n\nUser said: ${label}`;
+
+          auditRecords = [...records, ...unseen];
+          proseTurn = true;
+          full = await pump(call(chatPrompt, true)[Symbol.asyncIterator](), undefined, null, true);
+        } else if (!isResolve) {
           // ---- Corpus hit (or slug): deterministic restoration -------------
           // Retrieval was non-empty to get here: an empty slug lookup already
           // returned 404, and an empty search set `isResolve`. So this branch
@@ -925,57 +1171,6 @@ export async function POST(request: NextRequest) {
         } else {
           // ---- Corpus miss: the model decides the turn ----------------------
 
-          // A dish the corpus holds no record for may still be one a
-          // reader's own family already sent in. Checked first, before the
-          // carried records are gathered and before the resolve prompt is
-          // built: a community hit costs no prompt construction and no
-          // model call. A miss costs only the Pinecone round trip
-          // `retrieveForDish` already spent fetching candidates above,
-          // because the vector fallback lives inside retrieval — moving
-          // this lookup earlier would put an Atlas query inside
-          // `retrieve.ts`, which knows only about the corpus, and mixing two
-          // stores in one module is a worse trade than one wasted call on a
-          // miss.
-          // ponytail: the vector fallback already ran; reorder only if that
-          // call shows up in latency.
-          const communityLang = normalized && !normalized.fell_back ? normalized.lang : null;
-          // Both forms, because each reaches rows the other cannot. The
-          // resolved dish name is what gets through a sentence or a
-          // misspelling — "मला आर्टिसन ब्रेडची रेसिपी द्या" and "लिटी चोखा"
-          // only ever match as "artisan bread" and "litti chokha". The
-          // reader's own words are what reach an alias stored in their own
-          // script — "ब्राउनी" is an alias of the brownies row, but the
-          // language step resolves it to "brownie", and "brownie" is not
-          // "brownies". Matching on either one alone loses a whole class of
-          // reader; `label` also stays the analytics event's `query`, which
-          // should always be what was actually typed.
-          const communityQueries = [normalized?.english, label].filter(
-            (q): q is string => Boolean(q),
-          );
-          if (
-            await serveCommunity(communityQueries, geo.region ?? null, communityLang, emit, {
-              geo,
-              device,
-              label,
-              rawRegion: geo.region ?? null,
-            })
-          ) {
-            controller.close();
-            return;
-          }
-
-          // Deduped and capped before anything is rendered. A card shows one
-          // record and at most a counterpart, so a few ids is every legitimate
-          // case; three hundred copies of one public id was a prompt with
-          // hundreds of thousands of tokens in it, on a request the limiter
-          // counted as one.
-          const carriedIds = [
-            ...new Set(
-              (Array.isArray(body.activeRecordIds) ? body.activeRecordIds : []).filter(
-                (id): id is string => typeof id === "string" && id.length <= 80,
-              ),
-            ),
-          ].slice(0, MAX_CARRIED_RECORDS);
           const carried = (
             await Promise.all(carriedIds.map((id) => fileCorpus.byId(id)))
           ).filter((r): r is CorpusRecord => Boolean(r));
@@ -1019,24 +1214,15 @@ export async function POST(request: NextRequest) {
             "- MODE: REPLY — the message is a follow-up you can answer from the dish " +
             "in <on_screen> or from the conversation so far (the turns above): an " +
             "alternative ingredient, a method question, a challenge, a request to go " +
-            "deeper. Then plain prose, no markers. Answer with the change itself: the " +
-            "ingredient, the quantity, the step, the heat or the order of work that " +
-            "differs. Open on a verb the reader can act on, never on a modal, and put " +
-            "no placeholder where an ingredient belongs — a sentence about what could " +
-            "be done is not an answer. If you cannot name the concrete thing, say what " +
-            "you would need to know. When the message names no new dish " +
+            "deeper. Then plain prose, no markers. " +
+            REPLY_ANSWER +
+            " When the message names no new dish " +
             "of its own, prefer REPLY over inventing a dish to restore. A message " +
             "that DOES name a dish is not a REPLY, even when the only record for it " +
             "is in <semantic_candidates>.\n" +
-            "  When the reader asks to SEE a comparison — a table, a side by side, " +
-            "'what changed from then to now', 'show me the difference' — answer in " +
-            "rows rather than paragraphs. Write a line reading 'Aspect :: Then :: Now' " +
-            "and then one row per line in the same three-field shape, and the card " +
-            "renders them as a table. Keep every cell to a few words. One row per " +
-            "thing that actually changed, taken from the record on screen and the " +
-            "swap table; do not pad the table to look complete, and do not add a row " +
-            "for anything neither of them records. A sentence before the rows is " +
-            "fine, and where the comparison does not fit rows, stay in prose.\n" +
+            "  " +
+            COMPARISON_ROWS +
+            "\n" +
             "- MODE: INDIANISE — the user named a dish that is NOT Indian in origin " +
             "(pizza, pasta, sushi, ice cream, ramen, a burger, and the like); then the " +
             "four §VERDICT§ §REBUILD§ §SWAPS§ §PLATE§ markers from the INDIANISATION " +
@@ -1137,6 +1323,15 @@ export async function POST(request: NextRequest) {
             "describes the dish, never the reader's body — no digestion, gut, " +
             "immunity, detox or energy, and no 'aids', 'helps' or 'good for'. Name " +
             "the axis and compare instead. Plain text only, no other markdown." +
+            // Mid-thread this step is reached only by a message that asks for a
+            // dish matching no card id — a new dish, or a pizza that has no id
+            // to match. The second is the model's call, so it is told. A pill
+            // asks for a card outright and is not told.
+            (facts.midThread && !facts.explicit
+              ? "\nThis thread already has answers above. A dish already answered " +
+                "in the turns above is MODE: REPLY even when this message names it " +
+                "again: its card is already on screen."
+              : "") +
             PLAIN_WORDS +
             directive +
             langRule +
@@ -1247,10 +1442,14 @@ export async function POST(request: NextRequest) {
         // turn can still be moved: re-declare it as conversation and let the
         // words render as what they actually are.
         if (!emitted) {
+          // A follow-up that came back empty has no dish to ask for: the
+          // thread already has one.
           const text =
             full.trim() ||
-            "I could not match that to a dish. Name one dish on its own, " +
-              "the way you would say it at home, and I will show you what it was.";
+            (chat
+              ? "I could not answer that one. Ask it another way, or say which dish you mean."
+              : "I could not match that to a dish. Name one dish on its own, " +
+                "the way you would say it at home, and I will show you what it was.");
           if (!proseTurn) {
             emit({
               type: "meta",

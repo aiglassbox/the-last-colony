@@ -1,5 +1,5 @@
 import { activeProvider } from "@/lib/model/provider";
-import { enFallback, isSupported, type Normalized, type QueryScope } from "./types";
+import { enFallback, isSupported, type Normalized, type QueryAsks, type QueryScope } from "./types";
 
 /**
  * Detect the language of a dish query and translate it to English.
@@ -22,7 +22,7 @@ English, Hindi, Bengali, Marathi, Telugu, Tamil, Gujarati, Kannada, or Urdu —
 in native script, romanized (Latin letters), or mixed Hinglish.
 
 Reply with ONE JSON object and nothing else:
-{"lang":"<iso639-1>","script":"native|roman","register":"native|hinglish|roman","confidence":0..1,"english":"<the query in English>","scope":"food|other"}
+{"lang":"<iso639-1>","script":"native|roman","register":"native|hinglish|roman","confidence":0..1,"english":"<the query in English>","scope":"food|other","asks":"dish|question"}
 
 Rules:
 - lang is the ISO 639-1 code: en, hi, bn, mr, te, ta, gu, kn, ur.
@@ -80,6 +80,14 @@ Rules:
   answering it would mean leaving food behind: "give me the history of world
   war 1", "write me a python script", "who won the election", "solve this
   equation". If you are not sure, answer "food".
+- asks is whether the message ASKS FOR a dish or asks something ABOUT one.
+  "dish" is a request for the dish itself or its recipe: a bare dish name,
+  "pongal recipe", "give me pongal", "how to make pongal", "pongal kaise
+  banate hain", "puran poli kashi banvaychi". "question" is everything else:
+  a question that mentions a dish without asking for it ("how long do I soak
+  the rice for pongal", "how is this different from pongal", "can I make
+  pongal without ghee"), and any message that names no dish at all. If you
+  are not sure, answer "dish".
 - Output the JSON only. No markdown, no code fence, no commentary.`;
 
 /**
@@ -110,6 +118,9 @@ export function parseNormalizeResponse(
   // Only the exact string refuses a turn. A missing field, a typo, a
   // translated word, anything at all: food. See `QueryScope`.
   const scope: QueryScope = obj.scope === "other" ? "other" : "food";
+  // Anything short of an explicit "question" asks for the dish: that is what
+  // every turn did before `asks` existed, so a garbled reply changes nothing.
+  const asks: QueryAsks = obj.asks === "question" ? "question" : "dish";
 
   // Unsupported language (Urdu included) or weak detection: English fallback,
   // but keep the model's English translation if it produced one — a usable
@@ -117,14 +128,14 @@ export function parseNormalizeResponse(
   // `confidence` grades the language, never the topic, and a question about
   // world war 1 is off topic whichever language it failed to be.
   if (!isSupported(lang) || confidence < threshold) {
-    return { ...enFallback(original), english, scope };
+    return { ...enFallback(original), english, scope, asks };
   }
 
   const script = obj.script === "native" ? "native" : "roman";
   const register =
     obj.register === "native" ? "native" : obj.register === "hinglish" ? "hinglish" : "roman";
 
-  return { lang, script, register, confidence, english, fell_back: false, scope };
+  return { lang, script, register, confidence, english, fell_back: false, scope, asks };
 }
 
 export async function normalize(query: string): Promise<Normalized> {

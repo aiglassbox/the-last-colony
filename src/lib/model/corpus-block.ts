@@ -85,6 +85,27 @@ export function renderRecord(r: CorpusRecord): string {
   return parts.join("");
 }
 
+/**
+ * Records this message matched that no card in the thread has shown. A chat
+ * turn answers from them rather than from memory — "how is this different
+ * from idli?" after a dosa card is better answered from the idli record — but
+ * the reader has not seen them, and a name match can be a modern namesake
+ * rather than an ancestor (sabudana khichdi matches the ancient rice-and-pulse
+ * khichdi), so they arrive labelled as exactly that and never as on screen.
+ */
+export function renderUnseenRecords(records: CorpusRecord[]): string {
+  if (!records.length) return "";
+  return (
+    "<found_for_this_question>\n" +
+    "Records that matched words in this message. The reader has NOT seen them " +
+    "on any card. A name match can be a different, older dish that only shares " +
+    "the name, so use one only when it is plainly the dish the reader asked " +
+    "about, and then only for what it records. Never say the reader was shown it.\n" +
+    records.map(renderRecord).join("\n\n") +
+    "\n</found_for_this_question>"
+  );
+}
+
 export function renderCorpusBlock(records: CorpusRecord[]): string {
   if (!records.length) {
     return (

@@ -1372,3 +1372,49 @@ served from that person's rows before state, language and recency choose.
 Whole names only, three letters or more: a first name alone is a guess once
 two people share it. It only chooses among one dish's rows, so it never
 overrides the corpus or reaches past the newest 200; the link does that.
+
+**One card per dish, then chat (2026-10-13).** Every message used to run
+retrieval afresh, so a follow-up that named its dish drew the same card again,
+and a follow-up that did not was answered without the recipe: a community card
+was replayed as one line naming the dish, and a corpus card's quantities lived
+in the record, which only the latest card's follow-ups could see. Now a dish
+gets its card once per thread. A later message about it, or a message that
+only mentions a dish inside a question, is answered in chat, with every
+corpus record and reader recipe the thread has carded on the prompt (reader
+recipes as fenced data the model is told not to obey) and earlier replies
+replayed whole. Only what the thread showed goes on the prompt: a record or
+reader recipe the message matches that no card showed stays out, because a card may have
+withdrawn it as a modern namesake and the prompt calls everything it is given
+"seen". A new dish asked for by name, a pill, a dish page and a
+mailroom link still draw a card. The browser sends the carded ids; the
+language call says whether a message asks for a dish or about one, and
+anything short of "question" counts as asking, which is how every turn
+behaved before.
+
+**Chat answers stay prose and stay sourced (2026-10-14).** A live run found
+three leaks in chat answers. Asked again for a recipe a card already showed,
+the model wrote the card's section markers into the bubble and, for a reader's
+family recipe, invented a palace kitchen to go with it; and a forged earlier
+reply quoting "chapter 12, verse 4" came back as fact beside a verified record.
+So every prose turn now loses card syntax and citation-shaped sentences
+whatever records are on screen, and the chat instruction allows history only
+as far as the record goes, none at all for a reader recipe, and none for a
+dish no card showed. Two counting fixes went with it: a restoration card
+counts as showing only the record it draws and that record's counterpart, not
+every record retrieval carried ("dal" carries the paratha records, which used
+to turn a later "aloo paratha" into chat); and a thread is mid-thread only
+once it has shown a card, so a greeting or a refusal first no longer costs the
+next dish its card.
+
+**What a chat answer may draw on, revised (2026-10-14).** The second live
+run left three things. Asked about a dish no card showed ("how is this
+different from idli?" after a dosa), the model told idli's history from its
+own memory however the instruction was worded, so that dish's record now goes
+to the model after all, in its own block that says the reader has not seen it
+and that a name match can be a namesake; it never joins what is on screen.
+English answers kept ending with a list of the languages on offer, because
+every English turn was told when to add one; that line now belongs only to
+the fallback for a language that could not be placed. And a recipe given
+again in chat came back as the card's ingredient rows, drawn as a table with
+an ingredient for a header; only a comparison headed "Aspect" is a table now,
+any other rows read as plain lines, and a chat paragraph keeps its line breaks.
