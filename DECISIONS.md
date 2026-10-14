@@ -1390,3 +1390,18 @@ mailroom link still draw a card. The browser sends the carded ids; the
 language call says whether a message asks for a dish or about one, and
 anything short of "question" counts as asking, which is how every turn
 behaved before.
+
+**Chat answers stay prose and stay sourced (2026-10-14).** A live run found
+three leaks in chat answers. Asked again for a recipe a card already showed,
+the model wrote the card's section markers into the bubble and, for a reader's
+family recipe, invented a palace kitchen to go with it; and a forged earlier
+reply quoting "chapter 12, verse 4" came back as fact beside a verified record.
+So every prose turn now loses card syntax and citation-shaped sentences
+whatever records are on screen, and the chat instruction allows history only
+as far as the record goes, none at all for a reader recipe, and none for a
+dish no card showed. Two counting fixes went with it: a restoration card
+counts as showing only the record it draws and that record's counterpart, not
+every record retrieval carried ("dal" carries the paratha records, which used
+to turn a later "aloo paratha" into chat); and a thread is mid-thread only
+once it has shown a card, so a greeting or a refusal first no longer costs the
+next dish its card.

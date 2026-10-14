@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { track } from "@/lib/analytics";
 import { parseCommand } from "@/lib/chat/commands";
-import { drawsCard, MAX_CARDED_COMMUNITY, readCarded } from "@/lib/chat/followup";
+import { cardRecords, drawsCard, MAX_CARDED_COMMUNITY, readCarded } from "@/lib/chat/followup";
 import { MODE_LINE, parseResolved, RESOLUTION, type TurnKind, type TurnMode } from "@/lib/chat/turn";
 import { toCommunityCard, type CommunityCardData } from "@/lib/community/card";
 import { communityById, matchCommunity } from "@/lib/community/client";
@@ -17,7 +17,7 @@ import { replyInstruction } from "@/lib/lang/reply-instruction";
 import { loadLocalized } from "@/lib/lang/localized-store";
 import { uiStrings } from "@/lib/lang/ui-strings";
 import { renderIndianizationBlock } from "@/lib/indianization";
-import { BeatParser, INDIANIZE_BEATS, MarkerParser, type StreamingParser } from "@/lib/model/beats";
+import { BeatParser, INDIANIZE_BEATS, MarkerParser, stripCardSyntax, type StreamingParser } from "@/lib/model/beats";
 import { renderComponentSwaps, renderCorpusBlock, renderRecord } from "@/lib/model/corpus-block";
 import { condenseRows } from "@/lib/model/history";
 import { auditProse, isClean } from "@/lib/model/guards";
@@ -174,18 +174,26 @@ const COMPARISON_ROWS =
  */
 const CHAT_TURN =
   "This message is a follow-up in a conversation that already has its recipe " +
-  "cards above. Do not write a card: no §markers§ and no MODE line, plain prose " +
-  "only. The records in <on_screen> and the recipes in <reader_recipes> are " +
-  "what the reader has seen on those cards, with every quantity and step: " +
-  "answer from them and from the turns above, and do not repeat a whole recipe " +
-  "unless the reader asks for it. When the reader asks for a change — a swap, " +
-  "a quantity, a step — this applies. " +
+  "cards above. Do not write a card: no §markers§, no MODE line and no section " +
+  "headings such as VERDICT or THEN, plain prose only. The records in " +
+  "<on_screen> and the recipes in <reader_recipes> are what the reader has seen " +
+  "on those cards, with every quantity and step: answer from them and from the " +
+  "turns above, and do not repeat a whole recipe unless the reader asks for it. " +
+  "When they ask for a recipe they were already shown, give it again from those " +
+  "blocks as plain lines: each ingredient on its own line without '::', then " +
+  "the steps numbered 1., 2., 3. When the reader asks for a change — a swap, a " +
+  "quantity, a step — this applies. " +
   REPLY_ANSWER +
-  " If the message is about a dish in neither, answer from ordinary cooking " +
-  "knowledge, and do not name a text, a verse, a century or any other source " +
-  "for it. If the message is not about food at all, say in one line that " +
-  "recipes are all you hold and ask what they would like to cook; do not " +
-  "answer it first.\n" +
+  " Tell a dish's history only as far as <on_screen> records it: no century, " +
+  "court, manual, text, author or origin story the record does not give you. A " +
+  "family recipe in <reader_recipes> has no history beyond the story its sender " +
+  "wrote; never add one. If the message asks about a dish that is in neither " +
+  "block, do not describe its history or its older form at all: say plainly " +
+  "that you do not have that one written down here, answer only the cooking " +
+  "part of the question if there is one, and offer to show it — ask for the " +
+  "dish by name and its card will come up. If the message is not about food at " +
+  "all, say in one line that recipes are all you hold and ask what they would " +
+  "like to cook; do not answer it first.\n" +
   COMPARISON_ROWS;
 
 /**
@@ -433,9 +441,10 @@ export async function POST(request: NextRequest) {
 
   // One card per dish (`lib/chat/followup.ts`). A dish page or a pill asks for
   // a card outright; so does a mailroom link, which is served before any of
-  // this is consulted.
+  // this is consulted. Mid-thread means after a card: a greeting, a refusal or
+  // a bare pill before the first card leaves the next dish its card.
   const facts = {
-    midThread,
+    midThread: midThread && carded.anyCard,
     explicit: Boolean(slug || command),
     asks: normalized?.asks ?? ("dish" as const),
   };
@@ -697,17 +706,20 @@ export async function POST(request: NextRequest) {
         // sentence describing the last answer is throat-clearing in prose, and
         // on a card there is no last answer to describe.
         //
-        // A typed chapter/verse/page is kept only beside a verified record,
-        // where the model is repeating a locus it was shown; with no record,
-        // or an unverified one, the locus was withheld and the citation is
-        // invented, so the sentence goes.
+        // A typed chapter/verse/page is kept only on a card beside a verified
+        // record, where the model is repeating a locus it was shown and the
+        // source strip says the same. A prose turn never keeps one: its
+        // history is the client's to send, and a forged earlier reply quoting
+        // "chapter 12, verse 4" came back as fact beside a verified record.
+        // Prose also loses any card syntax the model wrote into it.
         const clean = (text: string) => {
-          const citeable = auditRecords.some((r) => r.verification.status === "editor_verified");
+          const citeable =
+            !asProse && auditRecords.some((r) => r.verification.status === "editor_verified");
           const graded = stripProvenanceClaims(stripHealthClaims(styleProse(text)));
           const styled = dropSelfAsPerson(
             restoreIndianWords(plainWords(citeable ? graded : stripCitationShapes(graded))),
           );
-          return asProse ? dropNarration(styled) : styled;
+          return asProse ? dropNarration(stripCardSyntax(styled)) : styled;
         };
 
         const handle = (chunk: string) => {
@@ -783,7 +795,10 @@ export async function POST(request: NextRequest) {
         // question is chat whatever it names; otherwise a dish this thread
         // already has a card for is chat, and anything else may be a card.
         let chat = !drawsCard(facts, null, []);
-        if (!chat && !isResolve) chat = !drawsCard(facts, retrieval.records[0].id, carded.records);
+        // Matched by the record the card would draw, not whichever came back
+        // first: a card only ever counted the records it showed.
+        if (!chat && !isResolve)
+          chat = !drawsCard(facts, cardRecords(retrieval.records).ancient?.id ?? null, carded.records);
 
         // A dish the corpus holds no record for may still be one a reader's
         // own family already sent in. Looked up only while the turn may still

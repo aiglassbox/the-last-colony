@@ -1,3 +1,4 @@
+import type { CorpusRecord } from "@/lib/corpus/types";
 import type { QueryAsks } from "@/lib/lang/types";
 
 import type { ChatMessage } from "./store";
@@ -21,6 +22,8 @@ import type { ChatMessage } from "./store";
 export interface Carded {
   records: string[];
   community: string[];
+  /** Any card at all, recordless ones included: a pizza or a modern dish has no id to list. */
+  anyCard: boolean;
 }
 
 /** The same cap the route puts on records carried onto a prompt. */
@@ -31,7 +34,7 @@ export const MAX_CARDED_COMMUNITY = 3;
 const SUBMISSION_ID = /^[0-9a-f]{24}$/i;
 
 export interface TurnFacts {
-  /** The thread already has an assistant turn. */
+  /** The thread has already shown a card. A greeting or a refusal before it does not count. */
   midThread: boolean;
   /** A pill or a dish page: the reader asked for a card outright. */
   explicit: boolean;
@@ -50,9 +53,35 @@ export function drawsCard(facts: TurnFacts, matchedId: string | null, carded: st
 }
 
 /**
+ * The records a restoration card actually draws: its ancient record (the
+ * first one, when none is ancient) and that record's modern counterpart.
+ * Retrieval can hand a card more — "dal" carries the paratha records — and
+ * those ride along unseen, so nothing may treat them as shown.
+ */
+export function cardRecords(records: CorpusRecord[]): {
+  ancient: CorpusRecord | null;
+  modern: CorpusRecord | null;
+} {
+  const ancient = records.find((r) => r.tier === "ancient") ?? records[0] ?? null;
+  const modern =
+    (ancient?.modern_counterpart_id
+      ? records.find((r) => r.id === ancient.modern_counterpart_id)
+      : null) ?? null;
+  return { ancient, modern };
+}
+
+/** `cardRecords` as a list, for anything that only needs what was seen. */
+export function shownRecords(records: CorpusRecord[]): CorpusRecord[] {
+  const { ancient, modern } = cardRecords(records);
+  return [ancient, modern].filter((r): r is CorpusRecord => r !== null);
+}
+
+/**
  * What the thread has carded, read off its stored messages. A chat turn's
- * records were carried, not carded, so only card modes count. Threads saved
- * before this existed already carry `records` and `community`.
+ * records were carried, not carded, so only card modes count, and of a
+ * restoration card's records only the ones it showed. `anyCard` counts recordless
+ * cards too. Threads saved before this existed already carry `records` and
+ * `community`.
  */
 export function cardedIds(messages: ChatMessage[]): Carded {
   const records: string[] = [];
@@ -60,11 +89,14 @@ export function cardedIds(messages: ChatMessage[]): Carded {
   for (const m of [...messages].reverse()) {
     if (m.role !== "assistant") continue;
     if (m.mode === "community" && m.community) community.push(m.community.id);
-    else if (m.mode === "restoration") records.push(...(m.records ?? []).map((r) => r.id));
+    else if (m.mode === "restoration") records.push(...shownRecords(m.records ?? []).map((r) => r.id));
   }
   return {
     records: [...new Set(records)].slice(0, MAX_CARDED_RECORDS),
     community: [...new Set(community)].slice(0, MAX_CARDED_COMMUNITY),
+    anyCard: messages.some(
+      (m) => m.role === "assistant" && (m.mode === "restoration" || m.mode === "indianize" || m.mode === "community"),
+    ),
   };
 }
 
@@ -83,5 +115,6 @@ export function readCarded(value: unknown): Carded {
   return {
     records: ids(v.records, (s) => s.length > 0 && s.length <= 80, MAX_CARDED_RECORDS),
     community: ids(v.community, (s) => SUBMISSION_ID.test(s), MAX_CARDED_COMMUNITY),
+    anyCard: v.anyCard === true,
   };
 }

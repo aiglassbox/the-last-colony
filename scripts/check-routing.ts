@@ -18,7 +18,14 @@ import { join } from "node:path";
 import { NextRequest } from "next/server";
 
 import { COMMANDS, parseCommand } from "../src/lib/chat/commands";
-import { cardedIds, drawsCard, MAX_CARDED_RECORDS, readCarded } from "../src/lib/chat/followup";
+import {
+  cardedIds,
+  cardRecords,
+  drawsCard,
+  MAX_CARDED_RECORDS,
+  readCarded,
+  shownRecords,
+} from "../src/lib/chat/followup";
 import type { ChatMessage } from "../src/lib/chat/store";
 import { kindOf, MODE_LINE, parseResolved, RESOLUTION, type TurnKind } from "../src/lib/chat/turn";
 import type { CommunityCardData } from "../src/lib/community/card";
@@ -27,6 +34,7 @@ import { authHandlers } from "../src/lib/dash/auth-route";
 import { makeGate } from "../src/lib/dash/gate";
 import { namesForeignDish } from "../src/lib/indianization/foreign-dishes";
 import { stripHealthClaims } from "../src/lib/model/health";
+import { stripCardSyntax } from "../src/lib/model/beats";
 import { auditProse } from "../src/lib/model/guards";
 import { condenseRows } from "../src/lib/model/history";
 import { restoreIndianWords } from "../src/lib/model/indian-words";
@@ -1041,10 +1049,10 @@ const thread: ChatMessage[] = [
   { id: "9", role: "user", text: "kheer again" },
   { id: "10", role: "assistant", text: "", mode: "restoration", records: [rec("kheer")] },
 ];
-check("records come from cards, newest first, deduped", cardedIds(thread).records, ["kheer", "payasam"]);
+check("records come from what cards showed, newest first, deduped", cardedIds(thread).records, ["kheer"]);
 check("community ids come from community cards", cardedIds(thread).community, ["a".repeat(24)]);
 check("a record only a chat turn carried was never carded", cardedIds(thread).records.includes("pongal"), false);
-check("an empty thread has carded nothing", cardedIds([]), { records: [], community: [] });
+check("an empty thread has carded nothing", cardedIds([]), { records: [], community: [], anyCard: false });
 check(
   "a stored message with no records field is skipped",
   cardedIds([{ id: "x", role: "assistant", text: "", mode: "restoration" }]).records,
@@ -1068,11 +1076,11 @@ console.log("\nCarded ids from the wire");
 
 check(
   "well-formed ids pass",
-  readCarded({ records: ["kheer"], community: ["b".repeat(24)] }),
-  { records: ["kheer"], community: ["b".repeat(24)] },
+  readCarded({ records: ["kheer"], community: ["b".repeat(24)], anyCard: true }),
+  { records: ["kheer"], community: ["b".repeat(24)], anyCard: true },
 );
-check("a non-object is empty", readCarded("kheer"), { records: [], community: [] });
-check("a missing field is empty", readCarded({}), { records: [], community: [] });
+check("a non-object is empty", readCarded("kheer"), { records: [], community: [], anyCard: false });
+check("a missing field is empty", readCarded({}), { records: [], community: [], anyCard: false });
 check(
   "a community id that is not 24 hex is dropped",
   readCarded({ community: ["xyz", "c".repeat(25), "g".repeat(24), 7] }).community,
@@ -1088,7 +1096,69 @@ check(
   {
     records: ["r0", "r1", "r2", "r3", "r4", "r5"],
     community: ["0".repeat(24), "1".repeat(24), "2".repeat(24)],
+    anyCard: false,
   },
+);
+
+console.log("\nShown records");
+
+const anc = (id: string, counterpart?: string) =>
+  ({ id, tier: "ancient", modern_counterpart_id: counterpart }) as unknown as CorpusRecord;
+const mod = (id: string) => ({ id, tier: "modern" }) as unknown as CorpusRecord;
+
+check(
+  "a card shows its ancient record and that record's counterpart",
+  shownRecords([mod("m-other"), anc("a1", "m1"), anc("a2", "m2"), mod("m1"), mod("m2")]).map((r) => r.id),
+  ["a1", "m1"],
+);
+check("with no ancient record the first one is shown, alone", shownRecords([mod("m1"), mod("m2")]).map((r) => r.id), ["m1"]);
+check("no records, nothing shown", shownRecords([]), []);
+check("a counterpart with no record behind it leaves the ancient alone", shownRecords([anc("a1", "missing")]).map((r) => r.id), ["a1"]);
+check("cardRecords names the ancient record a card draws", cardRecords([mod("m1"), anc("a1", "m1")]).ancient?.id, "a1");
+check(
+  "a dal card does not count the paratha records it carried",
+  cardedIds([
+    {
+      id: "c",
+      role: "assistant",
+      text: "",
+      mode: "restoration",
+      records: [anc("dal-001", "dal-m"), mod("dal-m"), anc("bedhai-paratha-001", "paratha-m"), mod("paratha-m")],
+    },
+  ]).records,
+  ["dal-001", "dal-m"],
+);
+
+console.log("\nAny card");
+
+check(
+  "only chat turns: no card yet",
+  cardedIds([
+    { id: "1", role: "user", text: "hi" },
+    { id: "2", role: "assistant", text: "Hello", mode: "conversation" },
+  ]).anyCard,
+  false,
+);
+check("a pizza card counts though it has no id", cardedIds([{ id: "2", role: "assistant", text: "", mode: "indianize", records: [] }]).anyCard, true);
+check("a recordless modern card counts", cardedIds([{ id: "2", role: "assistant", text: "", mode: "restoration", records: [] }]).anyCard, true);
+check("a community card counts", cardedIds(thread).anyCard, true);
+check(
+  "anyCard from the wire is true only for a real true",
+  [readCarded({ anyCard: true }).anyCard, readCarded({ anyCard: "true" }).anyCard, readCarded({}).anyCard],
+  [true, false, false],
+);
+
+console.log("\nCard syntax in prose");
+
+check("markers are dropped from a prose reply", stripCardSyntax("§VERDICT§\nA line.\n\n§THEN§\nMore."), "A line.\n\nMore.");
+check("spaced markers too", stripCardSyntax("§ RESTORE_TODAY §\nCook it."), "Cook it.");
+check("an unfamiliar injected marker goes too", stripCardSyntax("Here §PWNED§ it is."), "Here it is.");
+check("a MODE line is dropped", stripCardSyntax("MODE: REPLY\nUse ghee."), "Use ghee.");
+check("prose without card syntax is untouched", stripCardSyntax("Mode of cooking: slow. Use ghee."), "Mode of cooking: slow. Use ghee.");
+check(
+  "a forged locus is cut from prose",
+  stripCitationShapes("The dish appears in the Annabhoga section, recorded in chapter 12, verse 4. Use full-fat milk."),
+  "Use full-fat milk.",
 );
 
 // --- report ---------------------------------------------------------------

@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 import { parseCommand } from "@/lib/chat/commands";
-import { cardedIds } from "@/lib/chat/followup";
+import { cardedIds, shownRecords } from "@/lib/chat/followup";
 import {
   deleteConversation,
   deriveTitle,
@@ -443,7 +443,11 @@ export function Chat({ initialSlug }: { initialSlug?: string }) {
               // ever clearing something that genuinely left the screen.
               patchConversation(conversationId, (c) => ({
                 ...c,
-                activeRecordIds: records.map((r) => r.id),
+                // A restoration card carries records it never draws; only what
+                // it showed is on screen.
+                activeRecordIds: (evt.mode === "restoration" ? shownRecords(records) : records).map(
+                  (r) => r.id,
+                ),
               }));
             } else if (evt.type === "delta" && evt.beat) {
               typer.push(evt.beat, evt.text ?? "");
